@@ -5,6 +5,13 @@ description: Use when you have a spec or requirements for a multi-step task, bef
 
 # Writing Plans
 
+## Role Contract
+- **Main Role:** `architect`
+- **Workflow Step Roles:**
+  1. Plan authoring `[Role: architect]`
+  2. Execution-mode handoff `[Role: router]`
+  3. Execution ownership note `[Role: coder]`
+
 ## Overview
 
 Write comprehensive implementation plans assuming the engineer has zero context for our codebase and questionable taste. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.

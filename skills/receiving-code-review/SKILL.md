@@ -5,6 +5,14 @@ description: Use when receiving code review feedback, before implementing sugges
 
 # Code Review Reception
 
+## Role Contract
+- **Main Role:** `coder`
+- **Workflow Step Roles:**
+  1. Feedback triage + implementation `[Role: coder]`
+  2. Standard reviewer source `[Role: architect]`
+  3. Strict audit reviewer (optional) `[Role: reviewer-claude]`
+  4. Evidence lookup `[Role: librarian]` (if needed)
+
 ## Overview
 
 Code review requires technical evaluation, not emotional performance.

@@ -5,6 +5,12 @@ description: Use when starting feature work that needs isolation from current wo
 
 # Using Git Worktrees
 
+## Role Contract
+- **Main Role:** `router`
+- **Workflow Step Roles:**
+  1. Worktree selection/orchestration `[Role: router]`
+  2. Setup/test baseline fixes `[Role: coder]`
+
 ## Overview
 
 Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.

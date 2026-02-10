@@ -5,6 +5,12 @@ description: Use when implementing any feature or bugfix, before writing impleme
 
 # Test-Driven Development (TDD)
 
+## Role Contract
+- **Main Role:** `coder`
+- **Workflow Step Roles:**
+  1. RED-GREEN-REFACTOR `[Role: coder]`
+  2. Spec/compliance check `[Role: architect]` (when required)
+
 ## Overview
 
 Write the test first. Watch it fail. Write minimal code to pass.

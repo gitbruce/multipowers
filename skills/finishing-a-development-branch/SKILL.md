@@ -5,6 +5,14 @@ description: Use when implementation is complete, all tests pass, and you need t
 
 # Finishing a Development Branch
 
+## Role Contract
+- **Main Role:** `router`
+- **Workflow Step Roles:**
+  1. Option presentation + branch decision `[Role: router]`
+  2. Fix loop if tests fail `[Role: coder]`
+  3. Standard pre-merge audit (optional) `[Role: architect]`
+  4. Strict pre-merge audit (optional) `[Role: reviewer-claude]`
+
 ## Overview
 
 Guide completion of development work by presenting clear options and handling chosen workflow.

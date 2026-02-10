@@ -5,6 +5,12 @@ description: Use when about to claim work is complete, fixed, or passing, before
 
 # Verification Before Completion
 
+## Role Contract
+- **Main Role:** `coder`
+- **Workflow Step Roles:**
+  1. Verification gate execution `[Role: coder]`
+  2. Spec compliance confirmation `[Role: architect]` (complex changes)
+
 ## Overview
 
 Claiming work is complete without verification is dishonesty, not efficiency.

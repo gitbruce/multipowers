@@ -5,6 +5,13 @@ description: "You MUST use this before any creative work - creating features, bu
 
 # Brainstorming Ideas Into Designs
 
+## Role Contract
+- **Main Role:** `architect`
+- **Workflow Step Roles:**
+  1. Intake and routing `[Role: router]`
+  2. Clarify and design `[Role: architect]`
+  3. Implementation handoff `[Role: router]`
+
 ## Overview
 
 Help turn ideas into fully formed designs and specs through natural collaborative dialogue.

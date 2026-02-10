@@ -19,6 +19,12 @@ This is not negotiable. This is not optional. You cannot rationalize your way ou
 
 # Using Skills
 
+## Role Contract
+- **Main Role:** `router`
+- **Workflow Step Roles:**
+  1. Skill applicability triage `[Role: router]`
+  2. Route to creative design `[Role: architect]`, implementation `[Role: coder]`, or research `[Role: librarian]`
+
 ## The Rule
 
 **Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.

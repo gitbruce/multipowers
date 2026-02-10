@@ -5,6 +5,13 @@ description: Use when creating new skills, editing existing skills, or verifying
 
 # Writing Skills
 
+## Role Contract
+- **Main Role:** `architect`
+- **Workflow Step Roles:**
+  1. Skill design + structure `[Role: architect]`
+  2. Pressure-scenario execution `[Role: coder]`
+  3. Orchestration/selection `[Role: router]`
+
 ## Overview
 
 **Writing skills IS Test-Driven Development applied to process documentation.**

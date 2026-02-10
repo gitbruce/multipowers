@@ -5,6 +5,17 @@ description: Use when executing implementation plans with independent tasks in t
 
 # Subagent-Driven Development
 
+## Role Contract
+- **Main Role:** `router`
+- **Workflow Step Roles:**
+  1. Orchestration `[Role: router]`
+  2. Implementer nodes `[Role: coder]`
+  3. Spec review `[Role: architect]`
+  4. Quality review `[Role: architect]`
+  5. Optional final strict audit `[Role: reviewer-claude]`
+
+## Overview
+
 Execute plan by dispatching fresh subagent per task, with two-stage review after each: spec compliance review first, then code quality review.
 
 **Core principle:** Fresh subagent per task + two-stage review (spec then quality) = high quality, fast iteration

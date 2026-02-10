@@ -5,6 +5,13 @@ description: Use when facing 2+ independent tasks that can be worked on without 
 
 # Dispatching Parallel Agents
 
+## Role Contract
+- **Main Role:** `router`
+- **Workflow Step Roles:**
+  1. Domain split + dispatch `[Role: router]`
+  2. Parallel fixes `[Role: coder]`
+  3. Integration/conflict review `[Role: architect]`
+
 ## Overview
 
 When you have multiple unrelated failures (different test files, different subsystems, different bugs), investigating them sequentially wastes time. Each investigation is independent and can happen in parallel.

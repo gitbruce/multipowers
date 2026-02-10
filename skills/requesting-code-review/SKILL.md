@@ -5,6 +5,15 @@ description: Use when completing tasks, implementing major features, or before m
 
 # Requesting Code Review
 
+## Role Contract
+- **Main Role:** `architect`
+- **Workflow Step Roles:**
+  1. Review request + criteria `[Role: architect]`
+  2. High-signal audit option `[Role: reviewer-claude]`
+  3. Fix implementation loop `[Role: coder]`
+
+## Overview
+
 Dispatch superpowers:code-reviewer subagent to catch issues before they cascade.
 
 **Core principle:** Review early, review often.

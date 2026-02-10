@@ -5,6 +5,13 @@ description: Use when encountering any bug, test failure, or unexpected behavior
 
 # Systematic Debugging
 
+## Role Contract
+- **Main Role:** `coder`
+- **Workflow Step Roles:**
+  1. Root-cause + hypothesis workflow `[Role: coder]`
+  2. External evidence lookup `[Role: librarian]` (if needed)
+  3. Architecture challenge after repeated failures `[Role: architect]`
+
 ## Overview
 
 Random fixes waste time and create new bugs. Quick patches mask underlying issues.

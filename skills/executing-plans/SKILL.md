@@ -5,6 +5,13 @@ description: Use when you have a written implementation plan to execute in a sep
 
 # Executing Plans
 
+## Role Contract
+- **Main Role:** `coder`
+- **Workflow Step Roles:**
+  1. Batch execution `[Role: coder]`
+  2. Checkpoint reviews `[Role: architect]`
+  3. Branch-finish decision flow `[Role: router]`
+
 ## Overview
 
 Load plan, review critically, execute tasks in batches, report for review between batches.
