@@ -1,25 +1,36 @@
-# Tech Stack
+# Tech Stack (User Project)
 
-## Runtime & Languages
-- Shell: Bash
-- Python: 3.x (connector and validation scripts)
-- Node.js: npm test runner / plugin checks
+## Subject / Audience
 
-## Key Components
-- `bin/multipowers`: project CLI (init/doctor/track)
-- `bin/ask-role`: role dispatch bridge
-- `connectors/*.py`: external CLI adapters and structured logging
-- `scripts/*.py`: validation and governance checks
+- Subject: How to build the User's App.
+- Audience: End Users and app contributors.
 
-## Tooling Requirements
-- Required: `python3`
-- Optional: `jq`
-- Testing: `npm test` (core suite), optional integration tests
+## App Technology Profile
+
+Use this file to record the actual app stack. Common examples:
+
+- Frontend: React / Next.js / Vue
+- Backend: Python / Go / Rust / Node.js
+- Data: PostgreSQL / MySQL / Redis
+- Infra: Docker / Kubernetes / serverless
+
+## Toolchain Baseline
+
+- Package/dependency manager(s): [fill in]
+- Test runner(s): [fill in]
+- Build/deploy commands: [fill in]
+- Local dev bootstrap commands: [fill in]
+
+## Governance Tooling for Major Changes
+
+- Security/pattern scan: `semgrep`
+- TS/JS lint/format: `biome`
+- Python lint/format: `ruff`
+
+If a language is absent in this project, mark that tool as N/A explicitly.
 
 ## Operational Conventions
-- Structured logs in `outputs/runs/YYYY-MM-DD.jsonl`
-- Context priority files:
-  1. `conductor/context/product.md`
-  2. `conductor/context/product-guidelines.md`
-  3. `conductor/context/workflow.md`
-  4. `conductor/context/tech-stack.md`
+
+- Keep commands reproducible in local and CI environments.
+- Keep logs/artifacts in consistent, documented locations.
+- Keep context priority clear across `product`, `guidelines`, `workflow`, `tech-stack`.

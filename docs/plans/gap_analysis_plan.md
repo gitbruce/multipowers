@@ -23,7 +23,7 @@
 ## 2) 目标状态（来自 context）
 
 1. **Context-First**：每次任务都由 `conductor/context/*.md` 提供稳定背景锚定。
-2. **Role-Driven**：Sisyphus/Prometheus/Hephaestus/Oracle 职责清晰、路由可控。
+2. **Role-Driven**：Router/Architect/Coder/Architect 职责清晰、路由可控。
 3. **Methodology-Enforced**：Brainstorming → Planning → TDD/SDD → Verification 流程可执行。
 4. **可维护可验证**：配置可校验、调用可观测、流程可测试、结果可验收。
 
@@ -54,7 +54,7 @@
 
 ### T-001（P0，对应 GA-03）修复 `ask-role` 参数透传
 - **状态**：`DONE`
-- **负责人**：Hephaestus
+- **负责人**：Coder
 - **为什么改**：当前 args 被压成一个字符串，导致多参数调用错误。
 - **改什么文件**：
   - 修改：`bin/ask-role`
@@ -71,7 +71,7 @@
 
 ### T-002（P0，对应 GA-04）统一 connector 参数协议
 - **状态**：`DONE`
-- **负责人**：Hephaestus
+- **负责人**：Coder
 - **为什么改**：`exec`/`-p` 重复会造成命令行为不确定。
 - **改什么文件**：
   - 修改：`connectors/codex.py`
@@ -88,8 +88,8 @@
 
 ### T-003（P0，对应 GA-05）传播 CLI 失败状态
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Oracle
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：当前 connector 可能吞掉失败，主流程误判成功。
 - **改什么文件**：
   - 修改：`connectors/codex.py`
@@ -107,8 +107,8 @@
 
 ### T-004（P0，对应 GA-08）补齐核心回归测试网
 - **状态**：`DONE`
-- **负责人**：Oracle
-- **协作**：Hephaestus
+- **负责人**：Architect
+- **协作**：Coder
 - **为什么改**：`npm test` 不执行真实校验，无法防回归。
 - **改什么文件**：
   - 修改：`package.json`
@@ -127,8 +127,8 @@
 
 ### T-005（P1，对应 GA-01）落地 Track 生命周期命令
 - **状态**：`DONE`
-- **负责人**：Sisyphus
-- **协作**：Prometheus
+- **负责人**：Router
+- **协作**：Architect
 - **为什么改**：目前只有文档流程，没有可执行闭环。
 - **改什么文件**：
   - 修改：`bin/multipowers`
@@ -149,8 +149,8 @@
 
 ### T-006（P1，对应 GA-07）实现 `doctor` 与幂等 `init`
 - **状态**：`DONE`
-- **负责人**：Sisyphus
-- **协作**：Hephaestus
+- **负责人**：Router
+- **协作**：Coder
 - **为什么改**：运维入口不足，初始化重复执行易破坏现有内容。
 - **改什么文件**：
   - 修改：`bin/multipowers`
@@ -170,8 +170,8 @@
 
 ### T-007（P1，对应 GA-09）增加结构化运行日志
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Oracle
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：stderr 文本日志难用于统计与故障定位。
 - **改什么文件**：
   - 修改：`connectors/utils.py`
@@ -193,8 +193,8 @@
 
 ### T-008（P1，对应 GA-10）增加 context 预算与裁剪策略
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Prometheus
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：context 增长会引发高成本与高时延。
 - **改什么文件**：
   - 修改：`bin/ask-role`
@@ -215,8 +215,8 @@
 
 ### T-009（P1，对应 GA-11）统一产物路径规范
 - **状态**：`DONE`
-- **负责人**：Prometheus
-- **协作**：Sisyphus
+- **负责人**：Architect
+- **协作**：Router
 - **为什么改**：路径不一致会导致协作歧义。
 - **改什么文件**：
   - 修改：`conductor/context/workflow.md`
@@ -238,8 +238,8 @@
 
 ### T-010（P1，对应 GA-14）引入角色配置 schema 校验
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Oracle
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：配置错误应在启动前发现，不应到运行时才暴露。
 - **改什么文件**：
   - 新增：`config/roles.schema.json`
@@ -262,8 +262,8 @@
 
 ### T-011（P2，对应 GA-12）治理模式分级（traceable/private）
 - **状态**：`DONE`
-- **负责人**：Prometheus
-- **协作**：Sisyphus
+- **负责人**：Architect
+- **协作**：Router
 - **为什么改**：需要平衡"可追溯协作"与"本地私有化"。
 - **改什么文件**：
   - 修改：`.gitignore`
@@ -284,8 +284,8 @@
 
 ### T-012（P2，对应 GA-13）补齐质量规范文档基线
 - **状态**：`DONE`
-- **负责人**：Oracle
-- **协作**：Prometheus
+- **负责人**：Architect
+- **协作**：Architect
 - **为什么改**：workflow 引用 `code-style`/`design-system`，仓库未落地。
 - **改什么文件**：
   - 新增：`conductor/context/code-style.md`
@@ -294,7 +294,7 @@
   - 修改：`conductor/context/workflow.md`
 - **怎么改**：
   1. 给出最小可执行规范（命名、测试、review 阻断条件）。
-  2. 在 workflow 明确 oracle 审核依据。
+  2. 在 workflow 明确 architect 审核依据。
   3. 与现有 skills 指南保持一致术语。
 - **成功判定**：
   - [x] 被引用规范文件真实存在。
@@ -385,7 +385,7 @@
 
 - **Coverage Task IDs**: `T-001, T-002, T-003, T-004, T-005, T-006, T-007, T-008, T-009, T-010, T-011, T-012`
 - **Date**: `2026-02-10`
-- **Verifier**: `oracle`
+- **Verifier**: `architect`
 - **Command(s)**:
   - `bash -n bin/multipowers bin/ask-role`
   - `python3 -m py_compile connectors/codex.py connectors/gemini.py connectors/utils.py scripts/validate_roles.py scripts/check_context_quality.py scripts/check_plan_evidence.py`

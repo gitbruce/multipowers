@@ -1,186 +1,99 @@
-# Multipowers: Multi-Model Orchestration Engine
+# Multipowers: Workflow + Role Orchestration for Vibe Coding
 
-Transform Claude Code into a role-driven, multi-model orchestration system with Conductor context anchoring.
+Multipowers is a **tool project** that helps vibe-coding agents (Claude Code and similar environments) deliver changes in a predictable way: context first, then workflow, then role execution.
+
+## Project Positioning
+
+- **This repo (`conductor/`)** defines how to build and evolve the **Multipowers tool itself**.
+- **Template repo (`templates/conductor/`)** scaffolds context for building the **user's target app**.
+
+## Design Sources and What We Absorb
+
+1. **conductor** (`setup` + `new track`): project-level stable context and track lifecycle.
+2. **superpowers** (methodology): explicit software workflow for major changes.
+3. **oh-my-opencode** (role selection): task-aware role dispatch for execution nodes.
+4. **Claudecode-Codex-Gemini** (multi-CLI bridge): non-interactive `claude` / `codex` / `gemini` invocation per role.
+
+## Core Model
+
+### 1) Dual Context Layers
+
+| Layer | Purpose | Subject | Tech Stack | Audience |
+|---|---|---|---|---|
+| `conductor/context/*` | Build Multipowers itself | How to build the Multipowers tool | Bash, Python, Node.js | Tool maintainers |
+| `templates/conductor/context/*` | Initialize user projects | How to build the user's app | React/Python/Go/Rust (or user-chosen stack) | End users |
+
+### 2) Router: Fast Lane vs Standard Lane
+
+Router is the coordinator. It routes by task type:
+
+- **Fast Lane**: skip skills; directly dispatch an execution role for small, low-risk, bounded tasks.
+- **Standard Lane**: choose a **workflow**, not a role. Example workflows: `brainstorming`, `writing-plans`, `subagent-driven-development`, `executing-plans`.
+
+In Standard Lane, each workflow has a default executor role, but specific nodes can require specialist roles. Example: in `subagent-driven-development`, implementation may default to Coder, while code review nodes are forced to Architect.
+
+### 3) Role-to-CLI Mapping
+
+- `router` → local/system coordinator in main Claude Code session
+- `architect` → `gemini` CLI (planning/architecture + review/verification)
+- `coder` → `codex` CLI (implementation)
+- `librarian` → `gemini` CLI (fast research)
+
+All external calls go through `bin/ask-role`, which injects context and forwards role-specific prompts to connectors.
+
+## Major Change Governance (Required)
+
+For significant modifications, use this checklist:
+
+1. **Record changed files** (e.g., `git diff --name-only`).
+2. **Run post-change checks**:
+   - `semgrep` for security/pattern issues
+   - `biome` for TS/JS formatting/linting
+   - `ruff` for Python linting/format checks
+3. **Fix findings** and re-run until clean (or explicitly justify exceptions).
+4. **Update documentation based on changed-file scope** (design/workflow/usage docs).
 
 ## Quick Start
 
 ```bash
-# Install dependencies
 npm install
-
-# First-time health check (strict mode expects missing context)
-./bin/multipowers doctor
-
-# Non-destructive bootstrap/repair
 ./bin/multipowers init --repair
-
-# Fill required context files, then verify again
 ./bin/multipowers doctor
-
-# Create a track
 ./bin/multipowers track new my-feature
 ```
 
-## Architecture
+## Track Lifecycle
 
-### Conductor System
-- **Context-First**: Immutable background in `conductor/context/*.md` is injected per task.
-- **Track-Based**: Work is organized via `conductor/tracks/*.md`.
-- **Role-Driven**: Specialized personas execute different lifecycle phases.
+```bash
+./bin/multipowers track new <feature-name>
+./bin/multipowers track start <track-name>
+# execute via fast lane or standard lane
+./bin/multipowers track complete <track-name>
+```
 
-### Roles
-- **Sisyphus**: Orchestrator & router (Claude Code main session)
-- **Prometheus**: Architect & planner (Gemini)
-- **Hephaestus**: TDD implementer (Codex)
-- **Oracle**: Reviewer & verifier (Gemini)
-- **Librarian**: Research role (Gemini Flash)
+## Key Commands
 
-### Bridge Script
-- `bin/ask-role` routes tasks to external CLIs
-- loads `conductor/context/*.md` with priority-aware budget trimming
-- uses `conductor/config/roles.json` first, then `config/roles.default.json`
-- writes structured records for context preparation + connector execution
-- propagates `request_id` across both log record types
+```bash
+# role dispatch bridge
+./bin/ask-role architect "Brainstorm architecture"
+./bin/ask-role coder "Implement task with TDD"
+./bin/ask-role architect "Review for blocking issues"
 
-## Directory Structure
+# health and governance baseline
+./bin/multipowers doctor
+npm test --silent
+```
+
+## Repository Layout
 
 ```text
 multipowers/
-├── bin/
-│   ├── multipowers              # CLI entry (init/doctor/update/track)
-│   └── ask-role                 # Role dispatch bridge
-├── config/
-│   ├── roles.default.json
-│   ├── roles.schema.json
-│   └── mcp.default.json
-├── connectors/
-│   ├── codex.py
-│   ├── gemini.py
-│   └── utils.py
-├── conductor/
-│   ├── config/
-│   ├── context/
-│   └── tracks/
-├── docs/
-│   ├── design/
-│   └── plans/
-├── outputs/
-│   └── runs/                    # structured JSONL runtime logs
-├── scripts/
-│   ├── validate_roles.py
-│   ├── check_context_quality.py
-│   └── check_plan_evidence.py
-├── templates/
-└── tests/
+├── bin/                     # multipowers + ask-role entry points
+├── connectors/              # codex/gemini wrappers
+├── config/                  # default role and schema config
+├── conductor/               # maintainer-facing live context/tracks
+├── templates/conductor/     # scaffold for user project context/tracks
+├── skills/                  # methodology skills
+├── scripts/                 # validators/governance checks
+└── tests/                   # regression and integration tests
 ```
-
-## Context Enforcement Mode
-
-Use `MULTIPOWERS_CONTEXT_MODE` to align `doctor` and `ask-role` behavior:
-
-- `strict` (default): missing required context files fails fast.
-- `lenient`: missing context produces warnings and continues.
-
-```bash
-# strict (default)
-./bin/multipowers doctor
-
-# lenient mode
-MULTIPOWERS_CONTEXT_MODE=lenient ./bin/multipowers doctor
-MULTIPOWERS_CONTEXT_MODE=lenient ./bin/ask-role prometheus "analyze this"
-```
-
-## Init & Repair Modes
-
-`bin/multipowers init` supports three modes:
-
-- `./bin/multipowers init`: create `conductor/` once, no overwrite.
-- `./bin/multipowers init --repair`: non-destructive; only fills missing files.
-- `./bin/multipowers init --force --yes`: destructive re-create; explicit confirmation required.
-
-## Development Workflow
-
-### Setup
-1. `./bin/multipowers init --repair`
-2. Fill required context files:
-   - `conductor/context/product.md`
-   - `conductor/context/product-guidelines.md`
-   - `conductor/context/workflow.md`
-   - `conductor/context/tech-stack.md`
-3. Optionally override roles in `conductor/config/roles.json`
-4. Run `./bin/multipowers doctor`
-
-### Track Lifecycle
-1. `./bin/multipowers track new <feature-name>`
-2. `./bin/multipowers track start <track-name>`
-3. Execute design/planning/implementation
-4. `./bin/multipowers track complete <track-name>`
-
-### Role Dispatch
-```bash
-./bin/ask-role prometheus "Brainstorm architecture for auth"
-./bin/ask-role hephaestus "Implement task with TDD"
-./bin/ask-role oracle "Review diff for blocking issues"
-```
-
-## Path Conventions
-
-- Design docs: `docs/design/YYYY-MM-DD-<feature>-design.md`
-- Implementation plans: `docs/plans/YYYY-MM-DD-<feature>.md`
-- Tracks: `conductor/tracks/track-YYYYMMDD-<feature>.md`
-- Runtime logs: `outputs/runs/YYYY-MM-DD.jsonl`
-
-## Context Budget
-
-`ask-role` uses `MULTIPOWERS_CONTEXT_BUDGET` (default `128000` tokens) and trims context by file priority:
-1. `conductor/context/product.md`
-2. `conductor/context/product-guidelines.md`
-3. `conductor/context/workflow.md`
-4. `conductor/context/tech-stack.md`
-
-When trimming occurs:
-- stderr includes warning + truncated file list
-- JSONL includes `event=context_prepared` with `truncated_files`
-
-## Governance Modes
-
-### Private Mode (default)
-- `.gitignore` excludes `conductor/context/*.md` and `conductor/tracks/*.md`
-
-### Traceable Mode
-- uncomment ignore lines to version control context/tracks for team auditability
-
-## Validation & Testing
-
-```bash
-# CLI health checks (context + schema + quality)
-./bin/multipowers doctor
-
-# Core tests
-npm test --silent
-
-# Fresh onboarding smoke test
-bash tests/opencode/test-onboarding-smoke.sh
-
-# Optional integration tests
-bash tests/opencode/run-tests.sh --integration
-```
-
-## CI
-
-### Core + Governance (`.github/workflows/core-tests.yml`)
-- `core-tests` job:
-  - `bash -n bin/multipowers bin/ask-role`
-  - `python3 -m py_compile connectors/*.py scripts/*.py`
-  - `npm test --silent`
-- `governance-checks` job:
-  - `python3 scripts/check_plan_evidence.py`
-  - `python3 scripts/check_context_quality.py --context-dir templates/conductor/context --quiet`
-
-### Integration (`.github/workflows/integration-tests.yml`)
-- Triggered by `workflow_dispatch` and nightly `schedule`
-- Runs `bash tests/opencode/run-tests.sh --integration`
-
-## License
-
-[Add license information here]

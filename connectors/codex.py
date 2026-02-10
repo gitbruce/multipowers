@@ -38,7 +38,7 @@ def call_codex(prompt: str, args: list[str]) -> str:
     """Call Codex CLI and propagate failures with safe logging."""
     role_args = _normalize_args(args)
     tokens = count_tokens(prompt)
-    role_name = _runtime_role("hephaestus")
+    role_name = _runtime_role("coder")
     request_id = _runtime_request_id()
     metadata = {"request_id": request_id} if request_id else None
 

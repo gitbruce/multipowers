@@ -43,7 +43,7 @@
 
 ### T5-001（P0，对应 GA5-01）统一 context 缺失时的执行策略
 - **状态**：`DONE`
-- **负责人**：Sisyphus
+- **负责人**：Router
 - **为什么改**：核心入口（doctor/ask-role）必须保持一致语义，否则无法形成稳定心智模型。
 - **改什么文件**：
   - 修改：`bin/ask-role`
@@ -60,8 +60,8 @@
 
 ### T5-002（P0，对应 GA5-02）提供非破坏性 context 修复模式
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Oracle
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：`init --force` 目前会重建整个 `conductor/`，对已有本地信息风险过高。
 - **改什么文件**：
   - 修改：`bin/multipowers`
@@ -77,8 +77,8 @@
 
 ### T5-003（P1，对应 GA5-03）新增 context 完成度校验器
 - **状态**：`DONE`
-- **负责人**：Prometheus
-- **协作**：Sisyphus
+- **负责人**：Architect
+- **协作**：Router
 - **为什么改**：模板齐全不等于内容可用，需要防止占位文本直接上线。
 - **改什么文件**：
   - 新增：`scripts/check_context_quality.py`
@@ -95,7 +95,7 @@
 
 ### T5-004（P1，对应 GA5-04）增加“从新克隆到可运行”烟雾测试
 - **状态**：`DONE`
-- **负责人**：Oracle
+- **负责人**：Architect
 - **为什么改**：需要确保测试通过与真实上手路径一致，避免“测试绿、上手红”。
 - **改什么文件**：
   - 新增：`tests/opencode/test-onboarding-smoke.sh`
@@ -111,8 +111,8 @@
 
 ### T5-005（P1，对应 GA5-05）强化计划证据校验规则
 - **状态**：`DONE`
-- **负责人**：Prometheus
-- **协作**：Oracle
+- **负责人**：Architect
+- **协作**：Architect
 - **为什么改**：当前规则偏文本匹配，存在误判“已覆盖”的窗口。
 - **改什么文件**：
   - 修改：`scripts/check_plan_evidence.py`
@@ -128,8 +128,8 @@
 
 ### T5-006（P1，对应 GA5-06）为单次调用增加 request_id 级链路追踪
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Oracle
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：没有 request_id，context 日志与 connector 日志难以归并。
 - **改什么文件**：
   - 修改：`bin/ask-role`
@@ -147,7 +147,7 @@
 
 ### T5-007（P2，对应 GA5-07）优化 Track 歧义匹配的错误呈现
 - **状态**：`DONE`
-- **负责人**：Sisyphus
+- **负责人**：Router
 - **为什么改**：出现多匹配时应直接输出候选并引导精确输入，减少误导性提示。
 - **改什么文件**：
   - 修改：`bin/multipowers`
@@ -160,8 +160,8 @@
 
 ### T5-008（P2，对应 GA5-08）补齐 CI 分层策略（core / governance / integration）
 - **状态**：`DONE`
-- **负责人**：Oracle
-- **协作**：Prometheus
+- **负责人**：Architect
+- **协作**：Architect
 - **为什么改**：当前 CI 仅 core 门禁，缺少治理检查与集成层的触发策略。
 - **改什么文件**：
   - 修改：`.github/workflows/core-tests.yml`
@@ -200,7 +200,7 @@
 
 - **Coverage Task IDs**: `T5-001, T5-002, T5-003, T5-004, T5-005, T5-006, T5-007, T5-008`
 - **Date**: `2026-02-10`
-- **Verifier**: `oracle`
+- **Verifier**: `architect`
 - **Command(s)**:
   - `bash -n bin/multipowers bin/ask-role tests/opencode/*.sh`
   - `python3 -m py_compile connectors/codex.py connectors/gemini.py connectors/utils.py scripts/validate_roles.py scripts/check_context_quality.py scripts/check_plan_evidence.py`

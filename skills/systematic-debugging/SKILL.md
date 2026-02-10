@@ -299,12 +299,11 @@ From debugging sessions:
 
 ## Conductor Integration Notes
 
-**For Sisyphus:** All skills now use ask-role bridge script for role-based execution.
+**For Router:** All skills now use ask-role bridge script for role-based execution.
 
 **Role Mapping:**
-- **Prometheus**: Architecture design & planning via `./bin/ask-role prometheus`
-- **Hephaestus**: TDD implementation via `./bin/ask-role hephaestus`
-- **Oracle**: Code review & verification via `./bin/ask-role oracle`
+- **Architect**: Architecture planning and code/spec review via `./bin/ask-role architect`
+- **Coder**: TDD implementation via `./bin/ask-role coder`
 - **Librarian**: Research via `./bin/ask-role librarian`
 
 **Context Loading:**

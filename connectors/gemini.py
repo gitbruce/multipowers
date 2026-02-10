@@ -34,7 +34,7 @@ def _runtime_request_id() -> Optional[str]:
 def call_gemini(prompt: str, args: Optional[list[str]] = None) -> str:
     role_args = _normalize_args(args)
     tokens = count_tokens(prompt)
-    role_name = _runtime_role("prometheus")
+    role_name = _runtime_role("architect")
     request_id = _runtime_request_id()
     metadata = {"request_id": request_id} if request_id else None
 

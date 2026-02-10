@@ -42,7 +42,7 @@
 
 ### T4-001（P0，对应 GA4-01/GA4-02）补齐并固定 context 初始化基线
 - **状态**：`DONE`
-- **负责人**：Sisyphus
+- **负责人**：Router
 - **为什么改**：没有完整 context 基线会直接削弱 Context-First 能力。
 - **改什么文件**：
   - 修改：`templates/conductor/context/product.md`
@@ -61,8 +61,8 @@
 
 ### T4-002（P0，对应 GA4-04）修复测试对仓库状态的污染
 - **状态**：`DONE`
-- **负责人**：Oracle
-- **协作**：Hephaestus
+- **负责人**：Architect
+- **协作**：Coder
 - **为什么改**：测试必须可重复且不破坏开发者工作区。
 - **改什么文件**：
   - 修改：`tests/opencode/test-doctor-init.sh`
@@ -78,7 +78,7 @@
 
 ### T4-003（P1，对应 GA4-03）为 doctor 增加 context 健康检查
 - **状态**：`DONE`
-- **负责人**：Sisyphus
+- **负责人**：Router
 - **为什么改**：doctor 应覆盖运行前关键前置条件，而不仅是二进制与配置。
 - **改什么文件**：
   - 修改：`bin/multipowers`
@@ -94,8 +94,8 @@
 
 ### T4-004（P1，对应 GA4-05）修正结构化日志中的真实角色归属
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Oracle
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：角色是审计与统计维度，写死会导致 observability 失真。
 - **改什么文件**：
   - 修改：`bin/ask-role`
@@ -105,14 +105,14 @@
 - **怎么改**：
   1. 在 `ask-role` 调用 connector 时传入 `ROLE`（参数或环境变量）。
   2. connector 使用该 role 写 `log_structured`。
-  3. 回归测试验证 `oracle/librarian` 调用时日志角色正确。
+  3. 回归测试验证 `architect/librarian` 调用时日志角色正确。
 - **成功判定**：
   - [x] `outputs/runs/*.jsonl` 的 `role` 字段与调用角色一致。
 
 ### T4-005（P1，对应 GA4-06）将 context 裁剪决策写入结构化日志
 - **状态**：`DONE`
-- **负责人**：Hephaestus
-- **协作**：Prometheus
+- **负责人**：Coder
+- **协作**：Architect
 - **为什么改**：仅 stderr 可见会丢失历史证据，无法后续排障与复盘。
 - **改什么文件**：
   - 修改：`bin/ask-role`
@@ -128,7 +128,7 @@
 
 ### T4-006（P2，对应 GA4-07）增强 Track slug 对多语言输入的兼容
 - **状态**：`DONE`
-- **负责人**：Hephaestus
+- **负责人**：Coder
 - **为什么改**：中文/特殊字符 feature 名可能生成空 slug，影响可用性。
 - **改什么文件**：
   - 修改：`bin/multipowers`
@@ -143,7 +143,7 @@
 
 ### T4-007（P1，对应 GA4-08）建立最小 CI 测试门禁
 - **状态**：`DONE`
-- **负责人**：Oracle
+- **负责人**：Architect
 - **为什么改**：仅靠本地执行无法保证每次变更都通过核心回归。
 - **改什么文件**：
   - 新增：`.github/workflows/core-tests.yml`
@@ -157,8 +157,8 @@
 
 ### T4-008（P2，对应 GA4-09）增加计划状态证据自动校验
 - **状态**：`DONE`
-- **负责人**：Prometheus
-- **协作**：Oracle
+- **负责人**：Architect
+- **协作**：Architect
 - **为什么改**：模板存在但无自动检查，状态漂移仍可能复发。
 - **改什么文件**：
   - 新增：`scripts/check_plan_evidence.py`
@@ -235,7 +235,7 @@
 
 - **Coverage Task IDs**: `T4-001, T4-002, T4-003, T4-004, T4-005, T4-006, T4-007, T4-008`
 - **Date**: `2026-02-10`
-- **Verifier**: `oracle`
+- **Verifier**: `architect`
 - **Command(s)**:
   - `bash -n bin/multipowers bin/ask-role`
   - `python3 -m py_compile connectors/codex.py connectors/gemini.py connectors/utils.py scripts/validate_roles.py scripts/check_context_quality.py scripts/check_plan_evidence.py`

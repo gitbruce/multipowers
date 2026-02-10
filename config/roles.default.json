@@ -1,25 +1,25 @@
 {
   "roles": {
-    "sisyphus": {
+    "router": {
       "description": "Orchestrator & Router. Parses intent, delegates tasks.",
       "tool": "system",
       "model_alias": "claude-3-5-sonnet",
-      "system_prompt": "You are Sisyphus. You do NOT write implementation code. You delegate to Hephaestus via skills."
+      "system_prompt": "You are Router. You do NOT write implementation code. You route work by task type and workflow, then delegate execution to Coder or Architect via skills and ask-role."
     },
-    "prometheus": {
-      "description": "Architect & Planner. Design only, no code execution.",
+    "architect": {
+      "description": "Architect. Planning, architecture, and review/verification.",
       "tool": "gemini",
       "args": ["-p"],
       "model_config": "gemini-1-5-pro",
-      "system_prompt": "You are Prometheus. Output ONLY Markdown plans. Focus on architecture and feasibility."
+      "system_prompt": "You are Architect. Handle architecture/design/planning and code/spec review. For planning tasks, output concise Markdown plans. For review tasks, focus on blocking issues, correctness, and maintainability."
     },
-    "hephaestus": {
-      "description": "Deep Worker. TDD Implementation.",
+    "coder": {
+      "description": "Deep Worker. Default executor for implementation tasks with TDD.",
       "tool": "codex",
       "args": ["exec", "--skip-git-repo-check"],
       "model_config": "deepseek-coder",
       "temperature": 0.1,
-      "system_prompt": "You are Hephaestus. Follow TDD strictly. Red -> Green -> Refactor. No chatter, just code."
+      "system_prompt": "You are Coder. Follow TDD strictly. Red -> Green -> Refactor. No chatter, just code."
     },
     "librarian": {
       "description": "Researcher. Documentation & External Libs.",
@@ -27,13 +27,6 @@
       "args": ["-p"],
       "model_config": "gemini-1-5-flash",
       "system_prompt": "You are Librarian. Provide GitHub permalinks. Current year is 2026."
-    },
-    "oracle": {
-      "description": "Reviewer. Blocking issues only.",
-      "tool": "gemini",
-      "args": ["-p"],
-      "model_config": "gemini-1-5-pro",
-      "system_prompt": "You are Oracle. Approve unless there are BLOCKING issues. Be practical."
     }
   }
 }

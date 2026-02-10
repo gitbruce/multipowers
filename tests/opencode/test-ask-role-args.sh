@@ -53,12 +53,12 @@ fi
 
 echo "[TEST 2] Multi-arg role parsing"
 set +e
-output=$(./bin/ask-role hephaestus "test prompt" 2>&1)
+output=$(./bin/ask-role coder "test prompt" 2>&1)
 status=$?
 set -e
 
 if [ $status -eq 0 ]; then
-    echo "  [PASS] hephaestus call completed"
+    echo "  [PASS] coder call completed"
 else
     if echo "$output" | grep -qE "Failed to call codex|Command failed|not found"; then
         echo "  [PASS] Args parsed; failure occurred at connector execution stage"
@@ -73,12 +73,12 @@ fi
 
 echo "[TEST 3] Single-arg role parsing"
 set +e
-output=$(./bin/ask-role prometheus "test prompt" 2>&1)
+output=$(./bin/ask-role architect "test prompt" 2>&1)
 status=$?
 set -e
 
 if [ $status -eq 0 ]; then
-    echo "  [PASS] prometheus call completed"
+    echo "  [PASS] architect call completed"
 else
     if echo "$output" | grep -qE "Failed to call gemini|Command failed|not found"; then
         echo "  [PASS] Args parsed; failure occurred at connector execution stage"

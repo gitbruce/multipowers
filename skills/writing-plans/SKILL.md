@@ -119,13 +119,13 @@ After saving the plan, offer execution choice:
 
 ## Conductor Integration Notes
 
-**For Sisyphus:** When using this skill, invoke Prometheus for implementation planning:
+**For Router:** When using this skill, invoke Architect for implementation planning:
 
 ```bash
-./bin/ask-role prometheus "Convert design to step-by-step implementation plan for: [feature name]"
+./bin/ask-role architect "Convert design to step-by-step implementation plan for: [feature name]"
 ```
 
 This will:
 - Load project context from `conductor/context/*.md`
-- Use Prometheus role (Gemini 1.5 Pro) for structured planning
-- Output detailed implementation plan for Hephaestus to execute TDD workflow
+- Use Architect role (Gemini 1.5 Pro) for structured planning
+- Output detailed implementation plan for Coder to execute TDD workflow

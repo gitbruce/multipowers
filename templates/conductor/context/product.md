@@ -1,31 +1,35 @@
-# Product: Multipowers Project Context
+# Product: {{PROJECT_NAME}}
 
-## Core Principles
-- Context-First: every task references stable project context.
-- Verification-First: every completion claim has reproducible evidence.
-- Simplicity: prefer minimal, testable, maintainable solutions.
+## Subject / Audience
 
-## Value Proposition
-- **Users**: engineers using role-driven development workflows.
-- **Problem**: fragmented orchestration and inconsistent execution quality.
-- **Outcome**: predictable multi-role delivery with traceable execution.
+- Subject: How to build the User's App.
+- Audience: End Users and app contributors.
 
-## Success Criteria
-- Primary user workflow is documented and testable.
-- Validation gates are executable in local and CI environments.
-- Non-goals are explicit to avoid scope creep.
+## Product Goal
 
-## Scope Boundaries
+Build and iterate the user's application with stable context, clear tracks, and predictable execution workflows.
+
+## Core Value
+
+1. Faster feature delivery with fewer regressions.
+2. Better collaboration across planning, implementation, and review roles.
+3. Traceable decision flow from requirement → track → code → docs.
+
+## Scope
+
 ### In Scope
-- Role dispatch reliability
-- Context governance and quality checks
-- Verification and observability gates
+
+- App requirements and business behavior.
+- UI/API/domain model evolution.
+- Delivery workflow and quality evidence.
 
 ### Out of Scope
-- Cross-repo orchestration platform
-- Non-textual workflow tooling
 
-## Risks & Constraints
-- Local environment drift can hide regressions.
-- Missing context files can break role behavior.
-- Overly strict gates can reduce iteration speed if not tuned.
+- Multipowers internal implementation details.
+- Unrelated infra/tooling redesign not needed for app outcomes.
+
+## Success Criteria
+
+- Context reflects real product constraints and priorities.
+- Tracks can be executed end-to-end with verifiable evidence.
+- Major changes include checks and documentation updates.

@@ -91,7 +91,7 @@ echo "[TEST 3] Context strategy consistency"
 rm -rf conductor/context
 
 set +e
-output=$(./bin/ask-role prometheus "test" 2>&1)
+output=$(./bin/ask-role architect "test" 2>&1)
 status=$?
 set -e
 if [ $status -eq 0 ]; then
@@ -115,7 +115,7 @@ PY
 chmod +x "$stub_dir/gemini"
 
 set +e
-output=$(PATH="$stub_dir:$PATH" MULTIPOWERS_CONTEXT_MODE=lenient ./bin/ask-role prometheus "test" 2>&1)
+output=$(PATH="$stub_dir:$PATH" MULTIPOWERS_CONTEXT_MODE=lenient ./bin/ask-role architect "test" 2>&1)
 status=$?
 set -e
 if [ $status -ne 0 ]; then

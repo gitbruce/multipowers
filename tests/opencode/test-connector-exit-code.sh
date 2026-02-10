@@ -96,7 +96,7 @@ chmod +x "$workspace/bin/ask-role"
 cat > "$workspace/conductor/config/roles.json" <<'JSON_EOF'
 {
   "roles": {
-    "oracle": {
+    "architect": {
       "description": "Review role",
       "tool": "gemini",
       "system_prompt": "Review",
@@ -131,7 +131,7 @@ chmod +x "$tmp_bin_dir/gemini"
 
 (
     cd "$workspace"
-    PATH="$tmp_bin_dir:$PATH" ./bin/ask-role oracle "verify-role-log" >/tmp/test_connector_role_out.txt 2>/tmp/test_connector_role_err.txt
+    PATH="$tmp_bin_dir:$PATH" ./bin/ask-role architect "verify-role-log" >/tmp/test_connector_role_out.txt 2>/tmp/test_connector_role_err.txt
 )
 
 log_file="$workspace/outputs/runs/$(date +%Y-%m-%d).jsonl"
@@ -154,8 +154,8 @@ if not connector_entries:
     raise SystemExit(1)
 
 latest = connector_entries[-1]
-if latest.get("role") != "oracle":
-    print(f"Expected role=oracle, got role={latest.get('role')}", file=sys.stderr)
+if latest.get("role") != "architect":
+    print(f"Expected role=architect, got role={latest.get('role')}", file=sys.stderr)
     raise SystemExit(1)
 
 print("ok")

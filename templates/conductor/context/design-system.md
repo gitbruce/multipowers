@@ -1,5 +1,7 @@
-# Design System Baseline
+# Design System Baseline (User Project)
 
-- Keep terminology consistent across docs and CLI output.
-- Prefer one canonical path per artifact type.
-- Optimize for clarity and maintainability over novelty.
+- Define and reuse consistent product terminology.
+- Keep UX patterns consistent across pages/features.
+- Prefer one canonical location per artifact type.
+- For UI changes, update design tokens/components/docs together.
+- Prioritize accessibility and clarity over visual novelty.

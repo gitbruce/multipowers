@@ -57,13 +57,13 @@ Start by understanding the current project context, then ask questions one at a 
 
 ## Conductor Integration Notes
 
-**For Sisyphus:** When using this skill, invoke Prometheus for architecture design:
+**For Router:** When using this skill, invoke Architect for architecture design:
 
 ```bash
-./bin/ask-role prometheus "Brainstorm architecture for: [your topic]"
+./bin/ask-role architect "Brainstorm architecture for: [your topic]"
 ```
 
 This will:
 - Load project context from `conductor/context/*.md`
-- Use Prometheus role (Gemini 1.5 Pro) for high-IQ reasoning
+- Use Architect role (Gemini 1.5 Pro) for high-IQ reasoning
 - Output design specification for implementation planning

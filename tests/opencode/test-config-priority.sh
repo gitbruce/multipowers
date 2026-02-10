@@ -34,7 +34,7 @@ echo "Testing configuration priority..."
 echo "[TEST 1] Default config fallback"
 rm -f conductor/config/roles.json
 set +e
-output=$(./bin/ask-role prometheus "test" 2>&1)
+output=$(./bin/ask-role architect "test" 2>&1)
 status=$?
 set -e
 
@@ -89,7 +89,7 @@ echo "[TEST 3] Invalid project config fails fast"
 echo "invalid-json" > conductor/config/roles.json
 
 set +e
-output=$(./bin/ask-role prometheus "test" 2>&1)
+output=$(./bin/ask-role architect "test" 2>&1)
 status=$?
 set -e
 

@@ -245,25 +245,25 @@ Done!
 
 ## Conductor Integration Notes
 
-**For Sisyphus:** Orchestrates workflow using ask-role bridge.
+**For Router:** Orchestrates workflow using ask-role bridge.
 
 **Role Mapping:**
-- **Hephaestus (Deep Worker)**: For TDD implementation via `./bin/ask-role hephaestus`
-- **Oracle (Code Quality)**: For spec compliance & code review via `./bin/ask-role oracle`
+- **Coder (Deep Worker)**: For TDD implementation via `./bin/ask-role coder`
+- **Architect (Code Quality)**: For spec compliance & code review via `./bin/ask-role architect`
 
 **Integration Pattern:**
 ```bash
-# Sisyphus dispatches Hephaestus for each task
-./bin/ask-role hephaestus "Implement [task description]"
+# Router dispatches Coder for each task
+./bin/ask-role coder "Implement [task description]"
 
-# Sisyphus dispatches Oracle for verification
-./bin/ask-role oracle "Review code for [spec/compliance]"
+# Router dispatches Architect for verification
+./bin/ask-role architect "Review code for [spec/compliance]"
 
-# Hephaestus returns code + tests
+# Coder returns code + tests
 ```
 
 **Workflow Modifications:**
-- Implementer subagent now uses `ask-role hephaestus` instead of direct Claude calls
-- Spec reviewer uses `ask-role oracle` for compliance checks
-- Code quality reviewer uses `ask-role oracle` for quality checks
+- Implementer subagent now uses `ask-role coder` instead of direct Claude calls
+- Spec reviewer uses `ask-role architect` for compliance checks
+- Code quality reviewer uses `ask-role architect` for quality checks
 - Context from `conductor/context/*.md` automatically loaded by ask-role

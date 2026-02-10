@@ -280,7 +280,7 @@
 
 - **Coverage Task IDs**: `T3-001, T3-002, T3-003, T3-004, T3-005, T3-006, T3-007, T3-008, T3-009, T3-010, T3-011, T3-012, T3-013`
 - **Date**: `2026-02-10`
-- **Verifier**: `oracle`
+- **Verifier**: `architect`
 - **Command(s)**:
   - `bash -n bin/multipowers bin/ask-role`
   - `python3 -m py_compile connectors/codex.py connectors/gemini.py connectors/utils.py scripts/validate_roles.py scripts/check_context_quality.py scripts/check_plan_evidence.py`

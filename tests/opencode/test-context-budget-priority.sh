@@ -68,7 +68,7 @@ echo "[TEST 1] Priority files are kept under tight budget"
     PATH="$tmp_bin_dir:$PATH" \
     PROMPT_CAPTURE="$prompt_capture" \
     MULTIPOWERS_CONTEXT_BUDGET=80 \
-    ./bin/ask-role prometheus "budget-check" > /dev/null 2>"$stderr_capture"
+    ./bin/ask-role architect "budget-check" > /dev/null 2>"$stderr_capture"
 )
 
 captured_prompt=$(cat "$prompt_capture")
@@ -126,12 +126,12 @@ for line in new_lines:
 context_entries = [
     entry
     for entry in entries
-    if entry.get("event") == "context_prepared" and entry.get("role") == "prometheus"
+    if entry.get("event") == "context_prepared" and entry.get("role") == "architect"
 ]
 connector_entries = [
     entry
     for entry in entries
-    if entry.get("tool") == "gemini" and entry.get("role") == "prometheus"
+    if entry.get("tool") == "gemini" and entry.get("role") == "architect"
 ]
 
 if not context_entries:
