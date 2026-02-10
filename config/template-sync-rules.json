@@ -1,0 +1,24 @@
+{
+  "mappings": [
+    {
+      "source": "conductor/context/product.md",
+      "target": "templates/conductor/context/product.md"
+    },
+    {
+      "source": "conductor/context/product-guidelines.md",
+      "target": "templates/conductor/context/product-guidelines.md"
+    },
+    {
+      "source": "conductor/context/workflow.md",
+      "target": "templates/conductor/context/workflow.md"
+    },
+    {
+      "source": "conductor/context/tech-stack.md",
+      "target": "templates/conductor/context/tech-stack.md"
+    },
+    {
+      "source": "conductor/config/roles.json",
+      "target": "templates/conductor/config/roles.json"
+    }
+  ]
+}

@@ -50,7 +50,7 @@ echo "[TEST 1] Node-level role override works"
 export WORKFLOW_TEST_LOG="$workspace/workflow.log"
 : > "$WORKFLOW_TEST_LOG"
 
-if out=$(./bin/multipowers workflow run subagent-driven-development --task "Implement API validation" --json 2>/tmp/test_workflow_engine_err.txt); then
+if out=$(./bin/multipowers workflow run subagent-driven-development --task "Implement API validation" --allow-untracked --json 2>/tmp/test_workflow_engine_err.txt); then
     if python3 - "$out" "$WORKFLOW_TEST_LOG" <<'PY'
 import json
 import sys
@@ -104,7 +104,7 @@ cat > conductor/config/workflows.json <<'JSON_EOF'
 JSON_EOF
 
 : > "$WORKFLOW_TEST_LOG"
-if out=$(./bin/multipowers workflow run custom-review --task "find docs" --json 2>/tmp/test_workflow_engine_err.txt); then
+if out=$(./bin/multipowers workflow run custom-review --task "find docs" --allow-untracked --json 2>/tmp/test_workflow_engine_err.txt); then
     if python3 - "$out" "$WORKFLOW_TEST_LOG" <<'PY'
 import json
 import sys
@@ -141,7 +141,7 @@ rm -f conductor/config/workflows.json
 echo "[TEST 3] Node failure has clear diagnostics"
 export WORKFLOW_FAIL_ROLE="architect"
 set +e
-output=$(./bin/multipowers workflow run subagent-driven-development --task "trigger fail" 2>&1)
+output=$(./bin/multipowers workflow run subagent-driven-development --task "trigger fail" --allow-untracked 2>&1)
 status=$?
 set -e
 unset WORKFLOW_FAIL_ROLE

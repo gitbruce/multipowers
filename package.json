@@ -13,7 +13,8 @@
     "test": "bash tests/opencode/run-tests.sh",
     "test:unit": "bash tests/opencode/run-tests.sh",
     "test:integration": "bash tests/opencode/run-tests.sh --integration",
-    "governance:check": "bash scripts/run_governance_checks.sh"
+    "governance:check": "bash scripts/run_governance_checks.sh",
+    "governance": "bash scripts/run_governance_checks.sh"
   },
   "files": [
     "bin/ask-role",
@@ -27,6 +28,18 @@
     ".opencode/plugins/superpowers.js",
     "scripts/*.py",
     "scripts/*.sh",
-    "skills/**/SKILL.md"
+    "skills/**/SKILL.md",
+    "scripts/route_task.py",
+    "scripts/execute_workflow.py",
+    "scripts/validate_mcp.py",
+    "scripts/update_plan_task_status.py",
+    "scripts/run_governance_checks.sh",
+    "scripts/check_docs_sync.py",
+    "connectors/claude.py",
+    "config/docs-sync-rules.json",
+    "config/template-sync-rules.json",
+    "scripts/record_governance_artifact.py",
+    "scripts/check_template_sync_candidates.py",
+    "scripts/check_update_state.sh"
   ]
 }

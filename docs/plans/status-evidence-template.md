@@ -25,6 +25,16 @@ For each task section, keep both fields aligned:
 - **Notes**:
   - `environment assumptions / known limitations`
 
+## Governance Proof (for major changes)
+
+When plan verification uses governance mode, include at least one of:
+
+- `bash scripts/run_governance_checks.sh --mode strict ...`
+- `semgrep`, `biome`, `ruff` execution evidence
+- Governance artifact path (e.g. `outputs/governance/<artifact>.json`)
+
 ## Rule
 
 A task marked `DONE` (by `Status` or `状态`) without evidence coverage is treated as `IN_PROGRESS`.
+
+When strict governance evidence is required, missing governance proof fails evidence validation.

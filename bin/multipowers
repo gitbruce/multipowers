@@ -8,15 +8,19 @@ REQUIRED_CONTEXT_FILES=(
     "tech-stack.md"
 )
 
+ACTIVE_TRACK_FILE="conductor/.active_track"
+DEFAULT_GOVERNANCE_DIR="outputs/governance"
+
 usage() {
-    echo "Usage: multipowers {init|doctor|update|track|route|workflow}" >&2
+    echo "Usage: multipowers {init|doctor|update|track|route|run|workflow}" >&2
     echo "" >&2
     echo "Commands:" >&2
     echo "  init      Initialize multipowers in current project" >&2
     echo "  doctor    Check installation and dependencies" >&2
-    echo "  update    Update multipowers to latest version" >&2
+    echo "  update    Check/apply safe updates" >&2
     echo "  track     Manage development tracks" >&2
     echo "  route     Route a task to fast/standard lane" >&2
+    echo "  run       Route and execute in one command" >&2
     echo "  workflow  Execute workflow-driven standard lane" >&2
 }
 
@@ -32,7 +36,10 @@ track_usage() {
 }
 
 workflow_usage() {
-    echo "Usage: multipowers workflow run <workflow-name> --task <text> [--request-id <id>] [--track-id <id>] [--dry-run] [--json]" >&2
+    echo "Usage:" >&2
+    echo "  multipowers workflow run <workflow-name> --task <text> [--request-id <id>] [--track-id <id>] [--allow-untracked] [--dry-run] [--json]" >&2
+    echo "  multipowers workflow list [--json]" >&2
+    echo "  multipowers workflow validate" >&2
 }
 
 resolve_roles_config() {
@@ -106,6 +113,86 @@ emit_runtime_event() {
 
     "${cmd[@]}" >/dev/null 2>&1 || true
 }
+
+track_id_from_file() {
+    local track_file=$1
+    basename "$track_file" .md
+}
+
+set_active_track() {
+    local track_id=$1
+    mkdir -p conductor
+    printf '%s\n' "$track_id" > "$ACTIVE_TRACK_FILE"
+}
+
+get_active_track() {
+    if [ ! -f "$ACTIVE_TRACK_FILE" ]; then
+        return 0
+    fi
+
+    local value
+    value=$(sed -n '1p' "$ACTIVE_TRACK_FILE" | tr -d '[:space:]')
+    if [ -n "$value" ]; then
+        echo "$value"
+    fi
+}
+
+clear_active_track_if_match() {
+    local track_id=$1
+    local active_track
+    active_track=$(get_active_track)
+    if [ -n "$active_track" ] && [ "$active_track" = "$track_id" ]; then
+        rm -f "$ACTIVE_TRACK_FILE"
+    fi
+}
+
+resolve_execution_track_id() {
+    local provided_track_id=$1
+    local allow_untracked=$2
+
+    if [ -n "$provided_track_id" ]; then
+        echo "$provided_track_id"
+        return 0
+    fi
+
+    local active_track
+    active_track=$(get_active_track)
+    if [ -n "$active_track" ]; then
+        echo "$active_track"
+        return 0
+    fi
+
+    if [ "$allow_untracked" = "true" ]; then
+        echo ""
+        return 0
+    fi
+
+    echo "Error: No active track context found. Run './bin/multipowers track start <track-name>' first, or use --allow-untracked for explicit bypass." >&2
+    return 1
+}
+
+upsert_track_metadata_line() {
+    local track_file=$1
+    local key=$2
+    local value=$3
+
+    if grep -q "^\*\*$key:\*\*" "$track_file"; then
+        sed -i "s|^\*\*$key:\*\* .*|**$key:** $value|" "$track_file"
+    else
+        printf "**%s:** %s\n" "$key" "$value" >> "$track_file"
+    fi
+}
+
+default_governance_artifact_path() {
+    local track_id=$1
+    mkdir -p "$DEFAULT_GOVERNANCE_DIR"
+    local suffix="global"
+    if [ -n "$track_id" ]; then
+        suffix="$track_id"
+    fi
+    echo "$DEFAULT_GOVERNANCE_DIR/$(date +%Y%m%d)-${suffix}.json"
+}
+
 
 check_context_health() {
     local mode
@@ -444,6 +531,240 @@ PY
     echo "suggested_role=$suggested_role"
 }
 
+run_command() {
+    local task=""
+    local risk_hint=""
+    local force_lane=""
+    local json_mode="false"
+    local request_id=""
+    local track_id=""
+    local allow_untracked="false"
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --task)
+                task=${2:-}
+                shift 2
+                ;;
+            --risk-hint)
+                risk_hint=${2:-}
+                shift 2
+                ;;
+            --force-lane)
+                force_lane=${2:-}
+                shift 2
+                ;;
+            --json)
+                json_mode="true"
+                shift
+                ;;
+            --request-id)
+                request_id=${2:-}
+                shift 2
+                ;;
+            --track-id)
+                track_id=${2:-}
+                shift 2
+                ;;
+            --allow-untracked)
+                allow_untracked="true"
+                shift
+                ;;
+            *)
+                echo "Error: Unknown run option: $1" >&2
+                echo "Usage: multipowers run --task <text> [--risk-hint low|medium|high|critical] [--force-lane fast|standard] [--request-id <id>] [--track-id <id>] [--allow-untracked] [--json]" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    if [ -z "$task" ]; then
+        echo "Error: run requires --task" >&2
+        return 1
+    fi
+
+    if [ -z "$request_id" ]; then
+        request_id=$(generate_request_id)
+    fi
+
+    local resolved_track_id
+    if ! resolved_track_id=$(resolve_execution_track_id "$track_id" "$allow_untracked"); then
+        return 1
+    fi
+    track_id="$resolved_track_id"
+
+    local route_args=(--task "$task" --json --request-id "$request_id")
+    [ -n "$risk_hint" ] && route_args+=(--risk-hint "$risk_hint")
+    [ -n "$force_lane" ] && route_args+=(--force-lane "$force_lane")
+    [ -n "$track_id" ] && route_args+=(--track-id "$track_id")
+
+    local route_json
+    if ! route_json=$(route_command "${route_args[@]}"); then
+        return 1
+    fi
+
+    local parsed
+    parsed=$(python3 - "$route_json" <<'PY'
+import json
+import sys
+payload = json.loads(sys.argv[1])
+print("\t".join([
+    payload.get("lane", ""),
+    payload.get("suggested_workflow", ""),
+    payload.get("suggested_role", ""),
+    payload.get("reason", ""),
+]))
+PY
+)
+
+    local lane suggested_workflow suggested_role reason
+    IFS=$'\t' read -r lane suggested_workflow suggested_role reason <<< "$parsed"
+
+    if [ "$lane" = "standard" ]; then
+        local workflow_name=${suggested_workflow:-subagent-driven-development}
+        local workflow_args=(run "$workflow_name" --task "$task" --request-id "$request_id" --json)
+        [ -n "$track_id" ] && workflow_args+=(--track-id "$track_id")
+        [ "$allow_untracked" = "true" ] && workflow_args+=(--allow-untracked)
+
+        local workflow_output
+        set +e
+        workflow_output=$(workflow_command "${workflow_args[@]}" 2>&1)
+        local rc=$?
+        set -e
+
+        if [ "$rc" -ne 0 ]; then
+            if [ "$json_mode" = "true" ]; then
+                python3 - "$route_json" "$request_id" "$track_id" "$workflow_output" "$rc" <<'PY'
+import json
+import sys
+payload = json.loads(sys.argv[1])
+out = {
+    "request_id": sys.argv[2],
+    "lane": payload.get("lane"),
+    "reason": payload.get("reason"),
+    "suggested_workflow": payload.get("suggested_workflow"),
+    "suggested_role": payload.get("suggested_role"),
+    "execution": {
+        "status": "failed",
+        "mode": "workflow",
+        "exit_code": int(sys.argv[5]),
+        "stderr": sys.argv[4].strip(),
+    },
+}
+if sys.argv[3]:
+    out["track_id"] = sys.argv[3]
+print(json.dumps(out, ensure_ascii=False, sort_keys=True))
+PY
+            else
+                echo "$workflow_output" >&2
+            fi
+            return "$rc"
+        fi
+
+        if [ "$json_mode" = "true" ]; then
+            python3 - "$route_json" "$workflow_output" "$request_id" "$track_id" <<'PY'
+import json
+import sys
+
+route_payload = json.loads(sys.argv[1])
+workflow_raw = sys.argv[2]
+try:
+    workflow_payload = json.loads(workflow_raw)
+except json.JSONDecodeError:
+    workflow_payload = {"raw_output": workflow_raw}
+
+out = {
+    "request_id": sys.argv[3],
+    "lane": route_payload.get("lane"),
+    "reason": route_payload.get("reason"),
+    "suggested_workflow": route_payload.get("suggested_workflow"),
+    "suggested_role": route_payload.get("suggested_role"),
+    "execution": {
+        "status": "ok",
+        "mode": "workflow",
+        "workflow_output": workflow_payload,
+    },
+}
+if sys.argv[4]:
+    out["track_id"] = sys.argv[4]
+print(json.dumps(out, ensure_ascii=False, sort_keys=True))
+PY
+        else
+            echo "$workflow_output"
+        fi
+
+        return 0
+    fi
+
+    local role=${suggested_role:-coder}
+    emit_runtime_event "fast_lane_dispatched" "$role" "$request_id" "$track_id" "fast" "" "" "fast lane dispatch started"
+
+    local fast_output
+    set +e
+    fast_output=$(MULTIPOWERS_REQUEST_ID="$request_id" ./bin/ask-role "$role" "$task" 2>&1)
+    local rc=$?
+    set -e
+
+    emit_runtime_event "fast_lane_finished" "$role" "$request_id" "$track_id" "fast" "" "" "fast lane dispatch completed" "{\"exit_code\":$rc}"
+
+    if [ "$rc" -ne 0 ]; then
+        if [ "$json_mode" = "true" ]; then
+            python3 - "$route_json" "$request_id" "$track_id" "$fast_output" "$rc" "$role" <<'PY'
+import json
+import sys
+payload = json.loads(sys.argv[1])
+out = {
+    "request_id": sys.argv[2],
+    "lane": payload.get("lane"),
+    "reason": payload.get("reason"),
+    "suggested_workflow": payload.get("suggested_workflow"),
+    "suggested_role": payload.get("suggested_role"),
+    "execution": {
+        "status": "failed",
+        "mode": "fast",
+        "role": sys.argv[6],
+        "exit_code": int(sys.argv[5]),
+        "stderr": sys.argv[4].strip(),
+    },
+}
+if sys.argv[3]:
+    out["track_id"] = sys.argv[3]
+print(json.dumps(out, ensure_ascii=False, sort_keys=True))
+PY
+        else
+            echo "$fast_output" >&2
+        fi
+        return "$rc"
+    fi
+
+    if [ "$json_mode" = "true" ]; then
+        python3 - "$route_json" "$request_id" "$track_id" "$fast_output" "$role" <<'PY'
+import json
+import sys
+payload = json.loads(sys.argv[1])
+out = {
+    "request_id": sys.argv[2],
+    "lane": payload.get("lane"),
+    "reason": payload.get("reason"),
+    "suggested_workflow": payload.get("suggested_workflow"),
+    "suggested_role": payload.get("suggested_role"),
+    "execution": {
+        "status": "ok",
+        "mode": "fast",
+        "role": sys.argv[5],
+        "stdout": sys.argv[4].strip(),
+    },
+}
+if sys.argv[3]:
+    out["track_id"] = sys.argv[3]
+print(json.dumps(out, ensure_ascii=False, sort_keys=True))
+PY
+        return 0
+    fi
+
+    echo "$fast_output"
+}
+
 workflow_command() {
     local action=${1:-}
     shift || true
@@ -462,6 +783,7 @@ workflow_command() {
             local dry_run="false"
             local request_id=""
             local track_id=""
+            local allow_untracked="false"
 
             while [ $# -gt 0 ]; do
                 case "$1" in
@@ -485,6 +807,10 @@ workflow_command() {
                         track_id=${2:-}
                         shift 2
                         ;;
+                    --allow-untracked)
+                        allow_untracked="true"
+                        shift
+                        ;;
                     *)
                         echo "Error: Unknown workflow option: $1" >&2
                         workflow_usage
@@ -503,6 +829,12 @@ workflow_command() {
                 request_id=$(generate_request_id)
             fi
 
+            local resolved_track_id
+            if ! resolved_track_id=$(resolve_execution_track_id "$track_id" "$allow_untracked"); then
+                return 1
+            fi
+            track_id="$resolved_track_id"
+
             local config_path
             config_path=$(resolve_workflow_config)
             if [ ! -f "$config_path" ]; then
@@ -516,6 +848,9 @@ workflow_command() {
                 return 1
             fi
 
+            local roles_config
+            roles_config=$(resolve_roles_config)
+
             emit_runtime_event "workflow_started" "router" "$request_id" "$track_id" "standard" "$workflow_name" "" "workflow execution started"
 
             local cmd=(
@@ -524,6 +859,7 @@ workflow_command() {
                 --workflow "$workflow_name"
                 --task "$task"
                 --ask-role "./bin/ask-role"
+                --roles-config "$roles_config"
                 --request-id "$request_id"
             )
 
@@ -557,13 +893,151 @@ workflow_command() {
             fi
             ;;
 
+        list)
+            local json_mode="false"
+            while [ $# -gt 0 ]; do
+                case "$1" in
+                    --json)
+                        json_mode="true"
+                        shift
+                        ;;
+                    *)
+                        echo "Error: Unknown workflow list option: $1" >&2
+                        workflow_usage
+                        return 1
+                        ;;
+                esac
+            done
+
+            local config_path
+            config_path=$(resolve_workflow_config)
+            if [ ! -f "$config_path" ]; then
+                echo "Error: workflow config not found: $config_path" >&2
+                return 1
+            fi
+
+            if [ "$json_mode" = "true" ]; then
+                python3 - "$config_path" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], 'r', encoding='utf-8') as handle:
+    config = json.load(handle)
+
+workflows = config.get('workflows', {})
+if not isinstance(workflows, dict):
+    print(json.dumps({'workflows': []}, ensure_ascii=False, sort_keys=True))
+    raise SystemExit(0)
+
+payload = {'workflows': sorted(workflows.keys())}
+print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+PY
+                return 0
+            fi
+
+            echo "Workflows:"
+            if ! python3 - "$config_path" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], 'r', encoding='utf-8') as handle:
+    config = json.load(handle)
+
+workflows = config.get('workflows', {})
+if not isinstance(workflows, dict):
+    raise SystemExit(1)
+
+for name in sorted(workflows.keys()):
+    print(name)
+PY
+            then
+                echo "Error: invalid workflow config structure in $config_path" >&2
+                return 1
+            fi
+            ;;
+
+        validate)
+            if [ $# -gt 0 ]; then
+                echo "Error: workflow validate does not accept extra arguments" >&2
+                workflow_usage
+                return 1
+            fi
+
+            local config_path
+            config_path=$(resolve_workflow_config)
+            if [ ! -f "$config_path" ]; then
+                echo "Error: workflow config not found: $config_path" >&2
+                return 1
+            fi
+
+            local roles_config
+            roles_config=$(resolve_roles_config)
+
+            if ! python3 - "$config_path" "$roles_config" <<'PY'
+import json
+import sys
+
+workflow_path = sys.argv[1]
+roles_path = sys.argv[2]
+with open(workflow_path, 'r', encoding='utf-8') as handle:
+    config = json.load(handle)
+
+try:
+    with open(roles_path, 'r', encoding='utf-8') as handle:
+        roles_config = json.load(handle)
+except FileNotFoundError:
+    roles_config = {}
+
+roles_obj = roles_config.get('roles', {}) if isinstance(roles_config, dict) else {}
+available_roles = set(roles_obj.keys())
+
+workflows = config.get('workflows')
+if not isinstance(workflows, dict) or not workflows:
+    raise SystemExit('[WORKFLOW-VALIDATE] workflows must be a non-empty object')
+
+for name, workflow in workflows.items():
+    if not isinstance(workflow, dict):
+        raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} must be an object')
+
+    default_role = workflow.get('default_role')
+    if not isinstance(default_role, str) or not default_role.strip():
+        raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} missing default_role')
+    if default_role not in available_roles:
+        raise SystemExit(f"[WORKFLOW-VALIDATE] workflow {name!r} unknown role: {default_role!r} (node=default_role)")
+
+    nodes = workflow.get('nodes')
+    if not isinstance(nodes, list) or not nodes:
+        raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} nodes must be a non-empty array')
+
+    for idx, node in enumerate(nodes, start=1):
+        if not isinstance(node, dict):
+            raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} node[{idx}] must be an object')
+        node_id = node.get('id')
+        if not isinstance(node_id, str) or not node_id.strip():
+            raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} node[{idx}] missing id')
+        prompt_template = node.get('prompt_template')
+        if not isinstance(prompt_template, str) or not prompt_template.strip():
+            raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} node[{idx}] missing prompt_template')
+
+        role = node.get('role', default_role)
+        if not isinstance(role, str) or not role.strip():
+            raise SystemExit(f'[WORKFLOW-VALIDATE] workflow {name!r} node[{idx}] has invalid role override')
+        if role not in available_roles:
+            raise SystemExit(f"[WORKFLOW-VALIDATE] workflow {name!r} unknown role: {role!r} (node={node_id!r})")
+
+print(f'[WORKFLOW-VALIDATE] PASS ({len(workflows)} workflows)')
+PY
+            then
+                return 1
+            fi
+            ;;
+
         *)
             workflow_usage
             return 1
             ;;
     esac
 }
-
 init_command() {
     local init_mode="default"
     local confirm_force="false"
@@ -631,262 +1105,420 @@ init_command() {
     esac
 }
 
+doctor_command() {
+    echo "Checking multipowers installation..."
+    local exit_code=0
+
+    if [ -f "bin/ask-role" ]; then
+        echo "  [PASS] bin/ask-role exists"
+    else
+        echo "  [FAIL] bin/ask-role not found"
+        exit_code=1
+    fi
+
+    if [ -f "config/roles.default.json" ]; then
+        echo "  [PASS] config/roles.default.json exists"
+    else
+        echo "  [FAIL] config/roles.default.json not found"
+        exit_code=1
+    fi
+
+    if [ -f "connectors/codex.py" ] && [ -f "connectors/gemini.py" ] && [ -f "connectors/claude.py" ]; then
+        echo "  [PASS] connectors exist"
+    else
+        echo "  [FAIL] connectors not found"
+        exit_code=1
+    fi
+
+    if command -v python3 >/dev/null 2>&1; then
+        echo "  [PASS] python3 is installed"
+    else
+        echo "  [FAIL] python3 is required"
+        exit_code=1
+    fi
+
+    if command -v jq >/dev/null 2>&1; then
+        echo "  [PASS] jq is installed (optional)"
+    else
+        echo "  [WARN] jq is not installed (optional)"
+    fi
+
+    local config_path
+    config_path=$(resolve_roles_config)
+    if [ -f "$config_path" ]; then
+        echo "  [PASS] effective roles config exists"
+        echo "  [INFO] effective roles config: $config_path"
+    else
+        echo "  [FAIL] effective roles config missing: $config_path"
+        exit_code=1
+    fi
+
+    if [ -f "config/roles.schema.json" ]; then
+        echo "  [PASS] roles schema exists"
+    else
+        echo "  [FAIL] roles schema missing: config/roles.schema.json"
+        exit_code=1
+    fi
+
+    if [ -f "scripts/validate_roles.py" ] && command -v python3 >/dev/null 2>&1; then
+        if python3 scripts/validate_roles.py --config "$config_path" --schema config/roles.schema.json --quiet >/dev/null 2>&1; then
+            echo "  [PASS] roles config validates against schema"
+        else
+            echo "  [FAIL] roles config validation failed"
+            exit_code=1
+        fi
+    else
+        echo "  [WARN] schema validator unavailable (scripts/validate_roles.py)"
+    fi
+
+    local mcp_config
+    mcp_config=$(resolve_mcp_config)
+    if [ -f "$mcp_config" ]; then
+        echo "  [PASS] effective mcp config exists"
+        echo "  [INFO] effective mcp config: $mcp_config"
+        if [ -f "scripts/validate_mcp.py" ] && command -v python3 >/dev/null 2>&1; then
+            if python3 scripts/validate_mcp.py --config "$mcp_config" --quiet; then
+                echo "  [PASS] mcp config validates"
+            else
+                echo "  [FAIL] mcp config validation failed"
+                exit_code=1
+            fi
+        else
+            echo "  [WARN] mcp validator unavailable (scripts/validate_mcp.py)"
+        fi
+    else
+        echo "  [FAIL] effective mcp config missing: $mcp_config"
+        exit_code=1
+    fi
+
+    local workflow_config
+    workflow_config=$(resolve_workflow_config)
+    if [ -f "$workflow_config" ]; then
+        echo "  [PASS] effective workflow config exists"
+        echo "  [INFO] effective workflow config: $workflow_config"
+    else
+        echo "  [FAIL] effective workflow config missing: $workflow_config"
+        exit_code=1
+    fi
+
+    if ! check_context_health; then
+        exit_code=1
+    fi
+
+    if ! run_context_quality_check; then
+        exit_code=1
+    fi
+
+    if [ -f "scripts/check_template_sync_candidates.py" ] && command -v python3 >/dev/null 2>&1; then
+        if python3 scripts/check_template_sync_candidates.py --quiet >/dev/null 2>&1; then
+            echo "  [PASS] template sync candidates check"
+        else
+            echo "  [WARN] template sync candidates drift detected"
+        fi
+    fi
+
+    return "$exit_code"
+}
+
+update_command() {
+    local mode="check"
+    local json_mode="false"
+    local confirm_apply="false"
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --check)
+                mode="check"
+                shift
+                ;;
+            --apply)
+                mode="apply"
+                shift
+                ;;
+            --yes)
+                confirm_apply="true"
+                shift
+                ;;
+            --json)
+                json_mode="true"
+                shift
+                ;;
+            --help|-h)
+                echo "Usage: multipowers update [--check|--apply --yes] [--json]"
+                return 0
+                ;;
+            *)
+                echo "Error: Unknown update option: $1" >&2
+                echo "Usage: multipowers update [--check|--apply --yes] [--json]" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    if [ ! -f "scripts/check_update_state.sh" ]; then
+        echo "Error: update helper missing: scripts/check_update_state.sh" >&2
+        return 1
+    fi
+
+    local cmd=(bash scripts/check_update_state.sh)
+    [ "$json_mode" = "true" ] && cmd+=(--json)
+
+    if [ "$mode" = "apply" ]; then
+        if [ "$confirm_apply" != "true" ]; then
+            echo "Error: update --apply requires --yes confirmation" >&2
+            return 1
+        fi
+        cmd+=(--apply)
+    fi
+
+    "${cmd[@]}"
+}
+
+track_command() {
+    local action=${1:-}
+    shift || true
+
+    case "$action" in
+        new)
+            local feature_name=${1:-}
+            if [ -z "$feature_name" ]; then
+                echo "Usage: multipowers track new <feature-name>" >&2
+                return 1
+            fi
+
+            local safe_name
+            safe_name=$(slugify_feature_name "$feature_name")
+            local track_name="track-$(date +%Y%m%d)-${safe_name}"
+            local track_file="conductor/tracks/${track_name}.md"
+
+            if [ -f "$track_file" ]; then
+                echo "Error: Track already exists: $track_file" >&2
+                return 1
+            fi
+
+            mkdir -p conductor/tracks
+            cp templates/conductor/tracks/example-track.md "$track_file"
+
+            local owner
+            owner=$(whoami 2>/dev/null || echo "Unknown")
+            local today
+            today=$(date +%Y-%m-%d)
+            sed -i "s|^# Track: Feature Name|# Track: ${feature_name}|" "$track_file"
+            sed -i "s|^\*\*Status:\*\* Proposed|**Status:** Proposed|" "$track_file"
+            sed -i "s|^\*\*Updated At:\*\* \[YYYY-MM-DD\]|**Updated At:** ${today}|" "$track_file"
+            sed -i "s|^\*\*Owner:\*\* \[Your Name\]|**Owner:** ${owner}|" "$track_file"
+
+            echo "✓ Track created: $track_file"
+            echo "Next: Edit the track with goal and requirements"
+            ;;
+
+        list)
+            if [ ! -d "conductor/tracks" ]; then
+                echo "No tracks directory found"
+                return 0
+            fi
+
+            shopt -s nullglob
+            local track_files=(conductor/tracks/*.md)
+            shopt -u nullglob
+
+            if [ ${#track_files[@]} -eq 0 ]; then
+                echo "No tracks found"
+                return 0
+            fi
+
+            echo "Tracks:"
+            local item
+            for item in "${track_files[@]}"; do
+                basename "$item"
+            done
+            ;;
+
+        start)
+            local track_name=${1:-}
+            if [ -z "$track_name" ]; then
+                echo "Usage: multipowers track start <track-name>" >&2
+                return 1
+            fi
+
+            local track_file
+            if ! track_file=$(resolve_track_for_action "$track_name"); then
+                return 1
+            fi
+
+            local current_status
+            current_status=$(extract_track_status "$track_file")
+            if [ "$current_status" = "In Progress" ]; then
+                local current_id
+                current_id=$(track_id_from_file "$track_file")
+                set_active_track "$current_id"
+                echo "Track is already in progress"
+                return 0
+            fi
+            if [ "$current_status" = "Completed" ]; then
+                echo "Error: Cannot restart a completed track" >&2
+                return 1
+            fi
+
+            local owner
+            owner=$(whoami 2>/dev/null || echo "Unknown")
+            refresh_track_metadata "$track_file" "In Progress" "$owner"
+            set_active_track "$(track_id_from_file "$track_file")"
+
+            echo "✓ Track started: $track_file"
+            echo "Status: ${current_status:-Proposed} → In Progress"
+            ;;
+
+        complete)
+            local track_name=${1:-}
+            if [ -z "$track_name" ]; then
+                echo "Usage: multipowers track complete <track-name> [--skip-governance] [--governance-mode strict|advisory] [--governance-artifact <path>] [--request-id <id>]" >&2
+                return 1
+            fi
+            shift
+
+            local skip_governance="false"
+            local governance_mode="strict"
+            local governance_artifact=""
+            local request_id=""
+
+            while [ $# -gt 0 ]; do
+                case "$1" in
+                    --skip-governance)
+                        skip_governance="true"
+                        shift
+                        ;;
+                    --governance-mode)
+                        governance_mode=${2:-}
+                        shift 2
+                        ;;
+                    --governance-artifact)
+                        governance_artifact=${2:-}
+                        shift 2
+                        ;;
+                    --request-id)
+                        request_id=${2:-}
+                        shift 2
+                        ;;
+                    *)
+                        echo "Error: Unknown track complete option: $1" >&2
+                        return 1
+                        ;;
+                esac
+            done
+
+            if [ "$governance_mode" != "strict" ] && [ "$governance_mode" != "advisory" ]; then
+                echo "Error: governance mode must be strict or advisory" >&2
+                return 1
+            fi
+
+            local track_file
+            if ! track_file=$(resolve_track_for_action "$track_name"); then
+                return 1
+            fi
+
+            local current_status
+            current_status=$(extract_track_status "$track_file")
+            if [ "$current_status" != "In Progress" ]; then
+                echo "Error: Can only complete tracks in progress (current: ${current_status:-Unknown})" >&2
+                return 1
+            fi
+
+            local track_id
+            track_id=$(track_id_from_file "$track_file")
+            [ -z "$request_id" ] && request_id=$(generate_request_id)
+
+            local governance_status=""
+            local artifact_path=""
+
+            if [ "$skip_governance" = "true" ]; then
+                governance_status="skipped (explicit bypass)"
+                echo "[GOVERNANCE] WARN: bypassed by --skip-governance"
+            else
+                artifact_path=${governance_artifact:-$(default_governance_artifact_path "$track_id")}
+                emit_runtime_event "governance_started" "router" "$request_id" "$track_id" "" "" "" "track completion governance started"
+
+                local gov_cmd=(bash scripts/run_governance_checks.sh --mode "$governance_mode" --artifact "$artifact_path" --request-id "$request_id" --track-id "$track_id")
+                set +e
+                "${gov_cmd[@]}"
+                local gov_rc=$?
+                set -e
+
+                if [ "$gov_rc" -ne 0 ]; then
+                    emit_runtime_event "governance_finished" "router" "$request_id" "$track_id" "" "" "" "track completion governance failed" "{\"exit_code\":$gov_rc}"
+                    echo "Error: governance checks failed; track completion blocked. Use --skip-governance for explicit bypass." >&2
+                    return "$gov_rc"
+                fi
+
+                governance_status="passed"
+                emit_runtime_event "governance_finished" "router" "$request_id" "$track_id" "" "" "" "track completion governance passed" "{\"exit_code\":0}"
+            fi
+
+            local owner
+            owner=$(whoami 2>/dev/null || echo "Unknown")
+            refresh_track_metadata "$track_file" "Completed" "$owner"
+            upsert_track_metadata_line "$track_file" "Governance" "$governance_status"
+            if [ -n "$artifact_path" ]; then
+                upsert_track_metadata_line "$track_file" "Governance Artifact" "$artifact_path"
+            fi
+            clear_active_track_if_match "$track_id"
+
+            echo "✓ Track completed: $track_file"
+            echo "Status: In Progress → Completed"
+            ;;
+
+        status)
+            local track_name=${1:-}
+            if [ -z "$track_name" ]; then
+                echo "Usage: multipowers track status <track-name>" >&2
+                return 1
+            fi
+
+            local track_file
+            if ! track_file=$(resolve_track_for_action "$track_name"); then
+                return 1
+            fi
+
+            grep -E '^(\*\*Status:\*\*|\*\*Updated At:\*\*|\*\*Owner:\*\*|\*\*Governance:\*\*|\*\*Governance Artifact:\*\*)' "$track_file" || echo "No status info found"
+            ;;
+
+        *)
+            track_usage
+            return 1
+            ;;
+    esac
+}
+
 if [ $# -lt 1 ]; then
     usage
     exit 1
 fi
 
 SUBCOMMAND=$1
-ARG2=${2:-}
-ARG3=${3:-}
+shift || true
 
 case "$SUBCOMMAND" in
     init)
-        init_command "$@"
+        init_command "$SUBCOMMAND" "$@"
         ;;
-
     route)
-        shift
         route_command "$@"
         ;;
-
+    run)
+        run_command "$@"
+        ;;
     workflow)
-        shift
         workflow_command "$@"
         ;;
-
     doctor)
-        echo "Checking multipowers installation..."
-        exit_code=0
-
-        if [ -f "bin/ask-role" ]; then
-            echo "  [PASS] bin/ask-role exists"
-        else
-            echo "  [FAIL] bin/ask-role not found"
-            exit_code=1
-        fi
-
-        if [ -f "config/roles.default.json" ]; then
-            echo "  [PASS] config/roles.default.json exists"
-        else
-            echo "  [FAIL] config/roles.default.json not found"
-            exit_code=1
-        fi
-
-        if [ -f "connectors/codex.py" ] && [ -f "connectors/gemini.py" ] && [ -f "connectors/claude.py" ]; then
-            echo "  [PASS] connectors exist"
-        else
-            echo "  [FAIL] connectors not found"
-            exit_code=1
-        fi
-
-        if command -v python3 >/dev/null 2>&1; then
-            echo "  [PASS] python3 is installed"
-        else
-            echo "  [FAIL] python3 is required"
-            exit_code=1
-        fi
-
-        if command -v jq >/dev/null 2>&1; then
-            echo "  [PASS] jq is installed (optional)"
-        else
-            echo "  [WARN] jq is not installed (optional)"
-        fi
-
-        config_path=$(resolve_roles_config)
-        if [ -f "$config_path" ]; then
-            echo "  [PASS] effective roles config exists"
-            echo "  [INFO] effective roles config: $config_path"
-        else
-            echo "  [FAIL] effective roles config missing: $config_path"
-            exit_code=1
-        fi
-
-        if [ -f "config/roles.schema.json" ]; then
-            echo "  [PASS] roles schema exists"
-        else
-            echo "  [FAIL] roles schema missing: config/roles.schema.json"
-            exit_code=1
-        fi
-
-        if [ -f "scripts/validate_roles.py" ] && command -v python3 >/dev/null 2>&1; then
-            if python3 scripts/validate_roles.py --config "$config_path" --schema config/roles.schema.json --quiet >/dev/null 2>&1; then
-                echo "  [PASS] roles config validates against schema"
-            else
-                echo "  [FAIL] roles config validation failed"
-                exit_code=1
-            fi
-        else
-            echo "  [WARN] schema validator unavailable (scripts/validate_roles.py)"
-        fi
-
-        mcp_config=$(resolve_mcp_config)
-        if [ -f "$mcp_config" ]; then
-            echo "  [PASS] effective mcp config exists"
-            echo "  [INFO] effective mcp config: $mcp_config"
-            if [ -f "scripts/validate_mcp.py" ] && command -v python3 >/dev/null 2>&1; then
-                if python3 scripts/validate_mcp.py --config "$mcp_config" --quiet; then
-                    echo "  [PASS] mcp config validates"
-                else
-                    echo "  [FAIL] mcp config validation failed"
-                    exit_code=1
-                fi
-            else
-                echo "  [WARN] mcp validator unavailable (scripts/validate_mcp.py)"
-            fi
-        else
-            echo "  [FAIL] effective mcp config missing: $mcp_config"
-            exit_code=1
-        fi
-
-        workflow_config=$(resolve_workflow_config)
-        if [ -f "$workflow_config" ]; then
-            echo "  [PASS] effective workflow config exists"
-            echo "  [INFO] effective workflow config: $workflow_config"
-        else
-            echo "  [FAIL] effective workflow config missing: $workflow_config"
-            exit_code=1
-        fi
-
-        if ! check_context_health; then
-            exit_code=1
-        fi
-
-        if ! run_context_quality_check; then
-            exit_code=1
-        fi
-
-        exit "$exit_code"
+        doctor_command
         ;;
-
     update)
-        echo "Updating multipowers..."
-        echo "Not implemented yet. Pull latest changes manually."
+        update_command "$@"
         ;;
-
     track)
-        case "$ARG2" in
-            new)
-                if [ -z "$ARG3" ]; then
-                    echo "Usage: multipowers track new <feature-name>" >&2
-                    exit 1
-                fi
-
-                safe_name=$(slugify_feature_name "$ARG3")
-                track_name="track-$(date +%Y%m%d)-${safe_name}"
-                track_file="conductor/tracks/${track_name}.md"
-
-                if [ -f "$track_file" ]; then
-                    echo "Error: Track already exists: $track_file" >&2
-                    exit 1
-                fi
-
-                mkdir -p conductor/tracks
-                cp templates/conductor/tracks/example-track.md "$track_file"
-
-                owner=$(whoami 2>/dev/null || echo "Unknown")
-                today=$(date +%Y-%m-%d)
-                sed -i "s|^# Track: Feature Name|# Track: ${ARG3}|" "$track_file"
-                sed -i "s|^\*\*Status:\*\* Proposed|**Status:** Proposed|" "$track_file"
-                sed -i "s|^\*\*Updated At:\*\* \[YYYY-MM-DD\]|**Updated At:** ${today}|" "$track_file"
-                sed -i "s|^\*\*Owner:\*\* \[Your Name\]|**Owner:** ${owner}|" "$track_file"
-
-                echo "✓ Track created: $track_file"
-                echo "Next: Edit the track with goal and requirements"
-                ;;
-
-            list)
-                if [ ! -d "conductor/tracks" ]; then
-                    echo "No tracks directory found"
-                    exit 0
-                fi
-
-                shopt -s nullglob
-                track_files=(conductor/tracks/*.md)
-                shopt -u nullglob
-
-                if [ ${#track_files[@]} -eq 0 ]; then
-                    echo "No tracks found"
-                    exit 0
-                fi
-
-                echo "Tracks:"
-                local_track=''
-                for local_track in "${track_files[@]}"; do
-                    basename "$local_track"
-                done
-                ;;
-
-            start)
-                if [ -z "$ARG3" ]; then
-                    echo "Usage: multipowers track start <track-name>" >&2
-                    exit 1
-                fi
-
-                if ! track_file=$(resolve_track_for_action "$ARG3"); then
-                    exit 1
-                fi
-
-                current_status=$(extract_track_status "$track_file")
-                if [ "$current_status" = "In Progress" ]; then
-                    echo "Track is already in progress"
-                    exit 0
-                fi
-                if [ "$current_status" = "Completed" ]; then
-                    echo "Error: Cannot restart a completed track" >&2
-                    exit 1
-                fi
-
-                owner=$(whoami 2>/dev/null || echo "Unknown")
-                refresh_track_metadata "$track_file" "In Progress" "$owner"
-
-                echo "✓ Track started: $track_file"
-                echo "Status: ${current_status:-Proposed} → In Progress"
-                ;;
-
-            complete)
-                if [ -z "$ARG3" ]; then
-                    echo "Usage: multipowers track complete <track-name>" >&2
-                    exit 1
-                fi
-
-                if ! track_file=$(resolve_track_for_action "$ARG3"); then
-                    exit 1
-                fi
-
-                current_status=$(extract_track_status "$track_file")
-                if [ "$current_status" != "In Progress" ]; then
-                    echo "Error: Can only complete tracks in progress (current: ${current_status:-Unknown})" >&2
-                    exit 1
-                fi
-
-                owner=$(whoami 2>/dev/null || echo "Unknown")
-                refresh_track_metadata "$track_file" "Completed" "$owner"
-
-                echo "✓ Track completed: $track_file"
-                echo "Status: In Progress → Completed"
-                ;;
-
-            status)
-                if [ -z "$ARG3" ]; then
-                    echo "Usage: multipowers track status <track-name>" >&2
-                    exit 1
-                fi
-
-                if ! track_file=$(resolve_track_for_action "$ARG3"); then
-                    exit 1
-                fi
-
-                grep -E '^(\*\*Status:\*\*|\*\*Updated At:\*\*|\*\*Owner:\*\*)' "$track_file" || echo "No status info found"
-                ;;
-
-            *)
-                track_usage
-                exit 1
-                ;;
-        esac
+        track_command "$@"
         ;;
-
     *)
         usage
         exit 1

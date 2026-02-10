@@ -35,7 +35,7 @@ if [ $status -eq 0 ]; then
     echo "  [FAIL] Expected governance to fail for docs-sync violation"
     exit 1
 fi
-if echo "$output" | grep -q "docs update required" && echo "$output" | grep -q "Changed code files"; then
+if { echo "$output" | grep -q "docs update required" && echo "$output" | grep -q "Changed code files"; } ||    { echo "$output" | grep -q "component docs sync required" && echo "$output" | grep -q "required docs"; }; then
     echo "  [PASS] Docs-sync violation is actionable"
 else
     echo "  [FAIL] Missing actionable docs-sync message"
@@ -45,7 +45,7 @@ fi
 
 # Test 3: code + docs together pass docs-sync gate.
 echo "[TEST 3] code+docs changes satisfy docs-sync"
-if output=$(bash scripts/run_governance_checks.sh --changed-file scripts/route_task.py --changed-file README.md 2>&1); then
+if output=$(bash scripts/run_governance_checks.sh --mode advisory --changed-file scripts/route_task.py --changed-file README.md 2>&1); then
     if echo "$output" | grep -q "PASS"; then
         echo "  [PASS] code+docs changes pass governance"
     else
@@ -60,12 +60,14 @@ else
 fi
 
 # Test 4: npm governance script is wired.
-echo "[TEST 4] npm governance:check script exists"
-if npm run -s governance:check -- --changed-file README.md >/tmp/test_governance_npm_out.txt 2>/tmp/test_governance_npm_err.txt; then
-    echo "  [PASS] npm governance:check is executable"
+echo "[TEST 4] npm governance scripts exist"
+if npm run -s governance -- --help >/tmp/test_governance_npm_out.txt 2>/tmp/test_governance_npm_err.txt && \
+   npm run -s governance:check -- --changed-file README.md >/tmp/test_governance_npm_out2.txt 2>/tmp/test_governance_npm_err2.txt; then
+    echo "  [PASS] npm governance and governance:check are executable"
 else
-    echo "  [FAIL] npm governance:check should run"
-    cat /tmp/test_governance_npm_err.txt
+    echo "  [FAIL] npm governance scripts should run"
+    cat /tmp/test_governance_npm_err.txt 2>/dev/null || true
+    cat /tmp/test_governance_npm_err2.txt 2>/dev/null || true
     exit 1
 fi
 

@@ -171,7 +171,7 @@ cat > conductor/tracks/track-005-test-complete.md <<'TRACK_EOF'
 **Owner:** Test
 TRACK_EOF
 
-./bin/multipowers track complete "test-complete" >/dev/null
+./bin/multipowers track complete "test-complete" --skip-governance >/dev/null
 if grep -q '^\*\*Status:\*\* Completed' conductor/tracks/track-005-test-complete.md; then
     echo "  [PASS] Status changed to Completed"
 else

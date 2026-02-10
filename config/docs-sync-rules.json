@@ -1,0 +1,44 @@
+{
+  "rules": [
+    {
+      "code_prefix": "bin/",
+      "required_docs": [
+        "README.md"
+      ]
+    },
+    {
+      "code_prefix": "connectors/",
+      "required_docs": [
+        "README.md"
+      ]
+    },
+    {
+      "code_prefix": "scripts/",
+      "required_docs": [
+        "README.md"
+      ]
+    },
+    {
+      "code_prefix": "config/",
+      "required_docs": [
+        "README.md"
+      ]
+    },
+    {
+      "code_prefix": "lib/",
+      "required_docs": [
+        "README.md"
+      ]
+    }
+  ],
+  "ignore_prefixes": [
+    "tests/",
+    "outputs/",
+    ".worktrees/"
+  ],
+  "ignore_suffixes": [
+    ".md",
+    ".txt",
+    ".log"
+  ]
+}

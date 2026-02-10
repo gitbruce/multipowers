@@ -26,6 +26,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--workflow", required=True, help="Workflow name")
     parser.add_argument("--task", required=True, help="Task input")
     parser.add_argument("--ask-role", default="bin/ask-role", help="Path to ask-role executable")
+    parser.add_argument(
+        "--roles-config",
+        default="",
+        help="Effective roles config path (defaults: conductor/config/roles.json, then config/roles.default.json)",
+    )
     parser.add_argument("--request-id", default="", help="Request identifier")
     parser.add_argument("--track-id", default="", help="Track identifier")
     parser.add_argument("--json", action="store_true", help="Emit JSON summary")
@@ -47,6 +52,35 @@ def _load_json(path: Path) -> dict[str, Any]:
     return loaded
 
 
+def _resolve_roles_config_path(explicit_path: str) -> Path:
+    if explicit_path:
+        return Path(explicit_path)
+
+    preferred = Path("conductor/config/roles.json")
+    if preferred.exists():
+        return preferred
+
+    fallback = Path("config/roles.default.json")
+    return fallback
+
+
+def _load_available_roles(roles_config_path: Path) -> set[str]:
+    try:
+        payload = _load_json(roles_config_path)
+    except ValueError as exc:
+        raise ValueError(f"Invalid roles config: {exc}") from None
+
+    roles_obj = payload.get("roles")
+    if not isinstance(roles_obj, dict) or not roles_obj:
+        raise ValueError(f"Roles config missing non-empty object field 'roles': {roles_config_path}")
+
+    roles = {role for role in roles_obj.keys() if isinstance(role, str) and role.strip()}
+    if not roles:
+        raise ValueError(f"Roles config contains no valid role names: {roles_config_path}")
+
+    return roles
+
+
 def _render_prompt(template: str, task: str, workflow_name: str, node_id: str, role: str) -> str:
     rendered = template
     rendered = rendered.replace("{task}", task)
@@ -56,7 +90,12 @@ def _render_prompt(template: str, task: str, workflow_name: str, node_id: str, r
     return rendered
 
 
-def _validate_workflow(config: dict[str, Any], workflow_name: str, task: str) -> tuple[str, list[WorkflowNode]]:
+def _validate_workflow(
+    config: dict[str, Any],
+    workflow_name: str,
+    task: str,
+    available_roles: set[str],
+) -> tuple[str, list[WorkflowNode]]:
     workflows = config.get("workflows")
     if not isinstance(workflows, dict):
         raise ValueError("Workflow config missing object field: workflows")
@@ -71,6 +110,10 @@ def _validate_workflow(config: dict[str, Any], workflow_name: str, task: str) ->
     default_role = workflow.get("default_role")
     if not isinstance(default_role, str) or not default_role.strip():
         raise ValueError(f"Workflow '{workflow_name}' missing non-empty default_role")
+    if default_role not in available_roles:
+        raise ValueError(
+            f"Workflow '{workflow_name}' unknown role '{default_role}' (node=default_role)"
+        )
 
     nodes = workflow.get("nodes")
     if not isinstance(nodes, list) or not nodes:
@@ -89,6 +132,10 @@ def _validate_workflow(config: dict[str, Any], workflow_name: str, task: str) ->
         if not isinstance(node_role, str) or not node_role.strip():
             raise ValueError(
                 f"Workflow '{workflow_name}' node '{node_id}' has invalid role override"
+            )
+        if node_role not in available_roles:
+            raise ValueError(
+                f"Workflow '{workflow_name}' unknown role '{node_role}' (node='{node_id}')"
             )
 
         prompt_template = raw_node.get("prompt_template")
@@ -171,7 +218,9 @@ def main() -> int:
 
     try:
         config = _load_json(Path(args.config))
-        _, nodes = _validate_workflow(config, args.workflow, args.task)
+        roles_config_path = _resolve_roles_config_path(args.roles_config)
+        available_roles = _load_available_roles(roles_config_path)
+        _, nodes = _validate_workflow(config, args.workflow, args.task, available_roles)
     except ValueError as exc:
         print(f"[WORKFLOW] {exc}", file=sys.stderr)
         return 1

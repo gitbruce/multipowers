@@ -74,11 +74,18 @@ npm install
 ## Key Commands
 
 ```bash
-# choose lane
+# choose lane only (decision)
 ./bin/multipowers route --task "Refactor auth boundary" --risk-hint high --json
 
-# run standard-lane workflow
-./bin/multipowers workflow run subagent-driven-development --task "Implement feature X"
+# route + execute in one command
+./bin/multipowers run --task "Refactor auth boundary" --risk-hint high --json --allow-untracked
+
+# run standard-lane workflow (node-level role switching is defined in workflow config)
+./bin/multipowers workflow run subagent-driven-development --task "Implement feature X" --allow-untracked
+
+# inspect and validate available workflows
+./bin/multipowers workflow list
+./bin/multipowers workflow validate
 
 # role dispatch bridge
 ./bin/ask-role architect "Brainstorm architecture"
@@ -87,14 +94,21 @@ npm install
 
 # health and governance baseline
 ./bin/multipowers doctor
-npm run governance:check
+bash scripts/run_governance_checks.sh --mode strict --changed-file README.md
+bash scripts/run_governance_checks.sh --mode advisory --changed-file bin/multipowers --changed-file README.md
+npm run governance -- --help
+
+# safe update workflow
+./bin/multipowers update --check --json
+./bin/multipowers update --apply --yes
+
 npm test --silent
 ```
 
 ## Runtime Observability
 
 - Structured logs are written to `outputs/runs/YYYY-MM-DD.jsonl`.
-- Router/workflow events include: `lane_selected`, `workflow_started`, `workflow_node_executed`, `workflow_finished`.
+- Router/workflow events include: `lane_selected`, `fast_lane_dispatched`, `fast_lane_finished`, `workflow_started`, `workflow_node_executed`, `workflow_finished`, `governance_started`, `governance_finished`.
 - Use `request_id` (and optional `track_id`) to reconstruct one execution timeline.
 
 ## Repository Layout

@@ -23,9 +23,19 @@ REQUIRED_EVIDENCE_FIELDS = [
     "**Key Output**:",
 ]
 
+GOVERNANCE_PROOF_PATTERNS = [
+    re.compile(r"run_governance_checks\.sh"),
+    re.compile(r"\bsemgrep\b", re.IGNORECASE),
+    re.compile(r"\bbiome\b", re.IGNORECASE),
+    re.compile(r"\bruff\b", re.IGNORECASE),
+    re.compile(r"governance artifact", re.IGNORECASE),
+    re.compile(r"outputs/governance", re.IGNORECASE),
+]
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate DONE-task evidence coverage in plan markdown files")
+    parser.add_argument("--require-governance-evidence", action="store_true", help="Require governance proof in evidence sections")
     parser.add_argument("files", nargs="*", help="Plan markdown files to validate")
     return parser.parse_args()
 
@@ -70,7 +80,11 @@ def parse_coverage_ids(evidence_text: str) -> set[str]:
     return coverage_ids
 
 
-def check_file(path: Path) -> list[str]:
+def has_governance_proof(evidence_text: str) -> bool:
+    return any(pattern.search(evidence_text) for pattern in GOVERNANCE_PROOF_PATTERNS)
+
+
+def check_file(path: Path, require_governance_evidence: bool) -> list[str]:
     errors: list[str] = []
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -102,6 +116,11 @@ def check_file(path: Path) -> list[str]:
         if required_field not in evidence_text:
             errors.append(f"{path}: evidence section missing required field '{required_field}'")
 
+    if require_governance_evidence and not has_governance_proof(evidence_text):
+        errors.append(
+            f"{path}: governance evidence required but missing (expected governance command or artifact reference)"
+        )
+
     return errors
 
 
@@ -122,7 +141,7 @@ def main() -> int:
         if not file_path.exists():
             all_errors.append(f"{file_path}: file not found")
             continue
-        all_errors.extend(check_file(file_path))
+        all_errors.extend(check_file(file_path, args.require_governance_evidence))
 
     if all_errors:
         for issue in all_errors:
