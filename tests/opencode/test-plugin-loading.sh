@@ -68,8 +68,52 @@ else
     exit 1
 fi
 
-# Test 6: Verify personal test skill was created
-echo "Test 6: Checking test fixtures..."
+# Test 6: Verify runtime capabilities exported by plugin
+echo "Test 6: Checking plugin runtime capabilities..."
+if PLUGIN_FILE="$plugin_file" SUPERPOWERS_ROOT="$HOME/.config/opencode/superpowers" PERSONAL_ROOT="$HOME/.config/opencode" node --input-type=module - <<'NODE'
+import process from 'process';
+
+const pluginPath = process.env.PLUGIN_FILE;
+const mod = await import(`file://${pluginPath}`);
+const plugin = mod.default;
+
+if (!plugin || plugin.name !== 'superpowers') {
+  throw new Error('plugin export missing or invalid name');
+}
+if (typeof plugin.setup !== 'function') {
+  throw new Error('plugin.setup must be a function');
+}
+
+const runtime = plugin.setup({
+  superpowersRoot: process.env.SUPERPOWERS_ROOT,
+  personalRoot: process.env.PERSONAL_ROOT,
+});
+
+if (!runtime || typeof runtime.listSkills !== 'function' || typeof runtime.resolveSkill !== 'function') {
+  throw new Error('runtime methods listSkills/resolveSkill missing');
+}
+
+const skills = runtime.listSkills();
+if (!Array.isArray(skills) || skills.length < 1) {
+  throw new Error('listSkills returned no skills');
+}
+
+const resolved = runtime.resolveSkill('using-superpowers');
+if (!resolved || typeof resolved.skillFile !== 'string') {
+  throw new Error('resolveSkill did not resolve using-superpowers');
+}
+
+console.log('runtime-ok');
+NODE
+then
+    echo "  [PASS] Plugin exposes meaningful runtime behavior"
+else
+    echo "  [FAIL] Plugin runtime behavior check failed"
+    exit 1
+fi
+
+# Test 7: Verify personal test skill was created
+echo "Test 7: Checking test fixtures..."
 if [ -f "$HOME/.config/opencode/skills/personal-test/SKILL.md" ]; then
     echo "  [PASS] Personal test skill fixture created"
 else

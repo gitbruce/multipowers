@@ -244,6 +244,9 @@ case "$TOOL" in
     codex)
         MULTIPOWERS_ROLE="$ROLE" MULTIPOWERS_REQUEST_ID="$REQUEST_ID" python3 connectors/codex.py "$FULL_PROMPT" "${ROLE_ARGS[@]}"
         ;;
+    claude)
+        MULTIPOWERS_ROLE="$ROLE" MULTIPOWERS_REQUEST_ID="$REQUEST_ID" python3 connectors/claude.py "$FULL_PROMPT" "${ROLE_ARGS[@]}"
+        ;;
     system)
         echo "[ASK-ROLE ERROR] Tool 'system' is for local orchestrator roles and cannot be dispatched via ask-role" >&2
         exit 1

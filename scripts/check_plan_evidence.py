@@ -10,9 +10,9 @@ from pathlib import Path
 from typing import Iterable
 
 TASK_HEADER_RE = re.compile(r"^###\s+(T[0-9A-Za-z-]+)")
-STATUS_DONE_RE = re.compile(r"\*\*状态\*\*：`DONE`")
+STATUS_DONE_RE = re.compile(r"\*\*(Status|状态)\*\*\s*[：:]\s*`DONE`", re.IGNORECASE)
 EVIDENCE_HEADING_RE = re.compile(r"^##\s+.*(证据|Evidence)")
-COVERAGE_RE = re.compile(r"\*\*Coverage Task IDs\*\*:\s*`([^`]+)`")
+COVERAGE_RE = re.compile(r"\*\*(Coverage Task IDs|覆盖任务ID)\*\*:\s*`([^`]+)`")
 TASK_ID_IN_TEXT_RE = re.compile(r"T[0-9A-Za-z-]+")
 
 REQUIRED_EVIDENCE_FIELDS = [
@@ -64,7 +64,7 @@ def find_evidence_text(lines: list[str]) -> str:
 def parse_coverage_ids(evidence_text: str) -> set[str]:
     coverage_ids: set[str] = set()
     for match in COVERAGE_RE.finditer(evidence_text):
-        coverage_chunk = match.group(1)
+        coverage_chunk = match.group(2)
         for task_id in TASK_ID_IN_TEXT_RE.findall(coverage_chunk):
             coverage_ids.add(task_id)
     return coverage_ids

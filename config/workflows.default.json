@@ -1,0 +1,44 @@
+{
+  "workflows": {
+    "subagent-driven-development": {
+      "description": "Default implementation workflow with architect review nodes",
+      "default_role": "coder",
+      "nodes": [
+        {
+          "id": "implement",
+          "prompt_template": "Implement this task with TDD discipline: {task}"
+        },
+        {
+          "id": "review",
+          "role": "architect",
+          "prompt_template": "Review implementation for task '{task}'. Focus on correctness, maintainability, and blockers."
+        }
+      ]
+    },
+    "writing-plans": {
+      "description": "Planning-oriented workflow",
+      "default_role": "architect",
+      "nodes": [
+        {
+          "id": "scope",
+          "prompt_template": "Write a concise implementation plan for: {task}"
+        },
+        {
+          "id": "verify-plan",
+          "role": "architect",
+          "prompt_template": "Verify whether the plan for '{task}' has enough checkpoints and clear verification."
+        }
+      ]
+    },
+    "brainstorming": {
+      "description": "Idea exploration workflow",
+      "default_role": "architect",
+      "nodes": [
+        {
+          "id": "explore",
+          "prompt_template": "Brainstorm options for: {task}. Keep tradeoffs explicit."
+        }
+      ]
+    }
+  }
+}

@@ -21,19 +21,12 @@ mkdir -p "$install_root/.opencode/plugins"
 plugin_target="$install_root/.opencode/plugins/superpowers.js"
 plugin_source="$REPO_ROOT/.opencode/plugins/superpowers.js"
 
-if [ -f "$plugin_source" ]; then
-    cp "$plugin_source" "$plugin_target"
-else
-    cat > "$plugin_target" <<'PLUGIN_EOF'
-// Generated fallback plugin stub for tests
-export default {
-  name: "superpowers",
-  setup() {
-    return {};
-  }
-};
-PLUGIN_EOF
+if [ ! -f "$plugin_source" ]; then
+    echo "[SETUP FAIL] Missing plugin runtime source: $plugin_source" >&2
+    exit 1
 fi
+
+cp "$plugin_source" "$plugin_target"
 
 mkdir -p "$HOME/.config/opencode/plugins"
 ln -sf "$plugin_target" "$HOME/.config/opencode/plugins/superpowers.js"

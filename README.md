@@ -74,6 +74,12 @@ npm install
 ## Key Commands
 
 ```bash
+# choose lane
+./bin/multipowers route --task "Refactor auth boundary" --risk-hint high --json
+
+# run standard-lane workflow
+./bin/multipowers workflow run subagent-driven-development --task "Implement feature X"
+
 # role dispatch bridge
 ./bin/ask-role architect "Brainstorm architecture"
 ./bin/ask-role coder "Implement task with TDD"
@@ -81,15 +87,22 @@ npm install
 
 # health and governance baseline
 ./bin/multipowers doctor
+npm run governance:check
 npm test --silent
 ```
+
+## Runtime Observability
+
+- Structured logs are written to `outputs/runs/YYYY-MM-DD.jsonl`.
+- Router/workflow events include: `lane_selected`, `workflow_started`, `workflow_node_executed`, `workflow_finished`.
+- Use `request_id` (and optional `track_id`) to reconstruct one execution timeline.
 
 ## Repository Layout
 
 ```text
 multipowers/
 ├── bin/                     # multipowers + ask-role entry points
-├── connectors/              # codex/gemini wrappers
+├── connectors/              # codex/gemini/claude wrappers
 ├── config/                  # default role and schema config
 ├── conductor/               # maintainer-facing live context/tracks
 ├── templates/conductor/     # scaffold for user project context/tracks

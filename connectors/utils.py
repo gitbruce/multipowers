@@ -131,6 +131,49 @@ def log_context_event(
     )
 
 
+def log_runtime_event(
+    event: str,
+    role: str,
+    request_id: Optional[str] = None,
+    track_id: Optional[str] = None,
+    lane: Optional[str] = None,
+    workflow: Optional[str] = None,
+    node: Optional[str] = None,
+    reason: Optional[str] = None,
+    metadata: Optional[dict[str, Any]] = None,
+):
+    merged_metadata: dict[str, Any] = {
+        "event": event,
+    }
+
+    if track_id:
+        merged_metadata["track_id"] = track_id
+    if lane:
+        merged_metadata["lane"] = lane
+    if workflow:
+        merged_metadata["workflow"] = workflow
+    if node:
+        merged_metadata["node"] = node
+    if reason:
+        merged_metadata["reason"] = reason
+
+    if metadata:
+        merged_metadata.update(metadata)
+
+    if request_id:
+        merged_metadata["request_id"] = request_id
+
+    log_structured(
+        role=role,
+        tool="multipowers",
+        exit_code=0,
+        duration_ms=0,
+        token_estimate=0,
+        error_class=event,
+        metadata=merged_metadata,
+    )
+
+
 def validate_role(role: str, config: dict) -> bool:
     if "roles" not in config:
         raise ValueError("Invalid config: missing 'roles' key")
@@ -196,9 +239,50 @@ def _run_context_log_cli(argv: list[str]) -> int:
     return 0
 
 
+def _run_event_log_cli(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(description="Write multipowers runtime event structured log")
+    parser.add_argument("--event", required=True)
+    parser.add_argument("--role", default="router")
+    parser.add_argument("--request-id", default="")
+    parser.add_argument("--track-id", default="")
+    parser.add_argument("--lane", default="")
+    parser.add_argument("--workflow", default="")
+    parser.add_argument("--node", default="")
+    parser.add_argument("--reason", default="")
+    parser.add_argument("--metadata-json", default="")
+    args = parser.parse_args(argv)
+
+    request_id = args.request_id.strip() or os.environ.get("MULTIPOWERS_REQUEST_ID", "").strip() or None
+
+    extra_metadata: dict[str, Any] = {}
+    if args.metadata_json.strip():
+        try:
+            parsed = json.loads(args.metadata_json)
+            if isinstance(parsed, dict):
+                extra_metadata = parsed
+        except json.JSONDecodeError:
+            print("[ASK-ROLE WARNING] Invalid metadata-json payload for event-log", file=sys.stderr)
+
+    log_runtime_event(
+        event=args.event,
+        role=args.role,
+        request_id=request_id,
+        track_id=args.track_id.strip() or None,
+        lane=args.lane.strip() or None,
+        workflow=args.workflow.strip() or None,
+        node=args.node.strip() or None,
+        reason=args.reason.strip() or None,
+        metadata=extra_metadata,
+    )
+    return 0
+
+
 def main(argv: list[str]) -> int:
     if len(argv) > 0 and argv[0] == "context-log":
         return _run_context_log_cli(argv[1:])
+
+    if len(argv) > 0 and argv[0] == "event-log":
+        return _run_event_log_cli(argv[1:])
 
     test_prompt = "This is a test prompt with special chars: $HOME, `backtick`, \"quotes\", (parens)"
     print(f"Original: {test_prompt}")

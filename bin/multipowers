@@ -9,13 +9,15 @@ REQUIRED_CONTEXT_FILES=(
 )
 
 usage() {
-    echo "Usage: multipowers {init|doctor|update|track}" >&2
+    echo "Usage: multipowers {init|doctor|update|track|route|workflow}" >&2
     echo "" >&2
     echo "Commands:" >&2
-    echo "  init    Initialize multipowers in current project" >&2
-    echo "  doctor  Check installation and dependencies" >&2
-    echo "  update  Update multipowers to latest version" >&2
-    echo "  track   Manage development tracks" >&2
+    echo "  init      Initialize multipowers in current project" >&2
+    echo "  doctor    Check installation and dependencies" >&2
+    echo "  update    Update multipowers to latest version" >&2
+    echo "  track     Manage development tracks" >&2
+    echo "  route     Route a task to fast/standard lane" >&2
+    echo "  workflow  Execute workflow-driven standard lane" >&2
 }
 
 track_usage() {
@@ -29,11 +31,31 @@ track_usage() {
     echo "  status    Show track status" >&2
 }
 
+workflow_usage() {
+    echo "Usage: multipowers workflow run <workflow-name> --task <text> [--request-id <id>] [--track-id <id>] [--dry-run] [--json]" >&2
+}
+
 resolve_roles_config() {
     if [ -f "conductor/config/roles.json" ]; then
         echo "conductor/config/roles.json"
     else
         echo "config/roles.default.json"
+    fi
+}
+
+resolve_mcp_config() {
+    if [ -f "conductor/config/mcp.json" ]; then
+        echo "conductor/config/mcp.json"
+    else
+        echo "config/mcp.default.json"
+    fi
+}
+
+resolve_workflow_config() {
+    if [ -f "conductor/config/workflows.json" ]; then
+        echo "conductor/config/workflows.json"
+    else
+        echo "config/workflows.default.json"
     fi
 }
 
@@ -52,6 +74,37 @@ print_context_checklist() {
     for file in "${REQUIRED_CONTEXT_FILES[@]}"; do
         echo "  - conductor/context/${file}" >&2
     done
+}
+
+generate_request_id() {
+    echo "req-$(date +%s)-$RANDOM"
+}
+
+emit_runtime_event() {
+    local event=$1
+    local role=${2:-router}
+    local request_id=${3:-}
+    local track_id=${4:-}
+    local lane=${5:-}
+    local workflow=${6:-}
+    local node=${7:-}
+    local reason=${8:-}
+    local metadata_json=${9:-}
+
+    if [ ! -f "connectors/utils.py" ] || ! command -v python3 >/dev/null 2>&1; then
+        return 0
+    fi
+
+    local cmd=(python3 connectors/utils.py event-log --event "$event" --role "$role")
+    [ -n "$request_id" ] && cmd+=(--request-id "$request_id")
+    [ -n "$track_id" ] && cmd+=(--track-id "$track_id")
+    [ -n "$lane" ] && cmd+=(--lane "$lane")
+    [ -n "$workflow" ] && cmd+=(--workflow "$workflow")
+    [ -n "$node" ] && cmd+=(--node "$node")
+    [ -n "$reason" ] && cmd+=(--reason "$reason")
+    [ -n "$metadata_json" ] && cmd+=(--metadata-json "$metadata_json")
+
+    "${cmd[@]}" >/dev/null 2>&1 || true
 }
 
 check_context_health() {
@@ -274,6 +327,243 @@ repair_conductor() {
     print_context_checklist
 }
 
+route_command() {
+    local task=""
+    local risk_hint=""
+    local force_lane=""
+    local json_mode="false"
+    local request_id=""
+    local track_id=""
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --task)
+                task=${2:-}
+                shift 2
+                ;;
+            --risk-hint)
+                risk_hint=${2:-}
+                shift 2
+                ;;
+            --force-lane)
+                force_lane=${2:-}
+                shift 2
+                ;;
+            --json)
+                json_mode="true"
+                shift
+                ;;
+            --request-id)
+                request_id=${2:-}
+                shift 2
+                ;;
+            --track-id)
+                track_id=${2:-}
+                shift 2
+                ;;
+            *)
+                echo "Error: Unknown route option: $1" >&2
+                echo "Usage: multipowers route --task <text> [--risk-hint low|medium|high|critical] [--force-lane fast|standard] [--json]" >&2
+                return 1
+                ;;
+        esac
+    done
+
+    if [ -z "$task" ]; then
+        echo "Error: route requires --task" >&2
+        return 1
+    fi
+
+    if [ -z "$request_id" ]; then
+        request_id=$(generate_request_id)
+    fi
+
+    if [ ! -f "scripts/route_task.py" ]; then
+        echo "Error: routing script not found: scripts/route_task.py" >&2
+        return 1
+    fi
+
+    local route_args=(--task "$task" --json)
+    [ -n "$risk_hint" ] && route_args+=(--risk-hint "$risk_hint")
+    [ -n "$force_lane" ] && route_args+=(--force-lane "$force_lane")
+
+    local route_json
+    if ! route_json=$(python3 scripts/route_task.py "${route_args[@]}"); then
+        return 1
+    fi
+
+    local parsed
+    parsed=$(python3 - "$route_json" <<'PY'
+import json
+import sys
+
+payload = json.loads(sys.argv[1])
+fields = [
+    payload.get("lane", ""),
+    payload.get("reason", ""),
+    payload.get("suggested_workflow", ""),
+    payload.get("suggested_role", ""),
+    json.dumps(
+        {
+            "suggested_workflow": payload.get("suggested_workflow", ""),
+            "suggested_role": payload.get("suggested_role", ""),
+            "task": payload.get("task", ""),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+    ),
+]
+print("\t".join(fields))
+PY
+)
+
+    local lane reason suggested_workflow suggested_role metadata_json
+    IFS=$'\t' read -r lane reason suggested_workflow suggested_role metadata_json <<< "$parsed"
+
+    emit_runtime_event "lane_selected" "router" "$request_id" "$track_id" "$lane" "$suggested_workflow" "" "$reason" "$metadata_json"
+
+    if [ "$json_mode" = "true" ]; then
+        python3 - "$route_json" "$request_id" "$track_id" <<'PY'
+import json
+import sys
+
+payload = json.loads(sys.argv[1])
+payload["request_id"] = sys.argv[2]
+if sys.argv[3]:
+    payload["track_id"] = sys.argv[3]
+print(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+PY
+        return 0
+    fi
+
+    echo "request_id=$request_id"
+    [ -n "$track_id" ] && echo "track_id=$track_id"
+    echo "lane=$lane"
+    echo "reason=$reason"
+    echo "suggested_workflow=$suggested_workflow"
+    echo "suggested_role=$suggested_role"
+}
+
+workflow_command() {
+    local action=${1:-}
+    shift || true
+
+    case "$action" in
+        run)
+            local workflow_name=${1:-}
+            if [ -z "$workflow_name" ]; then
+                workflow_usage
+                return 1
+            fi
+            shift
+
+            local task=""
+            local json_mode="false"
+            local dry_run="false"
+            local request_id=""
+            local track_id=""
+
+            while [ $# -gt 0 ]; do
+                case "$1" in
+                    --task)
+                        task=${2:-}
+                        shift 2
+                        ;;
+                    --json)
+                        json_mode="true"
+                        shift
+                        ;;
+                    --dry-run)
+                        dry_run="true"
+                        shift
+                        ;;
+                    --request-id)
+                        request_id=${2:-}
+                        shift 2
+                        ;;
+                    --track-id)
+                        track_id=${2:-}
+                        shift 2
+                        ;;
+                    *)
+                        echo "Error: Unknown workflow option: $1" >&2
+                        workflow_usage
+                        return 1
+                        ;;
+                esac
+            done
+
+            if [ -z "$task" ]; then
+                echo "Error: workflow run requires --task" >&2
+                workflow_usage
+                return 1
+            fi
+
+            if [ -z "$request_id" ]; then
+                request_id=$(generate_request_id)
+            fi
+
+            local config_path
+            config_path=$(resolve_workflow_config)
+            if [ ! -f "$config_path" ]; then
+                echo "Error: workflow config not found: $config_path" >&2
+                echo "Hint: add conductor/config/workflows.json or keep config/workflows.default.json" >&2
+                return 1
+            fi
+
+            if [ ! -f "scripts/execute_workflow.py" ]; then
+                echo "Error: workflow executor missing: scripts/execute_workflow.py" >&2
+                return 1
+            fi
+
+            emit_runtime_event "workflow_started" "router" "$request_id" "$track_id" "standard" "$workflow_name" "" "workflow execution started"
+
+            local cmd=(
+                python3 scripts/execute_workflow.py
+                --config "$config_path"
+                --workflow "$workflow_name"
+                --task "$task"
+                --ask-role "./bin/ask-role"
+                --request-id "$request_id"
+            )
+
+            [ -n "$track_id" ] && cmd+=(--track-id "$track_id")
+            [ "$dry_run" = "true" ] && cmd+=(--dry-run)
+            [ "$json_mode" = "true" ] && cmd+=(--json)
+
+            local output
+            set +e
+            if [ "$json_mode" = "true" ]; then
+                output=$("${cmd[@]}" 2>&1)
+                rc=$?
+            else
+                "${cmd[@]}"
+                rc=$?
+            fi
+            set -e
+
+            if [ "$rc" -ne 0 ]; then
+                emit_runtime_event "workflow_finished" "router" "$request_id" "$track_id" "standard" "$workflow_name" "" "workflow execution failed" "{\"exit_code\":$rc}"
+                if [ "$json_mode" = "true" ]; then
+                    echo "$output" >&2
+                fi
+                return "$rc"
+            fi
+
+            emit_runtime_event "workflow_finished" "router" "$request_id" "$track_id" "standard" "$workflow_name" "" "workflow execution completed"
+
+            if [ "$json_mode" = "true" ]; then
+                echo "$output"
+            fi
+            ;;
+
+        *)
+            workflow_usage
+            return 1
+            ;;
+    esac
+}
+
 init_command() {
     local init_mode="default"
     local confirm_force="false"
@@ -355,6 +645,16 @@ case "$SUBCOMMAND" in
         init_command "$@"
         ;;
 
+    route)
+        shift
+        route_command "$@"
+        ;;
+
+    workflow)
+        shift
+        workflow_command "$@"
+        ;;
+
     doctor)
         echo "Checking multipowers installation..."
         exit_code=0
@@ -373,7 +673,7 @@ case "$SUBCOMMAND" in
             exit_code=1
         fi
 
-        if [ -f "connectors/codex.py" ] && [ -f "connectors/gemini.py" ]; then
+        if [ -f "connectors/codex.py" ] && [ -f "connectors/gemini.py" ] && [ -f "connectors/claude.py" ]; then
             echo "  [PASS] connectors exist"
         else
             echo "  [FAIL] connectors not found"
@@ -418,6 +718,34 @@ case "$SUBCOMMAND" in
             fi
         else
             echo "  [WARN] schema validator unavailable (scripts/validate_roles.py)"
+        fi
+
+        mcp_config=$(resolve_mcp_config)
+        if [ -f "$mcp_config" ]; then
+            echo "  [PASS] effective mcp config exists"
+            echo "  [INFO] effective mcp config: $mcp_config"
+            if [ -f "scripts/validate_mcp.py" ] && command -v python3 >/dev/null 2>&1; then
+                if python3 scripts/validate_mcp.py --config "$mcp_config" --quiet; then
+                    echo "  [PASS] mcp config validates"
+                else
+                    echo "  [FAIL] mcp config validation failed"
+                    exit_code=1
+                fi
+            else
+                echo "  [WARN] mcp validator unavailable (scripts/validate_mcp.py)"
+            fi
+        else
+            echo "  [FAIL] effective mcp config missing: $mcp_config"
+            exit_code=1
+        fi
+
+        workflow_config=$(resolve_workflow_config)
+        if [ -f "$workflow_config" ]; then
+            echo "  [PASS] effective workflow config exists"
+            echo "  [INFO] effective workflow config: $workflow_config"
+        else
+            echo "  [FAIL] effective workflow config missing: $workflow_config"
+            exit_code=1
         fi
 
         if ! check_context_health; then

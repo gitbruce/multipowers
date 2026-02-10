@@ -12,14 +12,21 @@
   "scripts": {
     "test": "bash tests/opencode/run-tests.sh",
     "test:unit": "bash tests/opencode/run-tests.sh",
-    "test:integration": "bash tests/opencode/run-tests.sh --integration"
+    "test:integration": "bash tests/opencode/run-tests.sh --integration",
+    "governance:check": "bash scripts/run_governance_checks.sh"
   },
   "files": [
     "bin/ask-role",
     "bin/multipowers",
     "config/roles.default.json",
+    "config/roles.schema.json",
+    "config/mcp.default.json",
+    "config/workflows.default.json",
     "conductor/context/*.md",
     "connectors/*.py",
+    ".opencode/plugins/superpowers.js",
+    "scripts/*.py",
+    "scripts/*.sh",
     "skills/**/SKILL.md"
   ]
 }

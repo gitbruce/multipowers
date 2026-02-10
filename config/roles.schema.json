@@ -23,7 +23,7 @@
             },
             "tool": {
               "type": "string",
-              "enum": ["gemini", "codex", "system"],
+              "enum": ["gemini", "codex", "claude", "system"],
               "description": "The CLI tool to use for this role"
             },
             "system_prompt": {

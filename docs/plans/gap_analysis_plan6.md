@@ -50,21 +50,21 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 | Task ID | Status | Priority | Owner | Depends On |
 |---|---|---|---|---|
-| T6-001 | `TODO` | P0 | Router | - |
-| T6-002 | `TODO` | P0 | Router + Coder | T6-001 |
-| T6-003 | `TODO` | P0 | Coder | - |
-| T6-004 | `TODO` | P0 | Architect + Coder | T6-001 |
-| T6-005 | `TODO` | P1 | Architect + Coder | T6-002, T6-003 |
-| T6-006 | `TODO` | P1 | Coder | - |
-| T6-007 | `TODO` | P1 | Architect | T6-005 |
-| T6-008 | `TODO` | P2 | Router | T6-001, T6-002 |
+| T6-001 | `DONE` | P0 | Router | - |
+| T6-002 | `DONE` | P0 | Router + Coder | T6-001 |
+| T6-003 | `DONE` | P0 | Coder | - |
+| T6-004 | `DONE` | P0 | Architect + Coder | T6-001 |
+| T6-005 | `DONE` | P1 | Architect + Coder | T6-002, T6-003 |
+| T6-006 | `DONE` | P1 | Coder | - |
+| T6-007 | `DONE` | P1 | Architect | T6-005 |
+| T6-008 | `DONE` | P2 | Router | T6-001, T6-002 |
 
 ---
 
 ### T6-001 (P0) Implement executable Router lane routing
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Router
 - **Why**: The project intention requires deterministic lane selection, but current routing is manual and undocumented in runtime behavior.
 - **What to implement**:
@@ -87,8 +87,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-002 (P0) Add standard-lane workflow execution engine
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Router + Coder
 - **Why**: Standard lane is currently conceptual only; there is no executable flow that enforces workflow-first and node-level role switching.
 - **What to implement**:
@@ -112,8 +112,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-003 (P0) Add Claude CLI connector and schema support
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Coder
 - **Why**: The intended multi-CLI architecture includes `claude`, but runtime and schema only support `gemini`/`codex`/`system`.
 - **What to implement**:
@@ -137,8 +137,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-004 (P0) Wire MCP configuration into runtime behavior
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Architect + Coder
 - **Why**: MCP is declared in config but not loaded or validated by any runtime path.
 - **What to implement**:
@@ -162,8 +162,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-005 (P1) Implement major-change governance pipeline
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Architect + Coder
 - **Why**: Required governance gates (`semgrep`, `biome`, `ruff`, docs sync) are not enforced by scripts, tests, or npm workflows.
 - **What to implement**:
@@ -187,8 +187,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-006 (P1) Restore real plugin runtime artifact and remove silent fallback masking
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Coder
 - **Why**: Current tests can pass with a generated fallback plugin stub, which masks missing runtime implementation.
 - **What to implement**:
@@ -209,8 +209,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-007 (P1) Standardize task-status/evidence automation for vibe coding
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Architect
 - **Why**: Plan status/evidence automation is brittle across language/style variations and hinders reliable status updates by agents.
 - **What to implement**:
@@ -233,8 +233,8 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ### T6-008 (P2) Add routing/workflow structured observability
 
-- **Status**: `TODO`
-- **状态**：`TODO`
+- **Status**: `DONE`
+- **状态**：`DONE`
 - **Owner**: Router
 - **Why**: Current logs do not explain lane/workflow/node decisions, reducing debuggability and governance traceability.
 - **What to implement**:
@@ -279,11 +279,28 @@ Status values: `TODO` / `IN_PROGRESS` / `BLOCKED` / `DONE`
 
 ## 6) Evidence Section (to fill when tasks are DONE)
 
-- **Coverage Task IDs**: ``
-- **Date**: ``
-- **Verifier**: ``
+- **Coverage Task IDs**: `T6-001, T6-002, T6-003, T6-004, T6-005, T6-006, T6-007, T6-008`
+- **Date**: `2026-02-10`
+- **Verifier**: `codex-cli`
 - **Command(s)**:
-  - ``
-- **Exit Code**: ``
+  - `bash tests/opencode/test-routing-lanes.sh`
+  - `bash tests/opencode/test-workflow-engine.sh`
+  - `bash tests/opencode/test-claude-connector.sh`
+  - `bash tests/opencode/test-mcp-config.sh`
+  - `bash tests/opencode/test-governance-checks.sh`
+  - `bash tests/opencode/test-plugin-loading.sh`
+  - `bash tests/opencode/test-plan-evidence.sh`
+  - `bash tests/opencode/test-routing-observability.sh`
+  - `python3 -m py_compile scripts/execute_workflow.py connectors/claude.py connectors/utils.py`
+  - `python3 scripts/validate_mcp.py --config config/mcp.default.json`
+  - `npm run governance:check`
+- **Exit Code**: `0`
 - **Key Output**:
-  - ``
+  - `Routing lane tests PASSED`
+  - `Workflow engine tests PASSED`
+  - `Claude connector tests PASSED`
+  - `MCP config tests PASSED`
+  - `Governance checks tests PASSED`
+  - `All plugin loading tests passed`
+  - `Plan evidence tests PASSED`
+  - `Routing observability tests PASSED`

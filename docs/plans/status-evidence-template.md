@@ -2,6 +2,13 @@
 
 Use this template whenever a task status changes to `DONE`.
 
+## Task Status Fields
+
+For each task section, keep both fields aligned:
+
+- `- **Status**: \`TODO|IN_PROGRESS|BLOCKED|DONE\``
+- `- **状态**：\`TODO|IN_PROGRESS|BLOCKED|DONE\``
+
 ## Evidence Block
 
 - **Task ID**: `T?-???`
@@ -20,4 +27,4 @@ Use this template whenever a task status changes to `DONE`.
 
 ## Rule
 
-A task marked `DONE` without evidence coverage is considered `IN_PROGRESS`.
+A task marked `DONE` (by `Status` or `状态`) without evidence coverage is treated as `IN_PROGRESS`.

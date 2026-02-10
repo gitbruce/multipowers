@@ -9,14 +9,19 @@
     "architect": {
       "description": "Architect. Planning, architecture, and review/verification.",
       "tool": "gemini",
-      "args": ["-p"],
+      "args": [
+        "-p"
+      ],
       "model_config": "gemini-1-5-pro",
       "system_prompt": "You are Architect. Handle architecture/design/planning and code/spec review. For planning tasks, output concise Markdown plans. For review tasks, focus on blocking issues, correctness, and maintainability."
     },
     "coder": {
       "description": "Deep Worker. Default executor for implementation tasks with TDD.",
       "tool": "codex",
-      "args": ["exec", "--skip-git-repo-check"],
+      "args": [
+        "exec",
+        "--skip-git-repo-check"
+      ],
       "model_config": "deepseek-coder",
       "temperature": 0.1,
       "system_prompt": "You are Coder. Follow TDD strictly. Red -> Green -> Refactor. No chatter, just code."
@@ -24,9 +29,20 @@
     "librarian": {
       "description": "Researcher. Documentation & External Libs.",
       "tool": "gemini",
-      "args": ["-p"],
+      "args": [
+        "-p"
+      ],
       "model_config": "gemini-1-5-flash",
       "system_prompt": "You are Librarian. Provide GitHub permalinks. Current year is 2026."
+    },
+    "reviewer-claude": {
+      "description": "Claude-backed review specialist for high-signal audits.",
+      "tool": "claude",
+      "args": [
+        "-p"
+      ],
+      "model_config": "claude-3-5-sonnet",
+      "system_prompt": "You are Reviewer-Claude. Perform strict code review and risk analysis; report only actionable findings."
     }
   }
 }
