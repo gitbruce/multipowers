@@ -240,3 +240,30 @@ Done!
 
 **Alternative workflow:**
 - **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+
+---
+
+## Conductor Integration Notes
+
+**For Sisyphus:** Orchestrates workflow using ask-role bridge.
+
+**Role Mapping:**
+- **Hephaestus (Deep Worker)**: For TDD implementation via `./bin/ask-role hephaestus`
+- **Oracle (Code Quality)**: For spec compliance & code review via `./bin/ask-role oracle`
+
+**Integration Pattern:**
+```bash
+# Sisyphus dispatches Hephaestus for each task
+./bin/ask-role hephaestus "Implement [task description]"
+
+# Sisyphus dispatches Oracle for verification
+./bin/ask-role oracle "Review code for [spec/compliance]"
+
+# Hephaestus returns code + tests
+```
+
+**Workflow Modifications:**
+- Implementer subagent now uses `ask-role hephaestus` instead of direct Claude calls
+- Spec reviewer uses `ask-role oracle` for compliance checks
+- Code quality reviewer uses `ask-role oracle` for quality checks
+- Context from `conductor/context/*.md` automatically loaded by ask-role

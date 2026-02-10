@@ -1,3 +1,29 @@
 .worktrees/
 .private-journal/
 .claude/
+outputs/
+# Conductor governance modes
+# Uncomment to enable traceable mode (tracks and context in git)
+# Default: private mode (tracks and context not in git)
+
+# Traceable mode:
+# # conductor/tracks/*.md
+# # conductor/context/*.md
+
+# Private mode (default):
+conductor/tracks/*.md
+conductor/context/*.md
+
+# Generated designs
+docs/design/
+
+# Logs
+*.log
+
+# Temporary files
+.DS_Store
+
+# Python cache
+__pycache__/
+*.pyc
+vibe_config/

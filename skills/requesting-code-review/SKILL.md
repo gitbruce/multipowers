@@ -103,3 +103,23 @@ You: [Fix progress indicators]
 - Request clarification
 
 See template at: requesting-code-review/code-reviewer.md
+
+---
+
+## Conductor Integration Notes
+
+**For Sisyphus:** All skills now use ask-role bridge script for role-based execution.
+
+**Role Mapping:**
+- **Prometheus**: Architecture design & planning via `./bin/ask-role prometheus`
+- **Hephaestus**: TDD implementation via `./bin/ask-role hephaestus`
+- **Oracle**: Code review & verification via `./bin/ask-role oracle`
+- **Librarian**: Research via `./bin/ask-role librarian`
+
+**Context Loading:**
+All roles automatically load project context from `conductor/context/*.md` through ask-role bridge.
+
+**Invocation Pattern:**
+```bash
+./bin/ask-role <role> "<prompt>"
+```

@@ -35,7 +35,7 @@ Start by understanding the current project context, then ask questions one at a 
 ## After the Design
 
 **Documentation:**
-- Write the validated design to `docs/plans/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design to `docs/design/YYYY-MM-DD-<topic>-design.md`
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
 
@@ -52,3 +52,18 @@ Start by understanding the current project context, then ask questions one at a 
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design in sections, validate each
 - **Be flexible** - Go back and clarify when something doesn't make sense
+
+---
+
+## Conductor Integration Notes
+
+**For Sisyphus:** When using this skill, invoke Prometheus for architecture design:
+
+```bash
+./bin/ask-role prometheus "Brainstorm architecture for: [your topic]"
+```
+
+This will:
+- Load project context from `conductor/context/*.md`
+- Use Prometheus role (Gemini 1.5 Pro) for high-IQ reasoning
+- Output design specification for implementation planning

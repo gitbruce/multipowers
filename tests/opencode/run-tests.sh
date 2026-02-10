@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Main test runner for OpenCode plugin test suite
-# Runs all tests and reports results
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -14,7 +13,6 @@ echo "Repository: $(cd ../.. && pwd)"
 echo "Test time: $(date)"
 echo ""
 
-# Parse command line arguments
 RUN_INTEGRATION=false
 VERBOSE=false
 SPECIFIC_TEST=""
@@ -42,11 +40,25 @@ while [[ $# -gt 0 ]]; do
             echo "  --test, -t NAME    Run only the specified test"
             echo "  --help, -h         Show this help"
             echo ""
-            echo "Tests:"
-            echo "  test-plugin-loading.sh  Verify plugin installation and structure"
-            echo "  test-skills-core.sh     Test skills-core.js library functions"
-            echo "  test-tools.sh           Test use_skill and find_skills tools (integration)"
-            echo "  test-priority.sh        Test skill priority resolution (integration)"
+            echo "Core tests:"
+            echo "  test-plugin-loading.sh"
+            echo "  test-skills-core.sh"
+            echo "  test-doctor-init.sh"
+            echo "  test-onboarding-smoke.sh"
+            echo "  test-context-quality.sh"
+            echo "  test-ask-role-core.sh"
+            echo "  test-config-priority.sh"
+            echo "  test-ask-role-args.sh"
+            echo "  test-connector-exit-code.sh"
+            echo "  test-prompt-preserve.sh"
+            echo "  test-roles-schema.sh"
+            echo "  test-track-workflow.sh"
+            echo "  test-context-budget-priority.sh"
+            echo "  test-plan-evidence.sh"
+            echo ""
+            echo "Integration tests:"
+            echo "  test-tools.sh"
+            echo "  test-priority.sh"
             exit 0
             ;;
         *)
@@ -57,34 +69,42 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# List of tests to run (no external dependencies)
+# Core tests: no external OpenCode runtime required
+# Keep order deterministic and avoid destructive tests.
 tests=(
     "test-plugin-loading.sh"
     "test-skills-core.sh"
+    "test-doctor-init.sh"
+    "test-onboarding-smoke.sh"
+    "test-context-quality.sh"
+    "test-ask-role-core.sh"
+    "test-config-priority.sh"
+    "test-ask-role-args.sh"
+    "test-connector-exit-code.sh"
+    "test-prompt-preserve.sh"
+    "test-roles-schema.sh"
+    "test-track-workflow.sh"
+    "test-context-budget-priority.sh"
+    "test-plan-evidence.sh"
 )
 
-# Integration tests (require OpenCode)
 integration_tests=(
     "test-tools.sh"
     "test-priority.sh"
 )
 
-# Add integration tests if requested
 if [ "$RUN_INTEGRATION" = true ]; then
     tests+=("${integration_tests[@]}")
 fi
 
-# Filter to specific test if requested
 if [ -n "$SPECIFIC_TEST" ]; then
     tests=("$SPECIFIC_TEST")
 fi
 
-# Track results
 passed=0
 failed=0
 skipped=0
 
-# Run each test
 for test in "${tests[@]}"; do
     echo "----------------------------------------"
     echo "Running: $test"
@@ -99,7 +119,6 @@ for test in "${tests[@]}"; do
     fi
 
     if [ ! -x "$test_path" ]; then
-        echo "  Making $test executable..."
         chmod +x "$test_path"
     fi
 
@@ -120,7 +139,6 @@ for test in "${tests[@]}"; do
             failed=$((failed + 1))
         fi
     else
-        # Capture output for non-verbose mode
         if output=$(bash "$test_path" 2>&1); then
             end_time=$(date +%s)
             duration=$((end_time - start_time))
@@ -140,7 +158,6 @@ for test in "${tests[@]}"; do
     echo ""
 done
 
-# Print summary
 echo "========================================"
 echo " Test Results Summary"
 echo "========================================"
@@ -159,7 +176,7 @@ fi
 if [ $failed -gt 0 ]; then
     echo "STATUS: FAILED"
     exit 1
-else
-    echo "STATUS: PASSED"
-    exit 0
 fi
+
+echo "STATUS: PASSED"
+exit 0

@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://multipowers.dev/schemas/roles.json",
+  "title": "Multipowers Roles Configuration Schema",
+  "description": "Schema for validating role configurations in multipowers",
+  "type": "object",
+  "required": ["roles"],
+  "properties": {
+    "roles": {
+      "type": "object",
+      "description": "Map of role identifiers to role configurations",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[a-z-]+$": {
+          "type": "object",
+          "required": ["description", "tool", "system_prompt"],
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of the role",
+              "minLength": 1
+            },
+            "tool": {
+              "type": "string",
+              "enum": ["gemini", "codex", "system"],
+              "description": "The CLI tool to use for this role"
+            },
+            "system_prompt": {
+              "type": "string",
+              "description": "System prompt to be injected for this role",
+              "minLength": 1
+            },
+            "model_config": {
+              "type": "string",
+              "description": "Model configuration alias (optional)",
+              "minLength": 1
+            },
+            "model_alias": {
+              "type": "string",
+              "description": "Alternative model alias field for backward compatibility",
+              "minLength": 1
+            },
+            "temperature": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Temperature for model sampling (optional)"
+            },
+            "args": {
+              "type": "array",
+              "description": "Additional CLI arguments to pass to the tool (optional)",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

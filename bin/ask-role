@@ -1,0 +1,255 @@
+#!/usr/bin/env bash
+# usage: ./bin/ask-role <role_name> "<prompt>"
+
+set -euo pipefail
+
+if [ $# -lt 2 ]; then
+    echo "Usage: ./bin/ask-role <role_name> \"<prompt>\"" >&2
+    exit 1
+fi
+
+ROLE=$1
+USER_PROMPT=$2
+CONTEXT_BUDGET=${MULTIPOWERS_CONTEXT_BUDGET:-128000}
+SCHEMA_FILE="config/roles.schema.json"
+CONTEXT_MODE=${MULTIPOWERS_CONTEXT_MODE:-strict}
+REQUEST_ID="req-$(date +%s)-$RANDOM"
+
+if [ "$CONTEXT_MODE" != "strict" ] && [ "$CONTEXT_MODE" != "lenient" ]; then
+    echo "[ASK-ROLE ERROR] Invalid MULTIPOWERS_CONTEXT_MODE: $CONTEXT_MODE (expected strict or lenient)" >&2
+    exit 1
+fi
+
+if [ -f "conductor/config/roles.json" ]; then
+    CONFIG_FILE="conductor/config/roles.json"
+else
+    CONFIG_FILE="config/roles.default.json"
+fi
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "[ASK-ROLE ERROR] Roles config not found: $CONFIG_FILE" >&2
+    exit 1
+fi
+
+echo "[ASK-ROLE INFO] Using roles config: $CONFIG_FILE" >&2
+echo "[ASK-ROLE INFO] Context mode: $CONTEXT_MODE" >&2
+echo "[ASK-ROLE INFO] Request ID: $REQUEST_ID" >&2
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "[ASK-ROLE ERROR] python3 is required for role validation and parsing" >&2
+    exit 1
+fi
+
+if [ -f "$SCHEMA_FILE" ] && [ -f "scripts/validate_roles.py" ]; then
+    if ! python3 scripts/validate_roles.py --config "$CONFIG_FILE" --schema "$SCHEMA_FILE" --role "$ROLE" --quiet; then
+        exit 1
+    fi
+else
+    echo "[ASK-ROLE WARNING] Schema validation skipped (missing scripts/validate_roles.py or $SCHEMA_FILE)" >&2
+fi
+
+ROLE_TMP_DIR=$(mktemp -d)
+cleanup() {
+    rm -rf "$ROLE_TMP_DIR"
+}
+trap cleanup EXIT
+
+if ! python3 - "$CONFIG_FILE" "$ROLE" "$ROLE_TMP_DIR" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+role_name = sys.argv[2]
+out_dir = Path(sys.argv[3])
+
+with config_path.open("r", encoding="utf-8") as handle:
+    config = json.load(handle)
+
+roles = config.get("roles", {})
+role = roles.get(role_name)
+if not role:
+    available = ", ".join(sorted(roles.keys()))
+    print(f"[ASK-ROLE ERROR] Role '{role_name}' not found. Available roles: {available}", file=sys.stderr)
+    sys.exit(1)
+
+tool = role.get("tool")
+if not tool:
+    print(f"[ASK-ROLE ERROR] Role '{role_name}' missing tool", file=sys.stderr)
+    sys.exit(1)
+
+system_prompt = role.get("system_prompt", "")
+args = role.get("args", [])
+if args is None:
+    args = []
+if not isinstance(args, list):
+    print(f"[ASK-ROLE ERROR] Role '{role_name}' field 'args' must be an array", file=sys.stderr)
+    sys.exit(1)
+
+(out_dir / "tool.txt").write_text(str(tool), encoding="utf-8")
+(out_dir / "system_prompt.txt").write_text(str(system_prompt), encoding="utf-8")
+(out_dir / "args.json").write_text(json.dumps(args), encoding="utf-8")
+PY
+then
+    exit 1
+fi
+
+TOOL=$(<"$ROLE_TMP_DIR/tool.txt")
+SYS_PROMPT=$(<"$ROLE_TMP_DIR/system_prompt.txt")
+
+mapfile -t ROLE_ARGS < <(python3 - "$ROLE_TMP_DIR/args.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as handle:
+    args = json.load(handle)
+
+for item in args:
+    print(str(item))
+PY
+)
+
+ordered_files=()
+declare -A seen_basenames=()
+priority_files=("product.md" "product-guidelines.md" "workflow.md" "tech-stack.md")
+missing_priority_files=()
+
+for name in "${priority_files[@]}"; do
+    path="conductor/context/$name"
+    if [ -f "$path" ]; then
+        ordered_files+=("$path")
+        seen_basenames["$name"]=1
+    else
+        missing_priority_files+=("$name")
+    fi
+done
+
+if [ -d "conductor/context" ]; then
+    shopt -s nullglob
+    for file in conductor/context/*.md; do
+        base=$(basename "$file")
+        if [ -n "${seen_basenames[$base]:-}" ]; then
+            continue
+        fi
+        ordered_files+=("$file")
+    done
+    shopt -u nullglob
+fi
+
+if [ ${#missing_priority_files[@]} -gt 0 ]; then
+    message="Missing required context files: ${missing_priority_files[*]}"
+    if [ "$CONTEXT_MODE" = "strict" ]; then
+        echo "[ASK-ROLE ERROR] $message" >&2
+        echo "[ASK-ROLE INFO] Fix: ./bin/multipowers init --repair" >&2
+        exit 1
+    fi
+    echo "[ASK-ROLE WARNING] $message" >&2
+    echo "[ASK-ROLE INFO] Fix: ./bin/multipowers init --repair" >&2
+fi
+
+if [ ${#ordered_files[@]} -eq 0 ]; then
+    if [ "$CONTEXT_MODE" = "strict" ]; then
+        echo "[ASK-ROLE ERROR] No context files found in conductor/context" >&2
+        echo "[ASK-ROLE INFO] Fix: ./bin/multipowers init --repair" >&2
+        exit 1
+    fi
+    echo "[ASK-ROLE WARNING] No context files found in conductor/context" >&2
+fi
+
+CONTEXT_DATA=""
+max_chars=$((CONTEXT_BUDGET * 4))
+truncated=false
+truncated_files=()
+
+for ((index = 0; index < ${#ordered_files[@]}; index++)); do
+    file=${ordered_files[$index]}
+    block=$'\n--- FILE: '"$(basename "$file")"$' ---\n'
+    block+="$(cat "$file")"
+
+    new_size=$(( ${#CONTEXT_DATA} + ${#block} ))
+    if [ "$new_size" -le "$max_chars" ]; then
+        CONTEXT_DATA+="$block"
+        continue
+    fi
+
+    remaining=$(( max_chars - ${#CONTEXT_DATA} ))
+    if [ "$remaining" -gt 0 ]; then
+        CONTEXT_DATA+="${block:0:$remaining}"
+    fi
+    CONTEXT_DATA+=$'\n\n[...CONTEXT TRUNCATED...]'
+    truncated=true
+
+    for ((j = index; j < ${#ordered_files[@]}; j++)); do
+        truncated_files+=("$(basename "${ordered_files[$j]}")")
+    done
+    break
+done
+
+CONTEXT_TOKEN_ESTIMATE=$(( ${#CONTEXT_DATA} / 4 ))
+if [ "$truncated" = true ]; then
+    echo "[ASK-ROLE WARNING] Context exceeded budget (${CONTEXT_BUDGET} tokens). Truncated files: ${truncated_files[*]}" >&2
+fi
+
+echo "[ASK-ROLE INFO] Context size: $CONTEXT_TOKEN_ESTIMATE tokens (budget: $CONTEXT_BUDGET)" >&2
+
+context_file_names=()
+for context_file in "${ordered_files[@]}"; do
+    context_file_names+=("$(basename "$context_file")")
+done
+
+context_files_csv=""
+if [ ${#context_file_names[@]} -gt 0 ]; then
+    IFS=,
+    context_files_csv="${context_file_names[*]}"
+    unset IFS
+fi
+
+truncated_files_csv=""
+if [ ${#truncated_files[@]} -gt 0 ]; then
+    IFS=,
+    truncated_files_csv="${truncated_files[*]}"
+    unset IFS
+fi
+
+if [ -f "connectors/utils.py" ]; then
+    if ! MULTIPOWERS_REQUEST_ID="$REQUEST_ID" python3 connectors/utils.py context-log \
+        --role "$ROLE" \
+        --token-estimate "$CONTEXT_TOKEN_ESTIMATE" \
+        --budget "$CONTEXT_BUDGET" \
+        --context-files "$context_files_csv" \
+        --truncated-files "$truncated_files_csv" \
+        --truncated "$truncated" >/dev/null 2>&1; then
+        echo "[ASK-ROLE WARNING] Failed to write context structured log" >&2
+    fi
+fi
+
+FULL_PROMPT="
+<system_role>
+$SYS_PROMPT
+</system_role>
+
+<project_context>
+$CONTEXT_DATA
+</project_context>
+
+<user_task>
+$USER_PROMPT
+</user_task>
+"
+
+case "$TOOL" in
+    gemini)
+        MULTIPOWERS_ROLE="$ROLE" MULTIPOWERS_REQUEST_ID="$REQUEST_ID" python3 connectors/gemini.py "$FULL_PROMPT" "${ROLE_ARGS[@]}"
+        ;;
+    codex)
+        MULTIPOWERS_ROLE="$ROLE" MULTIPOWERS_REQUEST_ID="$REQUEST_ID" python3 connectors/codex.py "$FULL_PROMPT" "${ROLE_ARGS[@]}"
+        ;;
+    system)
+        echo "[ASK-ROLE ERROR] Tool 'system' is for local orchestrator roles and cannot be dispatched via ask-role" >&2
+        exit 1
+        ;;
+    *)
+        echo "[ASK-ROLE ERROR] Unknown tool: $TOOL" >&2
+        exit 1
+        ;;
+esac

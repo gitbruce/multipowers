@@ -1,0 +1,54 @@
+name: Core Tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Bash syntax check
+        run: bash -n bin/multipowers bin/ask-role
+
+      - name: Python syntax check
+        run: python3 -m py_compile connectors/codex.py connectors/gemini.py connectors/utils.py scripts/validate_roles.py scripts/check_context_quality.py scripts/check_plan_evidence.py
+
+      - name: Run core tests
+        run: npm test --silent
+
+  governance-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check plan evidence
+        run: python3 scripts/check_plan_evidence.py
+
+      - name: Check context template quality
+        run: python3 scripts/check_context_quality.py --context-dir templates/conductor/context --quiet

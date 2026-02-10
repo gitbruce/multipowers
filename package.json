@@ -1,0 +1,25 @@
+{
+  "name": "multipowers",
+  "version": "0.1.0",
+  "description": "Multi-model orchestration engine for Claude Code with conductor architecture",
+  "dependencies": {
+    "@opencode-ai/plugin": "1.1.53"
+  },
+  "bin": {
+    "multipowers": "./bin/multipowers",
+    "ask-role": "./bin/ask-role"
+  },
+  "scripts": {
+    "test": "bash tests/opencode/run-tests.sh",
+    "test:unit": "bash tests/opencode/run-tests.sh",
+    "test:integration": "bash tests/opencode/run-tests.sh --integration"
+  },
+  "files": [
+    "bin/ask-role",
+    "bin/multipowers",
+    "config/roles.default.json",
+    "conductor/context/*.md",
+    "connectors/*.py",
+    "skills/**/SKILL.md"
+  ]
+}

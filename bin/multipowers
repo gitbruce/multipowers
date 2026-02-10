@@ -1,0 +1,566 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REQUIRED_CONTEXT_FILES=(
+    "product.md"
+    "product-guidelines.md"
+    "workflow.md"
+    "tech-stack.md"
+)
+
+usage() {
+    echo "Usage: multipowers {init|doctor|update|track}" >&2
+    echo "" >&2
+    echo "Commands:" >&2
+    echo "  init    Initialize multipowers in current project" >&2
+    echo "  doctor  Check installation and dependencies" >&2
+    echo "  update  Update multipowers to latest version" >&2
+    echo "  track   Manage development tracks" >&2
+}
+
+track_usage() {
+    echo "Usage: multipowers track {new|list|start|complete|status}" >&2
+    echo "" >&2
+    echo "Commands:" >&2
+    echo "  new       Create a new track" >&2
+    echo "  list      List all tracks" >&2
+    echo "  start     Start working on a track" >&2
+    echo "  complete  Mark a track as completed" >&2
+    echo "  status    Show track status" >&2
+}
+
+resolve_roles_config() {
+    if [ -f "conductor/config/roles.json" ]; then
+        echo "conductor/config/roles.json"
+    else
+        echo "config/roles.default.json"
+    fi
+}
+
+resolve_context_mode() {
+    local mode=${MULTIPOWERS_CONTEXT_MODE:-strict}
+    if [ "$mode" != "strict" ] && [ "$mode" != "lenient" ]; then
+        echo "strict"
+        return
+    fi
+    echo "$mode"
+}
+
+print_context_checklist() {
+    echo "Context checklist:" >&2
+    local file
+    for file in "${REQUIRED_CONTEXT_FILES[@]}"; do
+        echo "  - conductor/context/${file}" >&2
+    done
+}
+
+check_context_health() {
+    local mode
+    mode=$(resolve_context_mode)
+    local fail=0
+    local context_dir="conductor/context"
+
+    echo "  [INFO] context mode: $mode"
+
+    if [ ! -d "$context_dir" ]; then
+        if [ "$mode" = "strict" ]; then
+            echo "  [FAIL] context directory missing: $context_dir"
+            echo "  [INFO] Fix: ./bin/multipowers init --repair"
+            return 1
+        fi
+        echo "  [WARN] context directory missing: $context_dir"
+        echo "  [INFO] Fix: ./bin/multipowers init --repair"
+        return 0
+    fi
+
+    shopt -s nullglob
+    local context_files=("$context_dir"/*.md)
+    shopt -u nullglob
+    echo "  [INFO] context markdown files: ${#context_files[@]}"
+
+    local -a missing=()
+    local file
+    for file in "${REQUIRED_CONTEXT_FILES[@]}"; do
+        if [ -f "$context_dir/$file" ]; then
+            echo "  [PASS] context file exists: $context_dir/$file"
+        else
+            missing+=("$file")
+            if [ "$mode" = "strict" ]; then
+                echo "  [FAIL] context file missing: $context_dir/$file"
+                fail=1
+            else
+                echo "  [WARN] context file missing: $context_dir/$file"
+            fi
+        fi
+    done
+
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "  [INFO] Missing context files: ${missing[*]}"
+        echo "  [INFO] Fix: ./bin/multipowers init --repair"
+    fi
+
+    return "$fail"
+}
+
+run_context_quality_check() {
+    local mode
+    mode=$(resolve_context_mode)
+
+    if [ ! -f "scripts/check_context_quality.py" ] || ! command -v python3 >/dev/null 2>&1; then
+        echo "  [WARN] context quality validator unavailable (scripts/check_context_quality.py)"
+        return 0
+    fi
+
+    if [ ! -d "conductor/context" ]; then
+        return 0
+    fi
+
+    if python3 scripts/check_context_quality.py --context-dir conductor/context --quiet >/dev/null 2>&1; then
+        echo "  [PASS] context quality checks passed"
+        return 0
+    fi
+
+    if [ "$mode" = "strict" ]; then
+        echo "  [FAIL] context quality checks failed"
+        echo "  [INFO] Fix: fill context files and remove placeholders/TODO"
+        return 1
+    fi
+
+    echo "  [WARN] context quality checks failed"
+    echo "  [INFO] Fix: fill context files and remove placeholders/TODO"
+    return 0
+}
+
+refresh_track_metadata() {
+    local track_file=$1
+    local new_status=$2
+    local owner=$3
+    local today
+    today=$(date +%Y-%m-%d)
+
+    if grep -q '^\*\*Status:\*\*' "$track_file"; then
+        sed -i "s|^\*\*Status:\*\* .*|**Status:** $new_status|" "$track_file"
+    else
+        printf "\n**Status:** %s\n" "$new_status" >> "$track_file"
+    fi
+
+    if grep -q '^\*\*Updated At:\*\*' "$track_file"; then
+        sed -i "s|^\*\*Updated At:\*\* .*|**Updated At:** $today|" "$track_file"
+    else
+        printf "**Updated At:** %s\n" "$today" >> "$track_file"
+    fi
+
+    if grep -q '^\*\*Owner:\*\*' "$track_file"; then
+        sed -i "s|^\*\*Owner:\*\* .*|**Owner:** $owner|" "$track_file"
+    else
+        printf "**Owner:** %s\n" "$owner" >> "$track_file"
+    fi
+}
+
+extract_track_status() {
+    local track_file=$1
+    sed -n 's/^\*\*Status:\*\*[[:space:]]*//p' "$track_file" | head -1
+}
+
+find_track_file() {
+    local needle=$1
+    local -a matches=()
+
+    if [ -f "conductor/tracks/${needle}" ]; then
+        echo "conductor/tracks/${needle}"
+        return 0
+    fi
+
+    if [ -f "conductor/tracks/${needle}.md" ]; then
+        echo "conductor/tracks/${needle}.md"
+        return 0
+    fi
+
+    shopt -s nullglob
+    local candidate
+    for candidate in conductor/tracks/track-*-${needle}.md; do
+        matches+=("$candidate")
+    done
+
+    if [ ${#matches[@]} -eq 0 ]; then
+        for candidate in conductor/tracks/*${needle}*.md; do
+            matches+=("$candidate")
+        done
+    fi
+    shopt -u nullglob
+
+    if [ ${#matches[@]} -eq 0 ]; then
+        return 1
+    fi
+
+    if [ ${#matches[@]} -gt 1 ]; then
+        echo "[MULTIPOWERS ERROR] Multiple tracks matched '${needle}':" >&2
+        local item
+        for item in "${matches[@]}"; do
+            echo "  - ${item}" >&2
+        done
+        return 2
+    fi
+
+    echo "${matches[0]}"
+}
+
+resolve_track_for_action() {
+    local needle=$1
+
+    local track_file
+    local rc=0
+    track_file=$(find_track_file "$needle") || rc=$?
+
+    if [ "$rc" -eq 0 ]; then
+        echo "$track_file"
+        return 0
+    fi
+
+    if [ "$rc" -eq 2 ]; then
+        echo "Error: Track name '${needle}' is ambiguous. Use full filename or a more specific name." >&2
+    else
+        echo "Error: Track not found: $needle" >&2
+    fi
+    return 1
+}
+
+slugify_feature_name() {
+    local raw_name=$1
+    local normalized
+    normalized=$(printf '%s' "$raw_name" | tr '[:upper:]' '[:lower:]' | tr '[:space:]' '-' | tr -cd 'a-z0-9-_')
+    normalized=$(printf '%s' "$normalized" | sed 's/-\{2,\}/-/g; s/^-//; s/-$//')
+
+    if [ -z "$normalized" ]; then
+        local checksum
+        checksum=$(printf '%s' "$raw_name" | cksum | awk '{print $1}')
+        normalized="task-${checksum:0:8}"
+    fi
+
+    echo "$normalized"
+}
+
+ensure_conductor_base() {
+    mkdir -p conductor
+    mkdir -p conductor/config conductor/context conductor/tracks
+}
+
+repair_conductor() {
+    ensure_conductor_base
+
+    local added=0
+
+    if [ ! -f "conductor/config/roles.json" ]; then
+        cp templates/conductor/config/roles.json conductor/config/roles.json
+        echo "  [ADD] conductor/config/roles.json"
+        added=$((added + 1))
+    fi
+
+    shopt -s nullglob
+    local template_context
+    for template_context in templates/conductor/context/*.md; do
+        local filename
+        filename=$(basename "$template_context")
+        local target="conductor/context/${filename}"
+        if [ ! -f "$target" ]; then
+            cp "$template_context" "$target"
+            echo "  [ADD] $target"
+            added=$((added + 1))
+        fi
+    done
+    shopt -u nullglob
+
+    echo "✓ Conductor repair completed (${added} file(s) added)"
+    print_context_checklist
+}
+
+init_command() {
+    local init_mode="default"
+    local confirm_force="false"
+
+    local arg
+    for arg in "${@:2}"; do
+        case "$arg" in
+            --repair)
+                if [ "$init_mode" = "force" ]; then
+                    echo "Error: --repair cannot be combined with --force" >&2
+                    exit 1
+                fi
+                init_mode="repair"
+                ;;
+            --force)
+                if [ "$init_mode" = "repair" ]; then
+                    echo "Error: --force cannot be combined with --repair" >&2
+                    exit 1
+                fi
+                init_mode="force"
+                ;;
+            --yes)
+                confirm_force="true"
+                ;;
+            *)
+                echo "Error: Unknown init option: $arg" >&2
+                echo "Usage: multipowers init [--repair|--force --yes]" >&2
+                exit 1
+                ;;
+        esac
+    done
+
+    case "$init_mode" in
+        repair)
+            echo "Repairing multipowers conductor files..."
+            repair_conductor
+            echo "Next: Fill required context files and run ./bin/multipowers doctor"
+            ;;
+
+        force)
+            if [ "$confirm_force" != "true" ]; then
+                echo "Error: --force is destructive and requires --yes confirmation" >&2
+                echo "Usage: multipowers init --force --yes" >&2
+                exit 1
+            fi
+            echo "Initializing multipowers in current directory (force mode)..."
+            rm -rf ./conductor
+            cp -r templates/conductor ./conductor
+            echo "✓ Conductor structure recreated"
+            print_context_checklist
+            echo "Next: Fill required context files and run ./bin/multipowers doctor"
+            ;;
+
+        *)
+            echo "Initializing multipowers in current directory..."
+            if [ -d "./conductor" ]; then
+                echo "✓ Conductor structure already exists (use --repair to fill gaps, or --force --yes to recreate)"
+                exit 0
+            fi
+            cp -r templates/conductor ./conductor
+            echo "✓ Conductor structure created"
+            print_context_checklist
+            echo "Next: Fill required context files and run ./bin/multipowers doctor"
+            ;;
+    esac
+}
+
+if [ $# -lt 1 ]; then
+    usage
+    exit 1
+fi
+
+SUBCOMMAND=$1
+ARG2=${2:-}
+ARG3=${3:-}
+
+case "$SUBCOMMAND" in
+    init)
+        init_command "$@"
+        ;;
+
+    doctor)
+        echo "Checking multipowers installation..."
+        exit_code=0
+
+        if [ -f "bin/ask-role" ]; then
+            echo "  [PASS] bin/ask-role exists"
+        else
+            echo "  [FAIL] bin/ask-role not found"
+            exit_code=1
+        fi
+
+        if [ -f "config/roles.default.json" ]; then
+            echo "  [PASS] config/roles.default.json exists"
+        else
+            echo "  [FAIL] config/roles.default.json not found"
+            exit_code=1
+        fi
+
+        if [ -f "connectors/codex.py" ] && [ -f "connectors/gemini.py" ]; then
+            echo "  [PASS] connectors exist"
+        else
+            echo "  [FAIL] connectors not found"
+            exit_code=1
+        fi
+
+        if command -v python3 >/dev/null 2>&1; then
+            echo "  [PASS] python3 is installed"
+        else
+            echo "  [FAIL] python3 is required"
+            exit_code=1
+        fi
+
+        if command -v jq >/dev/null 2>&1; then
+            echo "  [PASS] jq is installed (optional)"
+        else
+            echo "  [WARN] jq is not installed (optional)"
+        fi
+
+        config_path=$(resolve_roles_config)
+        if [ -f "$config_path" ]; then
+            echo "  [PASS] effective roles config exists"
+            echo "  [INFO] effective roles config: $config_path"
+        else
+            echo "  [FAIL] effective roles config missing: $config_path"
+            exit_code=1
+        fi
+
+        if [ -f "config/roles.schema.json" ]; then
+            echo "  [PASS] roles schema exists"
+        else
+            echo "  [FAIL] roles schema missing: config/roles.schema.json"
+            exit_code=1
+        fi
+
+        if [ -f "scripts/validate_roles.py" ] && command -v python3 >/dev/null 2>&1; then
+            if python3 scripts/validate_roles.py --config "$config_path" --schema config/roles.schema.json --quiet >/dev/null 2>&1; then
+                echo "  [PASS] roles config validates against schema"
+            else
+                echo "  [FAIL] roles config validation failed"
+                exit_code=1
+            fi
+        else
+            echo "  [WARN] schema validator unavailable (scripts/validate_roles.py)"
+        fi
+
+        if ! check_context_health; then
+            exit_code=1
+        fi
+
+        if ! run_context_quality_check; then
+            exit_code=1
+        fi
+
+        exit "$exit_code"
+        ;;
+
+    update)
+        echo "Updating multipowers..."
+        echo "Not implemented yet. Pull latest changes manually."
+        ;;
+
+    track)
+        case "$ARG2" in
+            new)
+                if [ -z "$ARG3" ]; then
+                    echo "Usage: multipowers track new <feature-name>" >&2
+                    exit 1
+                fi
+
+                safe_name=$(slugify_feature_name "$ARG3")
+                track_name="track-$(date +%Y%m%d)-${safe_name}"
+                track_file="conductor/tracks/${track_name}.md"
+
+                if [ -f "$track_file" ]; then
+                    echo "Error: Track already exists: $track_file" >&2
+                    exit 1
+                fi
+
+                mkdir -p conductor/tracks
+                cp templates/conductor/tracks/example-track.md "$track_file"
+
+                owner=$(whoami 2>/dev/null || echo "Unknown")
+                today=$(date +%Y-%m-%d)
+                sed -i "s|^# Track: Feature Name|# Track: ${ARG3}|" "$track_file"
+                sed -i "s|^\*\*Status:\*\* Proposed|**Status:** Proposed|" "$track_file"
+                sed -i "s|^\*\*Updated At:\*\* \[YYYY-MM-DD\]|**Updated At:** ${today}|" "$track_file"
+                sed -i "s|^\*\*Owner:\*\* \[Your Name\]|**Owner:** ${owner}|" "$track_file"
+
+                echo "✓ Track created: $track_file"
+                echo "Next: Edit the track with goal and requirements"
+                ;;
+
+            list)
+                if [ ! -d "conductor/tracks" ]; then
+                    echo "No tracks directory found"
+                    exit 0
+                fi
+
+                shopt -s nullglob
+                track_files=(conductor/tracks/*.md)
+                shopt -u nullglob
+
+                if [ ${#track_files[@]} -eq 0 ]; then
+                    echo "No tracks found"
+                    exit 0
+                fi
+
+                echo "Tracks:"
+                local_track=''
+                for local_track in "${track_files[@]}"; do
+                    basename "$local_track"
+                done
+                ;;
+
+            start)
+                if [ -z "$ARG3" ]; then
+                    echo "Usage: multipowers track start <track-name>" >&2
+                    exit 1
+                fi
+
+                if ! track_file=$(resolve_track_for_action "$ARG3"); then
+                    exit 1
+                fi
+
+                current_status=$(extract_track_status "$track_file")
+                if [ "$current_status" = "In Progress" ]; then
+                    echo "Track is already in progress"
+                    exit 0
+                fi
+                if [ "$current_status" = "Completed" ]; then
+                    echo "Error: Cannot restart a completed track" >&2
+                    exit 1
+                fi
+
+                owner=$(whoami 2>/dev/null || echo "Unknown")
+                refresh_track_metadata "$track_file" "In Progress" "$owner"
+
+                echo "✓ Track started: $track_file"
+                echo "Status: ${current_status:-Proposed} → In Progress"
+                ;;
+
+            complete)
+                if [ -z "$ARG3" ]; then
+                    echo "Usage: multipowers track complete <track-name>" >&2
+                    exit 1
+                fi
+
+                if ! track_file=$(resolve_track_for_action "$ARG3"); then
+                    exit 1
+                fi
+
+                current_status=$(extract_track_status "$track_file")
+                if [ "$current_status" != "In Progress" ]; then
+                    echo "Error: Can only complete tracks in progress (current: ${current_status:-Unknown})" >&2
+                    exit 1
+                fi
+
+                owner=$(whoami 2>/dev/null || echo "Unknown")
+                refresh_track_metadata "$track_file" "Completed" "$owner"
+
+                echo "✓ Track completed: $track_file"
+                echo "Status: In Progress → Completed"
+                ;;
+
+            status)
+                if [ -z "$ARG3" ]; then
+                    echo "Usage: multipowers track status <track-name>" >&2
+                    exit 1
+                fi
+
+                if ! track_file=$(resolve_track_for_action "$ARG3"); then
+                    exit 1
+                fi
+
+                grep -E '^(\*\*Status:\*\*|\*\*Updated At:\*\*|\*\*Owner:\*\*)' "$track_file" || echo "No status info found"
+                ;;
+
+            *)
+                track_usage
+                exit 1
+                ;;
+        esac
+        ;;
+
+    *)
+        usage
+        exit 1
+        ;;
+esac

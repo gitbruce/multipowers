@@ -114,3 +114,18 @@ After saving the plan, offer execution choice:
 **If Parallel Session chosen:**
 - Guide them to open new session in worktree
 - **REQUIRED SUB-SKILL:** New session uses superpowers:executing-plans
+
+---
+
+## Conductor Integration Notes
+
+**For Sisyphus:** When using this skill, invoke Prometheus for implementation planning:
+
+```bash
+./bin/ask-role prometheus "Convert design to step-by-step implementation plan for: [feature name]"
+```
+
+This will:
+- Load project context from `conductor/context/*.md`
+- Use Prometheus role (Gemini 1.5 Pro) for structured planning
+- Output detailed implementation plan for Hephaestus to execute TDD workflow
