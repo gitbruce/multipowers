@@ -86,7 +86,7 @@ phases:
     emoji: "🎯"
     timeout_seconds: 600
     agents:
-      - provider: claude
+      - provider: codex
         role: "Synthesize research into actionable requirements"
         parallel: false
         memory_scope: project
@@ -123,7 +123,7 @@ phases:
     emoji: "🛠️"
     timeout_seconds: 900
     agents:
-      - provider: codex
+      - provider: claude
         role: "Code generation and patterns"
         parallel: true
         prompt_template: |
@@ -142,7 +142,7 @@ phases:
           4. Performance optimizations
 
           Requirements: {{grasp_consensus}}
-      - provider: claude
+      - provider: codex
         role: "Integration, quality gates, and implementation"
         parallel: false
         task_type: "Task(octo:personas:code-reviewer)"
@@ -150,7 +150,7 @@ phases:
         prompt_template: |
           Implement the solution based on:
           - Requirements: {{grasp_consensus}}
-          - Codex patterns: {{tangle_codex}}
+          - Claude patterns: {{tangle_claude}}
           - Gemini review: {{tangle_gemini}}
 
           Apply quality gates: security, performance, best practices.

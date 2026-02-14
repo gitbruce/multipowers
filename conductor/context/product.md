@@ -1,152 +1,89 @@
-# Product: Multipowers Tool
+# Product: Claude Octopus Tool Project
 
 ## Mission
 
-Multipowers is an orchestration layer for AI coding workflows. It combines Conductor-style context and track management, Superpowers-style methodology workflows, role-driven node routing, and multi-CLI execution into one operational system for tool maintainers.
-
-The product target is not an end-user app. It is a maintainer toolchain that keeps AI-driven development reproducible, auditable, and fast.
+Claude Octopus provides structured, multi-provider AI orchestration for Claude Code through reproducible workflows, explicit quality gates, and role-aware execution.
 
 ## Users and Scope
 
-- Primary users: maintainers of Multipowers and maintainers of projects bootstrapped by `templates/conductor/`.
-- Subject: how to run project delivery through stable context, explicit workflows, and role-specialized execution.
-- In-scope languages/runtime: Bash, Python 3.x, Node.js.
+- Primary users: maintainers of this repository and operators using `/octo:*` commands in Claude Code.
+- Secondary users: teams adopting orchestration patterns from this repo's docs, workflows, and templates.
+- Scope of this product context: how this repository evolves and is operated.
+
+## What This Repository Delivers
+
+1. Workflow orchestration engine in `scripts/orchestrate.sh`.
+2. Command surface in `.claude/commands/*` and skill implementations in `.claude/skills/*`.
+3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
+4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.
+5. Operational hooks and safeguards in `hooks/*`.
+6. Verification coverage in `tests/smoke`, `tests/unit`, and `tests/integration`.
 
 ## Product Boundaries
 
-- `conductor/` in this repository governs how Multipowers itself is developed.
-- `templates/conductor/` defines reusable scaffolding for downstream projects.
-- `conductor/context/*.md` are stable background artifacts; track-specific decisions belong in track specs/plans.
-- External LLM SDK coupling is out of scope; execution is CLI-connector based.
+- In scope:
+  - Multi-AI orchestration behavior.
+  - Command/skill UX for dev and knowledge workflows.
+  - Provider detection, routing, fallback, and quality gating.
+  - State persistence and resume behavior.
+- Out of scope:
+  - Building a standalone hosted SaaS product.
+  - Coupling execution to a single model vendor.
+  - Hidden autonomous completion without visible checkpoints.
 
-## Feature Split: Tool Project vs Target Project
+## Core Capability Areas
 
-### Tool Project Features (this repository)
+### 1) Structured Workflow Execution
 
-- Maintainer context is split and explicit: `product.md`, `product-guidelines.md`, `workflow.md`, `tech-stack.md`, `product-vision.md`.
-- `setup`/`init` must produce strict governance-ready context for building Multipowers itself.
-- Standard-lane workflow enforcement is mandatory for major tool changes.
-- Node-level role routing and connector execution are first-class behavior and test-covered.
-- Governance and template-sync checks are required before completion claims.
+- Double Diamond phases are first-class (`discover`, `define`, `develop`, `deliver`) plus full-chain `embrace`.
+- `auto` routing maps user intent to workflow entrypoints.
+- Major tasks are expected to pass through explicit phase logic and gate checks.
 
-### Target Project Features (generated via templates)
+### 2) Multi-Provider Orchestration
 
-- Target context is intentionally simplified: `product.md` + `tech-stack.md`.
-- Workflow and guideline policies are merged into target `product.md` to reduce setup overhead.
-- `new track` creates delivery artifacts for app work, while preserving stable context separation.
-- Fast-lane and standard-lane routing rules still apply; only documentation shape is simplified.
-- Non-interactive role execution (`claude`/`codex`/`gemini`) is reused through the same connector model.
+- Supports Codex and Gemini via external CLIs plus Claude-native orchestration.
+- Provider availability is detected at runtime and execution degrades gracefully.
+- Provider roles vary by phase (research, implementation, critique, synthesis).
 
-## Product Pillars and Detailed Features
+Default provider/model policy for this repository:
+- Planning + architecture + important decision work: Codex (`gpt-5.3-codex`).
+- Heavy coding/implementation: Claude Opus (environment-mapped to GLM-5).
+- Documentation + test-case generation: Claude Sonnet (environment-mapped to GLM-4.7).
+- External research: Gemini (`gemini-3-pro-preview`).
+- Quality checks:
+  - heavy/high-token: Claude Opus (GLM-5)
+  - light/lower-token: Codex
 
-### 1) Project Stabilization via `setup` and `new track` (Conductor baseline)
+### 3) Persona and Skill System
 
-Multipowers must provide a reliable baseline before implementation work begins.
+- Persona catalog in `agents/personas/*` provides domain-specialized behavior.
+- Skills in `.claude/skills/*` encode repeatable delivery patterns (review, debug, TDD, research, docs, debate, resume, etc.).
+- Routing uses context and intent to select workflows/personas rather than fixed single-agent execution.
 
-- `setup` (or equivalent scaffold repair) initializes and validates context by project type:
-  - Tool project: `product.md`, `product-guidelines.md`, `workflow.md`, `tech-stack.md`, `product-vision.md`
-  - Target project: `product.md`, `tech-stack.md` (with merged workflow/guideline policy in `product.md`)
-  - Shared: `conductor/tracks.md`
-- `new track` creates a delivery unit with:
-  - `conductor/tracks/<track_id>/spec.md`
-  - `conductor/tracks/<track_id>/plan.md`
-  - `conductor/tracks/<track_id>/metadata.json`
-- Track lifecycle states are explicit (`planned`, `in_progress`, `blocked`, `done`) and synchronized into `conductor/tracks.md`.
-- Setup and track creation are idempotent: reruns must repair drift without duplicating artifacts.
-- Track context is isolated: only stable background stays in context files; change intent stays in `spec.md` and `plan.md`.
+### 4) State, Context, and Resume
 
-### 2) Workflow-first methodology for major changes (Superpowers baseline)
+- Operational state is managed by scripts such as `state-manager.sh` and `octo-state.sh`.
+- Resume/status/issue flows provide continuity across long-running work.
+- Stable product context belongs in `conductor/context/*`; transient implementation details belong in workflow/session artifacts.
 
-For major changes, Multipowers must enforce explicit methodology workflows rather than ad-hoc role execution.
+### 5) Quality and Governance
 
-- Router chooses lane per task:
-  - Fast Lane: direct role dispatch for small, low-risk, low-coupling edits.
-  - Standard Lane: workflow graph execution for significant changes.
-- Standard Lane default workflow chain:
-  1. `brainstorming` (intent clarification and design alternatives)
-  2. `writing-plans` (task graph with file-level actions and verification steps)
-  3. `subagent-driven-development` or `executing-plans` (implementation loop)
-  4. `test-driven-development` (RED-GREEN-REFACTOR where applicable)
-  5. `requesting-code-review` / `receiving-code-review`
-  6. `verification-before-completion`
-  7. `finishing-a-development-branch`
-- Workflow nodes are checkpointed. A node cannot be marked complete without required artifacts (tests, review notes, verification outputs).
-- Major change quality gates are mandatory:
-  - changed file inventory (`git diff --name-only`)
-  - `semgrep`
-  - `biome` for TS/JS
-  - `ruff` for Python
-  - documentation sync for impacted areas
-
-### 3) Role-driven routing at node level (Role systems baseline)
-
-Multipowers routes each workflow node to the most suitable specialist role, not one fixed role for an entire task.
-
-- Core roles:
-  - Router: lane/workflow selection and execution graph control
-  - Architect: design, spec validation, review and quality gates
-  - Coder: implementation and local refactors
-  - Librarian: focused evidence gathering and external research
-- Role binding is configuration-driven (`config/roles.default.json` + user overrides).
-- Node-to-role mapping is explicit and observable in track artifacts (who executed what, at which node, with which output).
-- Review nodes default to Architect unless overridden by policy.
-- Router may escalate to specialist roles for high-risk subdomains (security, data migration, API contracts) while preserving workflow ordering.
-
-### 4) Non-interactive multi-CLI bridging (Claude/Codex/Gemini baseline)
-
-Multipowers must execute role calls through non-interactive CLI adapters for `claude`, `codex`, and `gemini`.
-
-- `bin/ask-role` is the single dispatch entrypoint:
-  - injects stable context + track context
-  - resolves role -> connector mapping
-  - executes connector and normalizes output
-- Connector requirements:
-  - non-interactive execution only (no human prompt loops)
-  - deterministic input packaging (prompt template + context bundle)
-  - bounded execution (timeouts, retry policy, exit-code handling)
-  - structured result envelope (`status`, `summary`, `artifacts`, `raw_output_ref`)
-- Bridging pattern follows CLI-to-CLI principles:
-  - isolated sub-executions to protect main context window
-  - role-specialized prompts for planner/reviewer/implementer style calls
-  - final-result return contract (avoid dumping verbose intermediate logs into main thread)
-- Optional MCP bridge compatibility is supported as an extension path, but native connector adapters remain first-class.
-
-## Technical Architecture
-
-- `bin/multipowers`: lifecycle commands (`setup`/`init`, `doctor`, `new track`/`track`)
-- `bin/ask-role`: routing bridge and context injector
-- `connectors/*.py`: CLI adapters (`claude`, `codex`, `gemini`, future adapters)
-- `scripts/*.py`: validation and governance checks
-- `config/roles.default.json`: role-to-connector policy map
-
-Design constraints:
-
-- Execution metadata must be machine-readable for audits.
-- Connectors must degrade safely (clear error envelope, no silent success).
-- Workflow state transitions must be replayable from track files.
+- Hooks and validation scripts enforce workflow discipline and reduce drift.
+- Tests validate command contracts, routing behavior, integrations, and release expectations.
+- Docs in `README.md` and `docs/*` must stay synchronized with command behavior.
 
 ## Definition of Done (Product-level)
 
-A major track is complete only if all conditions are true:
+A major change to this repository is complete only when all are true:
 
-1. Setup baseline exists and context files are valid.
-2. Track spec and plan are present and updated to final status.
-3. Workflow nodes show explicit role execution records.
-4. Required checks (`semgrep`, `biome`, `ruff`) pass after fixes.
-5. Impacted documentation is updated.
-6. Completion claim includes evidence artifact references.
+1. Behavior is implemented in the relevant scripts/skills/config.
+2. Tests are updated or added for changed behavior.
+3. Required validations and checks pass.
+4. User-facing docs reflect the final behavior.
+5. No regression in provider fallback, routing, or state continuity.
 
 ## Non-Goals
 
-- No hidden autonomous completion without visible workflow state.
-- No mandatory heavyweight workflow for trivial low-risk edits.
-- No provider lock-in to a single model vendor.
-- No replacing CLI adapters with tightly coupled embedded SDK flows.
-
-## Acceptance Signals
-
-- Maintainers consistently bootstrap with `setup` and deliver through `new track`.
-- Major changes follow explicit methodology workflows and produce checkpoints.
-- Routing shows workflow-first selection and specialist role dispatch by node.
-- `claude`, `codex`, and `gemini` executions run non-interactively via connectors.
-- Post-change governance artifacts are present for every major track.
+- Replacing Claude Code itself.
+- Forcing every task into heavy multi-phase execution when a lightweight path is sufficient.
+- Treating outputs as complete without verification evidence.

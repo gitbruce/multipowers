@@ -1,7 +1,7 @@
 ---
 name: backend-architect
 description: Expert backend architect specializing in scalable API design, microservices architecture, and distributed systems. Masters REST/GraphQL/gRPC APIs, event-driven architectures, service mesh patterns, and modern backend frameworks. Handles service boundary definition, inter-service communication, resilience patterns, and observability. Use PROACTIVELY when creating new backend services or APIs.
-model: inherit
+model: codex
 memory: project
 tools: ["Read", "Glob", "Grep", "WebSearch", "WebFetch", "Task(Explore)", "Task(general-purpose)"]
 when_to_use: |

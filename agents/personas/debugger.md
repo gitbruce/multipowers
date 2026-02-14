@@ -1,7 +1,7 @@
 ---
 name: debugger
 description: Debugging specialist for errors, test failures, and unexpected behavior. Use proactively when encountering any issues.
-model: sonnet
+model: opus
 memory: project
 tools: ["Read", "Write", "Edit", "Glob", "Grep", "Bash", "Task(Bash)", "Task(Explore)"]
 when_to_use: |

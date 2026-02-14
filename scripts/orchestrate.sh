@@ -8000,9 +8000,9 @@ get_role_mapping() {
         architect)    echo "codex:gpt-5.3-codex" ;;            # System design, planning (v8.3: GPT-5.3-Codex)
         researcher)   echo "gemini:gemini-3-pro-preview" ;;   # Deep investigation
         reviewer)     echo "codex-review:gpt-5.3-codex" ;;    # Code review, validation (v8.3: GPT-5.3-Codex)
-        implementer)  echo "codex:gpt-5.3-codex" ;;           # Code generation (v8.3: GPT-5.3-Codex)
-        synthesizer)  echo "claude:claude-sonnet-4.5" ;;      # Result aggregation (v8.0: upgraded to Claude)
-        strategist)   echo "claude-opus:claude-opus-4.6" ;;   # Premium synthesis (v8.0: Opus 4.6)
+        implementer)  echo "claude-opus:claude-opus-4.6" ;;   # Heavy coding/implementation
+        synthesizer)  echo "codex:gpt-5.3-codex" ;;           # Lightweight synthesis/quality aggregation
+        strategist)   echo "codex:gpt-5.3-codex" ;;           # Planning/architecture/important decisions
         *)            echo "codex:gpt-5.3-codex" ;;           # Default (v8.3: GPT-5.3-Codex)
     esac
 }
@@ -11650,7 +11650,13 @@ $previous_output"
         # Map provider to agent type
         local agent_type="$provider"
         case "$provider" in
-            claude) agent_type="claude-sonnet" ;;
+            claude)
+                # Policy: heavy coding and heavy quality checks run on Opus.
+                case "$phase_name" in
+                    tangle|ink) agent_type="claude-opus" ;;
+                    *)          agent_type="claude-sonnet" ;;
+                esac
+                ;;
         esac
 
         # Check provider availability

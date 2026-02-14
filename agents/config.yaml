@@ -49,8 +49,8 @@ agents:
   # ═══════════════════════════════════════════════════════════════════════════
   ai-engineer:
     file: personas/ai-engineer.md
-    cli: gemini
-    model: gemini-3-pro-preview
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [probe, tangle]
     tier: premium
     expertise: [llm-applications, rag-systems, prompt-engineering]
@@ -83,8 +83,8 @@ agents:
 
   frontend-developer:
     file: personas/frontend-developer.md
-    cli: codex
-    model: gpt-5.3-codex
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [grasp, tangle]
     tier: premium
     expertise: [react, nextjs, state-management, accessibility]
@@ -126,8 +126,8 @@ agents:
   # ═══════════════════════════════════════════════════════════════════════════
   tdd-orchestrator:
     file: personas/tdd-orchestrator.md
-    cli: claude
-    model: claude-sonnet-4.5
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [tangle]
     tier: premium
     expertise: [test-driven-development, red-green-refactor]
@@ -137,8 +137,8 @@ agents:
 
   debugger:
     file: personas/debugger.md
-    cli: claude
-    model: claude-sonnet-4.5
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [tangle, ink]
     tier: standard
     expertise: [error-analysis, stack-traces, debugging]
@@ -148,8 +148,8 @@ agents:
 
   devops-troubleshooter:
     file: personas/devops-troubleshooter.md
-    cli: claude
-    model: claude-sonnet-4.5
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [tangle, ink]
     tier: standard
     expertise: [deployment, logs, infrastructure-debugging]
@@ -158,8 +158,8 @@ agents:
 
   python-pro:
     file: personas/python-pro.md
-    cli: claude
-    model: claude-sonnet-4.5
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [tangle]
     tier: premium
     expertise: [python, fastapi, django, async]
@@ -168,8 +168,8 @@ agents:
 
   typescript-pro:
     file: personas/typescript-pro.md
-    cli: claude
-    model: claude-sonnet-4.5
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [tangle]
     tier: premium
     expertise: [typescript, node, react, types]
@@ -183,9 +183,9 @@ agents:
   # ═══════════════════════════════════════════════════════════════════════════
   code-reviewer:
     file: personas/code-reviewer.md
-    cli: codex-spark              # v8.9.0: Fast review via Spark (was codex-review)
-    model: gpt-5.3-codex-spark
-    fallback_cli: codex-review    # v8.9.0: Falls back to codex-review if spark unavailable
+    cli: codex
+    model: gpt-5.3-codex
+    fallback_cli: codex-review
     phases: [ink]
     tier: premium
     expertise: [code-quality, best-practices, architecture-review]
@@ -195,8 +195,8 @@ agents:
 
   security-auditor:
     file: personas/security-auditor.md
-    cli: codex                    # v8.9.0: Stays on full codex for deep security analysis
-    model: gpt-5.3-codex
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [ink]
     tier: premium
     expertise: [owasp, vulnerability-scanning, security-review]
@@ -206,8 +206,8 @@ agents:
 
   test-automator:
     file: personas/test-automator.md
-    cli: codex
-    model: gpt-5.2-codex
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [tangle, ink]
     tier: standard
     expertise: [unit-tests, integration-tests, e2e-tests]
@@ -216,8 +216,8 @@ agents:
 
   performance-engineer:
     file: personas/performance-engineer.md
-    cli: codex-spark              # v8.9.0: Fast perf analysis via Spark
-    model: gpt-5.3-codex-spark
+    cli: claude-opus
+    model: claude-opus-4.6
     fallback_cli: codex
     phases: [ink]
     tier: premium
@@ -227,8 +227,8 @@ agents:
 
   deployment-engineer:
     file: personas/deployment-engineer.md
-    cli: codex
-    model: gpt-5.2-codex
+    cli: claude-opus
+    model: claude-opus-4.6
     phases: [ink]
     tier: standard
     expertise: [ci-cd, kubernetes, docker, gitops]
@@ -243,8 +243,8 @@ agents:
   # ═══════════════════════════════════════════════════════════════════════════
   strategy-analyst:
     file: personas/strategy-analyst.md
-    cli: claude-opus
-    model: claude-opus-4.6
+    cli: codex
+    model: gpt-5.3-codex
     phases: [probe, grasp]
     tier: premium
     expertise: [strategic-analysis, market-research, business-strategy]
@@ -254,8 +254,8 @@ agents:
 
   research-synthesizer:
     file: personas/research-synthesizer.md
-    cli: claude-opus
-    model: claude-opus-4.6
+    cli: gemini
+    model: gemini-3-pro-preview
     phases: [probe]
     tier: premium
     expertise: [research-synthesis, literature-review, knowledge-integration]
@@ -265,8 +265,8 @@ agents:
 
   context-manager:
     file: personas/context-manager.md
-    cli: gemini-fast
-    model: gemini-3-flash-preview
+    cli: codex
+    model: gpt-5.3-codex
     phases: [probe, grasp, tangle, ink]
     tier: standard
     expertise: [context-management, multi-agent-coordination]
@@ -275,8 +275,8 @@ agents:
 
   docs-architect:
     file: personas/docs-architect.md
-    cli: gemini
-    model: gemini-3-pro-preview
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [ink]
     tier: standard
     expertise: [documentation, technical-writing]
@@ -296,8 +296,8 @@ agents:
 
   mermaid-expert:
     file: personas/mermaid-expert.md
-    cli: gemini-fast
-    model: gemini-3-flash-preview
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [grasp, ink]
     tier: trivial
     expertise: [diagrams, flowcharts, sequence-diagrams]
@@ -310,8 +310,8 @@ agents:
   # ═══════════════════════════════════════════════════════════════════════════
   codebase-analyst:
     file: personas/code-reviewer.md       # Reuses code-reviewer persona
-    cli: codex-large-context              # v8.9.0: gpt-4.1 with 1M context window
-    model: gpt-4.1
+    cli: claude-opus
+    model: claude-opus-4.6
     fallback_cli: codex
     phases: [probe, ink]
     tier: premium
