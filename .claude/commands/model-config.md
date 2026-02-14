@@ -3,20 +3,41 @@ name: model-config
 description: Configure AI provider models for Claude Octopus workflows
 version: 2.0.0
 category: configuration
-tags: [config, models, providers, codex, gemini, spark, routing]
+tags: [config, models, providers, codex, gemini, routing]
 created: 2025-01-21
-updated: 2026-02-13
+updated: 2026-02-14
 ---
 
 # Model Configuration
 
 Configure which AI models are used by Claude Octopus workflows. This allows you to:
-- Use premium models (GPT-5.3-Codex, Claude Opus 4.6) for complex tasks
-- Use fast models (GPT-5.3-Codex-Spark, Gemini Flash) for quick feedback
-- Use large-context models (GPT-4.1, 1M tokens) for big codebases
-- Use reasoning models (o3, o4-mini) for complex analysis
-- Configure per-phase model routing (different models for different workflow phases)
+- Configure Codex and Gemini defaults/overrides
+- Configure Codex phase routing (`phase_routing`) for Codex-backed steps
+- Align model choices with the project routing policy
 - Control cost/performance tradeoffs per project
+
+## Environment Constraints
+
+In this environment:
+- Codex available model: `gpt-5.3-codex` only
+- Gemini available model: `gemini-3-pro-preview`
+- Claude routing uses Sonnet/Opus lanes and is mapped by your Claude Code defaults
+
+## Principles-Aligned Policy
+
+Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `scripts/orchestrate.sh`):
+
+- Planning, architecture, and important decisions -> Codex (`gpt-5.3-codex`)
+- Heavy coding/implementation -> Claude Opus (`claude-opus`; mapped by your Claude Code env, e.g. GLM-5)
+- Documentation and test-case authoring -> Claude Sonnet (`claude`; mapped by your Claude Code env, e.g. GLM-4.7)
+- External-world research -> Gemini (`gemini-3-pro-preview`)
+- Quality checks:
+  - Heavy/high-token -> Claude Opus
+  - Light/lower-token -> Codex
+
+Important scope note:
+- `/octo:model-config` configures Codex/Gemini models in `~/.claude-octopus/config/providers.json`.
+- Claude model family selection is primarily controlled by routing (`claude` vs `claude-opus`) and your Claude Code defaults (`ANTHROPIC_DEFAULT_*`), not by this command.
 
 ## Usage
 
@@ -27,17 +48,14 @@ Configure which AI models are used by Claude Octopus workflows. This allows you 
 # Set codex model (persistent)
 /octo:model-config codex gpt-5.3-codex
 
-# Set to Spark for fast mode
-/octo:model-config codex gpt-5.3-codex-spark
-
 # Set gemini model (persistent)
 /octo:model-config gemini gemini-3-pro-preview
 
 # Set session-only override (doesn't modify config file)
-/octo:model-config codex gpt-5.2 --session
+/octo:model-config codex gpt-5.3-codex --session
 
-# Configure phase routing (which model to use in which phase)
-/octo:model-config phase deliver gpt-5.3-codex-spark
+# Configure phase routing (which codex model to use in which phase)
+/octo:model-config phase deliver gpt-5.3-codex
 /octo:model-config phase develop gpt-5.3-codex
 
 # Reset to defaults
@@ -55,11 +73,7 @@ Models are selected using a 5-tier precedence system:
    - `OCTOPUS_GEMINI_MODEL` - Override all gemini model selection
 
 2. **Task hints** (contextual override from calling code)
-   - `fast` / `spark` → GPT-5.3-Codex-Spark
-   - `deep` / `security` → GPT-5.3-Codex
-   - `large-codebase` → GPT-4.1
-   - `reasoning` → o3
-   - `budget` → GPT-5.1-Codex-Mini
+   - Task hints still exist in runtime, but with your setup Codex stays on `gpt-5.3-codex`
 
 3. **Phase routing config** (per-phase model selection)
    - Stored in `~/.claude-octopus/config/providers.json` → `phase_routing`
@@ -69,42 +83,15 @@ Models are selected using a 5-tier precedence system:
 
 5. **Hard-coded defaults** (lowest priority)
    - Codex: `gpt-5.3-codex`
-   - Spark: `gpt-5.3-codex-spark`
-   - Reasoning: `o3`
-   - Large context: `gpt-4.1`
    - Gemini: `gemini-3-pro-preview`
 
 ## Supported Models
 
-### Codex Flagship Models
+### Codex (Available in this Environment)
 
 | Model | Context | Speed | Best For | Cost |
 |-------|---------|-------|----------|------|
-| `gpt-5.3-codex` | 400K | ~65 tok/s | Complex implementation, architecture | $1.75/$14.00 per MTok |
-| `gpt-5.3-codex-spark` | 128K | **1000+ tok/s** | Fast reviews, iteration, prototyping | Pro-only |
-| `gpt-5.2-codex` | 400K | ~65 tok/s | Standard code generation | $1.75/$14.00 per MTok |
-
-### Codex Budget & Legacy
-
-| Model | Context | Best For | Cost |
-|-------|---------|----------|------|
-| `gpt-5.1-codex-mini` | 400K | Budget tasks, ~1 credit/msg | ~$0.30/$1.25 per MTok |
-| `gpt-5.1-codex-max` | 400K | Long-horizon agentic tasks | $1.25/$10.00 per MTok |
-| `gpt-5-codex` | 400K | Legacy support | $1.25/$10.00 per MTok |
-
-### Reasoning Models (via Codex CLI)
-
-| Model | Context | Best For | Cost |
-|-------|---------|----------|------|
-| `o3` | 200K | Deep reasoning, trade-off analysis | $2.00/$8.00 per MTok |
-| `o4-mini` | 200K | Cost-effective reasoning | $1.10/$4.40 per MTok |
-
-### Large Context Models (via Codex CLI)
-
-| Model | Context | Best For | Cost |
-|-------|---------|----------|------|
-| `gpt-4.1` | **1M** | Large codebase analysis, dependency mapping | $2.00/$8.00 per MTok |
-| `gpt-4.1-mini` | **1M** | Budget large-context tasks | $0.40/$1.60 per MTok |
+| `gpt-5.3-codex` | 400K | ~65 tok/s | Planning, architecture, lighter quality checks | $1.75/$14.00 per MTok |
 
 ### OpenRouter Models (v8.11.0)
 
@@ -123,34 +110,26 @@ Requires `OPENROUTER_API_KEY` to be set. These are automatically selected when O
 | `gemini-3-pro-preview` | Premium quality research | $2.50/$10.00 per MTok |
 | `gemini-3-flash-preview` | Fast, low-cost tasks | $0.25/$1.00 per MTok |
 
-## Phase Routing
+## Phase Routing (Codex Only)
 
-v8.9.0 introduces **contextual phase routing** - automatically selecting the best model for each workflow phase:
+`phase_routing` controls Codex model selection for Codex-backed steps only.
 
-| Phase | Default Model | Rationale |
-|-------|--------------|-----------|
-| `discover` | gpt-5.3-codex | Deep research needs max reasoning |
-| `define` | gpt-5.3-codex | Requirements analysis needs precision |
-| `develop` | gpt-5.3-codex | Complex implementation |
-| `deliver` | gpt-5.3-codex-spark | Fast review feedback (15x faster) |
-| `quick` | gpt-5.3-codex-spark | Speed over depth |
-| `debate` | gpt-5.3-codex | Deep reasoning for arguments |
-| `review` | gpt-5.3-codex-spark | Rapid PR review feedback |
-| `security` | gpt-5.3-codex | Thorough security analysis |
-| `research` | gpt-5.3-codex | Deep multi-source research |
+| Phase | Recommended Codex Model | Rationale |
+|-------|--------------------------|-----------|
+| `discover` | `gpt-5.3-codex` | Technical analysis depth |
+| `define` | `gpt-5.3-codex` | Planning and architecture decisions |
+| `develop` | `gpt-5.3-codex` | Codex-side integration/review within develop |
+| `deliver` | `gpt-5.3-codex` | Lighter quality checks on Codex lane |
+| `review` | `gpt-5.3-codex` | Explicit light review lane |
+| `security` | `gpt-5.3-codex` | Codex security pass (non-heavy path) |
+| `research` | `gpt-5.3-codex` | Codex technical synthesis path |
 
 ### Customizing Phase Routing
 
 ```bash
-# Use Spark for develop phase (faster iteration)
-/octo:model-config phase develop gpt-5.3-codex-spark
-
-# Use full codex for all review phases (deeper analysis)
+# Use full codex for review/decision phases
 /octo:model-config phase deliver gpt-5.3-codex
 /octo:model-config phase review gpt-5.3-codex
-
-# Use budget model for discover phase (save costs on research)
-/octo:model-config phase discover gpt-5.1-codex-mini
 
 # Reset phase routing to defaults
 /octo:model-config reset phases
@@ -158,42 +137,23 @@ v8.9.0 introduces **contextual phase routing** - automatically selecting the bes
 
 ## Examples
 
-### Fast Prototyping Mode
+### Planning/Architecture First (Codex)
 ```bash
-# Switch everything to Spark for rapid iteration
-export OCTOPUS_CODEX_MODEL="gpt-5.3-codex-spark"
-/octo:develop user profile component
-# NOTE: Spark has 128K context (vs 400K for full Codex)
+/octo:model-config codex gpt-5.3-codex
+/octo:model-config phase define gpt-5.3-codex
+/octo:model-config phase review gpt-5.3-codex
 ```
 
-### Large Codebase Analysis
+### External Research (Gemini)
 ```bash
-# Use 1M context model for analyzing large repos
-/octo:model-config codex gpt-4.1 --session
-/octo:discover "analyze the entire authentication subsystem"
+/octo:model-config gemini gemini-3-pro-preview
 ```
 
-### Cost-Optimized Workflow
+### Claude Lane Reminder
 ```bash
-# Use budget models across the board
-/octo:model-config codex gpt-5.1-codex-mini
-/octo:model-config gemini gemini-3-flash-preview
-/octo:embrace build a simple CRUD API
-```
-
-### Deep Security Audit
-```bash
-# Use premium models + reasoning for security
-/octo:model-config phase security o3
-/octo:security audit the payment processing module
-```
-
-### Mixed: Spark for Reviews, Full for Implementation
-```bash
-# Default phase routing already does this, but to customize:
-/octo:model-config phase develop gpt-5.3-codex
-/octo:model-config phase deliver gpt-5.3-codex-spark
-/octo:model-config phase review gpt-5.3-codex-spark
+# Claude Sonnet/Opus selection is controlled by routing and Claude Code defaults:
+# ANTHROPIC_DEFAULT_SONNET_MODEL / ANTHROPIC_DEFAULT_OPUS_MODEL
+# Use persona and flow routing for heavy-vs-light Claude behavior.
 ```
 
 ## Configuration File
@@ -206,25 +166,19 @@ Location: `~/.claude-octopus/config/providers.json`
   "providers": {
     "codex": {
       "model": "gpt-5.3-codex",
-      "fallback": "gpt-5.2-codex",
-      "spark_model": "gpt-5.3-codex-spark",
-      "mini_model": "gpt-5.1-codex-mini",
-      "reasoning_model": "o3",
-      "large_context_model": "gpt-4.1"
+      "fallback": "gpt-5.3-codex"
     },
     "gemini": {
       "model": "gemini-3-pro-preview",
-      "fallback": "gemini-3-flash-preview"
+      "fallback": "gemini-3-pro-preview"
     }
   },
   "phase_routing": {
     "discover": "gpt-5.3-codex",
     "define":   "gpt-5.3-codex",
     "develop":  "gpt-5.3-codex",
-    "deliver":  "gpt-5.3-codex-spark",
-    "quick":    "gpt-5.3-codex-spark",
-    "debate":   "gpt-5.3-codex",
-    "review":   "gpt-5.3-codex-spark",
+    "deliver":  "gpt-5.3-codex",
+    "review":   "gpt-5.3-codex",
     "security": "gpt-5.3-codex",
     "research": "gpt-5.3-codex"
   },
@@ -232,18 +186,13 @@ Location: `~/.claude-octopus/config/providers.json`
 }
 ```
 
-## Spark vs Full Codex: When to Use Which
+## Codex Model Guidance (This Environment)
 
-| Factor | GPT-5.3-Codex | GPT-5.3-Codex-Spark |
-|--------|---------------|---------------------|
-| **Speed** | ~65 tok/s | **1000+ tok/s** (15x) |
-| **Context** | 400K tokens | 128K tokens |
-| **Terminal-Bench** | 77.3% | 58.4% |
-| **Image input** | Yes | No (text only) |
-| **Availability** | All plans | Pro ($200/mo) only |
-| **Best for** | Complex tasks, security, architecture | Reviews, iteration, quick tasks |
+| Model | Best For |
+|-------|----------|
+| `gpt-5.3-codex` | Planning, architecture, important decisions, lighter quality checks |
 
-**Rule of thumb:** Use Spark when speed matters more than depth. Use full Codex when accuracy and context window matter.
+For heavy implementation and heavy-token quality checks, rely on Claude Opus routing instead of forcing Codex.
 
 ## Requirements
 
@@ -254,8 +203,7 @@ Location: `~/.claude-octopus/config/providers.json`
 - Model names are validated against known models but unknown models are still accepted
 - Invalid models will fail when workflows execute
 - Environment variables override all other settings including phase routing
-- GPT-5.3-Codex-Spark requires OpenAI Pro subscription ($200/mo)
-- Phase routing only affects Codex model selection (Gemini has its own model defaults)
+- Phase routing only affects Codex model selection (Gemini has its own model defaults; Claude family is selected by routing plus Claude Code defaults)
 - Cost implications vary significantly between models - see pricing table above
 - **Gemini sandbox modes** (`OCTOPUS_GEMINI_SANDBOX`):
   - `headless` (default, v8.10.0) - Stdin-based prompt delivery with `-p ""`, `-o text`, `--approval-mode yolo`
@@ -323,9 +271,9 @@ When the user invokes `/octo:model-config`, you MUST:
 
 6. **Provide guidance** on:
    - Which models are appropriate for which tasks/phases
-   - Cost implications of premium models vs Spark vs budget
+   - Cost implications of available models and routing choices
    - How to use environment variables for temporary changes
-   - Spark availability requirements (Pro subscription)
+   - Claude Sonnet/Opus routing behavior in this environment
 
 ### Validation Gates
 
