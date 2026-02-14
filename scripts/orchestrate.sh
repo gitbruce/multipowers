@@ -6884,6 +6884,14 @@ score_provider() {
             ;;
     esac
 
+    # Preference policy: Claude handles implementation, Codex handles review/planning.
+    if [[ "$task_type" == "coding" && "$provider" == "claude" ]]; then
+        score=$((score + 25))
+    fi
+    if [[ "$task_type" == "review" && "$provider" == "codex" ]]; then
+        score=$((score + 25))
+    fi
+
     # Apply priority penalty (lower priority number = higher preference)
     score=$((score - priority * 2))
 
@@ -12313,7 +12321,8 @@ Output as numbered list with [CODING] or [REASONING] prefix for each subtask."
     local subtasks
     subtasks=$(run_agent_sync "gemini" "$decompose_prompt" 120 "researcher" "tangle") || {
         log WARN "Decomposition failed, falling back to direct execution"
-        spawn_agent "codex" "$prompt" "tangle-${task_group}-direct" "implementer" "tangle"
+        # Default implementation executor is Claude (mapped to GLM in your Claude Code setup).
+        spawn_agent "claude" "$prompt" "tangle-${task_group}-direct" "implementer" "tangle"
         wait
         return
     }
@@ -12333,7 +12342,8 @@ Output as numbered list with [CODING] or [REASONING] prefix for each subtask."
 
         local subtask
         subtask=$(echo "$line" | sed 's/^[0-9]*[\.\)]\s*//')
-        local agent="codex"
+        # Coding subtasks default to Claude; reasoning subtasks stay on Gemini.
+        local agent="claude"
         local role="implementer"
         local pane_icon="⚙️"
         if [[ "$subtask" =~ \[REASONING\] ]]; then

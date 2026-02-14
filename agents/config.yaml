@@ -126,8 +126,8 @@ agents:
   # ═══════════════════════════════════════════════════════════════════════════
   tdd-orchestrator:
     file: personas/tdd-orchestrator.md
-    cli: codex
-    model: gpt-5.3-codex
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [tangle]
     tier: premium
     expertise: [test-driven-development, red-green-refactor]
@@ -137,8 +137,8 @@ agents:
 
   debugger:
     file: personas/debugger.md
-    cli: codex
-    model: gpt-5.2-codex
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [tangle, ink]
     tier: standard
     expertise: [error-analysis, stack-traces, debugging]
@@ -148,8 +148,8 @@ agents:
 
   devops-troubleshooter:
     file: personas/devops-troubleshooter.md
-    cli: codex
-    model: gpt-5.2-codex
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [tangle, ink]
     tier: standard
     expertise: [deployment, logs, infrastructure-debugging]
@@ -158,8 +158,8 @@ agents:
 
   python-pro:
     file: personas/python-pro.md
-    cli: codex
-    model: gpt-5.3-codex
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [tangle]
     tier: premium
     expertise: [python, fastapi, django, async]
@@ -168,8 +168,8 @@ agents:
 
   typescript-pro:
     file: personas/typescript-pro.md
-    cli: codex
-    model: gpt-5.3-codex
+    cli: claude
+    model: claude-sonnet-4.5
     phases: [tangle]
     tier: premium
     expertise: [typescript, node, react, types]
