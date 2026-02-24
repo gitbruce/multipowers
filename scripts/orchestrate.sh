@@ -4592,10 +4592,35 @@ run_persona_prompt() {
         return 1
     fi
 
+    # Claude Code cannot safely spawn nested `claude` CLI sessions.
+    # If a persona is configured to use claude*, prefer fallback_cli, then codex/gemini.
+    local selected_cli="$cli_type"
+    local in_claude_code="false"
+    if [[ -n "${CLAUDE_SESSION_ID:-}" || -n "${CLAUDE_CODE_SESSION:-}" || -n "${CLAUDECODE:-}" ]]; then
+        in_claude_code="true"
+    fi
+    if [[ "$in_claude_code" == "true" && "$cli_type" == claude* ]]; then
+        local fallback_cli
+        fallback_cli=$(get_agent_config "$persona_name" "fallback_cli")
+        if [[ -n "$fallback_cli" ]]; then
+            selected_cli="$fallback_cli"
+        elif command -v codex &>/dev/null || [[ -n "${OPENAI_API_KEY:-}" ]]; then
+            selected_cli="codex"
+        elif command -v gemini &>/dev/null || [[ -n "${GEMINI_API_KEY:-}" ]]; then
+            selected_cli="gemini"
+        fi
+    fi
+
     local model
-    model=$(get_agent_model "$cli_type")
+    model=$(get_agent_model "$selected_cli")
     echo -e "${CYAN}Persona:${NC} ${persona_name}"
-    echo -e "${CYAN}Using:${NC} ${cli_type}:${model}"
+    if [[ "$selected_cli" != "$cli_type" ]]; then
+        local configured_model
+        configured_model=$(get_agent_model "$cli_type")
+        echo -e "${CYAN}Configured:${NC} ${cli_type}:${configured_model}"
+        echo -e "${YELLOW}Note:${NC} Nested claude sessions are blocked in Claude Code; using external provider."
+    fi
+    echo -e "${CYAN}Using:${NC} ${selected_cli}:${model}"
     echo ""
 
     local persona_context
@@ -4612,7 +4637,7 @@ Task:
 $prompt"
     fi
 
-    run_agent_sync "$cli_type" "$persona_prompt" 180 "$persona_name" "persona"
+    run_agent_sync "$selected_cli" "$persona_prompt" 180 "$persona_name" "persona"
 }
 
 # Main usage router
@@ -11528,6 +11553,9 @@ run_agent_sync() {
     # SECURITY: Use array-based execution to prevent word-splitting vulnerabilities
     local -a cmd_array
     read -ra cmd_array <<< "$cmd"
+
+    # Ensure runtime directories exist for temp stderr capture and result writes.
+    mkdir -p "$RESULTS_DIR" "$LOGS_DIR" 2>/dev/null || true
 
     # Capture output and exit code separately
     local output
