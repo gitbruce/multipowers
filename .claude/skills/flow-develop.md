@@ -6,9 +6,11 @@ aliases:
   - tangle
   - tangle-workflow
 description: Multi-AI implementation using Codex and Gemini CLIs (Double Diamond Develop phase)
-
-  DO NOT use for: simple code edits (use Edit tool), reading/reviewing code,
-  built-in commands, or trivial single-file changes.
+do_not_use:
+  - simple code edits (use Edit tool)
+  - reading or reviewing code
+  - built-in commands
+  - trivial single-file changes
 
 # Claude Code v2.1.12+ Integration
 agent: general-purpose

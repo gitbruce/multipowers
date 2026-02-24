@@ -146,11 +146,11 @@ command -v gemini &> /dev/null && gemini_status="Available" || gemini_status="No
 #### Step 3: Verify Audit Completed
 
 ```bash
-# Find the latest validation file
-VALIDATION_FILE=$(find ~/.claude-octopus/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
+# Find the latest delivery artifact
+VALIDATION_FILE=$(find ~/.claude-octopus/results -name "delivery-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$VALIDATION_FILE" ]]; then
-    echo "AUDIT FAILED: No validation file found"
+    echo "AUDIT FAILED: No delivery artifact found"
     exit 1
 fi
 

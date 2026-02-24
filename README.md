@@ -49,6 +49,8 @@ The setup wizard detects what you have installed, shows what's missing, and walk
 /octo:tdd                                             # Red-green-refactor with discipline
 /octo:debug                                           # Systematic 4-phase debugging
 /octo:security                                        # OWASP vulnerability scan
+/octo:persona list                                    # List available personas
+/octo:persona security-auditor review auth flow       # Force specific persona
 /octo:embrace build user authentication               # Full lifecycle: research to delivery
 ```
 
@@ -270,7 +272,7 @@ Multi-stage content analysis pipeline. Reverse-engineers article anatomy, extrac
 
 ---
 
-## All 32 Commands
+## All Commands
 
 ### Core Workflows
 | Command | Description |
@@ -325,6 +327,7 @@ Multi-stage content analysis pipeline. Reverse-engineers article anatomy, extrac
 | `/octo:km` | Toggle Knowledge Work mode |
 | `/octo:dev` | Switch to Dev Work mode |
 | `/octo:model-config` | Configure AI provider models at runtime |
+| `/octo:persona` | Run a specific persona or list configured personas |
 | `/octo:setup` | Provider setup wizard |
 | `/octo:sys-setup` | System configuration status |
 
@@ -399,6 +402,17 @@ Supports runtime model selection with 4-tier precedence:
 4. Built-in defaults (GPT-5.3-Codex, Gemini 3 Pro, Claude Sonnet 4.5)
 
 For premium tasks, complexity-based routing automatically upgrades to Opus 4.6.
+
+Optional proxy settings for Codex/Gemini can be added in `~/.claude-octopus/config/providers.json`:
+
+```json
+{
+  "proxy": {
+    "enabled": true,
+    "port": 7890
+  }
+}
+```
 
 ---
 

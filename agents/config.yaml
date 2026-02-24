@@ -30,8 +30,10 @@ phase_defaults:
     primary: code-reviewer
     agents: [security-auditor, test-automator, performance-engineer, deployment-engineer]
 
-# v8.9.0: Phase-to-model routing defaults for Codex agents
-# These can be overridden per-user in ~/.claude-octopus/config/providers.json → phase_routing
+# v8.9.0: Phase-to-model routing baseline for Codex agents.
+# Runtime source of truth is select_codex_model_for_context() in scripts/orchestrate.sh,
+# with user overrides in ~/.claude-octopus/config/providers.json -> phase_routing.
+# Keep this block aligned as the repository policy baseline.
 phase_model_routing:
   probe:   gpt-5.3-codex           # Deep research needs max reasoning
   grasp:   gpt-5.3-codex           # Requirements analysis needs precision
@@ -357,16 +359,16 @@ ralph_wiggum:
 skill_triggers:
   api-design:
     pattern: "(rest|graphql|grpc).*(api|endpoint|service)"
-    skill: api-design-principles
+    skill: skill-architecture
   security:
     pattern: "(security|owasp|vulnerability|auth)"
-    skill: security-patterns
+    skill: skill-security-audit
   testing:
     pattern: "(test|tdd|coverage|e2e)"
-    skill: testing-patterns
+    skill: skill-tdd
   performance:
     pattern: "(performance|optimize|profile|benchmark)"
-    skill: performance-optimization
+    skill: skill-code-review
 
   # Natural Language Trigger Enhancements (v7.7.0)
   task-completion:

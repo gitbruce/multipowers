@@ -29,6 +29,8 @@ This guide documents direct CLI usage of orchestrate.sh for advanced users and a
 | `deliver <prompt>` | `ink` | Delivery phase - validation and QA |
 | `grapple <prompt>` | | Adversarial debate between AI models |
 | `squeeze <prompt>` | `red-team` | Red team security review |
+| `persona list` | | List configured personas |
+| `persona <name> <prompt>` | | Run explicit persona and show provider:model |
 | `octopus-configure` | `setup` | Interactive configuration wizard |
 | `preflight` | | Verify all dependencies |
 | `status` | | Show provider status and running agents |
@@ -191,6 +193,24 @@ The `auto` command detects intent and routes to the appropriate workflow:
 ./scripts/orchestrate.sh auto "research OAuth patterns"           # -> discover
 ./scripts/orchestrate.sh auto "build user login"                  # -> develop + deliver
 ./scripts/orchestrate.sh auto "security audit auth.ts"            # -> squeeze
+```
+
+---
+
+## Explicit Persona Routing
+
+Use `persona` when you want to force a specific configured persona instead of intent-based auto-selection.
+
+```bash
+./scripts/orchestrate.sh persona list
+./scripts/orchestrate.sh persona backend-architect "Design a resilient webhook pipeline"
+./scripts/orchestrate.sh persona security-auditor "Review auth module for OWASP risks"
+```
+
+Before execution, Octopus prints the selected lane in verbose format, for example:
+
+```text
+Using: codex:gpt-5.3-codex
 ```
 
 ---

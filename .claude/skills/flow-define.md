@@ -6,11 +6,16 @@ aliases:
   - grasp
   - grasp-workflow
 description: Multi-AI requirements scoping using Codex and Gemini CLIs (Double Diamond Define phase)
-
-  PRIORITY TRIGGERS (always invoke): "octo define", "octo scope", "co-define", "co-scope"
-
-  DO NOT use for: implementation tasks (use flow-develop), research (use flow-discover),
-  review/validation (use flow-deliver), or built-in commands.
+priority_triggers:
+  - octo define
+  - octo scope
+  - co-define
+  - co-scope
+do_not_use:
+  - implementation tasks (use flow-develop)
+  - research (use flow-discover)
+  - review or validation (use flow-deliver)
+  - built-in commands
 
 # Claude Code v2.1.12+ Integration
 agent: Plan

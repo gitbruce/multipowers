@@ -32,8 +32,8 @@ Invokes the code-reviewer persona for thorough code analysis during the `ink` (d
 
 This skill wraps the `code-reviewer` persona defined in:
 - `agents/personas/code-reviewer.md`
-- CLI: `codex-review`
-- Model: `gpt-5.2-codex`
+- CLI: `codex` (fallback: `codex-review`)
+- Model: `gpt-5.3-codex`
 - Phases: `ink`
 
 ## Example Prompts

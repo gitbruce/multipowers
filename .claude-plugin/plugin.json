@@ -82,7 +82,8 @@
     "./.claude/skills/skill-resume.md",
     "./.claude/skills/skill-resume-enhanced.md",
     "./.claude/skills/skill-ship.md",
-    "./.claude/skills/skill-deck.md"
+    "./.claude/skills/skill-deck.md",
+    "./.claude/skills/skill-persona.md"
   ],
   "commands": [
     "./.claude/commands/octo.md",
@@ -116,6 +117,7 @@
     "./.claude/commands/plan.md",
     "./.claude/commands/quick.md",
     "./.claude/commands/extract.md",
+    "./.claude/commands/persona.md",
     "./.claude/commands/model-config.md",
     "./.claude/commands/validate.md",
     "./.claude/commands/status.md",

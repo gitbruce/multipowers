@@ -32,8 +32,8 @@ Invokes the security-auditor persona for thorough security analysis during the `
 
 This skill wraps the `security-auditor` persona defined in:
 - `agents/personas/security-auditor.md`
-- CLI: `codex-review`
-- Model: `gpt-5.2-codex`
+- CLI: `claude-opus`
+- Model: `claude-opus-4.6`
 - Phases: `ink`
 - Expertise: `owasp`, `vulnerability-scanning`, `security-review`
 

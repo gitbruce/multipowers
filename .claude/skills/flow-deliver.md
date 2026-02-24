@@ -223,11 +223,11 @@ These spinner verb updates happen automatically - orchestrate.sh calls `update_t
 **After orchestrate.sh completes, verify it succeeded:**
 
 ```bash
-# Find the latest validation file (created within last 10 minutes)
-VALIDATION_FILE=$(find ~/.claude-octopus/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
+# Find the latest delivery artifact (created within last 10 minutes)
+VALIDATION_FILE=$(find ~/.claude-octopus/results -name "delivery-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$VALIDATION_FILE" ]]; then
-  echo "❌ VALIDATION FAILED: No validation file found"
+  echo "❌ VALIDATION FAILED: No delivery artifact found"
   echo "orchestrate.sh did not execute properly"
   exit 1
 fi

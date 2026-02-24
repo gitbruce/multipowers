@@ -40,8 +40,8 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh auto "review the authentication imp
 
 This skill wraps the `code-reviewer` persona defined in:
 - `agents/personas/code-reviewer.md`
-- CLI: `codex-review`
-- Model: `gpt-5.2-codex`
+- CLI: `codex` (fallback: `codex-review`)
+- Model: `gpt-5.3-codex`
 - Phases: `ink`
 
 ## Example Prompts

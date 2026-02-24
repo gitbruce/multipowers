@@ -39,8 +39,8 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh auto "security audit the payment pr
 
 This skill wraps the `security-auditor` persona defined in:
 - `agents/personas/security-auditor.md`
-- CLI: `codex-review`
-- Model: `gpt-5.2-codex`
+- CLI: `claude-opus`
+- Model: `claude-opus-4.6`
 - Phases: `ink`
 - Expertise: `owasp`, `vulnerability-scanning`, `security-review`
 

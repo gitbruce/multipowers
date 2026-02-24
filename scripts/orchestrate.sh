@@ -1428,6 +1428,60 @@ get_codex_agent_for_phase() {
     esac
 }
 
+# Configure proxy for external CLI providers (Codex/Gemini).
+# Reads ~/.claude-octopus/config/providers.json:
+#   proxy.enabled: true|false (default: true)
+#   proxy.port: 1-65535 (default: 7890)
+configure_provider_proxy() {
+    local agent_type="$1"
+
+    case "$agent_type" in
+        codex*|gemini*) ;;
+        *) return 0 ;;
+    esac
+
+    local config_file="${HOME}/.claude-octopus/config/providers.json"
+    local proxy_enabled="true"
+    local proxy_port="7890"
+
+    if [[ -f "$config_file" ]] && command -v jq &>/dev/null; then
+        proxy_enabled=$(jq -r '.proxy.enabled // true' "$config_file" 2>/dev/null || echo "true")
+        proxy_port=$(jq -r '.proxy.port // 7890' "$config_file" 2>/dev/null || echo "7890")
+    fi
+
+    # Optional env overrides for one-off debugging
+    [[ -n "${OCTOPUS_PROXY_ENABLED:-}" ]] && proxy_enabled="${OCTOPUS_PROXY_ENABLED}"
+    [[ -n "${OCTOPUS_PROXY_PORT:-}" ]] && proxy_port="${OCTOPUS_PROXY_PORT}"
+
+    if [[ "$proxy_enabled" != "true" ]]; then
+        return 0
+    fi
+
+    if [[ ! "$proxy_port" =~ ^[0-9]+$ ]] || (( proxy_port < 1 || proxy_port > 65535 )); then
+        log "WARN" "Proxy enabled but port is invalid: $proxy_port"
+        return 0
+    fi
+
+    local detected_host_ip=""
+    if command -v ip &>/dev/null; then
+        detected_host_ip=$(ip route show 2>/dev/null | awk '/^default/ {print $3; exit}')
+    fi
+
+    if [[ -z "$detected_host_ip" ]]; then
+        log "WARN" "Proxy enabled but host IP auto-detection failed (ip route default gateway not found)"
+        return 0
+    fi
+
+    export host_ip="$detected_host_ip"
+    local proxy_url="http://${host_ip}:${proxy_port}"
+    export http_proxy="$proxy_url"
+    export https_proxy="$proxy_url"
+    export HTTP_PROXY="$proxy_url"
+    export HTTPS_PROXY="$proxy_url"
+
+    log "DEBUG" "Proxy enabled for $agent_type via $proxy_url"
+}
+
 # Set provider model in config file
 # Usage: set_provider_model <provider> <model> [--session]
 set_provider_model() {
@@ -1475,6 +1529,10 @@ set_provider_model() {
     "review":   "gpt-5.3-codex-spark",
     "security": "gpt-5.3-codex",
     "research": "gpt-5.3-codex"
+  },
+  "proxy": {
+    "enabled": true,
+    "port": 7890
   },
   "overrides": {}
 }
@@ -3379,7 +3437,7 @@ _claude_octopus_completions() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Main commands
-    commands="auto embrace research probe define grasp develop tangle deliver ink spawn fan-out map-reduce ralph iterate optimize setup init status kill clean aggregate preflight cost cost-json cost-csv cost-clear cost-archive auth login logout completion help"
+    commands="auto embrace research probe define grasp develop tangle deliver ink spawn persona fan-out map-reduce ralph iterate optimize setup init status kill clean aggregate preflight cost cost-json cost-csv cost-clear cost-archive auth login logout completion help"
 
     # Agents for spawn command
     agents="codex codex-standard codex-max codex-mini codex-general gemini gemini-fast gemini-image codex-review"
@@ -3390,6 +3448,10 @@ _claude_octopus_completions() {
     case "$prev" in
         spawn)
             COMPREPLY=( $(compgen -W "$agents" -- "$cur") )
+            return 0
+            ;;
+        persona)
+            COMPREPLY=( $(compgen -W "list" -- "$cur") )
             return 0
             ;;
         --autonomy|-a)
@@ -3413,7 +3475,7 @@ _claude_octopus_completions() {
             return 0
             ;;
         help)
-            COMPREPLY=( $(compgen -W "auto embrace research define develop deliver setup --full" -- "$cur") )
+            COMPREPLY=( $(compgen -W "auto embrace research define develop deliver setup persona --full" -- "$cur") )
             return 0
             ;;
     esac
@@ -3451,6 +3513,7 @@ _claude_octopus() {
         'deliver:Phase 4 - Validation (alias: ink)'
         'ink:Phase 4 - Validation'
         'spawn:Run single agent directly'
+        'persona:Run a specific persona or list personas'
         'fan-out:Same prompt to all agents'
         'map-reduce:Decompose, execute parallel, synthesize'
         'ralph:Iterate until completion'
@@ -3520,6 +3583,9 @@ _claude_octopus() {
                 spawn)
                     _describe -t agents 'agents' agents
                     ;;
+                persona)
+                    _values 'action' list
+                    ;;
                 completion)
                     _values 'shell' bash zsh fish
                     ;;
@@ -3527,7 +3593,7 @@ _claude_octopus() {
                     _values 'action' login logout status
                     ;;
                 help)
-                    _values 'topic' auto embrace research define develop deliver setup --full
+                    _values 'topic' auto embrace research define develop deliver setup persona --full
                     ;;
             esac
             ;;
@@ -3558,6 +3624,7 @@ complete -c orchestrate.sh -n "__fish_use_subcommand" -a "tangle" -d "Phase 3 - 
 complete -c orchestrate.sh -n "__fish_use_subcommand" -a "deliver" -d "Phase 4 - Validation"
 complete -c orchestrate.sh -n "__fish_use_subcommand" -a "ink" -d "Phase 4 - Validation"
 complete -c orchestrate.sh -n "__fish_use_subcommand" -a "spawn" -d "Run single agent directly"
+complete -c orchestrate.sh -n "__fish_use_subcommand" -a "persona" -d "Run specific persona or list personas"
 complete -c orchestrate.sh -n "__fish_use_subcommand" -a "fan-out" -d "Same prompt to all agents"
 complete -c orchestrate.sh -n "__fish_use_subcommand" -a "map-reduce" -d "Decompose, execute, synthesize"
 complete -c orchestrate.sh -n "__fish_use_subcommand" -a "ralph" -d "Iterate until completion"
@@ -3572,6 +3639,9 @@ complete -c orchestrate.sh -n "__fish_use_subcommand" -a "help" -d "Show help"
 
 # Spawn agents
 complete -c orchestrate.sh -n "__fish_seen_subcommand_from spawn" -a "codex codex-standard codex-max codex-mini gemini gemini-fast gemini-image codex-review"
+
+# Persona command actions
+complete -c orchestrate.sh -n "__fish_seen_subcommand_from persona" -a "list"
 
 # Completion shells
 complete -c orchestrate.sh -n "__fish_seen_subcommand_from completion" -a "bash zsh fish"
@@ -4012,6 +4082,25 @@ ${YELLOW}Notes:${NC}
   • Alternative: Set OPENAI_API_KEY environment variable
 EOF
             ;;
+        persona)
+            cat << EOF
+${YELLOW}persona${NC} - Run a specific configured persona
+
+${YELLOW}Usage:${NC}
+  $(basename "$0") persona list
+  $(basename "$0") persona <persona-name> <prompt>
+
+${YELLOW}Examples:${NC}
+  $(basename "$0") persona list
+  $(basename "$0") persona backend-architect "Design an event-driven billing service"
+  $(basename "$0") persona security-auditor "Review auth flow for OWASP risks"
+
+${YELLOW}Output:${NC}
+  Shows the selected execution lane before running:
+    ${CYAN}Using:${NC} <provider>:<model>
+  Example: ${CYAN}codex:gpt-5.3-codex${NC}
+EOF
+            ;;
         completion)
             cat << EOF
 ${YELLOW}completion${NC} - Generate shell completion scripts
@@ -4268,6 +4357,8 @@ ${CYAN}════════════════════════�
 ${CYAN}ADVANCED ORCHESTRATION${NC}
 ${CYAN}═══════════════════════════════════════════════════════════════════════════${NC}
   spawn <agent> <prompt>  Run single agent directly
+  persona <name> <prompt> Run an explicit configured persona
+  persona list            List configured personas
   fan-out <prompt>        Same prompt to all agents, collect results
   map-reduce <prompt>     Decompose → parallel execute → synthesize
   ralph <prompt>          Iterate until completion (ralph-wiggum pattern)
@@ -4429,6 +4520,99 @@ list_available_skills() {
     echo "  ./scripts/orchestrate.sh spawn <agent> \"prompt\""
     echo "  ./scripts/orchestrate.sh auto \"prompt\"  # Smart routing"
     echo ""
+}
+
+# List configured personas from agents/config.yaml
+list_configured_personas() {
+    local config_file="${PLUGIN_DIR}/agents/config.yaml"
+
+    if [[ ! -f "$config_file" ]]; then
+        return 1
+    fi
+
+    awk '
+        /^agents:[[:space:]]*$/ { in_agents=1; next }
+        in_agents && /^[^[:space:]#]/ { in_agents=0 }
+        in_agents && /^  [a-z0-9][a-z0-9-]*:[[:space:]]*$/ {
+            name=$1
+            gsub(/^  /, "", name)
+            gsub(/:$/, "", name)
+            print name
+        }
+    ' "$config_file" | sort
+}
+
+list_available_personas() {
+    echo ""
+    echo -e "${MAGENTA}═══════════════════════════════════════════════════════════${NC}"
+    echo -e "${MAGENTA}  Available Claude Octopus Personas${NC}"
+    echo -e "${MAGENTA}═══════════════════════════════════════════════════════════${NC}"
+    echo ""
+
+    if list_configured_personas >/tmp/.octo-personas.$$ 2>/dev/null; then
+        while IFS= read -r persona; do
+            [[ -z "$persona" ]] && continue
+            echo "  - $persona"
+        done < /tmp/.octo-personas.$$
+        rm -f /tmp/.octo-personas.$$
+    else
+        echo "  (no configured personas found)"
+    fi
+
+    echo ""
+    echo -e "${YELLOW}Usage:${NC}"
+    echo "  $(basename "$0") persona list"
+    echo "  $(basename "$0") persona <persona-name> \"prompt\""
+    echo ""
+}
+
+run_persona_prompt() {
+    local persona_name="$1"
+    local prompt="$2"
+
+    if [[ -z "$persona_name" ]]; then
+        log ERROR "Missing persona name"
+        return 1
+    fi
+    if [[ -z "$prompt" ]]; then
+        log ERROR "Missing prompt for persona"
+        return 1
+    fi
+
+    if ! has_curated_agents; then
+        log ERROR "Curated agents config not found"
+        return 1
+    fi
+
+    local cli_type
+    cli_type=$(get_agent_config "$persona_name" "cli")
+    if [[ -z "$cli_type" ]]; then
+        log ERROR "Unknown persona: $persona_name"
+        echo "Run: $(basename "$0") persona list"
+        return 1
+    fi
+
+    local model
+    model=$(get_agent_model "$cli_type")
+    echo -e "${CYAN}Persona:${NC} ${persona_name}"
+    echo -e "${CYAN}Using:${NC} ${cli_type}:${model}"
+    echo ""
+
+    local persona_context
+    persona_context=$(load_curated_persona "$persona_name")
+    local persona_prompt="$prompt"
+    if [[ -n "$persona_context" ]]; then
+        persona_prompt="Use this persona profile when solving the task.
+
+<persona name=\"$persona_name\">
+$persona_context
+</persona>
+
+Task:
+$prompt"
+    fi
+
+    run_agent_sync "$cli_type" "$persona_prompt" 180 "$persona_name" "persona"
 }
 
 # Main usage router
@@ -9237,6 +9421,7 @@ ${enhanced_prompt}"
         # v8.10.0: Gemini uses stdin-based prompt delivery (Issue #25)
         # -p "" triggers headless mode; prompt content comes via stdin to avoid OS arg limits
         local exit_code=0
+        configure_provider_proxy "$agent_type"
         if [[ "$agent_type" == gemini* ]]; then
             cmd_array+=(-p "")
             if printf '%s' "$enhanced_prompt" | run_with_timeout "$TIMEOUT" "${cmd_array[@]}" 2> "$temp_errors" | tee "$raw_output" > "$temp_output"; then
@@ -11353,9 +11538,15 @@ run_agent_sync() {
     # -p "" triggers headless mode; prompt content comes via stdin to avoid OS arg limits
     if [[ "$agent_type" == gemini* ]]; then
         cmd_array+=(-p "")
-        output=$(printf '%s' "$enhanced_prompt" | run_with_timeout "$timeout_secs" "${cmd_array[@]}" 2>"$temp_err")
+        output=$(
+            configure_provider_proxy "$agent_type"
+            printf '%s' "$enhanced_prompt" | run_with_timeout "$timeout_secs" "${cmd_array[@]}" 2>"$temp_err"
+        )
     else
-        output=$(run_with_timeout "$timeout_secs" "${cmd_array[@]}" "$enhanced_prompt" 2>"$temp_err")
+        output=$(
+            configure_provider_proxy "$agent_type"
+            run_with_timeout "$timeout_secs" "${cmd_array[@]}" "$enhanced_prompt" 2>"$temp_err"
+        )
     fi
     exit_code=$?
 
@@ -14845,6 +15036,17 @@ case "$COMMAND" in
     spawn)
         [[ $# -lt 2 ]] && { log ERROR "Usage: spawn <agent> <prompt>"; exit 1; }
         spawn_agent "$1" "$2"
+        ;;
+    persona)
+        [[ $# -lt 1 ]] && { log ERROR "Usage: persona <name> <prompt> | persona list"; exit 1; }
+        if [[ "$1" == "list" ]]; then
+            list_available_personas
+            exit 0
+        fi
+        persona_name="$1"
+        shift
+        [[ $# -lt 1 ]] && { log ERROR "Usage: persona <name> <prompt>"; exit 1; }
+        run_persona_prompt "$persona_name" "$*"
         ;;
     auto)
         [[ $# -lt 1 ]] && { log ERROR "Usage: auto <prompt>"; exit 1; }

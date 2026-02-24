@@ -17,6 +17,7 @@ All commands use the `/octo:` namespace.
 | `/octo:km` | Toggle Knowledge Work mode |
 | `/octo:sys-setup` | Full setup command |
 | `/octo:model-config` | Configure provider model selection |
+| `/octo:persona` | Run a specific persona or list configured personas |
 
 ### Workflow Commands
 
@@ -189,6 +190,27 @@ Shortcut to switch to Dev Work mode.
 ```
 
 Equivalent to `/octo:km off`.
+
+### `/octo:persona`
+
+Run a specific pre-configured persona, or list available personas.
+
+**Usage:**
+```
+/octo:persona list
+/octo:persona <persona-name> <prompt>
+```
+
+**Examples:**
+```
+/octo:persona list
+/octo:persona backend-architect design a scalable webhook ingestion pipeline
+/octo:persona security-auditor review auth flow for OWASP risks
+```
+
+**What it does:**
+- `list` prints personas defined in the repository configuration
+- `<persona-name> <prompt>` executes your prompt with that persona profile
 
 ---
 
