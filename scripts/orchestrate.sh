@@ -5511,6 +5511,7 @@ run_octo_init_interactive() {
     local croot="${PROJECT_ROOT}/conductor"
     local templates_root="${PLUGIN_DIR}/custom/templates/conductor"
     local track_dir="${croot}/tracks"
+    local interactive_mode="true"
 
     mkdir -p "$croot" "$croot/code_styleguides" "$track_dir"
 
@@ -5522,28 +5523,47 @@ run_octo_init_interactive() {
     echo "Target: $croot"
     echo ""
 
-    read -r -p "Project name [$(basename "$PROJECT_ROOT")]: " project_name
-    project_name="${project_name:-$(basename "$PROJECT_ROOT")}"
-    read -r -p "Product summary: " product_summary
-    product_summary="${product_summary:-Project context initialized by /octo:init.}"
-    read -r -p "Target users: " target_users
-    target_users="${target_users:-Engineering team and stakeholders.}"
-    read -r -p "Primary goal: " primary_goal
-    primary_goal="${primary_goal:-Deliver value incrementally with clear quality gates.}"
-    read -r -p "Non-goals (comma-separated): " non_goals
-    non_goals="${non_goals:-Undefined scope expansion without approval.}"
-    read -r -p "Constraints: " constraints
-    constraints="${constraints:-Time, architecture, and team capacity constraints.}"
-    read -r -p "Runtime (e.g. node, python, go): " runtime
-    runtime="${runtime:-unknown}"
-    read -r -p "Framework: " framework
-    framework="${framework:-unknown}"
-    read -r -p "Database: " database
-    database="${database:-unknown}"
-    read -r -p "Deployment target: " deployment
-    deployment="${deployment:-unknown}"
-    read -r -p "Workflow flow description: " workflow_flow
-    workflow_flow="${workflow_flow:-Spec -> plan -> implementation -> validation -> delivery.}"
+    if [[ ! -t 0 || ! -t 1 ]]; then
+        interactive_mode="false"
+        log INFO "/octo:init running in non-interactive mode; applying defaults for context scaffolding"
+    fi
+
+    if [[ "$interactive_mode" == "true" ]]; then
+        read -r -p "Project name [$(basename "$PROJECT_ROOT")]: " project_name || true
+        project_name="${project_name:-$(basename "$PROJECT_ROOT")}"
+        read -r -p "Product summary: " product_summary || true
+        product_summary="${product_summary:-Project context initialized by /octo:init.}"
+        read -r -p "Target users: " target_users || true
+        target_users="${target_users:-Engineering team and stakeholders.}"
+        read -r -p "Primary goal: " primary_goal || true
+        primary_goal="${primary_goal:-Deliver value incrementally with clear quality gates.}"
+        read -r -p "Non-goals (comma-separated): " non_goals || true
+        non_goals="${non_goals:-Undefined scope expansion without approval.}"
+        read -r -p "Constraints: " constraints || true
+        constraints="${constraints:-Time, architecture, and team capacity constraints.}"
+        read -r -p "Runtime (e.g. node, python, go): " runtime || true
+        runtime="${runtime:-unknown}"
+        read -r -p "Framework: " framework || true
+        framework="${framework:-unknown}"
+        read -r -p "Database: " database || true
+        database="${database:-unknown}"
+        read -r -p "Deployment target: " deployment || true
+        deployment="${deployment:-unknown}"
+        read -r -p "Workflow flow description: " workflow_flow || true
+        workflow_flow="${workflow_flow:-Spec -> plan -> implementation -> validation -> delivery.}"
+    else
+        project_name="$(basename "$PROJECT_ROOT")"
+        product_summary="Project context initialized by /octo:init."
+        target_users="Engineering team and stakeholders."
+        primary_goal="Deliver value incrementally with clear quality gates."
+        non_goals="Undefined scope expansion without approval."
+        constraints="Time, architecture, and team capacity constraints."
+        runtime="unknown"
+        framework="unknown"
+        database="unknown"
+        deployment="unknown"
+        workflow_flow="Spec -> plan -> implementation -> validation -> delivery."
+    fi
 
     write_from_template() {
         local src="$1"
@@ -5564,12 +5584,17 @@ run_octo_init_interactive() {
 
         if [[ -f "$dst" ]]; then
             local choice=""
-            read -r -p "File exists: ${dst}. [k]eep/[u]pdate/[r]eplace? " choice
-            case "${choice,,}" in
-                k) return 0 ;;
-                u|r) ;;
-                *) return 0 ;;
-            esac
+            if [[ "$interactive_mode" == "true" ]]; then
+                read -r -p "File exists: ${dst}. [k]eep/[u]pdate/[r]eplace? " choice || true
+                case "${choice,,}" in
+                    k) return 0 ;;
+                    u|r) ;;
+                    *) return 0 ;;
+                esac
+            else
+                # Non-interactive safety: do not overwrite user-managed context files.
+                return 0
+            fi
         fi
 
         printf "%s\n" "$content" > "$dst"
@@ -15302,8 +15327,15 @@ ensure_spec_command_context() {
     if [[ $ready -eq 0 ]]; then
         echo ""
         echo "⚠️  Missing project conductor context for spec-driven command '$cmd'."
+        if type conductor_missing_requirements &>/dev/null; then
+            echo "Missing required files:"
+            conductor_missing_requirements | sed 's/^/  - /'
+        fi
         echo "Running /octo:init setup now..."
-        run_octo_init_interactive
+        run_octo_init_interactive || {
+            log ERROR "/octo:init failed; cannot continue spec-driven command '$cmd'"
+            exit 1
+        }
         if type conductor_context_complete &>/dev/null; then
             conductor_context_complete || { log ERROR "Conductor context remains incomplete after /octo:init"; exit 1; }
         fi

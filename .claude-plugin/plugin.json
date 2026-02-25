@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.4",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.4) Adds /octo:init conductor-style project context bootstrapping, spec-driven auto-init guard, and conductor/tracks checkbox tracking. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.5",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.5) Fixes /octo:init non-interactive bootstrap for spec-driven guard so missing conductor context is generated before planning. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },

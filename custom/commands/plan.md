@@ -21,6 +21,20 @@ aliases:
 
 When the user invokes this command (e.g., `/octo:plan <arguments>`):
 
+### Step 0: Hard Guard for Conductor Context (Mandatory)
+
+Before asking intent questions or generating any track/plan file, you MUST verify all required files exist under `conductor/`:
+- `product.md`
+- `product-guidelines.md`
+- `tech-stack.md`
+- `workflow.md`
+- `tracks.md`
+
+If any file is missing:
+1. Run `/octo:init` first.
+2. Verify the same five files again.
+3. If still missing, STOP immediately and report initialization failure. Do not continue to intent capture or plan generation.
+
 ### Step 1: Capture Comprehensive Intent
 
 **CRITICAL: Start by capturing the user's full intent using structured questions.**

@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v8.12.4 - Adds /octo:init conductor-style setup, spec-driven auto-init guard, and conductor/tracks checkbox tracking. Run /octo:init in target projects.",
-      "version": "8.12.4",
+      "description": "v8.12.5 - Fixes /octo:init non-interactive bootstrap so spec-driven commands force-generate missing conductor context before plan execution.",
+      "version": "8.12.5",
       "author": {
         "name": "nyldn"
       },

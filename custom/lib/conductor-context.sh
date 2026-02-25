@@ -27,6 +27,19 @@ conductor_context_complete() {
   return 0
 }
 
+conductor_missing_requirements() {
+  local croot
+  croot="$(conductor_root_dir)"
+  local missing=()
+  [[ -f "$croot/product.md" ]] || missing+=("product.md")
+  [[ -f "$croot/product-guidelines.md" ]] || missing+=("product-guidelines.md")
+  [[ -f "$croot/tech-stack.md" ]] || missing+=("tech-stack.md")
+  [[ -f "$croot/workflow.md" ]] || missing+=("workflow.md")
+  [[ -f "$croot/tracks.md" ]] || missing+=("tracks.md")
+  [[ -d "$croot/code_styleguides" ]] || missing+=("code_styleguides/")
+  printf '%s\n' "${missing[@]}"
+}
+
 ensure_conductor_context() {
   local cmd="${1:-}"
   is_spec_driven_command "$cmd" || return 0
