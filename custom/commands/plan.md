@@ -21,6 +21,7 @@ aliases:
 - Invoke `Skill(octo:init)` first (interactive wizard).
 - Do not call `orchestrate.sh plan` until init wizard has completed successfully.
 - Re-check the same files; if still missing, stop with error.
+- If still missing, output only an initialization failure message and EXIT. Do not ask Goal/Knowledge/Clarity questions.
 4. Once context is complete, execute:
 
 ```bash

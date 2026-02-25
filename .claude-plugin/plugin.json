@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.7",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.7) Forces interactive /octo:init wizard before /octo:plan when conductor context is missing. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.8",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.8) Hard-enforces interactive /octo:init wizard contract and blocks /octo:plan if conductor context remains incomplete. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },

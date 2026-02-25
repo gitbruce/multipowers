@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v8.12.7 - Forces interactive /octo:init wizard before /octo:plan when conductor context is missing.",
-      "version": "8.12.7",
+      "description": "v8.12.8 - Hard-enforces interactive /octo:init wizard contract and blocks /octo:plan if conductor context is still missing.",
+      "version": "8.12.8",
       "author": {
         "name": "nyldn"
       },
