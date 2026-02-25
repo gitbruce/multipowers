@@ -5621,13 +5621,20 @@ run_octo_init_interactive() {
     }
 
     if [[ -d "$templates_root" ]]; then
-        write_from_template "$templates_root/product.md" "$croot/product.md"
-        write_from_template "$templates_root/product-guidelines.md" "$croot/product-guidelines.md"
-        write_from_template "$templates_root/tech-stack.md" "$croot/tech-stack.md"
-        write_from_template "$templates_root/workflow.md" "$croot/workflow.md"
-        write_from_template "$templates_root/tracks.md" "$croot/tracks.md"
-        cp "$templates_root/code_styleguides/README.md" "$croot/code_styleguides/README.md" 2>/dev/null || true
-    else
+        # Use exact upstream-conductor templates where available.
+        [[ -f "$templates_root/product.md" ]] && write_from_template "$templates_root/product.md" "$croot/product.md"
+        [[ -f "$templates_root/product-guidelines.md" ]] && write_from_template "$templates_root/product-guidelines.md" "$croot/product-guidelines.md"
+        [[ -f "$templates_root/tech-stack.md" ]] && write_from_template "$templates_root/tech-stack.md" "$croot/tech-stack.md"
+        [[ -f "$templates_root/workflow.md" ]] && write_from_template "$templates_root/workflow.md" "$croot/workflow.md"
+        [[ -f "$templates_root/tracks.md" ]] && write_from_template "$templates_root/tracks.md" "$croot/tracks.md"
+        if [[ -d "$templates_root/code_styleguides" ]]; then
+            cp -R "$templates_root/code_styleguides/." "$croot/code_styleguides/" 2>/dev/null || true
+        fi
+    fi
+
+    # Required conductor artifacts that may not exist in upstream templates
+    # are generated via fallback defaults.
+    if [[ ! -f "$croot/product.md" ]]; then
         # Fallback templates to avoid hard dependency on template path.
         cat > "$croot/product.md" <<EOF
 # Product
@@ -5637,12 +5644,16 @@ $product_summary
 ## Users
 $target_users
 EOF
+    fi
+    if [[ ! -f "$croot/product-guidelines.md" ]]; then
         cat > "$croot/product-guidelines.md" <<EOF
 # Product Guidelines
 - Goal: $primary_goal
 - Non-goals: $non_goals
 - Constraints: $constraints
 EOF
+    fi
+    if [[ ! -f "$croot/tech-stack.md" ]]; then
         cat > "$croot/tech-stack.md" <<EOF
 # Tech Stack
 - Runtime: $runtime
@@ -5650,14 +5661,20 @@ EOF
 - Database: $database
 - Deployment: $deployment
 EOF
+    fi
+    if [[ ! -f "$croot/workflow.md" ]]; then
         cat > "$croot/workflow.md" <<EOF
 # Workflow
 $workflow_flow
 EOF
+    fi
+    if [[ ! -f "$croot/tracks.md" ]]; then
         cat > "$croot/tracks.md" <<'EOF'
 # Tracks Index
 - [ ] Add first track under conductor/tracks/
 EOF
+    fi
+    if [[ ! -d "$croot/code_styleguides" ]] || ! compgen -G "$croot/code_styleguides/*.md" > /dev/null; then
         cat > "$croot/code_styleguides/README.md" <<'EOF'
 # Code Styleguides
 Add language/framework-specific style guides here.
