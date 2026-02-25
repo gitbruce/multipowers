@@ -100,7 +100,11 @@ fi
 
 # Test 2: State file is valid JSON
 test_start "State file is valid JSON"
-if jq empty .claude-octopus/state.json 2>/dev/null; then
+if python3 - <<'PY' >/dev/null 2>&1
+import json
+json.load(open(".claude-octopus/state.json", "r", encoding="utf-8"))
+PY
+then
     test_pass
 else
     test_fail "State file is not valid JSON"
@@ -111,7 +115,13 @@ test_start "State has required fields"
 required_fields=("version" "current_workflow" "decisions" "blockers" "context" "metrics")
 all_present=true
 for field in "${required_fields[@]}"; do
-    if ! jq -e ".$field" .claude-octopus/state.json > /dev/null 2>&1; then
+    if ! python3 - <<'PY' "$field" >/dev/null 2>&1
+import json, sys
+field = sys.argv[1]
+d = json.load(open(".claude-octopus/state.json", "r", encoding="utf-8"))
+raise SystemExit(0 if field in d else 1)
+PY
+    then
         test_fail "Missing required field: $field"
         all_present=false
     fi
@@ -124,7 +134,11 @@ fi
 test_start "Write decision"
 if assert_command_succeeds ./scripts/state-manager.sh write_decision \
     "define" "React 19 + Next.js 15" "Modern stack with best DX"; then
-    decision_count=$(jq '.decisions | length' .claude-octopus/state.json)
+    decision_count=$(python3 - <<'PY'
+import json
+print(len(json.load(open(".claude-octopus/state.json", "r", encoding="utf-8")).get("decisions", [])))
+PY
+)
     if assert_equals "$decision_count" "1"; then
         test_pass
     fi
@@ -134,7 +148,12 @@ fi
 test_start "Update context"
 if assert_command_succeeds ./scripts/state-manager.sh update_context \
     "discover" "Researched auth patterns, chose JWT"; then
-    discover_context=$(jq -r '.context.discover' .claude-octopus/state.json)
+    discover_context=$(python3 - <<'PY'
+import json
+d=json.load(open(".claude-octopus/state.json", "r", encoding="utf-8"))
+print(d.get("context", {}).get("discover", ""))
+PY
+)
     if assert_equals "$discover_context" "Researched auth patterns, chose JWT"; then
         test_pass
     fi
@@ -143,7 +162,12 @@ fi
 # Test 6: Update metrics
 test_start "Update metrics - phases completed"
 if assert_command_succeeds ./scripts/state-manager.sh update_metrics "phases_completed" "1"; then
-    phases=$(jq '.metrics.phases_completed' .claude-octopus/state.json)
+    phases=$(python3 - <<'PY'
+import json
+d=json.load(open(".claude-octopus/state.json", "r", encoding="utf-8"))
+print(d.get("metrics", {}).get("phases_completed", 0))
+PY
+)
     if assert_equals "$phases" "1"; then
         test_pass
     fi
@@ -152,7 +176,12 @@ fi
 # Test 7: Update provider metrics
 test_start "Update metrics - provider usage"
 if assert_command_succeeds ./scripts/state-manager.sh update_metrics "provider" "gemini"; then
-    gemini_usage=$(jq '.metrics.provider_usage.gemini' .claude-octopus/state.json)
+    gemini_usage=$(python3 - <<'PY'
+import json
+d=json.load(open(".claude-octopus/state.json", "r", encoding="utf-8"))
+print(d.get("metrics", {}).get("provider_usage", {}).get("gemini", 0))
+PY
+)
     if assert_equals "$gemini_usage" "1"; then
         test_pass
     fi
@@ -162,7 +191,11 @@ fi
 test_start "Write blocker"
 if assert_command_succeeds ./scripts/state-manager.sh write_blocker \
     "Waiting for API deployment" "develop" "active"; then
-    blocker_count=$(jq '.blockers | length' .claude-octopus/state.json)
+    blocker_count=$(python3 - <<'PY'
+import json
+print(len(json.load(open(".claude-octopus/state.json", "r", encoding="utf-8")).get("blockers", [])))
+PY
+)
     if assert_equals "$blocker_count" "1"; then
         test_pass
     fi

@@ -12,24 +12,43 @@ if [[ ! -f "$SESSION_FILE" ]]; then
     exit 0
 fi
 
-# Check if jq is available
-if ! command -v jq &>/dev/null; then
-    exit 0
-fi
-
-CURRENT_PHASE=$(jq -r '.phase // empty' "$SESSION_FILE" 2>/dev/null)
+CURRENT_PHASE=$(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+print(d.get("phase",""))
+PY
+)
 if [[ -z "$CURRENT_PHASE" ]]; then
     exit 0
 fi
 
 # Increment completed task count
-COMPLETED=$(jq -r '.phase_tasks.completed // 0' "$SESSION_FILE" 2>/dev/null)
-TOTAL=$(jq -r '.phase_tasks.total // 0' "$SESSION_FILE" 2>/dev/null)
-AUTONOMY=$(jq -r '.autonomy // "supervised"' "$SESSION_FILE" 2>/dev/null)
+mapfile -t _session_vals < <(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+pt=d.get("phase_tasks",{})
+print(pt.get("completed",0))
+print(pt.get("total",0))
+print(d.get("autonomy","supervised"))
+PY
+)
+COMPLETED="${_session_vals[0]:-0}"
+TOTAL="${_session_vals[1]:-0}"
+AUTONOMY="${_session_vals[2]:-supervised}"
 COMPLETED=$((COMPLETED + 1))
 
-jq ".phase_tasks.completed = $COMPLETED" "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
-    && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+python3 - "$SESSION_FILE" "$COMPLETED" <<'PY'
+import json, sys
+path, completed = sys.argv[1], int(sys.argv[2])
+with open(path, "r", encoding="utf-8") as f:
+    d=json.load(f)
+d.setdefault("phase_tasks", {})["completed"] = completed
+with open(path + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(d, f, ensure_ascii=False, indent=2); f.write("\n")
+PY
+mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
 
 # Record metrics
 METRICS_DIR="${HOME}/.claude-octopus/metrics"
@@ -56,15 +75,32 @@ if [[ "$COMPLETED" -ge "$TOTAL" ]] && [[ "$TOTAL" -gt 0 ]]; then
 
     if [[ "$NEXT_PHASE" == "complete" ]]; then
         echo "🐙 TaskCompleted: All workflow phases complete! ✅"
-        jq '.phase = "complete" | .workflow_status = "finished"' "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
-            && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+        python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    d=json.load(f)
+d["phase"] = "complete"
+d["workflow_status"] = "finished"
+with open(path + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(d, f, ensure_ascii=False, indent=2); f.write("\n")
+PY
+        mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
     else
         case "$AUTONOMY" in
             autonomous|semi-autonomous)
                 # Auto-transition to next phase
-                jq ".phase = \"$NEXT_PHASE\" | .phase_tasks = {\"total\": 0, \"completed\": 0}" \
-                    "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
-                    && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+                python3 - "$SESSION_FILE" "$NEXT_PHASE" <<'PY'
+import json, sys
+path, next_phase = sys.argv[1], sys.argv[2]
+with open(path, "r", encoding="utf-8") as f:
+    d=json.load(f)
+d["phase"] = next_phase
+d["phase_tasks"] = {"total": 0, "completed": 0}
+with open(path + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(d, f, ensure_ascii=False, indent=2); f.write("\n")
+PY
+                mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
                 echo "🐙 TaskCompleted: Phase '$CURRENT_PHASE' complete → Auto-transitioning to '$NEXT_PHASE'"
                 ;;
             *)

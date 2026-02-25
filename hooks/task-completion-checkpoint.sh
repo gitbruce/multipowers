@@ -100,7 +100,7 @@ main() {
     # Parse task data (simplified)
     log "DEBUG" "Task update data: ${TASK_DATA:0:100}..."
 
-    # Extract task ID from metadata (in production, would use jq)
+    # Extract task ID from metadata (in production, would use python3)
     # For now, create checkpoint with timestamp
     local task_id="task-$(date +%s)"
 

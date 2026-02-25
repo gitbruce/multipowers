@@ -117,9 +117,23 @@ echo ""
 # Check 5: Version consistency
 echo "Check 5: Version Synchronization"
 if [ -f ".claude-plugin/plugin.json" ]; then
-    plugin_version=$(jq -r '.version' .claude-plugin/plugin.json 2>/dev/null || echo "unknown")
-    marketplace_version=$(jq -r '.plugins[0].version' .claude-plugin/marketplace.json 2>/dev/null || echo "unknown")
-    package_version=$(jq -r '.version' package.json 2>/dev/null || echo "unknown")
+    plugin_version=$(python3 - <<'PY' 2>/dev/null || echo "unknown"
+import json
+print(json.load(open(".claude-plugin/plugin.json", "r", encoding="utf-8")).get("version", "unknown"))
+PY
+)
+    marketplace_version=$(python3 - <<'PY' 2>/dev/null || echo "unknown"
+import json
+d=json.load(open(".claude-plugin/marketplace.json", "r", encoding="utf-8"))
+plugins=d.get("plugins", [])
+print((plugins[0] if plugins else {}).get("version", "unknown"))
+PY
+)
+    package_version=$(python3 - <<'PY' 2>/dev/null || echo "unknown"
+import json
+print(json.load(open("package.json", "r", encoding="utf-8")).get("version", "unknown"))
+PY
+)
 
     if [ "$plugin_version" = "$marketplace_version" ] && [ "$plugin_version" = "$package_version" ]; then
         pass "All versions synchronized: v$plugin_version"

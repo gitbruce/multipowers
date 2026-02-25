@@ -201,13 +201,17 @@ test_verify_plugin_config() {
     fi
 
     # Verify JSON is valid and contains expected fields
-    if ! command -v jq &>/dev/null; then
-        test_skip "jq not available for JSON validation"
-        return 0
-    fi
-
-    local name=$(jq -r '.name' "$plugin_json" 2>/dev/null)
-    local skills=$(jq -r '.skills | length' "$plugin_json" 2>/dev/null)
+    local name skills
+    mapfile -t _plugin_meta < <(python3 - "$plugin_json" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+print(d.get("name", ""))
+print(len(d.get("skills", [])))
+PY
+)
+    name="${_plugin_meta[0]:-}"
+    skills="${_plugin_meta[1]:-0}"
 
     if [[ "$name" != "claude-octopus" ]]; then
         test_fail "Plugin name mismatch: expected 'claude-octopus', got '$name'"

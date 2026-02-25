@@ -139,6 +139,6 @@ Claude Octopus logs security-relevant events to `~/.claude-octopus/audit.log`:
 Claude Octopus depends on:
 - **Codex CLI** (`@openai/codex-cli`)
 - **Gemini CLI** (`@anthropic-ai/gemini-cli`)
-- **jq** (JSON processing)
+- **python3** (JSON processing)
 
 Keep these dependencies updated to receive security patches.

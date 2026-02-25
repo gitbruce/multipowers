@@ -499,7 +499,7 @@ All notable changes to Claude Octopus will be documented in this file.
 ### Dependencies
 
 - Browser MCP (optional): Required for z-index detection in extract workflow
-- jq: Required for model configuration management
+- python3: Required for model configuration management
 
 ### Test Coverage
 
@@ -1584,7 +1584,7 @@ Added three safety functions to prevent race conditions and enable graceful degr
    - Graceful degradation without Claude Code v2.1.16+
 
 3. **check_ux_dependencies()** - Dependency validation
-   - Validates jq installation for JSON processing
+   - Validates python3 installation for JSON processing
    - Sets PROGRESS_TRACKING_ENABLED flag
    - Provides install instructions if missing
 
@@ -1598,7 +1598,7 @@ Added three safety functions to prevent race conditions and enable graceful degr
 
 **Performance:**
 - Minimal overhead: <2% impact on typical workflows
-- Graceful degradation: Works without Claude Code v2.1.16+ or jq
+- Graceful degradation: Works without Claude Code v2.1.16+ or python3
 - No regressions: All 145+ existing tests still pass
 
 **Code Quality:**
@@ -4480,7 +4480,7 @@ This release includes both UX improvements (auto-configuration check) and critic
 #### Setup Wizard Step 10: Essential Tools
 - **Tool categories**: Data processing, code auditing, Git, browser automation
 - **Included tools**:
-  - `jq` - JSON processor (critical for AI workflows)
+  - `python3` - JSON processor (critical for AI workflows)
   - `shellcheck` - Shell script static analysis
   - `gh` - GitHub CLI for PR/issue automation
   - `imagemagick` - Screenshot compression (5MB API limits)
@@ -4494,7 +4494,7 @@ This release includes both UX improvements (auto-configuration check) and critic
 
 #### Tool Installation Options
 - Option 1: Install all missing tools (recommended)
-- Option 2: Install critical only (jq, shellcheck)
+- Option 2: Install critical only (python3, shellcheck)
 - Option 3: Skip for now
 
 ### Changed

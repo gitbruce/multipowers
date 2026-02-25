@@ -47,7 +47,7 @@ get_plugin_version() {
     exit 1
   fi
 
-  # Extract version using grep and sed (portable, no jq needed)
+  # Extract version using grep and sed (portable, no python3 needed)
   # Use head -n 1 to get only the first version (main plugin version, not dependencies)
   grep '"version"' .claude-plugin/plugin.json | head -n 1 | sed 's/.*"version": *"\([^"]*\)".*/\1/'
 }

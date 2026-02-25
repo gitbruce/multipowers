@@ -33,10 +33,18 @@ store_task_id() {
     init_task_state
 
     # Update JSON with new task ID
-    local tmp_file="${TASK_STATE_FILE}.tmp"
-    jq --arg phase "$phase" --arg id "$task_id" \
-        '.[$phase] = $id' \
-        "$TASK_STATE_FILE" > "$tmp_file" && mv "$tmp_file" "$TASK_STATE_FILE"
+    python3 - "$TASK_STATE_FILE" "$phase" "$task_id" <<'PY'
+import json, sys
+path, phase, task_id = sys.argv[1:]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data[phase] = task_id
+tmp = path + ".tmp"
+with open(tmp, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+    mv "${TASK_STATE_FILE}.tmp" "$TASK_STATE_FILE"
 }
 
 # Get task ID for a phase
@@ -48,7 +56,13 @@ get_task_id() {
         return
     fi
 
-    jq -r --arg phase "$phase" '.[$phase] // ""' "$TASK_STATE_FILE"
+    python3 - "$TASK_STATE_FILE" "$phase" <<'PY'
+import json, sys
+path, phase = sys.argv[1:]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+print(data.get(phase, ""))
+PY
 }
 
 # Create workflow tasks for embrace (all 4 phases)

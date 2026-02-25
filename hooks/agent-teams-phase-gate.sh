@@ -1,65 +1,63 @@
 #!/bin/bash
-# Claude Octopus Agent Teams Phase Gate Hook (v8.7.0)
-# TaskCompleted hook that checks bridge ledger for phase completion
-# Triggers quality gate evaluation and phase transition
-# Returns JSON decision: {"decision": "continue|block", "reason": "..."}
+# Claude Octopus Agent Teams Phase Gate Hook
+# TaskCompleted hook that checks bridge ledger for phase completion.
 set -euo pipefail
 
-# Bridge configuration
 BRIDGE_DIR="${HOME}/.claude-octopus/bridge"
 BRIDGE_LEDGER="${BRIDGE_DIR}/task-ledger.json"
-
-# Read hook input from stdin
 hook_input=$(cat 2>/dev/null || true)
 
-# If bridge is not enabled or ledger doesn't exist, continue
 if [[ "${OCTOPUS_AGENT_TEAMS_BRIDGE:-auto}" == "disabled" ]]; then
     echo '{"decision": "continue"}'
     exit 0
 fi
+[[ -f "$BRIDGE_LEDGER" ]] || { echo '{"decision": "continue"}'; exit 0; }
 
-if [[ ! -f "$BRIDGE_LEDGER" ]]; then
-    echo '{"decision": "continue"}'
-    exit 0
-fi
-
-if ! command -v jq &>/dev/null; then
-    echo '{"decision": "continue", "reason": "jq not available for phase gate check"}'
-    exit 0
-fi
-
-# Extract task ID from hook input (if available)
 task_id=""
 if [[ -n "$hook_input" ]]; then
-    task_id=$(echo "$hook_input" | jq -r '.task_id // empty' 2>/dev/null || true)
+    task_id=$(python3 - <<'PY' "$hook_input"
+import json, sys
+try:
+    print(json.loads(sys.argv[1]).get("task_id",""))
+except Exception:
+    print("")
+PY
+)
 fi
 
-# Get current phase from ledger
-current_phase=$(jq -r '.current_phase // empty' "$BRIDGE_LEDGER" 2>/dev/null || true)
+mapfile -t _phase_meta < <(python3 - "$BRIDGE_LEDGER" "$task_id" <<'PY'
+import datetime, json, sys
+path, task_id = sys.argv[1], sys.argv[2]
+with open(path, "r", encoding="utf-8") as f:
+    d = json.load(f)
+current_phase = d.get("current_phase", "")
+if task_id and task_id in d.get("tasks", {}):
+    t = d["tasks"][task_id]
+    t["status"] = "completed"
+    t["completed_at"] = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    phase = t.get("phase", current_phase)
+    if phase:
+        p = d.setdefault("phases", {}).setdefault(phase, {})
+        p["completed_tasks"] = int(p.get("completed_tasks", 0)) + 1
+    with open(path + ".tmp", "w", encoding="utf-8") as out:
+        json.dump(d, out, ensure_ascii=False, indent=2); out.write("\n")
+total = int(d.get("phases", {}).get(current_phase, {}).get("total_tasks", 0))
+completed = int(d.get("phases", {}).get(current_phase, {}).get("completed_tasks", 0))
+threshold = float(d.get("phases", {}).get(current_phase, {}).get("gate", {}).get("threshold", 0.75))
+print(current_phase)
+print(total)
+print(completed)
+print(threshold)
+PY
+)
+[[ -f "${BRIDGE_LEDGER}.tmp" ]] && mv "${BRIDGE_LEDGER}.tmp" "$BRIDGE_LEDGER"
 
-if [[ -z "$current_phase" ]]; then
-    echo '{"decision": "continue"}'
-    exit 0
-fi
+current_phase="${_phase_meta[0]:-}"
+total_tasks="${_phase_meta[1]:-0}"
+completed_tasks="${_phase_meta[2]:-0}"
+gate_threshold="${_phase_meta[3]:-0.75}"
 
-# If task_id provided, mark it complete in ledger
-if [[ -n "$task_id" ]]; then
-    tmp="${BRIDGE_LEDGER}.tmp.$$"
-    jq --arg id "$task_id" \
-       --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-       'if .tasks[$id] then
-            .tasks[$id].status = "completed" |
-            .tasks[$id].completed_at = $ts |
-            .phases[.tasks[$id].phase].completed_tasks = ((.phases[.tasks[$id].phase].completed_tasks // 0) + 1)
-        else . end' \
-       "$BRIDGE_LEDGER" > "$tmp" 2>/dev/null && mv "$tmp" "$BRIDGE_LEDGER" || rm -f "$tmp"
-fi
-
-# Check if all tasks in current phase are complete
-total_tasks=$(jq -r ".phases.\"$current_phase\".total_tasks // 0" "$BRIDGE_LEDGER" 2>/dev/null)
-completed_tasks=$(jq -r ".phases.\"$current_phase\".completed_tasks // 0" "$BRIDGE_LEDGER" 2>/dev/null)
-
-if [[ "$total_tasks" -eq 0 ]]; then
+if [[ -z "$current_phase" || "$total_tasks" -eq 0 ]]; then
     echo '{"decision": "continue"}'
     exit 0
 fi
@@ -70,35 +68,38 @@ if [[ "$completed_tasks" -lt "$total_tasks" ]]; then
     exit 0
 fi
 
-# All tasks complete - evaluate quality gate
-gate_threshold=$(jq -r ".phases.\"$current_phase\".gate.threshold // 0.75" "$BRIDGE_LEDGER" 2>/dev/null)
-
-# Calculate completion ratio
 completion_ratio=$(awk -v c="$completed_tasks" -v t="$total_tasks" 'BEGIN { printf "%.2f", c / t }')
-
 gate_passed="false"
 if awk -v r="$completion_ratio" -v t="$gate_threshold" 'BEGIN { exit !(r >= t) }'; then
     gate_passed="true"
 fi
 
-# Update gate result in ledger
-tmp="${BRIDGE_LEDGER}.tmp.$$"
-jq --arg phase "$current_phase" \
-   --arg passed "$gate_passed" \
-   --arg ratio "$completion_ratio" \
-   '.phases[$phase].gate.status = "evaluated" |
-    .phases[$phase].gate.result = {passed: ($passed == "true"), completion_ratio: ($ratio | tonumber)}' \
-   "$BRIDGE_LEDGER" > "$tmp" 2>/dev/null && mv "$tmp" "$BRIDGE_LEDGER" || rm -f "$tmp"
+python3 - "$BRIDGE_LEDGER" "$current_phase" "$gate_passed" "$completion_ratio" <<'PY'
+import json, sys
+path, phase, passed, ratio = sys.argv[1:]
+with open(path, "r", encoding="utf-8") as f:
+    d=json.load(f)
+gate = d.setdefault("phases", {}).setdefault(phase, {}).setdefault("gate", {})
+gate["status"] = "evaluated"
+gate["result"] = {"passed": passed == "true", "completion_ratio": float(ratio)}
+with open(path + ".tmp", "w", encoding="utf-8") as out:
+    json.dump(d, out, ensure_ascii=False, indent=2); out.write("\n")
+PY
+mv "${BRIDGE_LEDGER}.tmp" "$BRIDGE_LEDGER"
 
-# Update session.json if it exists
 session_file="${HOME}/.claude-octopus/session.json"
 if [[ -f "$session_file" ]]; then
-    tmp="${session_file}.tmp.$$"
-    jq --arg phase "$current_phase" \
-       --arg status "completed" \
-       --argjson completed "$completed_tasks" \
-       '.phase_status = $status | .phase_tasks.completed = $completed' \
-       "$session_file" > "$tmp" 2>/dev/null && mv "$tmp" "$session_file" || rm -f "$tmp"
+    python3 - "$session_file" "$completed_tasks" <<'PY'
+import json, sys
+path, completed = sys.argv[1], int(sys.argv[2])
+with open(path, "r", encoding="utf-8") as f:
+    d=json.load(f)
+d["phase_status"] = "completed"
+d.setdefault("phase_tasks", {})["completed"] = completed
+with open(path + ".tmp", "w", encoding="utf-8") as out:
+    json.dump(d, out, ensure_ascii=False, indent=2); out.write("\n")
+PY
+    mv "${session_file}.tmp" "$session_file"
 fi
 
 if [[ "$gate_passed" == "true" ]]; then
@@ -106,5 +107,3 @@ if [[ "$gate_passed" == "true" ]]; then
 else
     echo "{\"decision\": \"block\", \"reason\": \"Phase $current_phase: quality gate failed (${completion_ratio} < ${gate_threshold}). $completed_tasks/$total_tasks tasks completed.\"}"
 fi
-
-exit 0

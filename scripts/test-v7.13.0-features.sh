@@ -73,7 +73,7 @@ test_gate "QG4: Session Manager - Export Variables" \
 
 # Quality Gate 5: MCP Provider Detection
 test_gate "QG5: MCP Detection - Check Providers" \
-    "'$SCRIPT_DIR/mcp-provider-detection.sh' detect-all | jq '.providers' &>/dev/null"
+    "'$SCRIPT_DIR/mcp-provider-detection.sh' detect-all | python3 -c 'import json,sys; json.load(sys.stdin)[\"providers\"]' &>/dev/null"
 
 test_gate "QG5: MCP Detection - Banner Generation" \
     "'$SCRIPT_DIR/mcp-provider-detection.sh' banner | grep -q 'Claude'"

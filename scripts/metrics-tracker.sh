@@ -1,69 +1,77 @@
 #!/usr/bin/env bash
-# Metrics Tracker for Claude Octopus v8.3.0
-# Tracks resource usage (tokens, duration, costs) for multi-AI operations
-# Supports native Task tool metrics from Claude Code v2.1.30+ (token_count, tool_uses, duration_ms)
+# Metrics Tracker for Claude Octopus
+# Tracks resource usage (tokens, duration, costs) for multi-AI operations.
 
-# Get metrics base directory (evaluate dynamically to support testing)
 get_metrics_base() {
     echo "${METRICS_BASE:-${WORKSPACE_DIR:-${HOME}/.claude-octopus}}"
 }
 
-# Initialize metrics tracking for session
 init_metrics_tracking() {
     local base
     base=$(get_metrics_base)
     local metrics_file="${base}/metrics-session.json"
     local metrics_dir="${base}/metrics-history"
-
     mkdir -p "$metrics_dir"
-
-    cat > "$metrics_file" << 'EOF'
-{
-  "session_id": "",
-  "started_at": "",
-  "phases": [],
-  "totals": {
-    "duration_seconds": 0,
-    "estimated_tokens": 0,
-    "native_tokens": 0,
-    "tool_uses": 0,
-    "estimated_cost_usd": 0,
-    "agent_calls": 0,
-    "native_metrics_available": false
-  }
-}
-EOF
-
-    # Set session ID
     local session_id="${SESSION_ID:-$(date +%Y%m%d-%H%M%S)}"
-    jq ".session_id = \"$session_id\" | .started_at = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"" \
-        "$metrics_file" > "${metrics_file}.tmp" && mv "${metrics_file}.tmp" "$metrics_file"
+    local started_at
+    started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    python3 - "$metrics_file" "$session_id" "$started_at" <<'PY'
+import json, sys
+path, session_id, started_at = sys.argv[1:]
+data = {
+    "session_id": session_id,
+    "started_at": started_at,
+    "phases": [],
+    "totals": {
+        "duration_seconds": 0,
+        "estimated_tokens": 0,
+        "native_tokens": 0,
+        "tool_uses": 0,
+        "estimated_cost_usd": 0,
+        "agent_calls": 0,
+        "native_metrics_available": False,
+    },
+}
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
 }
 
-# Record agent call start
 record_agent_start() {
     local agent_type="$1"
     local model="$2"
     local prompt="$3"
     local phase="${4:-unknown}"
-
+    : "${agent_type}" "${model}" "${prompt}" "${phase}"
     local agent_id="${agent_type}-$(date +%s)-$$"
-    local start_time=$(date +%s)
-
-    # Estimate input tokens (rough: 4 chars per token)
-    local prompt_length=${#prompt}
-    local estimated_input_tokens=$((prompt_length / 4))
-
-    # Store start time for duration tracking
+    local start_time
+    start_time=$(date +%s)
     local base
     base=$(get_metrics_base)
     echo "$start_time" > "${base}/.agent-start-${agent_id}"
-
     echo "$agent_id"
 }
 
-# Record agent call completion
-# Args: agent_id agent_type model output [phase] [native_token_count] [native_tool_uses] [native_duration_ms]
+get_model_cost() {
+    local model="$1"
+    case "$model" in
+        claude-opus-4-6)        echo "5.00" ;;
+        claude-opus-4-5)        echo "15.00" ;;
+        claude-sonnet-4-5)      echo "3.00" ;;
+        claude-sonnet-4)        echo "3.00" ;;
+        claude-haiku-*)         echo "0.25" ;;
+        gpt-5.3-codex)          echo "4.00" ;;
+        gpt-5*)                 echo "3.00" ;;
+        gpt-4*)                 echo "3.00" ;;
+        gemini-2.0-pro*)        echo "2.50" ;;
+        gemini-2.0-flash*)      echo "0.30" ;;
+        gemini-3-pro*)          echo "3.00" ;;
+        gemini-3-flash*)        echo "0.25" ;;
+        *)                      echo "1.00" ;;
+    esac
+}
+
 record_agent_complete() {
     local agent_id="$1"
     local agent_type="$2"
@@ -78,270 +86,200 @@ record_agent_complete() {
     base=$(get_metrics_base)
     local metrics_file="${base}/metrics-session.json"
     local start_file="${base}/.agent-start-${agent_id}"
+    [[ -f "$start_file" ]] || return 1
 
-    if [[ ! -f "$start_file" ]]; then
-        # log "WARN" "No start time found for agent $agent_id"
-        return 1
-    fi
+    local start_time end_time duration
+    start_time=$(cat "$start_file")
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
 
-    local start_time=$(cat "$start_file")
-    local end_time=$(date +%s)
-    local duration=$((end_time - start_time))
-
-    # Use native metrics from Task tool (v2.1.30+) when available, fall back to estimates
-    local has_native=false
+    local has_native="false"
     local token_count=0
     local tool_use_count=0
-
     if [[ -n "$native_token_count" && "$native_token_count" =~ ^[0-9]+$ ]]; then
-        has_native=true
-        token_count=$native_token_count
-        tool_use_count=${native_tool_uses:-0}
-        # Prefer native duration if available (convert ms to seconds)
+        has_native="true"
+        token_count="$native_token_count"
+        tool_use_count="${native_tool_uses:-0}"
         if [[ -n "$native_duration_ms" && "$native_duration_ms" =~ ^[0-9]+$ ]]; then
             duration=$(( native_duration_ms / 1000 ))
         fi
     fi
 
-    # Estimate tokens as fallback (rough: 4 chars per token)
-    local output_length=${#output}
-    local estimated_output_tokens=$((output_length / 4))
-    local estimated_total_tokens=$((estimated_output_tokens + 100))  # +100 for input overhead
+    local output_length estimated_output_tokens estimated_total_tokens cost_basis_tokens
+    output_length=${#output}
+    estimated_output_tokens=$((output_length / 4))
+    estimated_total_tokens=$((estimated_output_tokens + 100))
+    cost_basis_tokens="$estimated_total_tokens"
+    [[ "$has_native" == "true" ]] && cost_basis_tokens="$token_count"
 
-    # Use native token count for cost if available, otherwise use estimate
-    local cost_basis_tokens=$estimated_total_tokens
-    if [[ "$has_native" == "true" ]]; then
-        cost_basis_tokens=$token_count
-    fi
-
-    # Get pricing for model
-    local cost_per_1k
+    local cost_per_1k estimated_cost
     cost_per_1k=$(get_model_cost "$model")
-    local estimated_cost=$(awk "BEGIN {printf \"%.4f\", ($cost_basis_tokens / 1000.0) * $cost_per_1k}")
+    estimated_cost=$(awk "BEGIN {printf \"%.4f\", ($cost_basis_tokens / 1000.0) * $cost_per_1k}")
+    local timestamp
+    timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-    # Record in metrics file
-    if command -v jq &> /dev/null; then
-        local native_fields=""
-        if [[ "$has_native" == "true" ]]; then
-            native_fields=", \"native_token_count\": $token_count, \"native_tool_uses\": $tool_use_count, \"metrics_source\": \"native\""
-        else
-            native_fields=", \"metrics_source\": \"estimated\""
-        fi
-
-        local phase_entry=$(cat <<EOF
-{
-  "agent": "$agent_type",
-  "model": "$model",
-  "phase": "$phase",
-  "duration_seconds": $duration,
-  "estimated_tokens": $estimated_total_tokens,
-  "estimated_cost_usd": $estimated_cost,
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  $native_fields
+    python3 - "$metrics_file" "$agent_type" "$model" "$phase" "$duration" "$estimated_total_tokens" "$estimated_cost" "$timestamp" "$has_native" "$token_count" "$tool_use_count" <<'PY'
+import json, sys
+(
+    path, agent_type, model, phase, duration, est_tokens, est_cost, timestamp,
+    has_native, native_tokens, tool_uses
+) = sys.argv[1:]
+duration = int(duration)
+est_tokens = int(est_tokens)
+est_cost = float(est_cost)
+native_tokens = int(native_tokens)
+tool_uses = int(tool_uses)
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+entry = {
+    "agent": agent_type,
+    "model": model,
+    "phase": phase,
+    "duration_seconds": duration,
+    "estimated_tokens": est_tokens,
+    "estimated_cost_usd": est_cost,
+    "timestamp": timestamp,
 }
-EOF
-)
-
-        local native_update=""
-        if [[ "$has_native" == "true" ]]; then
-            native_update="| .totals.native_tokens += $token_count | .totals.tool_uses += $tool_use_count | .totals.native_metrics_available = true"
-        fi
-
-        jq ".phases += [$phase_entry] |
-            .totals.duration_seconds += $duration |
-            .totals.estimated_tokens += $estimated_total_tokens |
-            .totals.estimated_cost_usd += $estimated_cost |
-            .totals.agent_calls += 1 $native_update" \
-            "$metrics_file" > "${metrics_file}.tmp" && mv "${metrics_file}.tmp" "$metrics_file"
-    fi
-
-    # Cleanup start file
+if has_native == "true":
+    entry["native_token_count"] = native_tokens
+    entry["native_tool_uses"] = tool_uses
+    entry["metrics_source"] = "native"
+else:
+    entry["metrics_source"] = "estimated"
+data.setdefault("phases", []).append(entry)
+tot = data.setdefault("totals", {})
+tot["duration_seconds"] = int(tot.get("duration_seconds", 0)) + duration
+tot["estimated_tokens"] = int(tot.get("estimated_tokens", 0)) + est_tokens
+tot["estimated_cost_usd"] = float(tot.get("estimated_cost_usd", 0)) + est_cost
+tot["agent_calls"] = int(tot.get("agent_calls", 0)) + 1
+tot.setdefault("native_tokens", 0)
+tot.setdefault("tool_uses", 0)
+tot.setdefault("native_metrics_available", False)
+if has_native == "true":
+    tot["native_tokens"] = int(tot.get("native_tokens", 0)) + native_tokens
+    tot["tool_uses"] = int(tot.get("tool_uses", 0)) + tool_uses
+    tot["native_metrics_available"] = True
+with open(path + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+    mv "${metrics_file}.tmp" "$metrics_file"
     rm -f "$start_file"
 }
 
-# Get model pricing (cost per 1K tokens, rough estimates)
-get_model_cost() {
-    local model="$1"
-
-    case "$model" in
-        # Claude models (input cost, simplified)
-        claude-opus-4-6)        echo "5.00" ;;
-        claude-opus-4-5)        echo "15.00" ;;    # legacy
-        claude-sonnet-4-5)      echo "3.00" ;;
-        claude-sonnet-4)        echo "3.00" ;;
-        claude-haiku-*)         echo "0.25" ;;
-
-        # OpenAI/Codex models (rough estimates)
-        gpt-5.3-codex)          echo "4.00" ;;
-        gpt-5*)                 echo "3.00" ;;
-        gpt-4*)                 echo "3.00" ;;
-
-        # Gemini models (rough estimates)
-        gemini-2.0-pro*)        echo "2.50" ;;
-        gemini-2.0-flash*)      echo "0.30" ;;
-        gemini-3-pro*)          echo "3.00" ;;
-        gemini-3-flash*)        echo "0.25" ;;
-
-        # Default
-        *)                      echo "1.00" ;;
-    esac
-}
-
-# Display phase metrics
 display_phase_metrics() {
     local phase="$1"
-    local base
+    local base metrics_file
     base=$(get_metrics_base)
-    local metrics_file="${base}/metrics-session.json"
-
-    if [[ ! -f "$metrics_file" ]] || ! command -v jq &> /dev/null; then
-        return 0
-    fi
-
-    # Get metrics for this phase
-    local phase_data=$(jq ".phases[] | select(.phase == \"$phase\")" "$metrics_file")
-    if [[ -z "$phase_data" ]]; then
-        return 0
-    fi
-
-    local total_duration=$(echo "$phase_data" | jq -s 'map(.duration_seconds) | add')
-    local total_tokens=$(echo "$phase_data" | jq -s 'map(.estimated_tokens) | add')
-    local total_cost=$(echo "$phase_data" | jq -s 'map(.estimated_cost_usd) | add')
-    local agent_count=$(echo "$phase_data" | jq -s 'length')
-    local native_tokens=$(echo "$phase_data" | jq -s 'map(.native_token_count // 0) | add')
-    local tool_uses=$(echo "$phase_data" | jq -s 'map(.native_tool_uses // 0) | add')
-    local has_any_native=$(echo "$phase_data" | jq -s 'any(.metrics_source == "native")')
-
-    echo ""
-    echo "📊 Phase Metrics ($phase):"
-    echo "  ⏱️  Duration: ${total_duration}s"
-    if [[ "$has_any_native" == "true" ]]; then
-        echo "  📝 Tokens: ${native_tokens} (native) / ${total_tokens} (est.)"
-        echo "  🔧 Tool Uses: ${tool_uses}"
-    else
-        echo "  📝 Est. Tokens: ${total_tokens}"
-    fi
-    echo "  💰 Est. Cost: \$${total_cost}"
-    echo "  🤖 Agents: ${agent_count}"
+    metrics_file="${base}/metrics-session.json"
+    [[ -f "$metrics_file" ]] || return 0
+    python3 - "$metrics_file" "$phase" <<'PY'
+import json, sys
+path, phase = sys.argv[1], sys.argv[2]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+items = [p for p in data.get("phases", []) if p.get("phase") == phase]
+if not items:
+    raise SystemExit(0)
+dur = sum(int(p.get("duration_seconds", 0)) for p in items)
+tok = sum(int(p.get("estimated_tokens", 0)) for p in items)
+cost = sum(float(p.get("estimated_cost_usd", 0)) for p in items)
+native_tok = sum(int(p.get("native_token_count", 0)) for p in items)
+tool_uses = sum(int(p.get("native_tool_uses", 0)) for p in items)
+has_native = any(p.get("metrics_source") == "native" for p in items)
+print("")
+print(f"📊 Phase Metrics ({phase}):")
+print(f"  ⏱️  Duration: {dur}s")
+if has_native:
+    print(f"  📝 Tokens: {native_tok} (native) / {tok} (est.)")
+    print(f"  🔧 Tool Uses: {tool_uses}")
+else:
+    print(f"  📝 Est. Tokens: {tok}")
+print(f"  💰 Est. Cost: ${cost:.4f}")
+print(f"  🤖 Agents: {len(items)}")
+PY
 }
 
-# Display session totals
 display_session_metrics() {
-    local base
+    local base metrics_file metrics_dir
     base=$(get_metrics_base)
-    local metrics_file="${base}/metrics-session.json"
-    local metrics_dir="${base}/metrics-history"
-
-    if [[ ! -f "$metrics_file" ]] || ! command -v jq &> /dev/null; then
-        return 0
-    fi
-
-    local totals=$(jq '.totals' "$metrics_file")
-    local duration=$(echo "$totals" | jq -r '.duration_seconds')
-    local tokens=$(echo "$totals" | jq -r '.estimated_tokens')
-    local cost=$(echo "$totals" | jq -r '.estimated_cost_usd')
-    local calls=$(echo "$totals" | jq -r '.agent_calls')
-
-    local native_tokens=$(echo "$totals" | jq -r '.native_tokens // 0')
-    local tool_uses=$(echo "$totals" | jq -r '.tool_uses // 0')
-    local has_native=$(echo "$totals" | jq -r '.native_metrics_available // false')
-
-    echo ""
-    echo "═══════════════════════════════════════════"
-    echo "📊 Session Totals"
-    echo "═══════════════════════════════════════════"
-    echo "  ⏱️  Total Duration: ${duration}s ($(awk "BEGIN {printf \"%.1f\", $duration/60}")m)"
-    if [[ "$has_native" == "true" ]]; then
-        echo "  📝 Tokens: ${native_tokens} (native) / ${tokens} (est.)"
-        echo "  🔧 Tool Uses: ${tool_uses}"
-    else
-        echo "  📝 Est. Tokens: ${tokens}"
-    fi
-    echo "  💰 Est. Cost: \$${cost}"
-    echo "  🤖 Agent Calls: ${calls}"
-    echo "═══════════════════════════════════════════"
-
-    # Save to history
-    local history_file="${metrics_dir}/session-$(date +%Y%m%d-%H%M%S).json"
-    cp "$metrics_file" "$history_file"
+    metrics_file="${base}/metrics-session.json"
+    metrics_dir="${base}/metrics-history"
+    [[ -f "$metrics_file" ]] || return 0
+    python3 - "$metrics_file" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    data = json.load(f)
+t = data.get("totals", {})
+duration = int(t.get("duration_seconds", 0))
+tokens = int(t.get("estimated_tokens", 0))
+cost = float(t.get("estimated_cost_usd", 0))
+calls = int(t.get("agent_calls", 0))
+native_tokens = int(t.get("native_tokens", 0))
+tool_uses = int(t.get("tool_uses", 0))
+has_native = bool(t.get("native_metrics_available", False))
+print("")
+print("═══════════════════════════════════════════")
+print("📊 Session Totals")
+print("═══════════════════════════════════════════")
+print(f"  ⏱️  Total Duration: {duration}s ({duration/60:.1f}m)")
+if has_native:
+    print(f"  📝 Tokens: {native_tokens} (native) / {tokens} (est.)")
+    print(f"  🔧 Tool Uses: {tool_uses}")
+else:
+    print(f"  📝 Est. Tokens: {tokens}")
+print(f"  💰 Est. Cost: ${cost:.4f}")
+print(f"  🤖 Agent Calls: {calls}")
+print("═══════════════════════════════════════════")
+PY
+    mkdir -p "$metrics_dir"
+    cp "$metrics_file" "${metrics_dir}/session-$(date +%Y%m%d-%H%M%S).json"
 }
 
-# Display provider breakdown
 display_provider_breakdown() {
-    local base
+    local base metrics_file
     base=$(get_metrics_base)
-    local metrics_file="${base}/metrics-session.json"
-
-    if [[ ! -f "$metrics_file" ]] || ! command -v jq &> /dev/null; then
-        return 0
-    fi
-
-    echo ""
-    echo "Provider Breakdown:"
-
-    # Codex
-    local codex_data=$(jq '.phases[] | select(.agent | startswith("codex"))' "$metrics_file")
-    if [[ -n "$codex_data" ]]; then
-        local codex_tokens=$(echo "$codex_data" | jq -s 'map(.estimated_tokens) | add // 0')
-        local codex_cost=$(echo "$codex_data" | jq -s 'map(.estimated_cost_usd) | add // 0')
-        echo "  🔴 Codex:  ${codex_tokens} tokens (\$${codex_cost})"
-    fi
-
-    # Gemini
-    local gemini_data=$(jq '.phases[] | select(.agent | startswith("gemini"))' "$metrics_file")
-    if [[ -n "$gemini_data" ]]; then
-        local gemini_tokens=$(echo "$gemini_data" | jq -s 'map(.estimated_tokens) | add // 0')
-        local gemini_cost=$(echo "$gemini_data" | jq -s 'map(.estimated_cost_usd) | add // 0')
-        echo "  🟡 Gemini: ${gemini_tokens} tokens (\$${gemini_cost})"
-    fi
-
-    # Claude (if any)
-    local claude_data=$(jq '.phases[] | select(.agent | startswith("claude"))' "$metrics_file")
-    if [[ -n "$claude_data" ]]; then
-        local claude_tokens=$(echo "$claude_data" | jq -s 'map(.estimated_tokens) | add // 0')
-        local claude_cost=$(echo "$claude_data" | jq -s 'map(.estimated_cost_usd) | add // 0')
-        echo "  🔵 Claude: ${claude_tokens} tokens (\$${claude_cost})"
-    fi
+    metrics_file="${base}/metrics-session.json"
+    [[ -f "$metrics_file" ]] || return 0
+    python3 - "$metrics_file" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    data = json.load(f)
+groups = {"codex": [0,0.0], "gemini": [0,0.0], "claude": [0,0.0]}
+for p in data.get("phases", []):
+    agent = str(p.get("agent", ""))
+    for key in groups:
+        if agent.startswith(key):
+            groups[key][0] += int(p.get("estimated_tokens", 0))
+            groups[key][1] += float(p.get("estimated_cost_usd", 0))
+print("")
+print("Provider Breakdown:")
+if groups["codex"][0] > 0:
+    print(f"  🔴 Codex:  {groups['codex'][0]} tokens (${groups['codex'][1]:.4f})")
+if groups["gemini"][0] > 0:
+    print(f"  🟡 Gemini: {groups['gemini'][0]} tokens (${groups['gemini'][1]:.4f})")
+if groups["claude"][0] > 0:
+    print(f"  🔵 Claude: {groups['claude'][0]} tokens (${groups['claude'][1]:.4f})")
+PY
 }
 
-# Record completion for agents by reading their result files
 record_agents_batch_complete() {
     local phase="$1"
     local task_group="$2"
-
-    local base
+    local base metrics_map
     base=$(get_metrics_base)
+    metrics_map="${base}/.metrics-map"
+    [[ -f "$metrics_map" ]] || return 0
 
-    # Read metrics mapping file
-    local metrics_map="${base}/.metrics-map"
-    if [[ ! -f "$metrics_map" ]]; then
-        return 0
-    fi
-
-    # Process each result file
+    local result filename task_id metrics_line metrics_id agent_type model output
     for result in "$RESULTS_DIR"/${phase}-${task_group}-*.md; do
-        [[ ! -f "$result" ]] && continue
-
-        # Extract task ID from filename (e.g., probe-123-0.md -> 123-0)
-        local filename=$(basename "$result" .md)
-        local task_id="${filename#${phase}-${task_group}-}"
-
-        # Look up metrics_id and agent info
-        local metrics_line
+        [[ -f "$result" ]] || continue
+        filename=$(basename "$result" .md)
+        task_id="${filename#${phase}-${task_group}-}"
         metrics_line=$(grep "^${task_group}-${task_id}:" "$metrics_map" 2>/dev/null || true)
-        if [[ -z "$metrics_line" ]]; then
-            continue
-        fi
-
-        # Parse: task_id:metrics_id:agent_type:model
-        local metrics_id agent_type model
+        [[ -n "$metrics_line" ]] || continue
         IFS=':' read -r _ metrics_id agent_type model <<< "$metrics_line"
-
-        # Read output
-        local output
         output=$(cat "$result" 2>/dev/null || echo "")
-
-        # v8.6.0: Extract native metrics from result file
         local native_tokens="" native_tools="" native_duration=""
         if declare -f parse_task_metrics &>/dev/null; then
             parse_task_metrics "$output"
@@ -349,117 +287,48 @@ record_agents_batch_complete() {
             native_tools="$_PARSED_TOOL_USES"
             native_duration="$_PARSED_DURATION_MS"
         fi
-
-        # Record completion
         record_agent_complete "$metrics_id" "$agent_type" "$model" "$output" "$phase" \
             "$native_tokens" "$native_tools" "$native_duration"
-
-        # Remove from map
         sed -i.bak "/^${task_group}-${task_id}:/d" "$metrics_map" 2>/dev/null || true
     done
 }
 
-# Display per-phase cost breakdown table (v8.6.0, enhanced v8.8.0 with speed column)
-# Reads metrics-session.json and renders a table grouped by phase and provider
 display_per_phase_cost_table() {
-    local base
+    local base metrics_file
     base=$(get_metrics_base)
-    local metrics_file="${base}/metrics-session.json"
-
-    if [[ ! -f "$metrics_file" ]] || ! command -v jq &>/dev/null; then
-        return 0
-    fi
-
-    # Check if there are any phase entries
-    local phase_count
-    phase_count=$(jq '.phases | length' "$metrics_file" 2>/dev/null || echo "0")
-    if [[ "$phase_count" == "0" ]]; then
-        return 0
-    fi
-
-    # v8.8: Check if any entries have speed data for column display
-    local has_speed
-    has_speed=$(jq '[.phases[] | select(.speed != null and .speed != "")] | length > 0' "$metrics_file" 2>/dev/null || echo "false")
-
-    echo ""
-    echo "Per-Phase Cost Breakdown:"
-    if [[ "$has_speed" == "true" ]]; then
-        echo "┌──────────┬──────────────┬────────────┬──────────┬──────────┬──────────┐"
-        echo "│ Phase    │ Provider     │ Tokens     │ Cost     │ Duration │ Mode     │"
-        echo "├──────────┼──────────────┼────────────┼──────────┼──────────┼──────────┤"
-    else
-        echo "┌──────────┬──────────────┬────────────┬──────────┬──────────┐"
-        echo "│ Phase    │ Provider     │ Tokens     │ Cost     │ Duration │"
-        echo "├──────────┼──────────────┼────────────┼──────────┼──────────┤"
-    fi
-
-    local has_native=false
-    local has_fast=false
-
-    # Iterate unique phases and providers
-    jq -r '.phases[] | "\(.phase)\t\(.agent)\t\(.estimated_tokens // 0)\t\(.estimated_cost_usd // 0)\t\(.duration_seconds // 0)\t\(.has_native_metrics // false)\t\(.speed // "")"' \
-        "$metrics_file" 2>/dev/null | while IFS=$'\t' read -r phase agent tokens cost duration native speed; do
-
-        # Determine provider emoji
-        local provider_label
-        case "$agent" in
-            codex*) provider_label="🔴 codex" ;;
-            gemini*) provider_label="🟡 gemini" ;;
-            claude*) provider_label="🔵 claude" ;;
-            *) provider_label="   $agent" ;;
-        esac
-
-        # Format native indicator
-        local token_display="$tokens"
-        if [[ "$native" == "true" ]]; then
-            token_display="${tokens}*"
-            has_native=true
-        fi
-
-        # Format duration
-        local dur_display="${duration}s"
-
-        # Format cost
-        local cost_display
-        cost_display=$(printf '$%.3f' "$cost" 2>/dev/null || echo "\$$cost")
-
-        # v8.8: Format speed mode indicator
-        local speed_display=""
-        if [[ "$speed" == "fast" ]]; then
-            speed_display="⚡ fast"
-            has_fast=true
-        elif [[ "$speed" == "standard" ]]; then
-            speed_display="  std"
-        fi
-
-        if [[ "$has_speed" == "true" ]]; then
-            printf "│ %-8s │ %-12s │ %10s │ %8s │ %8s │ %-8s │\n" \
-                "$phase" "$provider_label" "$token_display" "$cost_display" "$dur_display" "$speed_display"
-        else
-            printf "│ %-8s │ %-12s │ %10s │ %8s │ %8s │\n" \
-                "$phase" "$provider_label" "$token_display" "$cost_display" "$dur_display"
-        fi
-    done
-
-    if [[ "$has_speed" == "true" ]]; then
-        echo "└──────────┴──────────────┴────────────┴──────────┴──────────┴──────────┘"
-    else
-        echo "└──────────┴──────────────┴────────────┴──────────┴──────────┘"
-    fi
-
-    local notes=()
-    if [[ "$has_native" == "true" ]]; then
-        notes+=("* = native metrics (from Task tool)")
-    fi
-    if [[ "$has_fast" == "true" ]]; then
-        notes+=("⚡ = fast mode (6x cost vs standard)")
-    fi
-    for note in "${notes[@]}"; do
-        echo "  $note"
-    done
+    metrics_file="${base}/metrics-session.json"
+    [[ -f "$metrics_file" ]] || return 0
+    python3 - "$metrics_file" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    data = json.load(f)
+rows = data.get("phases", [])
+if not rows:
+    raise SystemExit(0)
+print("")
+print("Per-Phase Cost Breakdown:")
+print("┌──────────┬──────────────┬────────────┬──────────┬──────────┐")
+print("│ Phase    │ Provider     │ Tokens     │ Cost     │ Duration │")
+print("├──────────┼──────────────┼────────────┼──────────┼──────────┤")
+for r in rows:
+    phase = str(r.get("phase", ""))[:8]
+    agent = str(r.get("agent", ""))
+    if agent.startswith("codex"):
+        provider = "🔴 codex"
+    elif agent.startswith("gemini"):
+        provider = "🟡 gemini"
+    elif agent.startswith("claude"):
+        provider = "🔵 claude"
+    else:
+        provider = agent[:12]
+    tokens = int(r.get("estimated_tokens", 0))
+    cost = float(r.get("estimated_cost_usd", 0))
+    dur = int(r.get("duration_seconds", 0))
+    print(f"│ {phase:<8} │ {provider:<12} │ {tokens:>10} │ ${cost:<7.3f} │ {dur:>7}s │")
+print("└──────────┴──────────────┴────────────┴──────────┴──────────┘")
+PY
 }
 
-# Export functions
 export -f get_metrics_base
 export -f init_metrics_tracking
 export -f record_agent_start

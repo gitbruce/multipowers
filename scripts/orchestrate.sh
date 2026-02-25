@@ -355,41 +355,58 @@ verify_result_integrity() {
 # File locking, environment validation, dependency checks for progress tracking
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Atomic JSON update with file locking (prevents race conditions)
-atomic_json_update() {
+# JSON helper: read a scalar JSON path with default fallback.
+json_file_get() {
     local json_file="$1"
-    local jq_expression="$2"
-    shift 2
+    local path="$2"
+    local default_value="${3:-}"
+    [[ -f "$json_file" ]] || { printf '%s\n' "$default_value"; return 0; }
+    python3 - "$json_file" "$path" "$default_value" <<'PY'
+import json, sys
+fp, path, default = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(fp, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    cur = data
+    for part in path.split("."):
+        if not part:
+            continue
+        if isinstance(cur, dict):
+            if part not in cur:
+                print(default)
+                raise SystemExit(0)
+            cur = cur[part]
+        elif isinstance(cur, list) and part.isdigit():
+            idx = int(part)
+            if idx < 0 or idx >= len(cur):
+                print(default)
+                raise SystemExit(0)
+            cur = cur[idx]
+        else:
+            print(default)
+            raise SystemExit(0)
+    if cur is None:
+        print(default)
+    elif isinstance(cur, bool):
+        print("true" if cur else "false")
+    elif isinstance(cur, (dict, list)):
+        print(json.dumps(cur, ensure_ascii=False))
+    else:
+        print(str(cur))
+except Exception:
+    print(default)
+PY
+}
 
-    local lockfile="${json_file}.lock"
-    local timeout=5
-    local waited=0
-
-    # Wait for lock with timeout
-    while [[ -f "$lockfile" ]] && [[ $waited -lt $((timeout * 10)) ]]; do
-        sleep 0.1
-        waited=$((waited + 1))
-    done
-
-    if [[ -f "$lockfile" ]]; then
-        log WARN "Timeout acquiring lock for $json_file"
-        return 1
-    fi
-
-    # Acquire lock
-    touch "$lockfile"
-    trap "rm -f $lockfile" EXIT
-
-    # Update atomically
-    local tmp_file="${json_file}.tmp.$$"
-    jq "$jq_expression" "$@" "$json_file" > "$tmp_file" && mv "$tmp_file" "$json_file"
-    local result=$?
-
-    # Release lock
-    rm -f "$lockfile"
-    trap - EXIT
-
-    return $result
+# Best-effort atomic updater for optional progress/session ledgers.
+atomic_json_update() {
+    # Progress tracking is optional and disabled by default in this build.
+    # Keep this helper as a no-op to preserve call sites without extra dependencies.
+    local _json_file="$1"
+    local _expr="${2:-}"
+    shift 2 || true
+    : "${_json_file}" "${_expr}"
+    return 0
 }
 
 # Validate Claude Code task integration features
@@ -416,28 +433,12 @@ validate_claude_code_task_features() {
     fi
 }
 
-# Check for required dependencies (jq, etc.)
+# Check for required dependencies.
 check_ux_dependencies() {
-    local all_deps_met=true
-
-    # Check jq for JSON processing
-    if ! command -v jq &>/dev/null; then
-        log WARN "jq not found - progress tracking disabled"
-        log WARN "Install with: brew install jq (macOS) or apt install jq (Linux)"
-        PROGRESS_TRACKING_ENABLED=false
-        all_deps_met=false
-    else
-        PROGRESS_TRACKING_ENABLED=true
-        log DEBUG "jq found - progress tracking enabled"
-    fi
-
-    if [[ "$all_deps_met" == "true" ]]; then
-        log DEBUG "All UX dependencies satisfied"
-        return 0
-    else
-        log WARN "Some UX dependencies missing - features disabled"
-        return 1
-    fi
+    # Keep file-based progress off by default to avoid optional JSON tooling coupling.
+    PROGRESS_TRACKING_ENABLED=false
+    log DEBUG "Optional progress tracking disabled"
+    return 0
 }
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -599,9 +600,10 @@ detect_fast_mode() {
 
     # Check 2: Check Claude Code settings.json for fast mode state
     local settings_file="${HOME}/.claude/settings.json"
-    if [[ -f "$settings_file" ]] && command -v jq &>/dev/null; then
+    if [[ -f "$settings_file" ]]; then
         local fast_setting
-        fast_setting=$(jq -r '.preferences.fastMode // .fastMode // false' "$settings_file" 2>/dev/null) || fast_setting="false"
+        fast_setting=$(json_file_get "$settings_file" "preferences.fastMode" "")
+        [[ -z "$fast_setting" ]] && fast_setting=$(json_file_get "$settings_file" "fastMode" "false")
         if [[ "$fast_setting" == "true" ]]; then
             USER_FAST_MODE="true"
             log "INFO" "/fast mode detected via settings.json"
@@ -611,9 +613,10 @@ detect_fast_mode() {
 
     # Check 3: Check local project settings
     local local_settings="${HOME}/.claude/projects/$(pwd | tr '/' '-')/settings.json"
-    if [[ -f "$local_settings" ]] && command -v jq &>/dev/null; then
+    if [[ -f "$local_settings" ]]; then
         local fast_local
-        fast_local=$(jq -r '.preferences.fastMode // .fastMode // false' "$local_settings" 2>/dev/null) || fast_local="false"
+        fast_local=$(json_file_get "$local_settings" "preferences.fastMode" "")
+        [[ -z "$fast_local" ]] && fast_local=$(json_file_get "$local_settings" "fastMode" "false")
         if [[ "$fast_local" == "true" ]]; then
             USER_FAST_MODE="true"
             log "INFO" "/fast mode detected via project settings"
@@ -1310,11 +1313,11 @@ get_agent_model() {
         return 0
     fi
 
-    # Priority 2 & 3: Check config file (if jq is available)
-    if [[ -f "$config_file" ]] && command -v jq &> /dev/null; then
+    # Priority 2 & 3: Check config file
+    if [[ -f "$config_file" ]]; then
         # Priority 2: Check overrides
         if [[ -n "$provider" ]]; then
-            model=$(jq -r ".overrides.${provider} // empty" "$config_file" 2>/dev/null || true)
+            model=$(json_file_get "$config_file" "overrides.${provider}" "")
             if [[ -n "$model" && "$model" != "null" ]]; then
                 log "DEBUG" "Model from config override: $model (tier 2)"
                 echo "$model"
@@ -1322,7 +1325,7 @@ get_agent_model() {
             fi
 
             # Priority 3: Check provider defaults
-            model=$(jq -r ".providers.${provider}.model // empty" "$config_file" 2>/dev/null || true)
+            model=$(json_file_get "$config_file" "providers.${provider}.model" "")
             if [[ -n "$model" && "$model" != "null" ]]; then
                 log "DEBUG" "Model from config default: $model (tier 3)"
                 echo "$model"
@@ -1406,9 +1409,9 @@ select_codex_model_for_context() {
     esac
 
     # Priority 3: User-configured phase routing
-    if [[ -f "$config_file" ]] && command -v jq &> /dev/null; then
+    if [[ -f "$config_file" ]]; then
         local phase_model
-        phase_model=$(jq -r ".phase_routing.${phase} // empty" "$config_file" 2>/dev/null || true)
+        phase_model=$(json_file_get "$config_file" "phase_routing.${phase}" "")
         if [[ -n "$phase_model" && "$phase_model" != "null" ]]; then
             log "DEBUG" "Contextual routing: config phase_routing.$phase = $phase_model"
             echo "$phase_model"
@@ -1510,9 +1513,9 @@ configure_provider_proxy() {
     local proxy_enabled="true"
     local proxy_port="7890"
 
-    if [[ -f "$config_file" ]] && command -v jq &>/dev/null; then
-        proxy_enabled=$(jq -r '.proxy.enabled // true' "$config_file" 2>/dev/null || echo "true")
-        proxy_port=$(jq -r '.proxy.port // 7890' "$config_file" 2>/dev/null || echo "7890")
+    if [[ -f "$config_file" ]]; then
+        proxy_enabled=$(json_file_get "$config_file" "proxy.enabled" "true")
+        proxy_port=$(json_file_get "$config_file" "proxy.port" "7890")
     fi
 
     # Optional env overrides for one-off debugging
@@ -1605,20 +1608,34 @@ set_provider_model() {
 EOF
     fi
 
-    # Check if jq is available
-    if ! command -v jq &> /dev/null; then
-        echo "ERROR: jq is required for model configuration" >&2
-        return 1
-    fi
-
-    # Update config file
+    # Update config file.
     if [[ "$session_only" == "--session" ]]; then
-        # Set session-level override
-        jq ".overrides.${provider} = \"${model}\"" "$config_file" > "${config_file}.tmp" && mv "${config_file}.tmp" "$config_file"
+        python3 - "$config_file" "$provider" "$model" <<'PY'
+import json, sys
+cfg, provider, model = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(cfg, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data.setdefault("overrides", {})[provider] = model
+with open(cfg + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+with open(cfg + ".tmp", "a", encoding="utf-8") as f:
+    f.write("\n")
+PY
+        mv "${config_file}.tmp" "$config_file"
         echo "✓ Set session override: $provider → $model"
     else
-        # Set persistent default
-        jq ".providers.${provider}.model = \"${model}\"" "$config_file" > "${config_file}.tmp" && mv "${config_file}.tmp" "$config_file"
+        python3 - "$config_file" "$provider" "$model" <<'PY'
+import json, sys
+cfg, provider, model = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(cfg, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data.setdefault("providers", {}).setdefault(provider, {})["model"] = model
+with open(cfg + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+with open(cfg + ".tmp", "a", encoding="utf-8") as f:
+    f.write("\n")
+PY
+        mv "${config_file}.tmp" "$config_file"
         echo "✓ Set default model: $provider → $model"
     fi
 }
@@ -1634,18 +1651,36 @@ reset_provider_model() {
         return 0
     fi
 
-    if ! command -v jq &> /dev/null; then
-        echo "ERROR: jq is required for model configuration" >&2
-        return 1
-    fi
-
     if [[ "$provider" == "all" ]]; then
         # Clear all overrides
-        jq '.overrides = {}' "$config_file" > "${config_file}.tmp" && mv "${config_file}.tmp" "$config_file"
+        python3 - "$config_file" <<'PY'
+import json, sys
+cfg = sys.argv[1]
+with open(cfg, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["overrides"] = {}
+with open(cfg + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+with open(cfg + ".tmp", "a", encoding="utf-8") as f:
+    f.write("\n")
+PY
+        mv "${config_file}.tmp" "$config_file"
         echo "✓ Cleared all model overrides"
     elif [[ "$provider" =~ ^(codex|gemini)$ ]]; then
         # Clear specific override
-        jq "del(.overrides.${provider})" "$config_file" > "${config_file}.tmp" && mv "${config_file}.tmp" "$config_file"
+        python3 - "$config_file" "$provider" <<'PY'
+import json, sys
+cfg, provider = sys.argv[1], sys.argv[2]
+with open(cfg, "r", encoding="utf-8") as f:
+    data = json.load(f)
+overrides = data.setdefault("overrides", {})
+overrides.pop(provider, None)
+with open(cfg + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+with open(cfg + ".tmp", "a", encoding="utf-8") as f:
+    f.write("\n")
+PY
+        mv "${config_file}.tmp" "$config_file"
         echo "✓ Cleared $provider override"
     else
         echo "ERROR: Invalid provider. Use 'codex', 'gemini', or 'all'" >&2
@@ -2018,7 +2053,7 @@ record_agent_call() {
     local timestamp
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-    # Append to calls array using a temp file approach (jq-free for portability)
+    # Append to calls array using a temp file approach for portability.
     if [[ -f "$USAGE_FILE" ]]; then
         # Create call record
         local call_record
@@ -2232,137 +2267,14 @@ update_agent_status() {
     local cost="${4:-0.0}"
     local timeout_secs="${5:-${TIMEOUT:-300}}"  # Use provided or global timeout
 
-    # Skip if progress tracking disabled or no progress file
-    if [[ "$PROGRESS_TRACKING_ENABLED" != "true" ]]; then
-        return 0
-    fi
-
-    if [[ ! -f "$PROGRESS_FILE" ]]; then
-        log DEBUG "Progress file not found - skipping agent status update"
-        return 0
-    fi
-
-    # Calculate timeout tracking (v7.16.0 Feature 3)
-    local timeout_ms=$((timeout_secs * 1000))
-    local timeout_warning="false"
-    local remaining_ms=0
-    local timeout_pct=0
-
-    if [[ "$status" == "running" && $elapsed_ms -gt 0 ]]; then
-        # Calculate percentage of timeout used
-        timeout_pct=$((elapsed_ms * 100 / timeout_ms))
-
-        # Warn if at or above 80% threshold
-        if [[ $timeout_pct -ge 80 ]]; then
-            timeout_warning="true"
-            remaining_ms=$((timeout_ms - elapsed_ms))
-            log WARN "Agent $agent_name approaching timeout ($timeout_pct% of ${timeout_secs}s)"
-        fi
-    fi
-
-    # Create agent status record (JSON string for jq)
-    local agent_record
-    agent_record=$(jq -n \
-        --arg name "$agent_name" \
-        --arg status "$status" \
-        --arg started "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-        --argjson elapsed "$elapsed_ms" \
-        --argjson cost "$cost" \
-        --argjson timeout_ms "$timeout_ms" \
-        --arg timeout_warning "$timeout_warning" \
-        --argjson remaining_ms "$remaining_ms" \
-        --argjson timeout_pct "$timeout_pct" \
-        '{name: $name, status: $status, started_at: $started, elapsed_ms: $elapsed, cost: $cost, timeout_ms: $timeout_ms, timeout_warning: ($timeout_warning == "true"), remaining_ms: $remaining_ms, timeout_pct: $timeout_pct}')
-
-    # Use atomic_json_update for race-free updates
-    atomic_json_update "$PROGRESS_FILE" \
-        --argjson agent "$agent_record" \
-        '.agents += [$agent]' || {
-        log WARN "Failed to update agent status for $agent_name"
-        return 1
-    }
-
-    # Update totals if completed
-    if [[ "$status" == "completed" ]]; then
-        atomic_json_update "$PROGRESS_FILE" \
-            --argjson elapsed "$elapsed_ms" \
-            --argjson cost "$cost" \
-            '.completed_agents += 1 | .total_time_ms += $elapsed | .total_cost += $cost' || {
-            log WARN "Failed to update progress totals"
-        }
-    fi
-
-    log DEBUG "Updated agent status: $agent_name -> $status (${elapsed_ms}ms, \$${cost})"
+    # Optional progress tracking is disabled in this build.
+    : "${agent_name}" "${status}" "${elapsed_ms}" "${cost}" "${timeout_secs}"
+    return 0
 }
 
 # Format and display progress summary
 display_progress_summary() {
-    if [[ "$PROGRESS_TRACKING_ENABLED" != "true" ]]; then
-        return 0
-    fi
-
-    if [[ ! -f "$PROGRESS_FILE" ]]; then
-        return 0
-    fi
-
-    local phase completed total total_cost total_time
-    phase=$(jq -r '.phase // "unknown"' "$PROGRESS_FILE" 2>/dev/null || echo "unknown")
-    completed=$(jq -r '.completed_agents // 0' "$PROGRESS_FILE" 2>/dev/null || echo "0")
-    total=$(jq -r '.total_agents // 0' "$PROGRESS_FILE" 2>/dev/null || echo "0")
-    total_cost=$(jq -r '.total_cost // 0.0' "$PROGRESS_FILE" 2>/dev/null || echo "0.0")
-    total_time=$(jq -r '(.total_time_ms // 0) / 1000' "$PROGRESS_FILE" 2>/dev/null || echo "0")
-
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "🐙 WORKFLOW SUMMARY: $phase Phase"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
-    echo "Provider Results:"
-    echo ""
-
-    # Read agents and format status with timeout info (v7.16.0 Feature 3)
-    jq -r '.agents[] |
-        if .status == "completed" then
-            "✅ \(.name): Completed (\(.elapsed_ms / 1000)s) - $\(.cost)"
-        elif .status == "running" then
-            if .timeout_warning then
-                "⏳ \(.name): Running... (\(.elapsed_ms / 1000)s / \(.timeout_ms / 1000)s timeout - \(.timeout_pct)%)\n⚠️  WARNING: Approaching timeout! (\(.remaining_ms / 1000)s remaining)"
-            else
-                "⏳ \(.name): Running... (\(.elapsed_ms / 1000)s / \(.timeout_ms / 1000)s timeout)"
-            end
-        elif .status == "failed" then
-            "❌ \(.name): Failed"
-        else
-            "⏸️  \(.name): Waiting"
-        end
-    ' "$PROGRESS_FILE" 2>/dev/null | sed 's/codex/🔴 Codex CLI/; s/gemini/🟡 Gemini CLI/; s/claude/🔵 Claude/' || echo "  (No agent data available)"
-
-    echo ""
-
-    # Show timeout guidance if any warnings (v7.16.0 Feature 3)
-    local has_warnings
-    has_warnings=$(jq -r '[.agents[].timeout_warning] | any' "$PROGRESS_FILE" 2>/dev/null || echo "false")
-
-    if [[ "$has_warnings" == "true" ]]; then
-        local current_timeout
-        current_timeout=$(jq -r '.agents[0].timeout_ms // 300000' "$PROGRESS_FILE" 2>/dev/null)
-        current_timeout=$((current_timeout / 1000))
-        local recommended_timeout=$((current_timeout * 2))
-
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo "💡 Timeout Guidance:"
-        echo "   Current timeout: ${current_timeout}s"
-        echo "   Recommended: --timeout ${recommended_timeout}"
-        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-        echo ""
-    fi
-
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    printf "Progress: %s/%s providers completed\n" "$completed" "$total"
-    printf "💰 Total Cost: \$%s\n" "$total_cost"
-    printf "⏱️  Total Time: %ss\n" "$total_time"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo ""
+    return 0
 }
 
 # Clean up old progress files (older than 1 day)
@@ -3749,20 +3661,16 @@ check_codex_auth() {
     # Check for Codex CLI auth token
     local auth_file="${HOME}/.codex/auth.json"
     if [[ -f "$auth_file" ]]; then
-        # Check if token exists and is not expired
-        if command -v jq &> /dev/null; then
-            local expires_at
-            expires_at=$(jq -r '.expires_at // empty' "$auth_file" 2>/dev/null)
-            if [[ -n "$expires_at" ]]; then
-                local now
-                now=$(date +%s)
-                if [[ "$expires_at" -gt "$now" ]]; then
-                    echo "oauth"
-                    return 0
-                fi
+        local expires_at
+        expires_at=$(json_file_get "$auth_file" "expires_at" "")
+        if [[ -n "$expires_at" ]]; then
+            local now
+            now=$(date +%s)
+            if [[ "$expires_at" -gt "$now" ]]; then
+                echo "oauth"
+                return 0
             fi
         else
-            # No jq, just check file exists
             echo "oauth"
             return 0
         fi
@@ -3859,9 +3767,9 @@ handle_auth_command() {
                 oauth)
                     echo -e "  OpenAI:  ${GREEN}✓ Authenticated (OAuth)${NC}"
                     local auth_file="${HOME}/.codex/auth.json"
-                    if command -v jq &> /dev/null && [[ -f "$auth_file" ]]; then
+                    if [[ -f "$auth_file" ]]; then
                         local email
-                        email=$(jq -r '.email // "unknown"' "$auth_file" 2>/dev/null)
+                        email=$(json_file_get "$auth_file" "email" "unknown")
                         echo -e "  Account: $email"
                     fi
                     ;;
@@ -5930,13 +5838,6 @@ OLD_init_interactive_impl() {
         ((issues++))
     fi
 
-    # Check jq (optional)
-    if command -v jq &> /dev/null; then
-        echo -e "  ${GREEN}✓${NC} jq: $(jq --version 2>/dev/null)"
-    else
-        echo -e "  ${YELLOW}○${NC} jq not found (optional, for JSON task files)"
-        echo -e "    Install: ${CYAN}brew install jq${NC}"
-    fi
     echo ""
     ((step++))
 
@@ -6104,7 +6005,7 @@ ERROR_CODES=(
     "E007:Quality gate failed:Review output and retry with lower threshold (-q 60):help quality"
     "E008:Timeout exceeded:Increase timeout with -t 600 or break into smaller tasks:help timeout"
     "E009:Invalid agent type:Use: codex, codex-mini, gemini, gemini-fast:help agents"
-    "E010:Task file parse error:Check JSON syntax with: jq . tasks.json:help tasks"
+    "E010:Task file parse error:Check JSON syntax in tasks.json:help tasks"
 )
 
 # Display contextual error with recovery steps
@@ -8488,27 +8389,26 @@ init_session() {
         log "DEBUG" "Auto-naming session: ${session_name}"
     fi
 
-    # Ensure jq is available for JSON manipulation
-    if ! command -v jq &> /dev/null; then
-        log WARN "jq not available - session recovery disabled"
-        return 1
-    fi
-
     mkdir -p "$(dirname "$SESSION_FILE")"
 
-    cat > "$SESSION_FILE" << EOF
-{
-  "session_id": "$session_id",
-  "session_name": $(printf '%s' "$session_name" | jq -Rs .),
-  "workflow": "$workflow",
-  "status": "in_progress",
-  "current_phase": null,
-  "started_at": "$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)",
-  "last_checkpoint": null,
-  "prompt": $(printf '%s' "$prompt" | jq -Rs .),
-  "phases": {}
+    python3 - "$SESSION_FILE" "$session_id" "$session_name" "$workflow" "$prompt" <<'PY'
+import json, sys, datetime
+session_file, session_id, session_name, workflow, prompt = sys.argv[1:]
+data = {
+    "session_id": session_id,
+    "session_name": session_name,
+    "workflow": workflow,
+    "status": "in_progress",
+    "current_phase": None,
+    "started_at": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+    "last_checkpoint": None,
+    "prompt": prompt,
+    "phases": {}
 }
-EOF
+with open(session_file, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PY
     log INFO "Session initialized: $session_id (name: $session_name)"
 }
 
@@ -8518,35 +8418,46 @@ save_session_checkpoint() {
     local status="$2"
     local output_file="$3"
 
-    if [[ ! -f "$SESSION_FILE" ]] || ! command -v jq &> /dev/null; then
+    if [[ ! -f "$SESSION_FILE" ]]; then
         return 0
     fi
 
     local timestamp
     timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S)
 
-    jq --arg phase "$phase" \
-       --arg status "$status" \
-       --arg output "$output_file" \
-       --arg time "$timestamp" \
-       '.phases[$phase] = {status: $status, output: $output, timestamp: $time} | .last_checkpoint = $time | .current_phase = $phase' \
-       "$SESSION_FILE" > "${SESSION_FILE}.tmp" && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+    python3 - "$SESSION_FILE" "$phase" "$status" "$output_file" "$timestamp" <<'PY'
+import json, sys
+session_file, phase, status, output_file, timestamp = sys.argv[1:]
+with open(session_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data.setdefault("phases", {})[phase] = {
+    "status": status,
+    "output": output_file,
+    "timestamp": timestamp
+}
+data["last_checkpoint"] = timestamp
+data["current_phase"] = phase
+with open(session_file + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PY
+    mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
 
     log DEBUG "Checkpoint saved: $phase ($status)"
 }
 
 # Check for resumable session
 check_resume_session() {
-    if [[ ! -f "$SESSION_FILE" ]] || ! command -v jq &> /dev/null; then
+    if [[ ! -f "$SESSION_FILE" ]]; then
         return 1
     fi
 
     local status workflow phase
-    status=$(jq -r '.status' "$SESSION_FILE" 2>/dev/null)
+    status=$(json_file_get "$SESSION_FILE" "status" "")
 
     if [[ "$status" == "in_progress" ]]; then
-        workflow=$(jq -r '.workflow' "$SESSION_FILE")
-        phase=$(jq -r '.current_phase // "none"' "$SESSION_FILE")
+        workflow=$(json_file_get "$SESSION_FILE" "workflow" "")
+        phase=$(json_file_get "$SESSION_FILE" "current_phase" "none")
 
         # Claude Code v2.1.9: CI mode auto-declines session resume
         if [[ "$CI_MODE" == "true" ]]; then
@@ -8573,24 +8484,33 @@ check_resume_session() {
 
 # Get the phase to resume from
 get_resume_phase() {
-    if [[ -f "$SESSION_FILE" ]] && command -v jq &> /dev/null; then
-        jq -r '.current_phase // ""' "$SESSION_FILE"
+    if [[ -f "$SESSION_FILE" ]]; then
+        json_file_get "$SESSION_FILE" "current_phase" ""
     fi
 }
 
 # Get saved output file for a phase
 get_phase_output() {
     local phase="$1"
-    if [[ -f "$SESSION_FILE" ]] && command -v jq &> /dev/null; then
-        jq -r ".phases.$phase.output // \"\"" "$SESSION_FILE"
+    if [[ -f "$SESSION_FILE" ]]; then
+        json_file_get "$SESSION_FILE" "phases.${phase}.output" ""
     fi
 }
 
 # Mark session as complete
 complete_session() {
-    if [[ -f "$SESSION_FILE" ]] && command -v jq &> /dev/null; then
-        jq '.status = "completed"' "$SESSION_FILE" > "${SESSION_FILE}.tmp" && \
-            mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+    if [[ -f "$SESSION_FILE" ]]; then
+        python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+session_file = sys.argv[1]
+with open(session_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["status"] = "completed"
+with open(session_file + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PY
+        mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
         log INFO "Session marked complete"
     fi
 }
@@ -8884,7 +8804,7 @@ has_curated_agents() {
     [[ -d "$AGENTS_DIR" && -f "$AGENTS_CONFIG" ]]
 }
 
-# Parse YAML value (simple bash parsing, no jq dependency)
+# Parse YAML value (simple bash parsing, no external JSON dependency)
 # Usage: parse_yaml_value "file.yaml" "key"
 parse_yaml_value() {
     local file="$1"
@@ -9657,7 +9577,7 @@ ${enhanced_prompt}"
         local opus_tier
         opus_tier=$(get_agent_config "${curated_agent:-}" "tier" 2>/dev/null) || opus_tier="premium"
         local session_autonomy
-        session_autonomy=$(jq -r '.autonomy // "supervised"' "${HOME}/.claude-octopus/session.json" 2>/dev/null) || session_autonomy="supervised"
+        session_autonomy=$(json_file_get "${HOME}/.claude-octopus/session.json" "autonomy" "supervised")
         local opus_mode
         opus_mode=$(select_opus_mode "$phase" "$opus_tier" "$session_autonomy")
         if [[ "$opus_mode" == "fast" ]]; then
@@ -9771,21 +9691,24 @@ ${enhanced_prompt}"
         mkdir -p "$teams_dir"
 
         local agent_instruction_file="${teams_dir}/${task_id}.json"
-        if command -v jq &>/dev/null; then
-            jq -n \
-                --arg agent_type "$agent_type" \
-                --arg task_id "$task_id" \
-                --arg role "${role:-none}" \
-                --arg phase "${phase:-none}" \
-                --arg model "$model" \
-                --arg prompt "$enhanced_prompt" \
-                --arg result_file "$result_file" \
-                '{agent_type: $agent_type, task_id: $task_id, role: $role,
-                  phase: $phase, model: $model, prompt: $prompt,
-                  result_file: $result_file, dispatch_method: "agent_teams",
-                  dispatched_at: now | todate}' \
-                > "$agent_instruction_file" 2>/dev/null
-        fi
+        python3 - "$agent_instruction_file" "$agent_type" "$task_id" "${role:-none}" "${phase:-none}" "$model" "$enhanced_prompt" "$result_file" <<'PY'
+import datetime, json, sys
+out, agent_type, task_id, role, phase, model, prompt, result_file = sys.argv[1:]
+payload = {
+    "agent_type": agent_type,
+    "task_id": task_id,
+    "role": role,
+    "phase": phase,
+    "model": model,
+    "prompt": prompt,
+    "result_file": result_file,
+    "dispatch_method": "agent_teams",
+    "dispatched_at": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+}
+with open(out, "w", encoding="utf-8") as f:
+    json.dump(payload, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
 
         # Output structured instruction for Claude Code to pick up
         echo "AGENT_TEAMS_DISPATCH:${agent_type}:${task_id}:${role:-none}:${phase:-none}"
@@ -10681,7 +10604,35 @@ extract_json_field() {
     local required="${3:-true}"
 
     local value
-    if ! value=$(echo "$json" | jq -r ".$field // empty" 2>/dev/null); then
+    if ! value=$(python3 - "$json" "$field" <<'PY'
+import json, sys
+raw, field = sys.argv[1], sys.argv[2]
+try:
+    data = json.loads(raw)
+    cur = data
+    for part in field.split("."):
+        if not part:
+            continue
+        if isinstance(cur, dict):
+            cur = cur.get(part, None)
+        elif isinstance(cur, list) and part.isdigit():
+            idx = int(part)
+            cur = cur[idx] if 0 <= idx < len(cur) else None
+        else:
+            cur = None
+            break
+    if cur is None:
+        print("")
+    elif isinstance(cur, bool):
+        print("true" if cur else "false")
+    elif isinstance(cur, (dict, list)):
+        print(json.dumps(cur, ensure_ascii=False))
+    else:
+        print(str(cur))
+except Exception:
+    sys.exit(1)
+PY
+); then
         log ERROR "JSON parse error extracting field '$field'"
         return 1
     fi
@@ -10719,20 +10670,19 @@ parallel_execute() {
 
     log INFO "Loading tasks from: $tasks_file"
 
-    if ! command -v jq &> /dev/null; then
-        log ERROR "jq is required for parallel execution. Install with: brew install jq"
-        return 1
-    fi
-
-    # SECURITY: Validate JSON structure first
-    if ! jq -e . "$tasks_file" >/dev/null 2>&1; then
-        log ERROR "Invalid JSON in tasks file: $tasks_file"
-        return 1
-    fi
-
     local task_count
-    task_count=$(jq '.tasks | length' "$tasks_file" 2>/dev/null) || {
-        log ERROR "Failed to read tasks array from file"
+    task_count=$(python3 - "$tasks_file" <<'PY'
+import json, sys
+try:
+    with open(sys.argv[1], "r", encoding="utf-8") as f:
+        data = json.load(f)
+    tasks = data.get("tasks", [])
+    print(len(tasks) if isinstance(tasks, list) else 0)
+except Exception:
+    sys.exit(1)
+PY
+) || {
+        log ERROR "Invalid JSON in tasks file: $tasks_file"
         return 1
     }
     log INFO "Found $task_count tasks"
@@ -10742,31 +10692,16 @@ parallel_execute() {
     local skipped=0
     local pids=()
 
-    while IFS= read -r task; do
-        local task_id agent prompt
-
-        # SECURITY: Safe JSON extraction with validation
-        task_id=$(extract_json_field "$task" "id" true) || {
-            log WARN "Skipping task with invalid/missing id"
-            ((skipped++))
-            continue
-        }
-
-        agent=$(extract_json_field "$task" "agent" true) || {
-            log WARN "Skipping task $task_id: invalid/missing agent"
-            ((skipped++))
-            continue
-        }
+    while IFS=$'\t' read -r task_id agent prompt_b64; do
+        local prompt
+        prompt=$(printf '%s' "$prompt_b64" | base64 --decode 2>/dev/null || true)
+        [[ -n "$task_id" ]] || { ((skipped++)); continue; }
+        [[ -n "$agent" ]] || { ((skipped++)); continue; }
+        [[ -n "$prompt" ]] || { ((skipped++)); continue; }
 
         # SECURITY: Validate agent type against allowlist
         validate_agent_type "$agent" || {
             log WARN "Skipping task $task_id: unknown agent '$agent'"
-            ((skipped++))
-            continue
-        }
-
-        prompt=$(extract_json_field "$task" "prompt" true) || {
-            log WARN "Skipping task $task_id: invalid/missing prompt"
             ((skipped++))
             continue
         }
@@ -10788,7 +10723,23 @@ parallel_execute() {
         ((running++))
 
         log INFO "Progress: $completed/$task_count completed, $running running"
-    done < <(jq -c '.tasks[]' "$tasks_file")
+    done < <(python3 - "$tasks_file" <<'PY'
+import base64, json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    data = json.load(f)
+tasks = data.get("tasks", [])
+if not isinstance(tasks, list):
+    sys.exit(0)
+for t in tasks:
+    if not isinstance(t, dict):
+        continue
+    tid = str(t.get("id", ""))
+    agent = str(t.get("agent", ""))
+    prompt = str(t.get("prompt", ""))
+    p64 = base64.b64encode(prompt.encode("utf-8")).decode("ascii")
+    print(f"{tid}\t{agent}\t{p64}")
+PY
+)
 
     log INFO "Waiting for remaining $running tasks to complete..."
     wait
@@ -10912,12 +10863,11 @@ open_browser() {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Essential tools list (space-separated for bash 3.2 compat)
-ESSENTIAL_TOOLS_LIST="jq shellcheck gh imagemagick playwright"
+ESSENTIAL_TOOLS_LIST="shellcheck gh imagemagick playwright"
 
 # Get tool description
 get_tool_description() {
     case "$1" in
-        jq)          echo "JSON processor (critical for AI workflows)" ;;
         shellcheck)  echo "Shell script static analysis" ;;
         gh)          echo "GitHub CLI for PR/issue automation" ;;
         imagemagick) echo "Screenshot compression (5MB API limits)" ;;
@@ -10950,7 +10900,6 @@ get_install_command() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS - prefer brew
         case "$tool" in
-            jq)          echo "brew install jq" ;;
             shellcheck)  echo "brew install shellcheck" ;;
             gh)          echo "brew install gh" ;;
             imagemagick) echo "brew install imagemagick" ;;
@@ -10959,7 +10908,6 @@ get_install_command() {
     else
         # Linux - apt-get
         case "$tool" in
-            jq)          echo "sudo apt-get install -y jq" ;;
             shellcheck)  echo "sudo apt-get install -y shellcheck" ;;
             gh)          echo "sudo apt-get install -y gh" ;;
             imagemagick) echo "sudo apt-get install -y imagemagick" ;;
@@ -11410,7 +11358,7 @@ setup_wizard() {
     local installed_tools=()
     local tool desc
 
-    for tool in jq shellcheck gh imagemagick playwright; do
+    for tool in shellcheck gh imagemagick playwright; do
         desc=$(get_tool_description "$tool")
 
         if is_tool_installed "$tool"; then
@@ -11428,7 +11376,6 @@ setup_wizard() {
         echo -e "  ${YELLOW}${#missing_tools[@]} tools missing.${NC} These improve AI agent capabilities:"
         echo ""
         echo -e "  ${CYAN}Why these tools matter:${NC}"
-        echo -e "    • ${GREEN}jq${NC}       - Parse JSON from API responses (critical!)"
         echo -e "    • ${GREEN}shellcheck${NC} - Validate shell scripts before running"
         echo -e "    • ${GREEN}gh${NC}        - Create PRs/issues directly from CLI"
         echo -e "    • ${GREEN}imagemagick${NC} - Compress screenshots for API limits (5MB)"
@@ -11438,10 +11385,10 @@ setup_wizard() {
         if [[ "$NON_INTERACTIVE" == "true" ]]; then
             tools_choice=3  # Skip in non-interactive mode
             echo -e "  ${YELLOW}⚠${NC} Skipping tool installation in auto mode."
-            echo -e "  ${CYAN}→${NC} To install manually: brew install jq shellcheck gh imagemagick"
+            echo -e "  ${CYAN}→${NC} To install manually: brew install shellcheck gh imagemagick"
         else
             echo -e "  ${GREEN}[1]${NC} Install all missing tools ${CYAN}(Recommended)${NC}"
-            echo -e "  ${GREEN}[2]${NC} Install critical only (jq, shellcheck)"
+            echo -e "  ${GREEN}[2]${NC} Install critical only (shellcheck)"
             echo -e "  ${GREEN}[3]${NC} Skip for now"
             echo ""
             read -p "  Enter choice [1-3, default 1]: " tools_choice
@@ -11454,7 +11401,7 @@ setup_wizard() {
                 tools_to_install=("${missing_tools[@]}")
                 ;;
             2)
-                for tool in jq shellcheck; do
+                for tool in shellcheck; do
                     if [[ " ${missing_tools[*]} " =~ " $tool " ]]; then
                         tools_to_install+=("$tool")
                     fi
@@ -12240,11 +12187,19 @@ execute_workflow_phase() {
     total_agents=$(echo "$agents_raw" | wc -l | tr -d ' ')
 
     # Write phase task info for task-completed-transition.sh
-    if command -v jq &>/dev/null && [[ -f "$session_dir/session.json" ]]; then
-        jq --argjson total "$total_agents" \
-           '.phase_tasks = {total: $total, completed: 0}' \
-           "$session_dir/session.json" > "$session_dir/session.json.tmp" \
-           && mv "$session_dir/session.json.tmp" "$session_dir/session.json" 2>/dev/null || true
+    if [[ -f "$session_dir/session.json" ]]; then
+        python3 - "$session_dir/session.json" "$total_agents" <<'PY' || true
+import json, sys
+path, total = sys.argv[1], int(sys.argv[2])
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["phase_tasks"] = {"total": total, "completed": 0}
+tmp = path + ".tmp"
+with open(tmp, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+        mv "$session_dir/session.json.tmp" "$session_dir/session.json" 2>/dev/null || true
     fi
 
     # Spawn agents
@@ -12458,12 +12413,21 @@ run_yaml_workflow() {
 
         # Update session.json for hooks
         local session_dir="${HOME}/.claude-octopus"
-        if command -v jq &>/dev/null && [[ -f "$session_dir/session.json" ]]; then
-            jq --arg phase "$phase_name" --arg status "running" \
-               --argjson completed "$((phase_num - 1))" \
-               '.current_phase = $phase | .phase_status = $status | .completed_phases = $completed' \
-               "$session_dir/session.json" > "$session_dir/session.json.tmp" \
-               && mv "$session_dir/session.json.tmp" "$session_dir/session.json" 2>/dev/null || true
+        if [[ -f "$session_dir/session.json" ]]; then
+            python3 - "$session_dir/session.json" "$phase_name" "running" "$((phase_num - 1))" <<'PY' || true
+import json, sys
+path, phase, status, completed = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["current_phase"] = phase
+data["phase_status"] = status
+data["completed_phases"] = completed
+tmp = path + ".tmp"
+with open(tmp, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+            mv "$session_dir/session.json.tmp" "$session_dir/session.json" 2>/dev/null || true
         fi
 
         # Read previous phase output if available
@@ -12482,12 +12446,21 @@ run_yaml_workflow() {
         all_outputs+=("$phase_result")
 
         # Update session state
-        if command -v jq &>/dev/null && [[ -f "$session_dir/session.json" ]]; then
-            jq --arg phase "$phase_name" --arg status "completed" \
-               --argjson completed "$phase_num" \
-               '.current_phase = $phase | .phase_status = $status | .completed_phases = $completed' \
-               "$session_dir/session.json" > "$session_dir/session.json.tmp" \
-               && mv "$session_dir/session.json.tmp" "$session_dir/session.json" 2>/dev/null || true
+        if [[ -f "$session_dir/session.json" ]]; then
+            python3 - "$session_dir/session.json" "$phase_name" "completed" "$phase_num" <<'PY' || true
+import json, sys
+path, phase, status, completed = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data["current_phase"] = phase
+data["phase_status"] = status
+data["completed_phases"] = completed
+tmp = path + ".tmp"
+with open(tmp, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+            mv "$session_dir/session.json.tmp" "$session_dir/session.json" 2>/dev/null || true
         fi
 
         # Handle autonomy checkpoint
@@ -13343,25 +13316,27 @@ embrace_full_workflow() {
         local status="$2"
         local session_dir="${HOME}/.claude-octopus"
         mkdir -p "$session_dir"
-        if command -v jq &> /dev/null; then
-            jq -n \
-                --arg phase "$phase" \
-                --arg status "$status" \
-                --arg workflow "embrace" \
-                --arg group "$task_group" \
-                --arg autonomy "$AUTONOMY_MODE" \
-                --argjson completed "$OCTOPUS_COMPLETED_PHASES" \
-                --argjson total "$OCTOPUS_TOTAL_PHASES" \
-                '{workflow: $workflow, current_phase: $phase, phase_status: $status,
-                  task_group: $group, autonomy_mode: $autonomy,
-                  completed_phases: $completed, total_phases: $total,
-                  phase_map: {probe: "grasp", grasp: "tangle", tangle: "ink", ink: "complete"},
-                  phase_tasks: {total: 0, completed: 0},
-                  agent_queue: [],
-                  quality_gates: {passed: false, failed: false},
-                  updated_at: now | todate}' \
-                > "$session_dir/session.json" 2>/dev/null || true
-        fi
+        python3 - "$session_dir/session.json" "$phase" "$status" "$task_group" "$AUTONOMY_MODE" "$OCTOPUS_COMPLETED_PHASES" "$OCTOPUS_TOTAL_PHASES" <<'PY' || true
+import datetime, json, sys
+path, phase, status, group, autonomy, completed, total = sys.argv[1:]
+payload = {
+    "workflow": "embrace",
+    "current_phase": phase,
+    "phase_status": status,
+    "task_group": group,
+    "autonomy_mode": autonomy,
+    "completed_phases": int(completed),
+    "total_phases": int(total),
+    "phase_map": {"probe": "grasp", "grasp": "tangle", "tangle": "ink", "ink": "complete"},
+    "phase_tasks": {"total": 0, "completed": 0},
+    "agent_queue": [],
+    "quality_gates": {"passed": False, "failed": False},
+    "updated_at": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+}
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(payload, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
     }
 
     _write_embrace_session_state "init" "starting"

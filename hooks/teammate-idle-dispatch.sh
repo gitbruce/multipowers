@@ -12,26 +12,43 @@ if [[ ! -f "$SESSION_FILE" ]]; then
     exit 0
 fi
 
-# Check if jq is available
-if ! command -v jq &>/dev/null; then
-    exit 0
-fi
-
-CURRENT_PHASE=$(jq -r '.phase // empty' "$SESSION_FILE" 2>/dev/null)
+CURRENT_PHASE=$(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+print(d.get("phase",""))
+PY
+)
 if [[ -z "$CURRENT_PHASE" ]]; then
     exit 0
 fi
 
-QUEUE_LENGTH=$(jq -r '.agent_queue // [] | length' "$SESSION_FILE" 2>/dev/null)
+QUEUE_LENGTH=$(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+print(len(d.get("agent_queue",[])))
+PY
+)
 
 if [[ "$QUEUE_LENGTH" -gt 0 ]]; then
     # Dequeue next task
-    NEXT_TASK=$(jq -r '.agent_queue[0].task // "No task description"' "$SESSION_FILE" 2>/dev/null)
-    NEXT_ROLE=$(jq -r '.agent_queue[0].role // "general"' "$SESSION_FILE" 2>/dev/null)
-
-    # Remove from queue
-    jq '.agent_queue = .agent_queue[1:]' "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
-        && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
+    mapfile -t _task_payload < <(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+q=d.get("agent_queue",[])
+first=q[0] if q else {}
+print(first.get("task","No task description"))
+print(first.get("role","general"))
+d["agent_queue"]=q[1:] if q else []
+with open(sys.argv[1]+".tmp","w",encoding="utf-8") as f:
+    json.dump(d,f,ensure_ascii=False,indent=2); f.write("\n")
+PY
+)
+    NEXT_TASK="${_task_payload[0]:-No task description}"
+    NEXT_ROLE="${_task_payload[1]:-general}"
+    mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
 
     # Track idle event in metrics
     METRICS_DIR="${HOME}/.claude-octopus/metrics"
@@ -44,8 +61,17 @@ if [[ "$QUEUE_LENGTH" -gt 0 ]]; then
     echo "Phase: $CURRENT_PHASE | Role: $NEXT_ROLE | Queue remaining: $((QUEUE_LENGTH - 1))"
 else
     # No more work - check if phase should transition
-    COMPLETED=$(jq -r '.phase_tasks.completed // 0' "$SESSION_FILE" 2>/dev/null)
-    TOTAL=$(jq -r '.phase_tasks.total // 0' "$SESSION_FILE" 2>/dev/null)
+    mapfile -t _phase_progress < <(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+with open(sys.argv[1], "r", encoding="utf-8") as f:
+    d=json.load(f)
+pt=d.get("phase_tasks",{})
+print(pt.get("completed",0))
+print(pt.get("total",0))
+PY
+)
+    COMPLETED="${_phase_progress[0]:-0}"
+    TOTAL="${_phase_progress[1]:-0}"
 
     if [[ "$COMPLETED" -ge "$TOTAL" ]] && [[ "$TOTAL" -gt 0 ]]; then
         echo "🐙 TeammateIdle: All phase tasks complete. Ready for phase transition."

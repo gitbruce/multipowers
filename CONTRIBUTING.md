@@ -21,7 +21,7 @@ Thanks for your interest in contributing to Claude Octopus! This document provid
 
 - Bash 4.0+ (`bash --version`)
 - Python 3.8+
-- jq (for JSON processing)
+- python3 (for JSON processing)
 - Codex CLI and Gemini CLI (for full testing)
 
 ### Validate Your Changes

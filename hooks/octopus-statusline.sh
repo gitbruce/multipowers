@@ -38,9 +38,23 @@ fi
 SESSION_FILE="${HOME}/.claude-octopus/session.json"
 
 # Extract statusline data
-MODEL=$(echo "$input" | jq -r '.model.display_name // "Claude"')
-PCT=$(echo "$input" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)
-COST=$(echo "$input" | jq -r '.cost.total_cost_usd // 0')
+mapfile -t _status_values < <(python3 - <<'PY' "$input"
+import json, sys
+try:
+    d = json.loads(sys.argv[1])
+except Exception:
+    d = {}
+model = d.get("model", {}).get("display_name", "Claude")
+pct = int(float(d.get("context_window", {}).get("used_percentage", 0)))
+cost = d.get("cost", {}).get("total_cost_usd", 0)
+print(model)
+print(pct)
+print(cost)
+PY
+)
+MODEL="${_status_values[0]:-Claude}"
+PCT="${_status_values[1]:-0}"
+COST="${_status_values[2]:-0}"
 
 # Colors
 GREEN='\033[32m'
@@ -71,8 +85,17 @@ COST_FMT=$(printf '$%.2f' "$COST")
 
 # Get active phase from session file (if workflow is running)
 PHASE=""
-if [[ -f "$SESSION_FILE" ]] && command -v jq &>/dev/null; then
-    PHASE=$(jq -r '.current_phase // .phase // empty' "$SESSION_FILE" 2>/dev/null)
+if [[ -f "$SESSION_FILE" ]]; then
+    PHASE=$(python3 - "$SESSION_FILE" <<'PY'
+import json, sys
+try:
+    with open(sys.argv[1], "r", encoding="utf-8") as f:
+        d=json.load(f)
+    print(d.get("current_phase") or d.get("phase") or "")
+except Exception:
+    print("")
+PY
+)
 fi
 
 if [[ -n "$PHASE" && "$PHASE" != "null" ]]; then

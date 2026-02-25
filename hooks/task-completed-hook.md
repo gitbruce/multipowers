@@ -28,20 +28,20 @@ When a task completes during an active workflow, this hook:
 # Read workflow state
 SESSION_FILE="${HOME}/.claude-octopus/session.json"
 if [[ -f "$SESSION_FILE" ]]; then
-    CURRENT_PHASE=$(jq -r '.phase // empty' "$SESSION_FILE")
-    TOTAL_TASKS=$(jq -r '.phase_tasks.total // 0' "$SESSION_FILE")
-    COMPLETED_TASKS=$(jq -r '.phase_tasks.completed // 0' "$SESSION_FILE")
+    CURRENT_PHASE=$(python3 -r '.phase // empty' "$SESSION_FILE")
+    TOTAL_TASKS=$(python3 -r '.phase_tasks.total // 0' "$SESSION_FILE")
+    COMPLETED_TASKS=$(python3 -r '.phase_tasks.completed // 0' "$SESSION_FILE")
 
     # Increment completed count
     COMPLETED_TASKS=$((COMPLETED_TASKS + 1))
-    jq ".phase_tasks.completed = $COMPLETED_TASKS" "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
+    python3 ".phase_tasks.completed = $COMPLETED_TASKS" "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
         && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
 
     # Check phase completion
     if [[ "$COMPLETED_TASKS" -ge "$TOTAL_TASKS" ]]; then
         # All phase tasks done - signal phase transition
         NEXT_PHASE=$(get_next_phase "$CURRENT_PHASE")
-        jq ".phase = \"$NEXT_PHASE\" | .phase_tasks = {\"total\": 0, \"completed\": 0}" \
+        python3 ".phase = \"$NEXT_PHASE\" | .phase_tasks = {\"total\": 0, \"completed\": 0}" \
             "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
             && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
     fi

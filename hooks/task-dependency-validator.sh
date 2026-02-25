@@ -102,7 +102,7 @@ main() {
         exit 0
     fi
 
-    # Parse task data (simplified - in production would use jq)
+    # Parse task data (simplified - in production would use python3)
     # For now, just log and allow to proceed
     log "DEBUG" "Task metadata received: ${TASK_DATA:0:100}..."
 

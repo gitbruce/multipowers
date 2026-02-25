@@ -1,94 +1,99 @@
 #!/usr/bin/env bash
-# Provider Router for Claude Octopus v8.7.0
-# Latency-based provider routing with round-robin, fastest, and cheapest strategies
-# Config: OCTOPUS_ROUTING_MODE=round-robin|fastest|cheapest (default: round-robin)
+# Provider Router for Claude Octopus
+# Latency-based provider routing with round-robin, fastest, and cheapest strategies.
 
-# Routing mode configuration
 OCTOPUS_ROUTING_MODE="${OCTOPUS_ROUTING_MODE:-round-robin}"
 
-# Round-robin state (file-based for cross-process persistence)
 _ROUTER_STATE_FILE="${WORKSPACE_DIR:-${HOME}/.claude-octopus}/.router-state"
 _ROUTER_STATS_FILE="${WORKSPACE_DIR:-${HOME}/.claude-octopus}/.provider-stats.json"
 
-# Build provider latency stats from metrics-session.json
 build_provider_stats() {
     local metrics_dir="${WORKSPACE_DIR:-${HOME}/.claude-octopus}"
     local metrics_file="${metrics_dir}/metrics-session.json"
     local stats_file="$_ROUTER_STATS_FILE"
 
-    if [[ ! -f "$metrics_file" ]] || ! command -v jq &>/dev/null; then
-        return 1
-    fi
-
+    [[ -f "$metrics_file" ]] || return 1
     mkdir -p "$metrics_dir"
 
-    # Extract per-provider average latency from completed agent metrics
-    jq '{
-        providers: (
-            [.phases[]?.agents[]? | select(.status == "completed")] |
-            group_by(.agent_type | split("-")[0]) |
-            map({
-                key: .[0].agent_type | split("-")[0],
-                value: {
-                    avg_latency_ms: ([.[].duration_ms // 0] | add / length),
-                    call_count: length,
-                    avg_cost_usd: ([.[].estimated_cost_usd // 0] | add / length)
-                }
-            }) | from_entries
-        ),
-        updated_at: now | todate
-    }' "$metrics_file" > "$stats_file" 2>/dev/null || return 1
+    python3 - "$metrics_file" "$stats_file" <<'PY'
+import datetime, json, sys
+metrics_file, stats_file = sys.argv[1], sys.argv[2]
+with open(metrics_file, "r", encoding="utf-8") as f:
+    data = json.load(f)
+providers = {}
+for p in data.get("phases", []):
+    agent = str(p.get("agent", ""))
+    if not agent:
+        continue
+    base = agent.split("-")[0]
+    slot = providers.setdefault(base, {"lat": [], "cost": []})
+    slot["lat"].append(float(p.get("duration_seconds", 0)) * 1000.0)
+    slot["cost"].append(float(p.get("estimated_cost_usd", 0)))
+result = {"providers": {}, "updated_at": datetime.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"}
+for name, slot in providers.items():
+    cnt = max(1, len(slot["lat"]))
+    result["providers"][name] = {
+        "avg_latency_ms": (sum(slot["lat"]) / cnt),
+        "call_count": len(slot["lat"]),
+        "avg_cost_usd": (sum(slot["cost"]) / cnt),
+    }
+with open(stats_file, "w", encoding="utf-8") as f:
+    json.dump(result, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
 }
 
-# Select fastest provider from candidates
-# Args: candidate1 candidate2 ...
+read_provider_metric() {
+    local stats_file="$1"
+    local provider="$2"
+    local metric="$3"
+    local fallback="$4"
+    [[ -f "$stats_file" ]] || { echo "$fallback"; return 0; }
+    python3 - "$stats_file" "$provider" "$metric" "$fallback" <<'PY'
+import json, sys
+path, provider, metric, fallback = sys.argv[1:]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    print(data.get("providers", {}).get(provider, {}).get(metric, fallback))
+except Exception:
+    print(fallback)
+PY
+}
+
 select_fastest_provider() {
     local stats_file="$_ROUTER_STATS_FILE"
     local candidates=("$@")
+    [[ ${#candidates[@]} -gt 0 ]] || return 1
 
     case "$OCTOPUS_ROUTING_MODE" in
         round-robin)
-            # Simple round-robin: rotate through candidates
             local idx=0
-            if [[ -f "$_ROUTER_STATE_FILE" ]]; then
-                idx=$(cat "$_ROUTER_STATE_FILE" 2>/dev/null || echo "0")
-            fi
+            [[ -f "$_ROUTER_STATE_FILE" ]] && idx=$(cat "$_ROUTER_STATE_FILE" 2>/dev/null || echo "0")
             local selected="${candidates[$((idx % ${#candidates[@]}))]}"
             echo $(( (idx + 1) % ${#candidates[@]} )) > "$_ROUTER_STATE_FILE"
             echo "$selected"
             ;;
         fastest)
-            if [[ ! -f "$stats_file" ]] || ! command -v jq &>/dev/null; then
-                echo "${candidates[0]}"
-                return
-            fi
-            local best=""
-            local best_latency=999999
+            local best="" best_latency=999999
+            local candidate base_provider latency
             for candidate in "${candidates[@]}"; do
-                local base_provider="${candidate%%-*}"
-                local latency
-                latency=$(jq -r ".providers.\"$base_provider\".avg_latency_ms // 999999" "$stats_file" 2>/dev/null || echo "999999")
+                base_provider="${candidate%%-*}"
+                latency=$(read_provider_metric "$stats_file" "$base_provider" "avg_latency_ms" "999999")
                 if awk -v a="$latency" -v b="$best_latency" 'BEGIN { exit !(a < b) }'; then
-                    best="$candidate"
-                    best_latency="$latency"
+                    best="$candidate"; best_latency="$latency"
                 fi
             done
             echo "${best:-${candidates[0]}}"
             ;;
         cheapest)
-            if [[ ! -f "$stats_file" ]] || ! command -v jq &>/dev/null; then
-                echo "${candidates[0]}"
-                return
-            fi
-            local best=""
-            local best_cost=999999
+            local best="" best_cost=999999
+            local candidate base_provider cost
             for candidate in "${candidates[@]}"; do
-                local base_provider="${candidate%%-*}"
-                local cost
-                cost=$(jq -r ".providers.\"$base_provider\".avg_cost_usd // 999999" "$stats_file" 2>/dev/null || echo "999999")
+                base_provider="${candidate%%-*}"
+                cost=$(read_provider_metric "$stats_file" "$base_provider" "avg_cost_usd" "999999")
                 if awk -v a="$cost" -v b="$best_cost" 'BEGIN { exit !(a < b) }'; then
-                    best="$candidate"
-                    best_cost="$cost"
+                    best="$candidate"; best_cost="$cost"
                 fi
             done
             echo "${best:-${candidates[0]}}"
@@ -99,7 +104,6 @@ select_fastest_provider() {
     esac
 }
 
-# Refresh provider stats after agent completion
 refresh_provider_stats() {
     build_provider_stats 2>/dev/null || true
 }

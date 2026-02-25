@@ -235,8 +235,8 @@ if [[ -f .claude-octopus/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]];
     state=$("${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" read_state)
 
     # Restore context
-    discover_context=$(echo "$state" | jq -r '.context.discover')
-    define_context=$(echo "$state" | jq -r '.context.define')
+    discover_context=$(echo "$state" | python3 -r '.context.discover')
+    define_context=$(echo "$state" | python3 -r '.context.define')
     # ... etc
 
     # Mark as loaded

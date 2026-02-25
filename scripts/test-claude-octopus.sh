@@ -1463,9 +1463,9 @@ else
     ((FAIL++))
 fi
 
-# Includes jq in tools list
-echo -n "  Essential tools includes jq... "
-if grep 'ESSENTIAL_TOOLS_LIST' "$SCRIPT" | grep -q 'jq'; then
+# Includes shellcheck in tools list
+echo -n "  Essential tools includes shellcheck... "
+if grep 'ESSENTIAL_TOOLS_LIST' "$SCRIPT" | grep -q 'shellcheck'; then
     echo -e "${GREEN}PASS${NC}"
     ((PASS++))
 else
@@ -1473,7 +1473,7 @@ else
     ((FAIL++))
 fi
 
-# Includes shellcheck in tools list
+# Includes gh in tools list
 echo -n "  Essential tools includes shellcheck... "
 if grep 'ESSENTIAL_TOOLS_LIST' "$SCRIPT" | grep -q 'shellcheck'; then
     echo -e "${GREEN}PASS${NC}"

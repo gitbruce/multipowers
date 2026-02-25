@@ -244,21 +244,21 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$PROJECT_ROOT/tests/helpers/test-framework.sh"
 
 test_case "models.json exists with required keys"
-if jq -e '.providers and .role_routing and .fallback_lane' "$PROJECT_ROOT/custom/config/models.json" >/dev/null 2>&1; then
+if python3 -e '.providers and .role_routing and .fallback_lane' "$PROJECT_ROOT/custom/config/models.json" >/dev/null 2>&1; then
   test_pass "models.json contract valid"
 else
   test_fail "models.json missing required keys"
 fi
 
 test_case "proxy.json exists with required keys"
-if jq -e '.enabled != null and .providers and .host and .port' "$PROJECT_ROOT/custom/config/proxy.json" >/dev/null 2>&1; then
+if python3 -e '.enabled != null and .providers and .host and .port' "$PROJECT_ROOT/custom/config/proxy.json" >/dev/null 2>&1; then
   test_pass "proxy.json contract valid"
 else
   test_fail "proxy.json missing required keys"
 fi
 
 test_case "persona-lanes.json exists with required keys"
-if jq -e '.personas and .fallback_lane' "$PROJECT_ROOT/custom/config/persona-lanes.json" >/dev/null 2>&1; then
+if python3 -e '.personas and .fallback_lane' "$PROJECT_ROOT/custom/config/persona-lanes.json" >/dev/null 2>&1; then
   test_pass "persona-lanes contract valid"
 else
   test_fail "persona-lanes missing required keys"
@@ -418,8 +418,8 @@ resolve_custom_model_for_role() {
   local role="$1"
   local config_file="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/config/models.json"
   local lane
-  lane="$(jq -r --arg role "$role" '.role_routing[$role] // .fallback_lane' "$config_file")"
-  jq -r --arg lane "$lane" '.providers[$lane]' "$config_file"
+  lane="$(python3 -r --arg role "$role" '.role_routing[$role] // .fallback_lane' "$config_file")"
+  python3 -r --arg lane "$lane" '.providers[$lane]' "$config_file"
 }
 SH
 
@@ -431,14 +431,14 @@ custom_proxy_url_for_provider() {
   local provider="$1"
   local config_file="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/config/proxy.json"
   local enabled host port
-  enabled="$(jq -r '.enabled' "$config_file")"
-  host="$(jq -r '.host' "$config_file")"
-  port="$(jq -r '.port' "$config_file")"
+  enabled="$(python3 -r '.enabled' "$config_file")"
+  host="$(python3 -r '.host' "$config_file")"
+  port="$(python3 -r '.port' "$config_file")"
   if [[ "$enabled" != "true" ]]; then
     echo ""
     return 0
   fi
-  if jq -e --arg p "$provider" '.providers | index($p)' "$config_file" >/dev/null 2>&1; then
+  if python3 -e --arg p "$provider" '.providers | index($p)' "$config_file" >/dev/null 2>&1; then
     echo "http://${host}:${port}"
   else
     echo ""
@@ -597,9 +597,9 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 mkdir -p "$ROOT_DIR/.claude/commands"
 cp "$ROOT_DIR/custom/commands/persona.md" "$ROOT_DIR/.claude/commands/persona.md"
 
-jq empty "$ROOT_DIR/custom/config/models.json" >/dev/null
-jq empty "$ROOT_DIR/custom/config/proxy.json" >/dev/null
-jq empty "$ROOT_DIR/custom/config/persona-lanes.json" >/dev/null
+python3 empty "$ROOT_DIR/custom/config/models.json" >/dev/null
+python3 empty "$ROOT_DIR/custom/config/proxy.json" >/dev/null
+python3 empty "$ROOT_DIR/custom/config/persona-lanes.json" >/dev/null
 
 echo "Overlay applied successfully"
 SH

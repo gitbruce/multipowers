@@ -196,7 +196,7 @@ For heavy implementation and heavy-token quality checks, rely on Claude Opus rou
 
 ## Requirements
 
-- `jq` - JSON processor (install: `brew install jq` or `apt install jq`)
+- `python3` - Used for JSON read/write operations
 
 ## Notes
 
@@ -231,7 +231,7 @@ When the user invokes `/octo:model-config`, you MUST:
 
    # Show config file contents
    if [[ -f ~/.claude-octopus/config/providers.json ]]; then
-     cat ~/.claude-octopus/config/providers.json | jq '.'
+     cat ~/.claude-octopus/config/providers.json
    else
      echo "No configuration file found (using defaults)"
    fi
@@ -244,16 +244,31 @@ When the user invokes `/octo:model-config`, you MUST:
    set_provider_model <provider> <model> [--session]
 
    # Show updated configuration
-   cat ~/.claude-octopus/config/providers.json | jq '.'
+   cat ~/.claude-octopus/config/providers.json
    ```
 
 4. **Set Phase Routing** (`phase <phase> <model>`):
    ```bash
    # Update phase_routing in config file
    local config_file="${HOME}/.claude-octopus/config/providers.json"
-   jq ".phase_routing.${phase} = \"${model}\"" "$config_file" > "${config_file}.tmp" && mv "${config_file}.tmp" "$config_file"
+   python3 - "$config_file" "$phase" "$model" <<'PY'
+import json, sys
+cfg, phase, model = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(cfg, "r", encoding="utf-8") as f:
+    data = json.load(f)
+data.setdefault("phase_routing", {})[phase] = model
+with open(cfg + ".tmp", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PY
+   mv "${config_file}.tmp" "$config_file"
    echo "✓ Set phase routing: $phase → $model"
-   cat ~/.claude-octopus/config/providers.json | jq '.phase_routing'
+   python3 - <<'PY'
+import json, os
+cfg=os.path.expanduser("~/.claude-octopus/config/providers.json")
+with open(cfg, "r", encoding="utf-8") as f:
+    print(json.dumps(json.load(f).get("phase_routing", {}), indent=2, ensure_ascii=False))
+PY
    ```
 
 5. **Reset Model** (`reset <provider|phases|all>`):
@@ -266,7 +281,7 @@ When the user invokes `/octo:model-config`, you MUST:
    # For all: reset both providers and phase routing
 
    # Show updated configuration
-   cat ~/.claude-octopus/config/providers.json | jq '.'
+   cat ~/.claude-octopus/config/providers.json
    ```
 
 6. **Provide guidance** on:
@@ -288,4 +303,4 @@ When the user invokes `/octo:model-config`, you MUST:
 - Assuming configuration without reading the file
 - Suggesting edits without using the provided functions
 - Skipping validation of provider names
-- Ignoring errors from jq or function calls
+- Ignoring errors from JSON updates or function calls

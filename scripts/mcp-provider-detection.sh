@@ -127,9 +127,21 @@ EOF
 get_provider_banner() {
     local json_output="$1"
 
-    local codex_status=$(echo "$json_output" | jq -r '.providers.codex.status')
-    local gemini_status=$(echo "$json_output" | jq -r '.providers.gemini.status')
-    local claude_status=$(echo "$json_output" | jq -r '.providers.claude.status')
+    local codex_status
+    local gemini_status
+    local claude_status
+    IFS='|' read -r codex_status gemini_status claude_status < <(
+        python3 - <<'PY' "$json_output"
+import json, sys
+data = json.loads(sys.argv[1])
+providers = data.get("providers", {})
+print(
+    f"{providers.get('codex', {}).get('status', 'unavailable')}|"
+    f"{providers.get('gemini', {}).get('status', 'unavailable')}|"
+    f"{providers.get('claude', {}).get('status', 'available')}"
+)
+PY
+    )
 
     local codex_display="🔴 Codex CLI: "
     local gemini_display="🟡 Gemini CLI: "

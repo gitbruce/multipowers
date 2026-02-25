@@ -334,9 +334,9 @@ else
     fail "Progress tracking degradation missing"
 fi
 
-# Test 5.3: Atomic updates with jq
-if grep -q "atomic_json_update.*jq" "$ORCHESTRATE_SH"; then
-    pass "Atomic JSON updates use atomic_json_update()"
+# Test 5.3: Atomic updates helper present
+if grep -q "atomic_json_update()" "$ORCHESTRATE_SH"; then
+    pass "Atomic JSON update helper present"
 else
     fail "Atomic updates not using helper function"
 fi

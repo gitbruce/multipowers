@@ -28,13 +28,13 @@ When a teammate agent finishes its current work and enters an idle state, this h
 # Read current workflow state
 SESSION_FILE="${HOME}/.claude-octopus/session.json"
 if [[ -f "$SESSION_FILE" ]]; then
-    CURRENT_PHASE=$(jq -r '.phase // empty' "$SESSION_FILE")
-    AGENT_QUEUE=$(jq -r '.agent_queue // [] | length' "$SESSION_FILE")
+    CURRENT_PHASE=$(python3 -r '.phase // empty' "$SESSION_FILE")
+    AGENT_QUEUE=$(python3 -r '.agent_queue // [] | length' "$SESSION_FILE")
 
     if [[ "$AGENT_QUEUE" -gt 0 ]]; then
         # Dequeue next task and assign to idle agent
-        NEXT_TASK=$(jq -r '.agent_queue[0]' "$SESSION_FILE")
-        jq '.agent_queue = .agent_queue[1:]' "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
+        NEXT_TASK=$(python3 -r '.agent_queue[0]' "$SESSION_FILE")
+        python3 '.agent_queue = .agent_queue[1:]' "$SESSION_FILE" > "${SESSION_FILE}.tmp" \
             && mv "${SESSION_FILE}.tmp" "$SESSION_FILE"
     fi
 fi

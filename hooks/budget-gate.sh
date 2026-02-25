@@ -23,14 +23,17 @@ if [[ ! -f "$metrics_file" ]]; then
     exit 0
 fi
 
-# Requires jq for JSON parsing
-if ! command -v jq &>/dev/null; then
-    echo '{"decision": "continue", "reason": "jq not available for budget check"}'
-    exit 0
-fi
-
 # Sum estimated_cost_usd from session metrics
-current_cost=$(jq -r '.totals.estimated_cost_usd // 0' "$metrics_file" 2>/dev/null || echo "0")
+current_cost=$(python3 - "$metrics_file" <<'PY'
+import json, sys
+try:
+    with open(sys.argv[1], "r", encoding="utf-8") as f:
+        d=json.load(f)
+    print(d.get("totals", {}).get("estimated_cost_usd", 0))
+except Exception:
+    print(0)
+PY
+)
 
 # Compare using awk (portable float comparison)
 budget_status=$(awk -v current="$current_cost" -v budget="$OCTOPUS_MAX_COST_USD" '
