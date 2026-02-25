@@ -117,7 +117,7 @@
     "./.claude/commands/plan.md",
     "./.claude/commands/quick.md",
     "./.claude/commands/extract.md",
-    "./.claude/commands/persona.md",
+    "./.claude-plugin/commands/persona.md",
     "./.claude/commands/model-config.md",
     "./.claude/commands/validate.md",
     "./.claude/commands/status.md",

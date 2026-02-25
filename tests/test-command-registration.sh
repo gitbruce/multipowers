@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
 COMMANDS_DIR="$PROJECT_ROOT/.claude/commands"
+PLUGIN_COMMANDS_DIR="$PROJECT_ROOT/.claude-plugin/commands"
 
 # Colors for output
 RED='\033[0;31m'
@@ -62,7 +63,7 @@ fi
 # Test 3: Extract all registered commands
 echo ""
 echo "Test 3: Extracting registered commands..."
-REGISTERED_COMMANDS=$(grep -o '"\./\.claude/commands/[^"]*"' "$PLUGIN_JSON" || true)
+REGISTERED_COMMANDS=$(grep -o '"\./\.[^"]*/commands/[^"]*"' "$PLUGIN_JSON" || true)
 COMMAND_COUNT=$(echo "$REGISTERED_COMMANDS" | grep -c '.md' || echo 0)
 
 if [[ $COMMAND_COUNT -gt 0 ]]; then
@@ -80,12 +81,13 @@ MISSING_FILES=0
 while IFS= read -r cmd_path; do
     # Extract filename from path
     cmd_file=$(echo "$cmd_path" | sed 's/.*\/\([^"]*\)".*/\1/')
-    full_path="$COMMANDS_DIR/$cmd_file"
+    full_path_project="$COMMANDS_DIR/$cmd_file"
+    full_path_plugin="$PLUGIN_COMMANDS_DIR/$cmd_file"
 
-    if [[ -f "$full_path" ]]; then
+    if [[ -f "$full_path_project" || -f "$full_path_plugin" ]]; then
         pass "Command file exists: $cmd_file"
     else
-        fail "Missing command file" "File not found: $full_path"
+        fail "Missing command file" "File not found in $COMMANDS_DIR or $PLUGIN_COMMANDS_DIR: $cmd_file"
         MISSING_FILES=$((MISSING_FILES + 1))
     fi
 done <<< "$REGISTERED_COMMANDS"
@@ -103,8 +105,8 @@ fi
 echo ""
 echo "Test 6: Checking for unregistered command files..."
 UNREGISTERED=0
-if [[ -d "$COMMANDS_DIR" ]]; then
-    for cmd_file in "$COMMANDS_DIR"/*.md; do
+if [[ -d "$COMMANDS_DIR" || -d "$PLUGIN_COMMANDS_DIR" ]]; then
+    for cmd_file in "$COMMANDS_DIR"/*.md "$PLUGIN_COMMANDS_DIR"/*.md; do
         if [[ -f "$cmd_file" ]]; then
             basename=$(basename "$cmd_file")
             if ! echo "$REGISTERED_COMMANDS" | grep -q "$basename"; then
@@ -118,15 +120,15 @@ if [[ -d "$COMMANDS_DIR" ]]; then
         pass "All command files are registered"
     fi
 else
-    fail "Commands directory not found" "Expected: $COMMANDS_DIR"
+    fail "Commands directory not found" "Expected: $COMMANDS_DIR or $PLUGIN_COMMANDS_DIR"
 fi
 
 # Test 7: Check each command file has valid frontmatter
 echo ""
 echo "Test 7: Validating command file frontmatter..."
 INVALID_FRONTMATTER=0
-if [[ -d "$COMMANDS_DIR" ]]; then
-    for cmd_file in "$COMMANDS_DIR"/*.md; do
+if [[ -d "$COMMANDS_DIR" || -d "$PLUGIN_COMMANDS_DIR" ]]; then
+    for cmd_file in "$COMMANDS_DIR"/*.md "$PLUGIN_COMMANDS_DIR"/*.md; do
         if [[ -f "$cmd_file" ]]; then
             basename=$(basename "$cmd_file")
 
@@ -179,8 +181,8 @@ echo "Test 9: Checking for duplicate command names..."
 COMMAND_NAMES=()
 DUPLICATES=0
 
-if [[ -d "$COMMANDS_DIR" ]]; then
-    for cmd_file in "$COMMANDS_DIR"/*.md; do
+if [[ -d "$COMMANDS_DIR" || -d "$PLUGIN_COMMANDS_DIR" ]]; then
+    for cmd_file in "$COMMANDS_DIR"/*.md "$PLUGIN_COMMANDS_DIR"/*.md; do
         if [[ -f "$cmd_file" ]]; then
             cmd_name=$(grep '^command:' "$cmd_file" 2>/dev/null | sed 's/command:[[:space:]]*//' | tr -d '\r' || true)
 

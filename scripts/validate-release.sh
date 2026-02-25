@@ -88,11 +88,11 @@ echo ""
 # ============================================================================
 echo "📝 Checking command registration..."
 
-# Get all .md files in commands directory
-COMMAND_FILES=$(ls "$ROOT_DIR/.claude/commands/"*.md 2>/dev/null | xargs -n1 basename | sort)
+# Get all .md files in command directories
+COMMAND_FILES=$(find "$ROOT_DIR/.claude/commands" "$ROOT_DIR/.claude-plugin/commands" -maxdepth 1 -type f -name '*.md' 2>/dev/null | xargs -n1 basename | sort)
 
-# Get commands registered in plugin.json
-REGISTERED_COMMANDS=$(grep -o '\.claude/commands/[^"]*\.md' "$ROOT_DIR/.claude-plugin/plugin.json" | sed 's|.*\.claude/commands/||' | sort)
+# Get commands registered in plugin.json (supports both command directories)
+REGISTERED_COMMANDS=$(grep -o '\.[^"]*/commands/[^"]*\.md' "$ROOT_DIR/.claude-plugin/plugin.json" | sed 's|.*/commands/||' | sort)
 
 # Find unregistered commands
 for cmd_file in $COMMAND_FILES; do
@@ -125,7 +125,8 @@ echo ""
 echo "📛 Checking command frontmatter format..."
 
 invalid_frontmatter=0
-for cmd_file in "$ROOT_DIR/.claude/commands/"*.md; do
+for cmd_file in "$ROOT_DIR/.claude/commands/"*.md "$ROOT_DIR/.claude-plugin/commands/"*.md; do
+    [[ -f "$cmd_file" ]] || continue
     cmd_name=$(sed -n '2p' "$cmd_file" | grep -o 'command: .*' | sed 's/command: //' || true)
     # Commands should NOT have "octo:" prefix in frontmatter (Claude Code adds it automatically)
     if [[ -n "$cmd_name" ]] && [[ "$cmd_name" == *":"* ]]; then
