@@ -1,25 +1,21 @@
 ---
 command: init
-description: Initialize project conductor context files in the current target project
+description: Initialize project context using exact Conductor setup protocol from custom/config/setup.toml
 ---
 
-# Init - Project Context Bootstrap
+# Init - Conductor Setup (Exact Upstream Protocol)
 
-When user runs `/octo:init`, always execute:
+When user runs `/octo:init`, do not use adapted instructions.
+Load and execute the protocol from:
 
-```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh init
-```
+- `custom/config/setup.toml`
 
-Behavior:
-- Interactive setup wizard (conductor-style)
-- Creates/updates project files under `conductor/`
-- Uses templates maintained in `custom/templates/conductor/`
+Rules:
+- Follow `custom/config/setup.toml` verbatim as the source of truth.
+- Treat this file as the exact upstream Conductor setup logic.
+- Keep generated project context under `conductor/` in the target project.
+- Execute orchestration with explicit target directory:
+  - `\${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh --dir "$PWD" init`
 
-Artifacts:
-- `conductor/product.md`
-- `conductor/product-guidelines.md`
-- `conductor/tech-stack.md`
-- `conductor/workflow.md`
-- `conductor/code_styleguides/`
-- `conductor/tracks.md`
+Reference:
+- Upstream source: `https://github.com/gemini-cli-extensions/conductor/blob/main/commands/conductor/setup.toml`

@@ -12,6 +12,9 @@ Run:
 /octo:init
 ```
 
+Execution anchor:
+- `/octo:init` should pass `--dir "$PWD"` to `scripts/orchestrate.sh` so `conductor/` is created in the current target project, not plugin/cache directories.
+
 This initializes:
 
 - `conductor/product.md`
@@ -40,7 +43,7 @@ Canonical paths:
 - `conductor/tracks.md`
 - `conductor/tracks/`
 
-No active spec-driven writes should go to `.claude/session-plan.md` or `.claude/session-intent.md`.
+Spec-driven outputs are stored at `conductor/tracks/<track_id>/plan.md` and `conductor/tracks/<track_id>/intent.md`.
 
 ## Upstream Borrowing
 

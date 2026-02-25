@@ -200,3 +200,10 @@ If quality gates fail in semi-autonomous mode, you'll be prompted to review.
 - `/octo:define` - Run just the definition phase
 - `/octo:develop` - Run just the development phase
 - `/octo:deliver` - Run just the delivery/review phase
+
+## Conductor Context Guard
+
+- **Saves to files** - Stores plan (`conductor/tracks/<track_id>/plan.md`) and intent contract (`conductor/tracks/<track_id>/intent.md`).
+- Before executing this spec-driven command, check whether required context exists under `conductor/` (`product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`).
+- If context is missing, run `/octo:init` first.
+- Continue only after context is present.

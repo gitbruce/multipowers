@@ -197,10 +197,12 @@ fi
 echo ""
 echo "Test 15: Checking for intent contract integration..."
 if grep -q "session-intent\.md" "$PLAN_FILE" || \
+   grep -q "conductor/tracks/<track_id>/intent\.md" "$PLAN_FILE" || \
+   grep -q "conductor/tracks/.*/intent\.md" "$PLAN_FILE" || \
    grep -qi "intent contract" "$PLAN_FILE"; then
     pass "References intent contract system"
 else
-    fail "Missing intent contract integration" "Should reference session-intent.md or intent contract"
+    fail "Missing intent contract integration" "Should reference conductor track intent.md path or intent contract"
 fi
 
 # Test 16: Check for provider availability check

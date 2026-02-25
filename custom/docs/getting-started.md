@@ -28,6 +28,9 @@ Run once per target project:
 /octo:init
 ```
 
+Execution anchor:
+- `/octo:init` should run with `--dir "$PWD"` so `conductor/` is created in your current target project directory.
+
 This generates `conductor/` context files from `custom/templates/conductor/`.
 
 Spec-driven commands auto-check context and auto-run init when missing:

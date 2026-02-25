@@ -10,8 +10,32 @@ PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
 # Keep debug flag defined even when nounset is enabled by sourced scripts.
 OCTOPUS_DEBUG="${OCTOPUS_DEBUG:-false}"
 
+# Resolve project root for target repo (not plugin/cache path)
+resolve_project_root() {
+    local fallback="$PWD"
+    local candidate=""
+
+    for candidate in \
+        "${OCTO_TARGET_PROJECT_DIR:-}" \
+        "${CLAUDE_PROJECT_DIR:-}" \
+        "${CLAUDE_WORKING_DIR:-}" \
+        "${CLAUDE_CWD:-}" \
+        "$fallback"; do
+        [[ -n "$candidate" ]] || continue
+        [[ -d "$candidate" ]] || continue
+        if [[ "$candidate" == "$PLUGIN_DIR"* ]] || [[ "$candidate" == "$HOME/.claude/plugins/cache/"* ]]; then
+            continue
+        fi
+        (cd "$candidate" && pwd -P)
+        return 0
+    done
+
+    # Last resort: current working directory
+    (cd "$fallback" && pwd -P)
+}
+
 # Workspace location - uses home directory for global installation
-PROJECT_ROOT="${PWD}"
+PROJECT_ROOT="$(resolve_project_root)"
 
 # Source state manager utilities
 source "${SCRIPT_DIR}/state-manager.sh"
@@ -5693,10 +5717,36 @@ create_conductor_plan() {
     local track_dir="${croot}/tracks"
     mkdir -p "$track_dir"
 
-    local slug
-    slug="$(echo "$prompt" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\\{2,\\}/-/g' | sed 's/^-//; s/-$//' | cut -c1-48)"
-    [[ -z "$slug" ]] && slug="plan"
-    local plan_file="${track_dir}/$(date +%Y-%m-%d)-plan-${slug}.md"
+    local shortname base_track_id track_id track_path plan_file intent_file metadata_file index_file
+    shortname="$(echo "$prompt" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\\{2,\\}/-/g' | sed 's/^-//; s/-$//' | cut -c1-24)"
+    [[ -z "$shortname" ]] && shortname="track"
+    base_track_id="${shortname}_$(date +%Y%m%d)"
+    track_id="$base_track_id"
+    track_path="${track_dir}/${track_id}"
+    local n=2
+    while [[ -e "$track_path" ]]; do
+        track_id="${base_track_id}_${n}"
+        track_path="${track_dir}/${track_id}"
+        ((n++))
+    done
+    mkdir -p "$track_path"
+
+    plan_file="${track_path}/plan.md"
+    intent_file="${track_path}/intent.md"
+    metadata_file="${track_path}/metadata.json"
+    index_file="${track_path}/index.md"
+
+    cat > "$intent_file" <<EOF
+# Intent Contract
+
+## Prompt
+$prompt
+
+## Success Criteria
+- [ ] Requirements and scope validated against conductor context
+- [ ] Plan reviewed before execution
+- [ ] Execution results validated against intent
+EOF
 
     cat > "$plan_file" <<EOF
 # Spec Plan
@@ -5719,11 +5769,33 @@ $(if type load_conductor_context_for_prompt &>/dev/null; then load_conductor_con
 - [ ] Execution started
 
 ## Validation
-- [ ] No writes to .claude/session-plan.md
-- [ ] No writes to .claude/session-intent.md
+- [ ] Plan file exists at conductor/tracks/${track_id}/plan.md
+- [ ] Intent file exists at conductor/tracks/${track_id}/intent.md
+- [ ] Intent contract exists at ${intent_file}
 EOF
 
+    cat > "$metadata_file" <<EOF
+{
+  "track_id": "${track_id}",
+  "type": "plan",
+  "status": "new",
+  "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "updated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "description": "${prompt}"
+}
+EOF
+
+    cat > "$index_file" <<EOF
+# Track ${track_id} Context
+
+- [Plan](./plan.md)
+- [Intent](./intent.md)
+- [Metadata](./metadata.json)
+EOF
+
+    echo "✅ Track created: ${track_id}"
     echo "✅ Plan saved to ${plan_file}"
+    echo "✅ Intent saved to ${intent_file}"
 }
 
 # Deprecated steps from old interactive wizard - keeping helper functions for octopus-configure

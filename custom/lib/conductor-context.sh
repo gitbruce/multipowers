@@ -53,17 +53,32 @@ slugify_for_track() {
 ensure_conductor_track_file() {
   local cmd="$1"
   local prompt="${2:-}"
-  local croot track_dir ts slug file
+  local croot track_dir short base_track_id track_id track_path file n
   croot="$(conductor_root_dir)"
   track_dir="$croot/tracks"
   mkdir -p "$track_dir"
-  ts="$(date +%Y-%m-%d)"
-  slug="$(slugify_for_track "${cmd}-${prompt:-run}")"
-  file="$track_dir/${ts}-${slug}.md"
+
+  short="$(slugify_for_track "${cmd}-${prompt:-run}")"
+  short="${short:0:24}"
+  [[ -z "$short" ]] && short="track"
+  base_track_id="${short}_$(date +%Y%m%d)"
+  track_id="$base_track_id"
+  track_path="$track_dir/$track_id"
+  n=2
+  while [[ -e "$track_path" ]]; do
+    track_id="${base_track_id}_${n}"
+    track_path="$track_dir/$track_id"
+    ((n++))
+  done
+  mkdir -p "$track_path"
+  file="$track_path/tracking.md"
 
   if [[ ! -f "$file" ]]; then
     cat > "$file" <<EOF
-# Track: ${cmd}
+# Track: ${track_id}
+
+- command: ${cmd}
+- prompt: ${prompt}
 
 - [x] Context check started
 - [ ] Context check passed

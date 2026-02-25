@@ -120,15 +120,15 @@
 - Modify: `custom/commands/plan.md` (if override is required)
 
 **Subtasks:**
-- [x] T4.1 Remove `.claude/session-plan.md` target from plan command
-- [x] T4.2 Remove `.claude/session-intent.md` target from intent contract flow
+- [x] T4.1 Route plan output to `conductor/tracks/<track_id>/plan.md`
+- [x] T4.2 Route intent contract to `conductor/tracks/<track_id>/intent.md`
 - [x] T4.3 Define track file naming in `conductor/tracks/`
 - [x] T4.4 Ensure track file includes checkbox status blocks
 - [x] T4.5 Keep upstream command/skill file edits to minimum; prefer override through `custom/commands/*`
 
 **Verification:**
 - [x] `/octo:plan` writes only under `conductor/tracks/`
-- [x] `rg -n "\.claude/session-(plan|intent)\.md" .claude scripts` returns no active write path
+- [x] `rg -n "conductor/tracks/.*/(plan|intent)\.md" scripts` confirms conductor track write paths
 
 ---
 
@@ -263,7 +263,7 @@
 - Restore prior plan behavior only if conductor flow cannot be stabilized.
 
 ## Done Criteria
-- [x] Spec-driven `/octo` commands never write `.claude/session-plan.md` or `.claude/session-intent.md`.
+- [x] Spec-driven `/octo` commands write plan/intent under `conductor/tracks/<track_id>/`.
 - [x] Missing conductor context triggers interactive `/octo:init` automatically.
 - [x] Spec-driven commands read `conductor/*.md` before execution.
 - [x] Track files in `conductor/tracks/` contain checkbox status and are updated during run.

@@ -130,14 +130,16 @@ else
     fail "Missing Step 2 section" "Should have 'Write Intent Contract File' step"
 fi
 
-# Test 8: Check for session-intent.md file path
+# Test 8: Check for intent contract file path
 echo ""
-echo "Test 8: Checking for session-intent.md file path..."
+echo "Test 8: Checking for intent contract file path..."
 if grep -q "session-intent\.md" "$SKILL_FILE" || \
+   grep -q "conductor/tracks/<track_id>/intent\.md" "$SKILL_FILE" || \
+   grep -q "conductor/tracks/.*/intent\.md" "$SKILL_FILE" || \
    grep -q "\.claude/session-intent" "$SKILL_FILE"; then
-    pass "References session-intent.md file path"
+    pass "References intent contract file path"
 else
-    fail "Missing session-intent.md reference" "Should specify .claude/session-intent.md as the contract file"
+    fail "Missing intent path reference" "Should specify conductor track intent.md as the contract file"
 fi
 
 # Test 9: Check for Step 3 - Reference During Execution

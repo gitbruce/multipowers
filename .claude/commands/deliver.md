@@ -8,45 +8,49 @@ aliases:
 
 # Deliver - Delivery Phase ✅
 
-**Part of Double Diamond: DELIVER** (convergent thinking)
+## 🤖 INSTRUCTIONS FOR CLAUDE
 
-Review, validate, and test using external CLI providers.
+When the user invokes this command (e.g., `/octo:deliver <arguments>`):
 
-## Usage
-
-```bash
-/octo:deliver        # Delivery phase
+**✓ CORRECT - Use the Skill tool:**
+```
+Skill(skill: "octo:deliver", args: "<user's arguments>")
 ```
 
-## Natural Language Examples
+**✗ INCORRECT - Do NOT use Task tool:**
+```
+Task(subagent_type: "octo:deliver", ...)  ❌ Wrong! This is a skill, not an agent type
+```
 
-Just describe what you want to validate:
+**Why:** This command loads the `flow-deliver` skill. Skills use the `Skill` tool, not `Task`.
 
+---
+
+**Auto-loads the `flow-deliver` skill for the validation/review phase.**
+
+## Quick Usage
+
+Just use natural language:
 ```
 "Review the authentication code for security"
 "Validate the caching implementation"
 "Test the notification system"
-"Quality check the API endpoints"
 ```
 
-## What This Phase Does
+## What Is Deliver?
 
-The **deliver** phase validates and reviews implementations using external CLI providers:
+The **Deliver** phase of the Double Diamond methodology (convergent thinking):
+- Validate and review implementations using external CLI providers
+- Security audit and edge case analysis
+- Final quality synthesis
 
-1. **🔴 Codex CLI** - Code quality, best practices, technical correctness
-2. **🟡 Gemini CLI** - Security audit, edge cases, user experience
-3. **🔵 Claude (You)** - Synthesis and final validation report
+## What You Get
 
-This is the **convergent** phase - we ensure the solution meets quality standards before delivery.
-
-## Quality Checks
-
-The deliver phase includes:
-- **Security audit** - OWASP compliance, vulnerability detection
-- **Code quality** - Best practices, maintainability, readability
-- **Edge cases** - Error handling, boundary conditions
-- **Performance** - Efficiency, scalability
-- **User experience** - API design, error messages, documentation
+- Multi-AI validation (Claude + Gemini + Codex)
+- Security audit (OWASP compliance, vulnerability detection)
+- Code quality review
+- Edge case analysis
+- Performance evaluation
 
 ## When to Use Deliver
 
@@ -55,8 +59,6 @@ Use deliver when you need:
 - **Validation**: "Validate Z"
 - **Testing**: "Test the implementation"
 - **Quality Check**: "Check if X works correctly"
-- **Verification**: "Verify the implementation of Y"
-- **Issue Finding**: "Find issues in Z"
 
 **Don't use deliver for:**
 - Implementation tasks (use develop phase)
@@ -69,6 +71,13 @@ Deliver is phase 4 of 4 in the embrace (full) workflow:
 1. Discover
 2. Define
 3. Develop
-4. **Deliver** ← You are here
+4. **Deliver** <- You are here
 
 To run all 4 phases: `/octo:embrace`
+
+## Conductor Context Guard
+
+- **Saves to files** - Stores plan (`conductor/tracks/<track_id>/plan.md`) and intent contract (`conductor/tracks/<track_id>/intent.md`).
+- Before executing this spec-driven command, check whether required context exists under `conductor/` (`product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`).
+- If context is missing, run `/octo:init` first.
+- Continue only after context is present.
