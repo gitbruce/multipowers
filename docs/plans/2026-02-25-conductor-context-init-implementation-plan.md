@@ -244,8 +244,8 @@
 - [x] T10.1 Run syntax checks on changed shell scripts
 - [x] T10.2 Run targeted unit/integration tests
 - [x] T10.3 Manual sanity pass for `/octo:init` and `/octo:plan`
-- [ ] T10.4 Commit in logical slices (core guard/init, then docs/tests)
-- [ ] T10.5 Push to `origin/multipowers`
+- [x] T10.4 Commit in logical slices (core guard/init, then docs/tests)
+- [x] T10.5 Push to `origin/multipowers`
 - [x] T10.6 Verify customization impact is minimized in upstream-heavy paths
 
 **Verification Commands:**
