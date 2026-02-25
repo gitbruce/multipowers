@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.5",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.5) Fixes /octo:init non-interactive bootstrap for spec-driven guard so missing conductor context is generated before planning. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.6",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.6) Routes /octo:plan through orchestrate.sh guard path so missing conductor context always triggers /octo:init before planning. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },
