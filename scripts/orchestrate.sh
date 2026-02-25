@@ -4596,7 +4596,7 @@ run_persona_prompt() {
     # If a persona is configured to use claude*, prefer fallback_cli, then codex/gemini.
     local selected_cli="$cli_type"
     local in_claude_code="false"
-    if [[ -n "${CLAUDE_SESSION_ID:-}" || -n "${CLAUDE_CODE_SESSION:-}" || -n "${CLAUDECODE:-}" ]]; then
+    if [[ -n "${CLAUDE_SESSION_ID:-}" || -n "${CLAUDE_CODE_SESSION:-}" || -n "${CLAUDECODE:-}" || -n "${CLAUDE_CODE_TASK_ID:-}" || -n "${CLAUDE_TASK_ID:-}" || -n "${CLAUDE_CODE_CONTROL_PIPE:-}" || -n "${CLAUDE_CODE_CONTROL:-}" ]]; then
         in_claude_code="true"
     fi
     if [[ "$in_claude_code" == "true" && "$cli_type" == claude* ]]; then
@@ -4621,6 +4621,8 @@ run_persona_prompt() {
         echo -e "${YELLOW}Note:${NC} Nested claude sessions are blocked in Claude Code; using external provider."
     fi
     echo -e "${CYAN}Using:${NC} ${selected_cli}:${model}"
+    echo -e "${CYAN}Tool:${NC} ${selected_cli}"
+    echo -e "${CYAN}Model ID:${NC} ${model}"
     echo ""
 
     local persona_context
@@ -15071,10 +15073,18 @@ case "$COMMAND" in
             list_available_personas
             exit 0
         fi
-        persona_name="$1"
-        shift
-        [[ $# -lt 1 ]] && { log ERROR "Usage: persona <name> <prompt>"; exit 1; }
-        run_persona_prompt "$persona_name" "$*"
+        if [[ $# -eq 1 && "$1" == *" "* ]]; then
+            # Accept combined-args invocations, e.g. persona "docs-architect hi"
+            persona_name="${1%% *}"
+            persona_prompt="${1#* }"
+            [[ -z "$persona_name" || -z "$persona_prompt" ]] && { log ERROR "Usage: persona <name> <prompt>"; exit 1; }
+            run_persona_prompt "$persona_name" "$persona_prompt"
+        else
+            persona_name="$1"
+            shift
+            [[ $# -lt 1 ]] && { log ERROR "Usage: persona <name> <prompt>"; exit 1; }
+            run_persona_prompt "$persona_name" "$*"
+        fi
         ;;
     auto)
         [[ $# -lt 1 ]] && { log ERROR "Usage: auto <prompt>"; exit 1; }
