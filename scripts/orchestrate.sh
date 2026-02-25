@@ -37,6 +37,24 @@ resolve_project_root() {
 # Workspace location - uses home directory for global installation
 PROJECT_ROOT="$(resolve_project_root)"
 
+is_dangerous_project_root() {
+    local root="${1:-}"
+    [[ -z "$root" ]] && return 0
+    [[ "$root" == "$PLUGIN_DIR"* ]] && return 0
+    [[ "$root" == "$HOME/.claude/plugins/cache/"* ]] && return 0
+    return 1
+}
+
+command_writes_project_context() {
+    local cmd="${1:-}"
+    case "$cmd" in
+        init|plan|discover|research|probe|define|grasp|develop|tangle|deliver|ink|embrace|review|debate)
+            return 0 ;;
+        *)
+            return 1 ;;
+    esac
+}
+
 # Source state manager utilities
 source "${SCRIPT_DIR}/state-manager.sh"
 
@@ -105,6 +123,11 @@ if [[ -n "${CLAUDE_OCTOPUS_WORKSPACE:-}" ]]; then
 else
     WORKSPACE_DIR="${HOME}/.claude-octopus"
 fi
+
+# Ensure state manager writes under validated workspace, never relative to CWD.
+STATE_DIR="$WORKSPACE_DIR"
+STATE_FILE="$STATE_DIR/state.json"
+BACKUP_FILE="$STATE_DIR/state.json.backup"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLAUDE CODE INTEGRATION: Task Management (v7.16.0)
@@ -15254,6 +15277,14 @@ fi
 # Main command dispatch
 COMMAND="${1:-help}"
 shift || true
+
+# Safety guard: never write project-context artifacts into plugin/cache paths.
+if command_writes_project_context "$COMMAND" && is_dangerous_project_root "$PROJECT_ROOT"; then
+    echo "ERROR: Refusing to run '$COMMAND' with PROJECT_ROOT='$PROJECT_ROOT' (plugin/cache path)."
+    echo "Run from your target project root or pass an explicit directory:"
+    echo "  ./scripts/orchestrate.sh --dir /path/to/target-project $COMMAND ..."
+    exit 1
+fi
 
 # Conductor context guard for spec-driven commands.
 OCTO_SPEC_TRACK_FILE=""

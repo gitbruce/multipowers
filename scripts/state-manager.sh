@@ -5,7 +5,12 @@
 set -euo pipefail
 
 # Configuration
-STATE_DIR=".claude-octopus"
+# Never default to relative CWD paths; this avoids writing inside plugin/tool repos.
+if [[ -n "${CLAUDE_OCTOPUS_WORKSPACE:-}" && "${CLAUDE_OCTOPUS_WORKSPACE:0:1}" == "/" ]]; then
+    STATE_DIR="${CLAUDE_OCTOPUS_WORKSPACE}"
+else
+    STATE_DIR="${HOME}/.claude-octopus"
+fi
 STATE_FILE="$STATE_DIR/state.json"
 BACKUP_FILE="$STATE_DIR/state.json.backup"
 
