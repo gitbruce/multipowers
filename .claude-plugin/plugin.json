@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.2",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.2) Runtime persona lane reporting and fallback behavior improved for reasoning/large-context/spark codex lanes. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.3",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.3) Adds /octo:init conductor-style project context bootstrapping, spec-driven auto-init guard, and conductor/tracks checkbox tracking. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },
@@ -94,6 +94,7 @@
     "./.claude/commands/prd-score.md",
     "./.claude/commands/sys-setup.md",
     "./.claude/commands/setup.md",
+    "./.claude/commands/init.md",
     "./.claude/commands/km.md",
     "./.claude/commands/dev.md",
     "./.claude/commands/debate.md",

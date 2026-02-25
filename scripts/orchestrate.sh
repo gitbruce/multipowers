@@ -25,6 +25,11 @@ source "${SCRIPT_DIR}/provider-router.sh"
 # Source agent teams bridge (v8.7.0)
 source "${SCRIPT_DIR}/agent-teams-bridge.sh"
 
+# Source custom overlay loader when present (multipowers overlay pattern).
+if [[ -f "${PLUGIN_DIR}/custom/lib/overlay-loader.sh" ]]; then
+    source "${PLUGIN_DIR}/custom/lib/overlay-loader.sh"
+fi
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECURITY: Path validation for workspace directory
 # Prevents path traversal attacks and restricts to safe locations
@@ -1439,6 +1444,20 @@ configure_provider_proxy() {
         codex*|gemini*) ;;
         *) return 0 ;;
     esac
+
+    # Custom overlay proxy routing takes precedence when configured.
+    if type custom_proxy_url_for_provider &>/dev/null; then
+        local custom_proxy_url=""
+        custom_proxy_url=$(custom_proxy_url_for_provider "$agent_type" 2>/dev/null || true)
+        if [[ -n "$custom_proxy_url" ]]; then
+            export http_proxy="$custom_proxy_url"
+            export https_proxy="$custom_proxy_url"
+            export HTTP_PROXY="$custom_proxy_url"
+            export HTTPS_PROXY="$custom_proxy_url"
+            log "DEBUG" "Custom proxy enabled for $agent_type via $custom_proxy_url"
+            return 0
+        fi
+    fi
 
     local config_file="${HOME}/.claude-octopus/config/providers.json"
     local proxy_enabled="true"
@@ -5530,6 +5549,164 @@ init_interactive() {
     echo -e "  Then run: ${GREEN}./scripts/orchestrate.sh detect-providers${NC}"
     echo ""
     exit 1
+}
+
+# Conductor-style project context setup wizard for /octo:init.
+run_octo_init_interactive() {
+    local croot="${PROJECT_ROOT}/conductor"
+    local templates_root="${PLUGIN_DIR}/custom/templates/conductor"
+    local track_dir="${croot}/tracks"
+
+    mkdir -p "$croot" "$croot/code_styleguides" "$track_dir"
+
+    local project_name product_summary target_users primary_goal non_goals constraints
+    local runtime framework database deployment workflow_flow
+
+    echo ""
+    echo "🧭 Claude Octopus Project Context Setup (/octo:init)"
+    echo "Target: $croot"
+    echo ""
+
+    read -r -p "Project name [$(basename "$PROJECT_ROOT")]: " project_name
+    project_name="${project_name:-$(basename "$PROJECT_ROOT")}"
+    read -r -p "Product summary: " product_summary
+    product_summary="${product_summary:-Project context initialized by /octo:init.}"
+    read -r -p "Target users: " target_users
+    target_users="${target_users:-Engineering team and stakeholders.}"
+    read -r -p "Primary goal: " primary_goal
+    primary_goal="${primary_goal:-Deliver value incrementally with clear quality gates.}"
+    read -r -p "Non-goals (comma-separated): " non_goals
+    non_goals="${non_goals:-Undefined scope expansion without approval.}"
+    read -r -p "Constraints: " constraints
+    constraints="${constraints:-Time, architecture, and team capacity constraints.}"
+    read -r -p "Runtime (e.g. node, python, go): " runtime
+    runtime="${runtime:-unknown}"
+    read -r -p "Framework: " framework
+    framework="${framework:-unknown}"
+    read -r -p "Database: " database
+    database="${database:-unknown}"
+    read -r -p "Deployment target: " deployment
+    deployment="${deployment:-unknown}"
+    read -r -p "Workflow flow description: " workflow_flow
+    workflow_flow="${workflow_flow:-Spec -> plan -> implementation -> validation -> delivery.}"
+
+    write_from_template() {
+        local src="$1"
+        local dst="$2"
+        local content=""
+        content="$(cat "$src")"
+        content="${content//\{\{PROJECT_NAME\}\}/$project_name}"
+        content="${content//\{\{PRODUCT_SUMMARY\}\}/$product_summary}"
+        content="${content//\{\{TARGET_USERS\}\}/$target_users}"
+        content="${content//\{\{PRIMARY_GOAL\}\}/$primary_goal}"
+        content="${content//\{\{NON_GOALS\}\}/$non_goals}"
+        content="${content//\{\{CONSTRAINTS\}\}/$constraints}"
+        content="${content//\{\{RUNTIME\}\}/$runtime}"
+        content="${content//\{\{FRAMEWORK\}\}/$framework}"
+        content="${content//\{\{DATABASE\}\}/$database}"
+        content="${content//\{\{DEPLOYMENT\}\}/$deployment}"
+        content="${content//\{\{WORKFLOW_FLOW\}\}/$workflow_flow}"
+
+        if [[ -f "$dst" ]]; then
+            local choice=""
+            read -r -p "File exists: ${dst}. [k]eep/[u]pdate/[r]eplace? " choice
+            case "${choice,,}" in
+                k) return 0 ;;
+                u|r) ;;
+                *) return 0 ;;
+            esac
+        fi
+
+        printf "%s\n" "$content" > "$dst"
+    }
+
+    if [[ -d "$templates_root" ]]; then
+        write_from_template "$templates_root/product.md" "$croot/product.md"
+        write_from_template "$templates_root/product-guidelines.md" "$croot/product-guidelines.md"
+        write_from_template "$templates_root/tech-stack.md" "$croot/tech-stack.md"
+        write_from_template "$templates_root/workflow.md" "$croot/workflow.md"
+        write_from_template "$templates_root/tracks.md" "$croot/tracks.md"
+        cp "$templates_root/code_styleguides/README.md" "$croot/code_styleguides/README.md" 2>/dev/null || true
+    else
+        # Fallback templates to avoid hard dependency on template path.
+        cat > "$croot/product.md" <<EOF
+# Product
+Name: $project_name
+## Summary
+$product_summary
+## Users
+$target_users
+EOF
+        cat > "$croot/product-guidelines.md" <<EOF
+# Product Guidelines
+- Goal: $primary_goal
+- Non-goals: $non_goals
+- Constraints: $constraints
+EOF
+        cat > "$croot/tech-stack.md" <<EOF
+# Tech Stack
+- Runtime: $runtime
+- Framework: $framework
+- Database: $database
+- Deployment: $deployment
+EOF
+        cat > "$croot/workflow.md" <<EOF
+# Workflow
+$workflow_flow
+EOF
+        cat > "$croot/tracks.md" <<'EOF'
+# Tracks Index
+- [ ] Add first track under conductor/tracks/
+EOF
+        cat > "$croot/code_styleguides/README.md" <<'EOF'
+# Code Styleguides
+Add language/framework-specific style guides here.
+EOF
+    fi
+
+    echo ""
+    echo "✅ Conductor context initialized at: $croot"
+    echo "✅ Canonical track directory: $track_dir"
+    echo ""
+}
+
+create_conductor_plan() {
+    local prompt="$*"
+    local croot="${PROJECT_ROOT}/conductor"
+    local track_dir="${croot}/tracks"
+    mkdir -p "$track_dir"
+
+    local slug
+    slug="$(echo "$prompt" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\\{2,\\}/-/g' | sed 's/^-//; s/-$//' | cut -c1-48)"
+    [[ -z "$slug" ]] && slug="plan"
+    local plan_file="${track_dir}/$(date +%Y-%m-%d)-plan-${slug}.md"
+
+    cat > "$plan_file" <<EOF
+# Spec Plan
+
+## Prompt
+$prompt
+
+## Context Snapshot
+$(if type load_conductor_context_for_prompt &>/dev/null; then load_conductor_context_for_prompt; fi)
+
+## Phases
+- [ ] Discover
+- [ ] Define
+- [ ] Develop
+- [ ] Deliver
+
+## Tasks
+- [ ] Scope confirmed from conductor context
+- [ ] Plan reviewed
+- [ ] Execution started
+
+## Validation
+- [ ] No writes to .claude/session-plan.md
+- [ ] No writes to .claude/session-intent.md
+EOF
+
+    echo "✅ Plan saved to ${plan_file}"
 }
 
 # Deprecated steps from old interactive wizard - keeping helper functions for octopus-configure
@@ -14989,6 +15166,84 @@ fi
 COMMAND="${1:-help}"
 shift || true
 
+# Conductor context guard for spec-driven commands.
+OCTO_SPEC_TRACK_FILE=""
+OCTO_SPEC_COMMAND_READY="false"
+
+is_spec_command_local() {
+    local cmd="$1"
+    if type is_spec_driven_command &>/dev/null; then
+        is_spec_driven_command "$cmd"
+        return $?
+    fi
+    case "$cmd" in
+        discover|research|probe|define|grasp|develop|tangle|deliver|ink|embrace|review|debate|plan)
+            return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+ensure_spec_command_context() {
+    local cmd="$1"
+    local prompt="${2:-}"
+
+    is_spec_command_local "$cmd" || return 0
+
+    if type ensure_conductor_track_file &>/dev/null; then
+        OCTO_SPEC_TRACK_FILE="$(ensure_conductor_track_file "$cmd" "$prompt" 2>/dev/null || true)"
+    fi
+
+    if [[ -n "$OCTO_SPEC_TRACK_FILE" ]] && type mark_track_checkbox &>/dev/null; then
+        mark_track_checkbox "$OCTO_SPEC_TRACK_FILE" "Context check started"
+    fi
+
+    local ready=0
+    if type conductor_context_complete &>/dev/null; then
+        conductor_context_complete && ready=1
+    else
+        ready=1
+    fi
+
+    if [[ $ready -eq 0 ]]; then
+        echo ""
+        echo "⚠️  Missing project conductor context for spec-driven command '$cmd'."
+        echo "Running /octo:init setup now..."
+        run_octo_init_interactive
+        if type conductor_context_complete &>/dev/null; then
+            conductor_context_complete || { log ERROR "Conductor context remains incomplete after /octo:init"; exit 1; }
+        fi
+    fi
+
+    OCTO_SPEC_COMMAND_READY="true"
+    if [[ -n "$OCTO_SPEC_TRACK_FILE" ]] && type mark_track_checkbox &>/dev/null; then
+        mark_track_checkbox "$OCTO_SPEC_TRACK_FILE" "Context check passed"
+        mark_track_checkbox "$OCTO_SPEC_TRACK_FILE" "Command execution started"
+    fi
+}
+
+spec_prompt() {
+    local raw="$1"
+    if [[ "$OCTO_SPEC_COMMAND_READY" == "true" ]] && type apply_conductor_context_to_prompt &>/dev/null; then
+        apply_conductor_context_to_prompt "$raw"
+    else
+        echo "$raw"
+    fi
+}
+
+finalize_spec_tracking() {
+    local rc="${1:-0}"
+    if [[ -n "$OCTO_SPEC_TRACK_FILE" && -f "$OCTO_SPEC_TRACK_FILE" ]] && type mark_track_checkbox &>/dev/null; then
+        if [[ "$rc" == "0" ]]; then
+            mark_track_checkbox "$OCTO_SPEC_TRACK_FILE" "Command execution finished"
+            mark_track_checkbox "$OCTO_SPEC_TRACK_FILE" "Validation complete"
+        fi
+    fi
+}
+
+trap 'finalize_spec_tracking $?' EXIT
+
+ensure_spec_command_context "$COMMAND" "$*"
+
 # Check for first-run on commands that need setup (skip for help/setup/preflight)
 if [[ "$COMMAND" != "help" && "$COMMAND" != "setup" && "$COMMAND" != "preflight" && "$COMMAND" != "-h" && "$COMMAND" != "--help" ]]; then
     check_first_run || true  # Show hint but don't block
@@ -15024,7 +15279,7 @@ case "$COMMAND" in
             echo "Example: $(basename "$0") discover \"What are best practices for API caching?\""
             exit 1
         fi
-        probe_discover "$*"
+        probe_discover "$(spec_prompt "$*")"
         ;;
     define|grasp)
         # Phase 2: Define - Consensus building
@@ -15039,7 +15294,7 @@ case "$COMMAND" in
             echo "Example: $(basename "$0") define \"implement caching layer\""
             exit 1
         fi
-        grasp_define "$1" "${2:-}"
+        grasp_define "$(spec_prompt "$1")" "${2:-}"
         ;;
     develop|tangle)
         # Phase 3: Develop - Implementation with quality gates
@@ -15054,7 +15309,7 @@ case "$COMMAND" in
             echo "Example: $(basename "$0") develop \"build the caching API\""
             exit 1
         fi
-        tangle_develop "$1" "${2:-}"
+        tangle_develop "$(spec_prompt "$1")" "${2:-}"
         ;;
     deliver|ink)
         # Phase 4: Deliver - Final validation
@@ -15069,7 +15324,7 @@ case "$COMMAND" in
             echo "Example: $(basename "$0") deliver \"finalize and ship\""
             exit 1
         fi
-        ink_deliver "$1" "${2:-}"
+        ink_deliver "$(spec_prompt "$1")" "${2:-}"
         ;;
     embrace)
         # Full 4-phase Double Diamond workflow
@@ -15084,7 +15339,15 @@ case "$COMMAND" in
             echo "Example: $(basename "$0") embrace \"implement user authentication\""
             exit 1
         fi
-        embrace_full_workflow "$*"
+        embrace_full_workflow "$(spec_prompt "$*")"
+        ;;
+    plan)
+        if [[ $# -lt 1 ]]; then
+            log ERROR "Missing prompt for plan command"
+            echo "Usage: $(basename "$0") plan <prompt>"
+            exit 1
+        fi
+        create_conductor_plan "$*"
         ;;
     # ═══════════════════════════════════════════════════════════════════════════
     # CROSSFIRE COMMANDS (Adversarial Cross-Model Review)
@@ -15165,10 +15428,12 @@ case "$COMMAND" in
     # CLASSIC COMMANDS
     # ═══════════════════════════════════════════════════════════════════════════
     init)
-        if [[ "${1:-}" == "--interactive" ]] || [[ "${1:-}" == "-i" ]]; then
+        if [[ "${1:-}" == "--workspace" ]]; then
+            init_workspace
+        elif [[ "${1:-}" == "--interactive" ]] || [[ "${1:-}" == "-i" ]]; then
             init_interactive
         else
-            init_workspace
+            run_octo_init_interactive
         fi
         ;;
     config|configure|preferences)

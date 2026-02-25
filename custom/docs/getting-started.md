@@ -1,8 +1,39 @@
 # Getting Started
 
+## Branch Discipline (Required)
+
+1. Keep `main` synced to `upstream/main` only.
+2. Do all custom development on `multipowers`.
+3. Never merge `multipowers` back into `main`.
+4. Periodically merge `main` into `multipowers` and reapply overlay.
+
+Quick checks:
+
+```bash
+git switch main
+git fetch upstream
+git merge --ff-only upstream/main
+git switch multipowers
+```
+
 1. Run `./custom/scripts/apply-custom-overlay.sh`
 2. Verify commands: `./scripts/orchestrate.sh persona list`
 3. Review customization docs in `customizations/`
+
+## Initialize Project Context
+
+Run once per target project:
+
+```text
+/octo:init
+```
+
+This generates `conductor/` context files from `custom/templates/conductor/`.
+
+Spec-driven commands auto-check context and auto-run init when missing:
+- `/octo:plan`
+- `/octo:discover`, `/octo:define`, `/octo:develop`, `/octo:deliver`
+- `/octo:embrace`, `/octo:review`, `/octo:debate`, `/octo:research`
 
 ## Local Marketplace Lifecycle
 
@@ -17,13 +48,13 @@ From Claude Code chat:
 ### Install plugin from that marketplace
 
 ```text
-/plugin install claude-octopus@nyldn-plugins --scope user
+/plugin install octo@nyldn-plugins --scope user
 ```
 
 ### Uninstall plugin
 
 ```text
-/plugin uninstall claude-octopus@nyldn-plugins --scope user
+/plugin uninstall octo@nyldn-plugins --scope user
 ```
 
 ### Remove local marketplace
@@ -45,8 +76,8 @@ Claude may run a cached plugin version under `~/.claude/plugins/cache/...`, not 
 Refresh user-scope install:
 
 ```text
-/plugin uninstall claude-octopus@nyldn-plugins --scope user
-/plugin install claude-octopus@nyldn-plugins --scope user
+/plugin uninstall octo@nyldn-plugins --scope user
+/plugin install octo@nyldn-plugins --scope user
 ```
 
 Then verify:

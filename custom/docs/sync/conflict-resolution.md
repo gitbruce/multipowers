@@ -1,5 +1,10 @@
 # Conflict Resolution Runbooks
 
+## First Rule
+
+- Keep `main` unchanged except syncing from `upstream/main`.
+- Resolve customization conflicts only in `multipowers`.
+
 ## Resolve Rebase Path
 1. Check status:
 ```bash
@@ -45,3 +50,11 @@ Expected outcomes:
 - no unresolved merge markers
 - overlay apply succeeds
 - persona list returns configured personas
+
+## Conductor Path Canonicalization
+
+Use only:
+- `conductor/tracks.md`
+- `conductor/tracks/`
+
+Avoid legacy or typo variants like `conductor/track/`.

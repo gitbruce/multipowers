@@ -1,5 +1,12 @@
 # Upstream Sync Playbook
 
+## Branch Principle
+
+- `main` must remain a clean mirror of `upstream/main`.
+- `multipowers` is the only customization branch.
+- Sync direction is one-way: `upstream/main -> main -> multipowers`.
+- Minimize edits in high-conflict upstream files (`scripts/orchestrate.sh`, `.claude/*`, `.claude-plugin/*`); prefer `custom/*`.
+
 ## Routine Sync Sequence
 
 ```bash
@@ -11,6 +18,20 @@ git merge main -m "chore(sync): merge main into multipowers"
 ./custom/scripts/apply-custom-overlay.sh
 bash tests/integration/test-sync-overlay.sh
 ```
+
+## Pre-Sync Guards
+
+```bash
+git status --short --branch
+git switch main
+git merge --ff-only upstream/main
+git switch multipowers
+```
+
+Required outcomes:
+- working tree is clean before sync
+- `main` fast-forwards to `upstream/main`
+- sync happens by merging `main` into `multipowers`
 
 ## Conflict SLA and Fallback
 
@@ -33,3 +54,8 @@ See: `custom/docs/sync/verification-transcript.md`
 - `main` matches `upstream/main`
 - overlay reapplied successfully
 - sync/registration tests pass
+
+## Conductor Source Reference
+
+Conductor-style setup behavior used by `/octo:init` is tracked here:
+- `custom/references/conductor-upstream/SOURCE-MAP.md`
