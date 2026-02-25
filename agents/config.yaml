@@ -210,6 +210,7 @@ agents:
     file: personas/test-automator.md
     cli: claude
     model: claude-sonnet-4.5
+    fallback_cli: codex
     phases: [tangle, ink]
     tier: standard
     expertise: [unit-tests, integration-tests, e2e-tests]
@@ -279,6 +280,7 @@ agents:
     file: personas/docs-architect.md
     cli: claude
     model: claude-sonnet-4.5
+    fallback_cli: codex
     phases: [ink]
     tier: standard
     expertise: [documentation, technical-writing]
@@ -300,6 +302,7 @@ agents:
     file: personas/mermaid-expert.md
     cli: claude
     model: claude-sonnet-4.5
+    fallback_cli: codex
     phases: [grasp, ink]
     tier: trivial
     expertise: [diagrams, flowcharts, sequence-diagrams]

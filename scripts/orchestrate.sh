@@ -15075,8 +15075,11 @@ case "$COMMAND" in
         fi
         if [[ $# -eq 1 && "$1" == *" "* ]]; then
             # Accept combined-args invocations, e.g. persona "docs-architect hi"
-            persona_name="${1%% *}"
-            persona_prompt="${1#* }"
+            persona_blob="$1"
+            # Tolerate leading spaces from command runner wrappers.
+            persona_blob="${persona_blob#"${persona_blob%%[![:space:]]*}"}"
+            persona_name="${persona_blob%% *}"
+            persona_prompt="${persona_blob#* }"
             [[ -z "$persona_name" || -z "$persona_prompt" ]] && { log ERROR "Usage: persona <name> <prompt>"; exit 1; }
             run_persona_prompt "$persona_name" "$persona_prompt"
         else
