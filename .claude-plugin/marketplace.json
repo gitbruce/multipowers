@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v8.12.6 - Forces /octo:plan to execute via orchestrate.sh guard path so missing conductor context triggers /octo:init before any planning flow.",
-      "version": "8.12.6",
+      "description": "v8.12.7 - Forces interactive /octo:init wizard before /octo:plan when conductor context is missing.",
+      "version": "8.12.7",
       "author": {
         "name": "nyldn"
       },
