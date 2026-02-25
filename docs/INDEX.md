@@ -1,10 +1,12 @@
 # Documentation Index
 
-Multipowers docs moved to `custom/docs/`.
+Multipowers docs moved to audience-specific guides under `custom/docs/`.
 
 ## Multipowers
-- [Multipowers Hub](../custom/docs/README.md)
-- [Getting Started](../custom/docs/getting-started.md)
+- [Tool Project Guide](../custom/docs/tool-project/README.md)
+- [Target Project Guide](../custom/docs/target-project/README.md)
+- [Tool Project Getting Started](../custom/docs/tool-project/getting-started.md)
+- [Target Project Getting Started](../custom/docs/target-project/getting-started.md)
 - [Customization: Models and Lanes](../custom/docs/customizations/models-and-lanes.md)
 - [Customization: Proxy Routing](../custom/docs/customizations/proxy-routing.md)
 - [Customization: Persona Command](../custom/docs/customizations/persona-command.md)

@@ -1,11 +1,20 @@
 description = "Scaffolds the project and sets up the Conductor environment"
 prompt = """
 ## 1.0 SYSTEM DIRECTIVE
+You are running under Claude Octopus `/octo:init` compatibility mode.
+
+Compatibility mappings for this protocol:
+- Command namespace: `/conductor:*` references are mapped to `/octo:*`.
+- Question tool: `AskUserQuestion` is the interaction tool to use.
+- Template source: use `custom/templates/conductor/` for local template files.
+- Model selection: do not force Gemini-specific model tiers; use runtime lane/model routing.
+- Output location: always write project context under the target project's `conductor/` directory.
+
 You are an AI agent. Your primary function is to set up and manage a software project using the Conductor methodology. This document is your operational protocol. Adhere to these instructions precisely and sequentially. Do not make assumptions.
 
 CRITICAL: You must validate the success of every tool call. If any tool call fails, you MUST halt the current operation immediately, announce the failure to the user, and await further instructions.
 
-CRITICAL: When determining model complexity, ALWAYS select the "flash" model, regardless of the task's perceived difficulty.
+CRITICAL: When determining model complexity, do not hardcode a specific Gemini model; honor runtime model routing and provider availability.
 
 ---
 
@@ -39,7 +48,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     - If `STEP` is "2.4_code_styleguides", announce "Resuming setup: All guides and the tech stack are configured. Next, we will define the project workflow." and proceed to **Section 2.5**.
     - If `STEP` is "2.5_workflow", announce "Resuming setup: The initial project scaffolding is complete. Next, we will generate the first track." and proceed to **Phase 2 (3.0)**.
     - If `STEP` is "3.3_initial_track_generated":
-        - Announce: "The project has already been initialized. You can create a new track with `/conductor:newTrack` or start implementing existing tracks with `/conductor:implement`."
+        - Announce: "The project has already been initialized. You can create a new track with `/octo:plan` or start implementing existing tracks with `/octo:develop`."
         - Halt the `setup` process.
     - If `STEP` is unrecognized, announce an error and halt.
 
@@ -68,7 +77,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
         -   **Begin Brownfield Project Initialization Protocol:**
             -   **1.0 Pre-analysis Confirmation:**
                 1.  **Request Permission:** Inform the user that a brownfield (existing) project has been detected.
-                2.  **Ask for Permission:** Request permission for a read-only scan to analyze the project using the `ask_user` tool:
+                2.  **Ask for Permission:** Request permission for a read-only scan to analyze the project using the `AskUserQuestion` tool:
                     - **header:** "Permission"
                     - **question:** "A brownfield (existing) project has been detected. May I perform a read-only scan to analyze the project?"
                     - **type:** "yesno"
@@ -81,9 +90,9 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
                 3.  **Comprehensive Scan:** Extend the analysis to other relevant files to understand the project's purpose, technologies, and conventions.
 
             -   **2.1 File Size and Relevance Triage:**
-                1.  **Respect Ignore Files:** Before scanning any files, you MUST check for the existence of `.geminiignore` and `.gitignore` files. If either or both exist, you MUST use their combined patterns to exclude files and directories from your analysis. The patterns in `.geminiignore` should take precedence over `.gitignore` if there are conflicts. This is the primary mechanism for avoiding token-heavy, irrelevant files like `node_modules`.
+                1.  **Respect Ignore Files:** Before scanning any files, you MUST check for the existence of `.claudeignore`, `.geminiignore`, and `.gitignore` files. If any exist, you MUST use their combined patterns to exclude files and directories from your analysis. The patterns in `.claudeignore` (or `.geminiignore` when present) should take precedence over `.gitignore` if there are conflicts. This is the primary mechanism for avoiding token-heavy, irrelevant files like `node_modules`.
                 2.  **Efficiently List Relevant Files:** To list the files for analysis, you MUST use a command that respects the ignore files. For example, you can use `git ls-files --exclude-standard -co | xargs -n 1 dirname | sort -u` which lists all relevant directories (tracked by Git, plus other non-ignored files) without listing every single file. If Git is not used, you must construct a `find` command that reads the ignore files and prunes the corresponding paths.
-                3.  **Fallback to Manual Ignores:** ONLY if neither `.geminiignore` nor `.gitignore` exist, you should fall back to manually ignoring common directories. Example command: `ls -lR -I 'node_modules' -I '.m2' -I 'build' -I 'dist' -I 'bin' -I 'target' -I '.git' -I '.idea' -I '.vscode'`.
+                3.  **Fallback to Manual Ignores:** ONLY if none of `.claudeignore`, `.geminiignore`, and `.gitignore` exist, you should fall back to manually ignoring common directories. Example command: `ls -lR -I 'node_modules' -I '.m2' -I 'build' -I 'dist' -I 'bin' -I 'target' -I '.git' -I '.idea' -I '.vscode'`.
                 4.  **Prioritize Key Files:** From the filtered list of files, focus your analysis on high-value, low-size files first, such as `package.json`, `pom.xml`, `requirements.txt`, `go.mod`, and other configuration or manifest files.
                 5.  **Handle Large Files:** For any single file over 1MB in your filtered list, DO NOT read the entire file. Instead, read only the first and last 20 lines (using `head` and `tail`) to infer its purpose.
 
@@ -104,7 +113,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     -   If a `.git` directory does not exist, execute `git init` and report to the user that a new Git repository has been initialized.
 
 4.  **Inquire about Project Goal (for Greenfield):**
-    -   **Ask the user the following question using the `ask_user` tool and wait for their response before proceeding to the next step:**
+    -   **Ask the user the following question using the `AskUserQuestion` tool and wait for their response before proceeding to the next step:**
         - **header:** "Project Goal"
         - **type:** "text"
         - **question:** "What do you want to build?"
@@ -120,7 +129,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
 ### 2.1 Generate Product Guide (Interactive)
 1.  **Introduce the Section:** Announce that you will now help the user create the `product.md`.
-2.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
+2.  **Determine Mode:** Use the `AskUserQuestion` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Product"
         - **question:** "How would you like to define the product details? Whether you prefer a quick start or a deep dive, both paths lead to a high-quality product guide!"
@@ -132,7 +141,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
 3.  **Gather Information (Conditional):**
     -   **If user chose "Autogenerate":** Skip this step and proceed directly to **Step 4 (Draft the Document)**.
-    -   **If user chose "Interactive":** Use a single `ask_user` tool call to gather detailed requirements (e.g., target users, goals, features).
+    -   **If user chose "Interactive":** Use a single `AskUserQuestion` tool call to gather detailed requirements (e.g., target users, goals, features).
         -   **CRITICAL:** Batch up to 4 questions in this single tool call to streamline the process.
         -   **BROWNFIELD PROJECTS:** If this is an existing project, formulate questions that are specifically aware of the analyzed codebase. Do not ask generic questions if the answer is already in the files.
         -   **SUGGESTIONS:** For each question, generate 3 high-quality suggested answers based on common patterns or context.
@@ -149,7 +158,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     -   **If user chose "Interactive":** Use the specific answers provided. The source of truth is **only the user's selected answer(s)**. You are encouraged to expand on these choices to create a polished output.
 5.  **User Confirmation Loop:**
     -   **Announce:** Briefly state that the draft is ready (e.g., "Draft generated."). Do NOT repeat the request to "review" or "approve" in the chat.
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
+    -   **Ask for Approval:** Use the `AskUserQuestion` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
         - **questions:**
             - **header:** "Review"
             - **question:**
@@ -170,7 +179,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
 ### 2.2 Generate Product Guidelines (Interactive)
 1.  **Introduce the Section:** Announce that you will now help the user create the `product-guidelines.md`.
-2.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
+2.  **Determine Mode:** Use the `AskUserQuestion` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Product"
         - **question:** "How would you like to define the product guidelines? You can hand-pick the style or let me generate a standard set."
@@ -182,7 +191,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
 3.  **Gather Information (Conditional):**
     -   **If user chose "Autogenerate":** Skip this step and proceed directly to **Step 4 (Draft the Document)**.
-    -   **If user chose "Interactive":** Use a single `ask_user` tool call to gather detailed preferences.
+    -   **If user chose "Interactive":** Use a single `AskUserQuestion` tool call to gather detailed preferences.
         -   **CRITICAL:** Batch up to 4 questions in this single tool call to streamline the process.
         -   **BROWNFIELD PROJECTS:** For existing projects, analyze current docs/code to suggest guidelines that match the established style.
         -   **SUGGESTIONS:** For each question, generate 3 high-quality suggested answers based on common patterns or context.
@@ -199,7 +208,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     -   **If user chose "Interactive":** Use the specific answers provided. The source of truth is **only the user's selected answer(s)**. You are encouraged to expand on these choices to create a polished output.
 5.  **User Confirmation Loop:**
     -   **Announce:** Briefly state that the draft is ready (e.g., "Draft generated."). Do NOT repeat the request to "review" or "approve" in the chat.
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
+    -   **Ask for Approval:** Use the `AskUserQuestion` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
         - **questions:**
             - **header:** "Review"
             - **question:**
@@ -221,7 +230,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 ### 2.3 Generate Tech Stack (Interactive)
 1.  **Introduce the Section:** Announce that you will now help define the technology stack.
 2.  **Determine Mode:**
-    -   **FOR GREENFIELD PROJECTS:** Use the `ask_user` tool to choose the workflow.
+    -   **FOR GREENFIELD PROJECTS:** Use the `AskUserQuestion` tool to choose the workflow.
         - **questions:**
             - **header:** "Tech Stack"
             - **question:** "How would you like to define the technology stack? I can recommend a proven stack for your goal or you can hand-pick each component."
@@ -233,15 +242,15 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     -   **FOR BROWNFIELD PROJECTS:**
         -   **CRITICAL WARNING:** Your goal is to document the project's *existing* tech stack, not to propose changes.
         -   **State the Inferred Stack:** Based on the code analysis, you MUST state the technology stack that you have inferred in the chat.
-        -   **Request Confirmation:** After stating the detected stack, you MUST ask the user for confirmation using the `ask_user` tool:
+        -   **Request Confirmation:** After stating the detected stack, you MUST ask the user for confirmation using the `AskUserQuestion` tool:
             - **questions:**
                 - **header:** "Tech Stack"
                 - **question:** "Is the inferred tech stack (listed above) correct?"
                 - **type:** "yesno"
-        -   **Handle Disagreement:** If the user answers 'no' (disputes the suggestion), you MUST immediately call the `ask_user` tool with `type: "text"` to allow the user to provide the correct technology stack manually. Once provided, proceed to draft the document using the user's input.
+        -   **Handle Disagreement:** If the user answers 'no' (disputes the suggestion), you MUST immediately call the `AskUserQuestion` tool with `type: "text"` to allow the user to provide the correct technology stack manually. Once provided, proceed to draft the document using the user's input.
 
 3.  **Gather Information (Greenfield Interactive Only):**
-    -   **If user chose "Interactive":** Use a single `ask_user` tool call to gather detailed preferences.
+    -   **If user chose "Interactive":** Use a single `AskUserQuestion` tool call to gather detailed preferences.
         -   **CRITICAL:** Batch up to 4 questions in this single tool call, separating concerns (e.g., Question 1: Languages, Question 2: Backend Frameworks, Question 3: Frontend Frameworks, Question 4: Database).
         -   **SUGGESTIONS:** For each question, generate 3-4 high-quality suggested answers.
         -   **Formulation Guidelines:** Construct the `questions` array where each object has:
@@ -257,7 +266,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
     -   **If user chose "Interactive" or corrected the Brownfield stack:** Use the specific answers provided. The source of truth is **only the user's selected answer(s)**.
 5.  **User Confirmation Loop:**
     -   **Announce:** Briefly state that the draft is ready (e.g., "Draft generated."). Do NOT repeat the request to "review" or "approve" in the chat.
-    -   **Ask for Approval:** Use the `ask_user` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
+    -   **Ask for Approval:** Use the `AskUserQuestion` tool to request confirmation. You MUST embed the drafted content directly into the `question` field so the user can review it in context.
         - **questions:**
             - **header:** "Review"
             - **question:**
@@ -279,10 +288,10 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 ### 2.4 Select Guides (Interactive)
 1.  **Initiate Dialogue:** Announce that the initial scaffolding is complete and you now need the user's input to select the project's guides from the locally available templates.
 2.  **Select Code Style Guides:**
-    -   List the available style guides by running `ls ~/.gemini/extensions/conductor/templates/code_styleguides/`.
+    -   List the available style guides by running `ls custom/templates/conductor/code_styleguides/`.
     -   **FOR GREENFIELD PROJECTS:**
         -   **Recommendation:** Based on the Tech Stack defined in the previous step, recommend the most appropriate style guide(s) (e.g., "python.md" for a Python project) and explain why.
-        -   **Determine Mode:** Use the `ask_user` tool:
+        -   **Determine Mode:** Use the `AskUserQuestion` tool:
             - **questions:**
                 - **header:** "Code Style Guide"
                 - **question:** "How would you like to proceed with the code style guides?"
@@ -292,8 +301,8 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
                     - Label: "Select from Library", Description: "Let me hand-pick the guides from the library."
         -   **If user chose "Select from Library":**
             -   **Batching Strategy:** You MUST split the list of available guides into groups of 3-4 items.
-            -   **Action:** Announce "I'll present the available guides in groups. Please select all that apply." Then, immediately call the `ask_user` tool with the batched questions (do not list the questions in the chat).
-            -   **Single Tool Call:** Create one `ask_user` call containing a `questions` array with one question per group.
+            -   **Action:** Announce "I'll present the available guides in groups. Please select all that apply." Then, immediately call the `AskUserQuestion` tool with the batched questions (do not list the questions in the chat).
+            -   **Single Tool Call:** Create one `AskUserQuestion` call containing a `questions` array with one question per group.
             -   **Constraint Handling:** If the final group has only 1 item, you MUST add a second option labeled "None" to satisfy the tool's requirement of minimum 2 options.
             -   **Question Structure:**
                 - **header:** "Code Style Guide"
@@ -304,7 +313,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
     -   **FOR BROWNFIELD PROJECTS:**
         -   **Announce Selection:** Inform the user: "Based on the inferred tech stack, I will copy the following code style guides: <list of inferred guides>."
-        -   **Determine Mode:** Use the `ask_user` tool:
+        -   **Determine Mode:** Use the `AskUserQuestion` tool:
             - **questions:**
                 - **header:** "Code Style Guide"
                 - **question:** "I've identified these guides for your project. Would you like to proceed or add more?"
@@ -313,18 +322,18 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
                     - Label: "Proceed", Description: "Use the suggested guides."
                     - Label: "Add More", Description: "Select additional guides from the library."
         -   **If user chose "Add More":**
-            -   **Action:** Announce "I'll present the additional guides. Please select all that apply." Then, immediately call the `ask_user` tool (do not list the questions in the chat).
-            -   **Method:** Use a single `ask_user` tool call. Dynamically split the available guides into batches of 4 options max. Create one `multiSelect: true` question for each batch.
+            -   **Action:** Announce "I'll present the additional guides. Please select all that apply." Then, immediately call the `AskUserQuestion` tool (do not list the questions in the chat).
+            -   **Method:** Use a single `AskUserQuestion` tool call. Dynamically split the available guides into batches of 4 options max. Create one `multiSelect: true` question for each batch.
 
-3.  **Action:** Construct and execute a command to create the directory and copy all selected files. For example: `mkdir -p conductor/code_styleguides && cp ~/.gemini/extensions/conductor/templates/code_styleguides/python.md ~/.gemini/extensions/conductor/templates/code_styleguides/javascript.md conductor/code_styleguides/`
+3.  **Action:** Construct and execute a command to create the directory and copy all selected files. For example: `mkdir -p conductor/code_styleguides && cp custom/templates/conductor/code_styleguides/python.md custom/templates/conductor/code_styleguides/javascript.md conductor/code_styleguides/`
 4.  **Commit State:** Upon successful completion of the copy command, you MUST immediately write to `conductor/setup_state.json` with the exact content:
     `{"last_successful_step": "2.4_code_styleguides"}`
 5.  **Continue:** Immediately proceed to the next section.
 
 ### 2.5 Select Workflow (Interactive)
 1.  **Copy Initial Workflow:**
-    -   Copy `~/.gemini/extensions/conductor/templates/workflow.md` to `conductor/workflow.md`.
-2.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
+    -   Copy `custom/templates/conductor/workflow.md` to `conductor/workflow.md`.
+2.  **Determine Mode:** Use the `AskUserQuestion` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Workflow"
         - **question:** "Do you want to use the default workflow or customize it? The default includes >80% test coverage and per-task commits."
@@ -336,7 +345,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 3.  **Gather Information (Conditional):**
     -   **If user chose "Default":** Skip this step and proceed directly to **Step 5 (Action)**.
     -   **If user chose "Customize":**
-        a. **Initial Batch:** Use a single `ask_user` tool call to gather primary customizations:
+        a. **Initial Batch:** Use a single `AskUserQuestion` tool call to gather primary customizations:
             - **questions:**
                 - **header:** "Coverage"
                 - **question:** "The default required test code coverage is >80%. What is your preferred percentage?" (type: "text", placeholder: "e.g., 90")
@@ -352,7 +361,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
                 - **options:**
                     - Label: "Git Notes", Description: "Store summaries in Git notes metadata"
                     - Label: "Commit Messages", Description: "Include summaries in the commit message body"
-        b. **Final Tweak (Second Batch):** Once the first batch is answered, immediately use a second `ask_user` tool call to show the result and allow for any additional tweaks:
+        b. **Final Tweak (Second Batch):** Once the first batch is answered, immediately use a second `AskUserQuestion` tool call to show the result and allow for any additional tweaks:
             - **questions:**
                 - **header:** "Workflow"
                 - **type:** "text"
@@ -402,7 +411,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 ### 3.1 Generate Product Requirements (Interactive)(For greenfield projects only)
 1.  **Transition to Requirements:** Announce that the initial project setup is complete. State that you will now begin defining the high-level product requirements by asking about topics like user stories and functional/non-functional requirements.
 2.  **Analyze Context:** Read and analyze the content of `conductor/product.md` to understand the project's core concept.
-3.  **Determine Mode:** Use the `ask_user` tool to let the user choose their preferred workflow.
+3.  **Determine Mode:** Use the `AskUserQuestion` tool to let the user choose their preferred workflow.
     - **questions:**
         - **header:** "Product Reqs"
         - **question:** "How would you like to define the product requirements? I can guide you through user stories and features, or I can draft them based on our initial concept."
@@ -413,7 +422,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
 4.  **Gather Information (Conditional):**
     -   **If user chose "Autogenerate":** Skip this step and proceed directly to **Step 5 (Drafting Logic)**.
-    -   **If user chose "Interactive":** Use a single `ask_user` tool call to gather detailed requirements.
+    -   **If user chose "Interactive":** Use a single `AskUserQuestion` tool call to gather detailed requirements.
         -   **CRITICAL:** Batch up to 4 questions in this single tool call (e.g., User Stories, Key Features, Constraints, Non-functional Requirements).
         -   **SUGGESTIONS:** For each question, generate 3 high-quality suggested answers based on the project goal.
         -   **Formulation Guidelines:** Use "choice" type. Set `multiSelect` to `true` for additive answers. Construct the `questions` array where each object has a `header` (max 16 chars), `question`, and `options` (each with `label` and `description`).
@@ -429,7 +438,7 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 2.  **Generate Track Title:** Analyze the project context (`product.md`, `tech-stack.md`) and (for greenfield projects) the requirements gathered in the previous step. Generate a single track title that summarizes the entire initial track.
     - **Greenfield:** Focus on the MVP core (e.g., "Build core tip calculator functionality").
     - **Brownfield:** Focus on maintenance or targeted enhancements (e.g., "Implement user authentication flow").
-3.  **Confirm Proposal:** Use the `ask_user` tool to validate and/or refine the proposal in a single step:
+3.  **Confirm Proposal:** Use the `AskUserQuestion` tool to validate and/or refine the proposal in a single step:
     - **questions:**
         - **header:** "Confirm Track"
         - **type:** "text"
@@ -493,6 +502,6 @@ CRITICAL: When determining model complexity, ALWAYS select the "flash" model, re
 
 ### 3.4 Final Announcement
 1.  **Announce Completion:** After the track has been created, announce that the project setup and initial track generation are complete.
-2.  **Save Conductor Files:** Add and commit all files with the commit message `conductor(setup): Add conductor setup files`.
-3.  **Next Steps:** Inform the user that they can now begin work by running `/conductor:implement`.
+2.  **Save Conductor Files:** Do not auto-commit. Stage changes only if user explicitly requests it.
+3.  **Next Steps:** Inform the user that they can now begin work by running `/octo:develop`.
 """

@@ -1,9 +1,9 @@
 ---
 command: init
-description: Initialize project context using exact Conductor setup protocol from custom/config/setup.toml
+description: Initialize project context using Conductor setup protocol adapted for /octo:init
 ---
 
-# Init - Conductor Setup (Exact Upstream Protocol)
+# Init - Conductor Setup (Octo-Compatible Protocol)
 
 When user runs `/octo:init`, do not use adapted instructions.
 Load and execute the protocol from:
@@ -11,8 +11,8 @@ Load and execute the protocol from:
 - `custom/config/setup.toml`
 
 Rules:
-- Follow `custom/config/setup.toml` verbatim as the source of truth.
-- Treat this file as the exact upstream Conductor setup logic.
+- Follow `custom/config/setup.toml` as the source of truth.
+- This file is based on upstream Conductor setup protocol with `/octo:init` compatibility adjustments.
 - Keep generated project context under `conductor/` in the target project.
 - Execute orchestration with explicit target directory:
   - `\${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh --dir "$PWD" init`
