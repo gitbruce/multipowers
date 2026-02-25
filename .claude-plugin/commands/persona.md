@@ -27,9 +27,11 @@ Do NOT run persona requests using Claude Code Task tool subagents (for example `
 Surface the orchestrator output, including the explicit model lane line:
 
 - `Using: <provider>:<model>`
-- If fallback occurs in Claude Code nested session protection:
-  - `Configured: <provider>:<model>`
-  - `Using: <provider>:<model>`
+- If orchestrator returns native Claude payload markers:
+  - `OCTOPUS_NATIVE_PERSONA_BEGIN`
+  - `OCTOPUS_NATIVE_PERSONA_END`
+  then answer directly in the current Claude session using that payload.
+  Do not invoke external Claude CLI or Task tool subagents.
 
 ---
 

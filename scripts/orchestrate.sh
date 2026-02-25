@@ -4592,34 +4592,16 @@ run_persona_prompt() {
         return 1
     fi
 
-    # Claude Code cannot safely spawn nested `claude` CLI sessions.
-    # If a persona is configured to use claude*, prefer fallback_cli, then codex/gemini.
+    # Detect Claude Code runtime context.
     local selected_cli="$cli_type"
     local in_claude_code="false"
     if [[ -n "${CLAUDE_SESSION_ID:-}" || -n "${CLAUDE_CODE_SESSION:-}" || -n "${CLAUDECODE:-}" || -n "${CLAUDE_CODE_TASK_ID:-}" || -n "${CLAUDE_TASK_ID:-}" || -n "${CLAUDE_CODE_CONTROL_PIPE:-}" || -n "${CLAUDE_CODE_CONTROL:-}" ]]; then
         in_claude_code="true"
     fi
-    if [[ "$in_claude_code" == "true" && "$cli_type" == claude* ]]; then
-        local fallback_cli
-        fallback_cli=$(get_agent_config "$persona_name" "fallback_cli")
-        if [[ -n "$fallback_cli" ]]; then
-            selected_cli="$fallback_cli"
-        elif command -v codex &>/dev/null || [[ -n "${OPENAI_API_KEY:-}" ]]; then
-            selected_cli="codex"
-        elif command -v gemini &>/dev/null || [[ -n "${GEMINI_API_KEY:-}" ]]; then
-            selected_cli="gemini"
-        fi
-    fi
 
     local model
     model=$(get_agent_model "$selected_cli")
     echo -e "${CYAN}Persona:${NC} ${persona_name}"
-    if [[ "$selected_cli" != "$cli_type" ]]; then
-        local configured_model
-        configured_model=$(get_agent_model "$cli_type")
-        echo -e "${CYAN}Configured:${NC} ${cli_type}:${configured_model}"
-        echo -e "${YELLOW}Note:${NC} Nested claude sessions are blocked in Claude Code; using external provider."
-    fi
     echo -e "${CYAN}Using:${NC} ${selected_cli}:${model}"
     echo -e "${CYAN}Tool:${NC} ${selected_cli}"
     echo -e "${CYAN}Model ID:${NC} ${model}"
@@ -4637,6 +4619,19 @@ $persona_context
 
 Task:
 $prompt"
+    fi
+
+    # Claude-backed personas in Claude Code should run in the current session
+    # (no nested claude CLI invocation).
+    if [[ "$in_claude_code" == "true" && "$selected_cli" == claude* ]]; then
+        echo "OCTOPUS_NATIVE_PERSONA_BEGIN"
+        echo "persona_name=$persona_name"
+        echo "lane=${selected_cli}:${model}"
+        echo "prompt<<'OCTOPUS_PROMPT_EOF'"
+        echo "$persona_prompt"
+        echo "OCTOPUS_PROMPT_EOF"
+        echo "OCTOPUS_NATIVE_PERSONA_END"
+        return 0
     fi
 
     run_agent_sync "$selected_cli" "$persona_prompt" 180 "$persona_name" "persona"

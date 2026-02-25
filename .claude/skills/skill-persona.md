@@ -23,7 +23,11 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh persona "$ARGUMENTS"
 2. Do not use Claude Code Task tool subagents (`octo:personas:*`) for this command.
 3. Return the orchestrator's explicit execution lane lines, especially:
    - `Using: <provider>:<model>`
-   - and when applicable, `Configured: <provider>:<model>`
+4. If orchestrator output includes:
+   - `OCTOPUS_NATIVE_PERSONA_BEGIN`
+   - `OCTOPUS_NATIVE_PERSONA_END`
+   then produce the persona response directly in the current Claude session
+   using the provided prompt payload. Do not invoke external Claude CLI or Task subagents.
 
 ## Usage
 
