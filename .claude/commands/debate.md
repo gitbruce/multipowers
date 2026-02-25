@@ -1,60 +1,30 @@
 ---
 command: debate
-description: AI Debate Hub - Structured three-way debates between Claude, Gemini, and Codex
+description: Structured multi-LLM debate (Codex + Gemini + Claude) via orchestrate grapple workflow
 ---
 
-# Debate - AI Debate Hub
+# /octo:debate
 
-## 🤖 INSTRUCTIONS FOR CLAUDE
+This command MUST execute the multi-LLM debate workflow. Do not return a single-model opinion.
 
-When the user invokes this command (e.g., `/octo:debate <arguments>`):
+## Mandatory Behavior
 
-**✓ CORRECT - Use the Skill tool:**
-```
-Skill(skill: "octo:debate", args: "<user's arguments>")
-```
+1. Build prompt text from user arguments.
+2. Execute debate workflow:
 
-**✗ INCORRECT - Do NOT use Task tool:**
-```
-Task(subagent_type: "octo:debate", ...)  ❌ Wrong! This is a skill, not an agent type
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" grapple "<user-prompt>"
 ```
 
-**Why:** This command loads the `skill-debate` skill. Skills use the `Skill` tool, not `Task`.
+3. If command exits non-zero:
+- Stop and report error.
+- Do not produce a synthetic single-model "debate" answer.
 
----
+4. If command succeeds:
+- Summarize the debate result from generated artifacts/output.
+- Keep attribution clear: include Codex/Gemini/Claude perspectives when present.
 
-**Auto-loads the `skill-debate` skill for structured multi-AI debates.**
+## Prohibited
 
-## Quick Usage
-
-Just use natural language:
-```
-"Run a debate about whether we should use Redis or PostgreSQL for caching"
-"I want Gemini and Codex to debate microservices vs monolith architecture"
-"Debate the security implications of our authentication approach"
-```
-
-## How It Works
-
-This command activates the AI Debate Hub skill, which:
-- Facilitates three-way debates (Claude + Gemini + Codex)
-- Provides multiple perspectives on complex decisions
-- Includes quality gates and cost tracking
-- Exports results to documents
-
-## Debate Styles
-
-- **quick**: Fast, focused analysis (1-2 rounds)
-- **thorough**: Deep, comprehensive review (3-5 rounds)
-- **adversarial**: Red team vs Blue team security review
-- **collaborative**: Consensus-building discussion
-
-## Natural Language Examples
-
-```
-"Run a quick debate about Redis vs Memcached"
-"I need a thorough debate on our API architecture"
-"Adversarial debate on the security of auth.ts"
-```
-
-The skill will automatically detect your intent and configure the debate appropriately.
+- Do not answer with one model only.
+- Do not skip debate execution when user explicitly requests `/octo:debate`.

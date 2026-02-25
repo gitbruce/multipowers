@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.8",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.8) Hard-enforces interactive /octo:init wizard contract and blocks /octo:plan if conductor context remains incomplete. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.9",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.9) Fixes /octo:debate to execute real multi-LLM grapple workflow instead of single-model summary behavior. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },

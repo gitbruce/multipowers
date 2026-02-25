@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v8.12.8 - Hard-enforces interactive /octo:init wizard contract and blocks /octo:plan if conductor context is still missing.",
-      "version": "8.12.8",
+      "description": "v8.12.9 - Fixes /octo:debate to run real multi-LLM grapple execution instead of single-model-only response flow.",
+      "version": "8.12.9",
       "author": {
         "name": "nyldn"
       },
