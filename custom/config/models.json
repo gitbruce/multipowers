@@ -1,0 +1,15 @@
+{
+  "providers": {
+    "codex": "gpt-5.3-codex",
+    "gemini": "gemini-3-pro-preview",
+    "claude_heavy": "claude-opus",
+    "claude_light": "claude-sonnet"
+  },
+  "role_routing": {
+    "heavy_coding": "claude_heavy",
+    "docs_and_tests": "claude_light",
+    "architecture_review_decision": "codex",
+    "external_search_business": "gemini"
+  },
+  "fallback_lane": "claude_light"
+}

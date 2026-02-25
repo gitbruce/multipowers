@@ -4542,22 +4542,96 @@ list_configured_personas() {
     ' "$config_file" | sort
 }
 
+# Get a frontmatter value from agents/personas/<name>.md
+get_persona_frontmatter_value() {
+    local persona_name="$1"
+    local key="$2"
+    local persona_rel_file
+    persona_rel_file=$(get_agent_config "$persona_name" "file")
+    [[ -z "$persona_rel_file" ]] && return 0
+
+    local persona_file="${AGENTS_DIR}/${persona_rel_file}"
+    [[ ! -f "$persona_file" ]] && return 0
+
+    awk -v key="$key" '
+        BEGIN { in_frontmatter=0 }
+        /^---[[:space:]]*$/ {
+            if (!in_frontmatter) { in_frontmatter=1; next }
+            exit
+        }
+        in_frontmatter && $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {
+            sub("^[[:space:]]*" key ":[[:space:]]*", "")
+            gsub(/^"/, "")
+            gsub(/"$/, "")
+            print
+            exit
+        }
+    ' "$persona_file"
+}
+
+truncate_text() {
+    local text="${1:-}"
+    local max_len="${2:-60}"
+    if (( ${#text} > max_len )); then
+        printf '%s...' "${text:0:max_len-3}"
+    else
+        printf '%s' "$text"
+    fi
+}
+
+# Emit TSV rows: name<TAB>model<TAB>description
+list_configured_personas_with_meta() {
+    local persona
+    while IFS= read -r persona; do
+        [[ -z "$persona" ]] && continue
+
+        local model description cli_type
+        model=$(get_agent_config "$persona" "model")
+        description=$(get_persona_frontmatter_value "$persona" "description")
+
+        if [[ -z "$model" ]]; then
+            cli_type=$(get_agent_config "$persona" "cli")
+            model=$(get_agent_model "${cli_type:-codex}")
+        fi
+        [[ -z "$model" ]] && model="(no-model)"
+        [[ -z "$description" ]] && description="(no description)"
+
+        printf '%s\t%s\t%s\n' "$persona" "$model" "$description"
+    done < <(list_configured_personas)
+}
+
 list_available_personas() {
+    local tmp_file="/tmp/.octo-personas-meta.$$"
+    local total=0
+    local name_col=22
+    local desc_col=46
+    local model_col=22
+
+    list_configured_personas_with_meta >"$tmp_file" 2>/dev/null || true
+    if [[ -s "$tmp_file" ]]; then
+        total=$(wc -l < "$tmp_file" | tr -d '[:space:]')
+    fi
+
     echo ""
     echo -e "${MAGENTA}═══════════════════════════════════════════════════════════${NC}"
-    echo -e "${MAGENTA}  Available Claude Octopus Personas${NC}"
+    echo -e "${MAGENTA}  Available Claude Octopus Personas (${total} total)${NC}"
     echo -e "${MAGENTA}═══════════════════════════════════════════════════════════${NC}"
     echo ""
 
-    if list_configured_personas >/tmp/.octo-personas.$$ 2>/dev/null; then
-        while IFS= read -r persona; do
+    if [[ -s "$tmp_file" ]]; then
+        printf "  %-*s | %-*s | %-*s\n" "$name_col" "name" "$desc_col" "description" "$model_col" "model"
+        echo "  $(printf -- '-%.0s' {1..90})"
+        while IFS=$'\t' read -r persona model description; do
             [[ -z "$persona" ]] && continue
-            echo "  - $persona"
-        done < /tmp/.octo-personas.$$
-        rm -f /tmp/.octo-personas.$$
+            printf "  %-*s | %-*s | %-*s\n" \
+                "$name_col" "$persona" \
+                "$desc_col" "$(truncate_text "$description" "$desc_col")" \
+                "$model_col" "$model"
+        done < "$tmp_file"
     else
         echo "  (no configured personas found)"
     fi
+    rm -f "$tmp_file"
 
     echo ""
     echo -e "${YELLOW}Usage:${NC}"
@@ -4599,12 +4673,16 @@ run_persona_prompt() {
         in_claude_code="true"
     fi
 
-    local model
-    model=$(get_agent_model "$selected_cli")
+    local configured_model runtime_model
+    configured_model=$(get_agent_config "$persona_name" "model")
+    runtime_model=$(get_agent_model "$selected_cli")
+    [[ -z "$configured_model" ]] && configured_model="(unset)"
+    [[ -z "$runtime_model" ]] && runtime_model="unknown"
     echo -e "${CYAN}Persona:${NC} ${persona_name}"
-    echo -e "${CYAN}Using:${NC} ${selected_cli}:${model}"
+    echo -e "${CYAN}Using:${NC} ${selected_cli}:${runtime_model}"
     echo -e "${CYAN}Tool:${NC} ${selected_cli}"
-    echo -e "${CYAN}Model ID:${NC} ${model}"
+    echo -e "${CYAN}Configured Model:${NC} ${configured_model}"
+    echo -e "${CYAN}Runtime Model:${NC} ${runtime_model}"
     echo ""
 
     local persona_context
@@ -4626,7 +4704,7 @@ $prompt"
     if [[ "$in_claude_code" == "true" && "$selected_cli" == claude* ]]; then
         echo "OCTOPUS_NATIVE_PERSONA_BEGIN"
         echo "persona_name=$persona_name"
-        echo "lane=${selected_cli}:${model}"
+        echo "lane=${selected_cli}:${runtime_model}"
         echo "prompt<<'OCTOPUS_PROMPT_EOF'"
         echo "$persona_prompt"
         echo "OCTOPUS_PROMPT_EOF"
@@ -4634,7 +4712,43 @@ $prompt"
         return 0
     fi
 
-    run_agent_sync "$selected_cli" "$persona_prompt" 180 "$persona_name" "persona"
+    local primary_output rc
+    set +e
+    primary_output="$(run_agent_sync "$selected_cli" "$persona_prompt" 180 "$persona_name" "persona" 2>&1)"
+    rc=$?
+    set -e
+    printf "%s\n" "$primary_output"
+    if [[ $rc -eq 0 ]]; then
+        return 0
+    fi
+
+    # Runtime fallback for model/availability issues on specialized Codex lanes.
+    # Example: codex-reasoning with o3 unavailable in account.
+    local fallback_cli=""
+    case "$selected_cli" in
+        codex-reasoning|codex-large-context|codex-spark)
+            fallback_cli=$(get_fallback_agent "$selected_cli" "persona")
+            ;;
+    esac
+
+    if [[ -n "$fallback_cli" && "$fallback_cli" != "$selected_cli" ]]; then
+        local fallback_model fallback_output fallback_rc
+        fallback_model=$(get_agent_model "$fallback_cli")
+        echo -e "${YELLOW}Primary lane failed; falling back:${NC} ${fallback_cli}:${fallback_model}"
+        set +e
+        fallback_output="$(run_agent_sync "$fallback_cli" "$persona_prompt" 180 "$persona_name" "persona-fallback" 2>&1)"
+        fallback_rc=$?
+        set -e
+        printf "%s\n" "$fallback_output"
+        if [[ $fallback_rc -eq 0 ]]; then
+            return 0
+        fi
+        log ERROR "Fallback lane also failed: ${fallback_cli}:${fallback_model}"
+        return $fallback_rc
+    fi
+
+    log ERROR "Persona execution failed on lane ${selected_cli}:${runtime_model}"
+    return $rc
 }
 
 # Main usage router
@@ -8506,7 +8620,10 @@ get_agent_config() {
         found && /^  [a-z]/ { found=0 }
         found && $0 ~ "^    " field ":" {
             gsub(/^[[:space:]]*[a-z_]+:[[:space:]]*/, "")
+            sub(/[[:space:]]+#.*/, "")
             gsub(/[\[\]"]/, "")
+            gsub(/^[[:space:]]+/, "")
+            gsub(/[[:space:]]+$/, "")
             print
             exit
         }

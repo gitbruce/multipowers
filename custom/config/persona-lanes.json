@@ -1,0 +1,9 @@
+{
+  "personas": {
+    "backend-architect": "codex",
+    "code-reviewer": "codex",
+    "business-analyst": "gemini",
+    "docs-architect": "claude_light"
+  },
+  "fallback_lane": "claude_light"
+}
