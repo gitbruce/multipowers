@@ -103,3 +103,6 @@ test-results*.xml
 coverage-report.txt
 coverage-report.html
 *.bak
+
+# Git worktrees
+/.worktrees/
