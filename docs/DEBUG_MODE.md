@@ -39,7 +39,7 @@ Debug mode provides detailed logging including:
 ```bash
 $ OCTOPUS_DEBUG=1 ./bin/mp detect-providers
 
-[DEBUG] ═══ Orchestrate.sh starting ═══
+[DEBUG] ═══ MP runtime starting ═══
 [DEBUG] COMMAND=detect-providers
 [DEBUG] OCTOPUS_DEBUG=1
 [DEBUG] WORKSPACE_DIR=/Users/chris/.claude-octopus
@@ -63,7 +63,7 @@ $ OCTOPUS_DEBUG=1 ./bin/mp detect-providers
 - **Troubleshooting errors**: When commands fail or behave unexpectedly
 - **Provider issues**: When AI providers aren't being detected or called correctly
 - **Performance debugging**: To understand execution flow and timing
-- **Development**: When working on orchestrate.sh itself
+- **Development**: When working on mp runtime itself
 - **Bug reports**: Include debug output when reporting issues
 
 ## Note

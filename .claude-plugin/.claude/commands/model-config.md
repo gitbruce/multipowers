@@ -239,7 +239,7 @@ When the user invokes `/mp:model-config`, you MUST:
 
 3. **Set Model** (`<provider> <model>` or with `--session`):
    ```bash
-   # Call set_provider_model from orchestrate.sh
+   # Call set_provider_model via mp runtime
    source "${CLAUDE_PLUGIN_ROOT}/bin/mp"
    set_provider_model <provider> <model> [--session]
 
@@ -273,7 +273,7 @@ PY
 
 5. **Reset Model** (`reset <provider|phases|all>`):
    ```bash
-   # Call reset_provider_model from orchestrate.sh
+   # Call reset_provider_model via mp runtime
    source "${CLAUDE_PLUGIN_ROOT}/bin/mp"
    reset_provider_model <provider>
 

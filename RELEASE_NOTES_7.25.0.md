@@ -21,10 +21,10 @@ Track real-time task progress with comprehensive metrics and analytics.
 **Usage:**
 ```bash
 # Get task metrics
-./scripts/orchestrate.sh metrics
+./scripts/mp metrics
 
 # View in JSON format
-./scripts/orchestrate.sh metrics --format json
+./scripts/mp metrics --format json
 ```
 
 **Benefits:**
@@ -52,18 +52,18 @@ Comprehensive debug logging system for troubleshooting and development.
 ```bash
 # Environment variable
 export OCTOPUS_DEBUG=1
-./scripts/orchestrate.sh <command>
+./scripts/mp <command>
 
 # Command-line flag
-./scripts/orchestrate.sh --debug <command>
+./scripts/mp --debug <command>
 
 # Inline
-OCTOPUS_DEBUG=1 ./scripts/orchestrate.sh <command>
+OCTOPUS_DEBUG=1 ./scripts/mp <command>
 ```
 
 **Debug Output Example:**
 ```
-[DEBUG] ═══ Orchestrate.sh starting ═══
+[DEBUG] ═══ MP runtime starting ═══
 [DEBUG] COMMAND=probe
 [DEBUG] OCTOPUS_DEBUG=1
 [DEBUG] WORKSPACE_DIR=/Users/chris/.claude-octopus
@@ -114,7 +114,7 @@ Smart token optimization for large PDF documents.
 pages=$(process_pdf_with_selection "/path/to/document.pdf")
 
 # Use with research
-./scripts/orchestrate.sh research "Analyze pages $pages of document.pdf"
+./scripts/mp research "Analyze pages $pages of document.pdf"
 ```
 
 **Token Savings:**
@@ -172,7 +172,7 @@ git pull origin main
 export OCTOPUS_DEBUG=1
 
 # Or use inline for ad-hoc debugging
-OCTOPUS_DEBUG=1 ./scripts/orchestrate.sh <command>
+OCTOPUS_DEBUG=1 ./scripts/mp <command>
 ```
 
 **Install PDF Tools (Optional):**
@@ -191,21 +191,21 @@ sudo dnf install poppler-utils
 
 ```bash
 # Test debug mode
-./scripts/orchestrate.sh --debug help | grep DEBUG
+./scripts/mp --debug help | grep DEBUG
 
 # Test PDF page counting (if PDF tools installed)
 # This will only work if you have a test PDF
 # get_pdf_page_count "/path/to/test.pdf"
 
 # Test task metrics
-./scripts/orchestrate.sh metrics
+./scripts/mp metrics
 ```
 
 ---
 
 ## 🔧 Technical Details
 
-### New Functions (orchestrate.sh)
+### New Functions (mp runtime)
 
 **Debug Mode:**
 - `debug_log()` - Log debug messages with timestamps
@@ -223,7 +223,7 @@ sudo dnf install poppler-utils
 
 ### Modified Files
 
-- `scripts/orchestrate.sh` - Core logic additions
+- `scripts/mp` - Core logic additions
 - `scripts/state-manager.sh` - Task metrics implementation
 - `.claude-plugin/.claude/commands/extract.md` - PDF page selection integration
 - `.claude-plugin/.claude/skills/skill-deep-research.md` - PDF handling documentation
@@ -264,7 +264,7 @@ apt-get install poppler-utils  # Linux
 
 **Workaround:** Pipe to file or use grep to filter:
 ```bash
-OCTOPUS_DEBUG=1 ./scripts/orchestrate.sh research "X" 2>&1 | tee debug.log
+OCTOPUS_DEBUG=1 ./scripts/mp research "X" 2>&1 | tee debug.log
 ```
 
 ---

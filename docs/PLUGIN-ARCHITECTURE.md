@@ -18,7 +18,7 @@ This guide explains the internal architecture of Claude Octopus for contributors
 └─────────────────────────────────────────────────────────────┘
                             ↓
         ┌──────────────────────────────────────┐
-        │      orchestrate.sh (Bash)            │
+        │      mp runtime (Bash)            │
         └──────────────────────────────────────┘
                             ↓
         ┌──────────────┬────────────┬───────────┐
@@ -126,16 +126,16 @@ New in v7.4: Natural language workflow wrappers
 
 | Skill | File | Triggers | Wrapper For |
 |-------|------|----------|-------------|
-| Probe | probe-workflow.md | "research X" | `orchestrate.sh probe` |
-| Grasp | grasp-workflow.md | "define requirements for X" | `orchestrate.sh grasp` |
-| Tangle | tangle-workflow.md | "build X", "implement Y" | `orchestrate.sh tangle` |
-| Ink | ink-workflow.md | "review X", "validate Y" | `orchestrate.sh ink` |
+| Probe | probe-workflow.md | "research X" | `mp runtime probe` |
+| Grasp | grasp-workflow.md | "define requirements for X" | `mp runtime grasp` |
+| Tangle | tangle-workflow.md | "build X", "implement Y" | `mp runtime tangle` |
+| Ink | ink-workflow.md | "review X", "validate Y" | `mp runtime ink` |
 
 **How they work:**
 1. User says natural language trigger (e.g., "research OAuth patterns")
 2. Claude Code matches trigger pattern to skill
-3. Skill activates and instructs Claude to execute `orchestrate.sh probe`
-4. Orchestrate.sh coordinates external CLIs
+3. Skill activates and instructs Claude to execute `mp runtime probe`
+4. MP runtime coordinates external CLIs
 5. Results are synthesized and returned to chat
 
 ---
@@ -202,16 +202,16 @@ Hooks inject additional context or execute commands at specific points in the wo
 
 **How it works:**
 1. User triggers a workflow (e.g., "research X")
-2. Skill instructs Claude to run `orchestrate.sh probe "X"`
+2. Skill instructs Claude to run `mp runtime probe "X"`
 3. Before Bash tool executes, PreToolUse hook fires
-4. Hook matcher checks if command matches `orchestrate\.sh.*probe`
+4. Hook matcher checks if command matches `bin/mp.*discover`
 5. If matched, prompt injection adds visual indicator to Claude's context
 6. Claude sees: "🐙 **CLAUDE OCTOPUS ACTIVATED**" and outputs it to user
-7. Then orchestrate.sh executes normally
+7. Then mp runtime executes normally
 
 ---
 
-### 4. Orchestrate.sh (Core Engine)
+### 4. MP runtime (Core Engine)
 
 **Location:** `bin/mp`
 
@@ -220,7 +220,7 @@ Hooks inject additional context or execute commands at specific points in the wo
 #### Architecture
 
 ```bash
-orchestrate.sh
+mp runtime
   ├── detect-providers        # Fast provider detection
   ├── probe <prompt>          # Research phase
   ├── grasp <prompt>          # Define phase
@@ -308,9 +308,9 @@ Claude Octopus uses `CLAUDE_CODE_SESSION` environment variable to organize resul
 
 #### Session Sync Hook
 
-**Location:** `hooks/session-sync.sh`
+**Location:** `hooks/session-sync-hook.md`
 
-**Purpose:** Propagates CLAUDE_CODE_SESSION to orchestrate.sh
+**Purpose:** Propagates CLAUDE_CODE_SESSION to mp runtime
 
 ```bash
 #!/bin/bash
@@ -359,7 +359,7 @@ fi
 
 ### 7. Quality Gates
 
-**Location:** `hooks/quality-gate.sh`
+**Location:** `hooks/quality-gate-hook.md`
 
 **Purpose:** Validate results before proceeding to next phase
 
@@ -417,12 +417,12 @@ evaluate_quality() {
    ↓
 6. Claude: Execute Bash tool: ./bin/mp probe "OAuth patterns"
    ↓
-7. orchestrate.sh:
+7. mp runtime:
    - Detect providers (Codex, Gemini available)
    - Call codex exec "OAuth patterns" → saves to probe_codex.md
    - Call gemini -y "OAuth patterns" → saves to probe_gemini.md
    ↓
-8. orchestrate.sh: Write synthesis file with timestamp
+8. mp runtime: Write synthesis file with timestamp
    ↓
 9. Claude: Read synthesis file
    ↓
@@ -441,9 +441,9 @@ claude-octopus/
 ├── .claude-plugin/.claude/
 │   ├── commands/                   # Slash commands
 │   ├── hooks/                      # Hook scripts
-│   │   ├── visual-feedback.sh      # Visual indicators
-│   │   ├── quality-gate.sh         # Quality validation
-│   │   └── session-sync.sh         # Session propagation
+│   │   ├── octopus-hud.mjs      # Visual indicators
+│   │   ├── quality-gate-hook.md         # Quality validation
+│   │   └── session-sync-hook.md         # Session propagation
 │   └── skills/                     # Skill definitions
 │       ├── parallel-agents.md      # Main orchestration skill
 │       ├── probe-workflow.md       # Research workflow
@@ -455,7 +455,7 @@ claude-octopus/
 ├── .dependencies/
 │   └── claude-skills/              # AI Debate Hub submodule
 ├── scripts/
-│   └── orchestrate.sh              # Core orchestration engine
+│   └── mp runtime              # Core orchestration engine
 ├── tests/
 │   ├── unit/                       # Unit tests
 │   ├── integration/                # Integration tests
@@ -514,7 +514,7 @@ claude-octopus/
 
 ### Adding a Quality Gate
 
-1. **Create gate script:** `hooks/my-quality-gate.sh`
+1. **Create gate script:** `hooks/my-quality-gate-hook.md`
 2. **Implement validation logic:**
    ```bash
    #!/bin/bash
@@ -541,7 +541,7 @@ tests/
 │   └── test-workflow-routing.sh        # Test auto-routing logic
 ├── integration/
 │   ├── test-debate-integration.sh      # Test debate workflow
-│   ├── test-session-sync.sh            # Test session management
+│   ├── test-session-sync-hook.md            # Test session management
 │   └── test-quality-gates.sh           # Test quality validation
 └── smoke/
     ├── test-plugin-loads.sh            # Verify plugin loads

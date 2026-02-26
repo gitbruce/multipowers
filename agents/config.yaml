@@ -31,7 +31,7 @@ phase_defaults:
     agents: [security-auditor, test-automator, performance-engineer, deployment-engineer]
 
 # v8.9.0: Phase-to-model routing baseline for Codex agents.
-# Runtime source of truth is select_codex_model_for_context() in scripts/orchestrate.sh,
+# Runtime source of truth is select_codex_model_for_context() in scripts/mp,
 # with user overrides in ~/.claude-octopus/config/providers.json -> phase_routing.
 # Keep this block aligned as the repository policy baseline.
 phase_model_routing:

@@ -21,7 +21,7 @@ When executing Claude Octopus workflows, you MUST display visual indicators so u
 
 Display indicators when:
 - Invoking any `/mp:` command
-- Running `orchestrate.sh` with any workflow (probe, grasp, tangle, ink, embrace, etc.)
+- Running `mp runtime` with any workflow (probe, grasp, tangle, ink, embrace, etc.)
 - User triggers workflow with "octo" prefix ("octo research X", "octo build Y")
 - Executing multi-provider operations
 
@@ -222,7 +222,7 @@ For simple tasks that don't need multi-AI perspectives, suggest using Claude dir
 
 **WARNING: Fast Opus is 6x more expensive than standard Opus.** It uses extra-usage billing at $30/$150 per MTok (vs $5/$25 standard). It provides lower latency but identical quality.
 
-When `SUPPORTS_FAST_OPUS=true` is detected, orchestrate.sh routes conservatively:
+When `SUPPORTS_FAST_OPUS=true` is detected, mp runtime routes conservatively:
 - **Default: standard mode** for all multi-phase workflows (embrace, discover, develop, etc.)
 - **Fast mode only** for interactive single-shot Opus queries where the user is actively waiting
 - **Never fast in autonomous/background mode** (no human waiting = no latency benefit)
@@ -249,7 +249,7 @@ This enables faster workflow startup by skipping provider detection and preferen
 
 ## Enforcement Best Practices (Mandatory for Workflow Skills)
 
-Skills that invoke orchestrate.sh MUST use the **Validation Gate Pattern** to ensure proper execution.
+Skills that invoke mp runtime MUST use the **Validation Gate Pattern** to ensure proper execution.
 
 ### Required Pattern
 
@@ -260,7 +260,7 @@ Skills that invoke orchestrate.sh MUST use the **Validation Gate Pattern** to en
      - interactive_questions_answered
      - visual_indicators_displayed
    validation_gates:
-     - orchestrate_sh_executed
+     - mp_runtime_executed
      - synthesis_file_exists
    ```
 
@@ -287,7 +287,7 @@ Skills that invoke orchestrate.sh MUST use the **Validation Gate Pattern** to en
 
 See `.claude-plugin/.claude/skills/skill-deep-research.md` for reference implementation of the Validation Gate Pattern.
 
-All future orchestrate.sh-based skills should follow this pattern.
+All future mp runtime-based skills should follow this pattern.
 
 ---
 

@@ -12,11 +12,11 @@ Invokes the security-auditor persona for thorough security analysis during the `
 ## Usage
 
 ```bash
-# Via orchestrate.sh
-./scripts/orchestrate.sh spawn security-auditor "Scan for SQL injection vulnerabilities"
+# Via mp runtime
+./scripts/mp spawn security-auditor "Scan for SQL injection vulnerabilities"
 
 # Via auto-routing (detects security intent)
-./scripts/orchestrate.sh auto "security audit the payment processing module"
+./scripts/mp auto "security audit the payment processing module"
 ```
 
 ## Capabilities

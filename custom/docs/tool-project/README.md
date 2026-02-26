@@ -33,7 +33,7 @@ Keep customization isolated in `custom/*`:
 ```bash
 ./custom/scripts/mp-devx sync
 ./custom/scripts/mp-devx overlay
-bash tests/integration/test-sync-overlay.sh
+go test ./...
 ```
 
 ## Marketplace and Plugin (User Scope)

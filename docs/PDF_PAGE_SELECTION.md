@@ -12,7 +12,7 @@ When working with large PDF documents (>10 pages), reading the entire document c
 
 ## Usage in Workflows
 
-### Bash (orchestrate.sh)
+### Bash (mp runtime)
 
 ```bash
 # Method 1: Get page count only
@@ -93,7 +93,7 @@ When research prompts reference PDF files:
 
 Example workflow:
 \`\`\`bash
-# In orchestrate.sh research workflow
+# In mp runtime research workflow
 if [[ -f "$research_file" && "$research_file" =~ \.pdf$ ]]; then
     pages=$(process_pdf_with_selection "$research_file")
 

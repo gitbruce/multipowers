@@ -92,7 +92,7 @@ When no work is available (phase agents all complete):
 ## Requirements
 
 - Claude Code v2.1.33+ (TeammateIdle event support)
-- `SUPPORTS_HOOK_EVENTS=true` in orchestrate.sh
+- `SUPPORTS_HOOK_EVENTS=true` in mp runtime
 - Active workflow session with agent queue
 
 ## Related Files

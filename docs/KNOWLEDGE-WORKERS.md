@@ -305,7 +305,7 @@ A: Yes! Use the `--ci` flag. This is useful for automatically generating release
 - **Agent Catalog:** [AGENTS.md](AGENTS.md)
 - **Main README:** [../README.md](../README.md)
 - **Visual Decision Trees:** [agent-decision-tree.md](agent-decision-tree.md)
-- **Analytics Dashboard:** `orchestrate.sh analytics`
+- **Analytics Dashboard:** `mp runtime analytics`
 
 ---
 

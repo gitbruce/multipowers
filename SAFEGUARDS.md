@@ -69,7 +69,7 @@ Multiple layers of protection now exist:
 make test-plugin-name
 ```
 
-Runs: `tests/validate-plugin-name.sh`
+Runs: `tests/go test ./...`
 
 #### 2. Pre-commit Hook
 File: `.claude-plugin/.claude/hooks/pre-commit.sh`
@@ -99,7 +99,7 @@ Files:
    - All example code
 
 2. **Update tests:**
-   - `tests/validate-plugin-name.sh` - Expected name
+   - `tests/go test ./...` - Expected name
    - All test files referencing `/mp:*`
 
 3. **Notify users:**
@@ -215,7 +215,7 @@ Before releasing a new version:
 
 **Plugin name changed:**
 ```bash
-./tests/validate-plugin-name.sh
+./tests/go test ./...
 # Should output: ✅ Plugin name is correct: "multipowers"
 ```
 

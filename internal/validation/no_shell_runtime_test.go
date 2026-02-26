@@ -3,7 +3,7 @@ package validation
 import "testing"
 
 func TestNoShellRuntimeValidator_FailsOnShellInvocation(t *testing.T) {
-	refs := []string{".claude-plugin/commands/persona.md:${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh persona"}
+	refs := []string{".claude-plugin/commands/persona.md:/scripts/mp persona"}
 	got := ValidateNoShellRuntimeRefs(refs)
 	if got.Valid {
 		t.Fatalf("expected invalid, got valid")

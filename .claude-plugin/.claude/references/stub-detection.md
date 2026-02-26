@@ -267,7 +267,7 @@ export async function processPayment(amount: number) {
 
 ```bash
 #!/usr/bin/env bash
-# detect-stubs.sh - Comprehensive stub detection
+# detect-stubs - Comprehensive stub detection
 
 check_file_stubs() {
     local file="$1"

@@ -12,11 +12,11 @@ Invokes the backend-architect persona for system design during the `grasp` (defi
 ## Usage
 
 ```bash
-# Via orchestrate.sh
-./scripts/orchestrate.sh spawn backend-architect "Design a scalable notification system"
+# Via mp runtime
+./scripts/mp spawn backend-architect "Design a scalable notification system"
 
 # Via auto-routing (detects architecture intent)
-./scripts/orchestrate.sh auto "architect the event-driven messaging system"
+./scripts/mp auto "architect the event-driven messaging system"
 ```
 
 ## Capabilities

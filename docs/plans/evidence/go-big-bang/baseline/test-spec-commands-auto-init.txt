@@ -1,1 +1,0 @@
-PASS test-spec-commands-auto-init

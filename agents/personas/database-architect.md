@@ -27,7 +27,7 @@ hooks:
   PostToolUse:
     - matcher:
         tool: Bash
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/architecture-gate.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"$PWD\" --json"
 ---
 
 You are a database architect specializing in designing scalable, performant, and maintainable data layers from the ground up.

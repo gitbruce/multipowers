@@ -40,7 +40,7 @@ Claude Octopus coordinates **three AI providers** to give you multi-perspective 
 | **Gemini CLI** | `gemini -y -m gemini-3-pro-preview` | Gemini 3.0 Pro Preview | Your `GEMINI_API_KEY` |
 | **Claude** | Built-in | Claude Sonnet 4.5 / Opus 4.6 | Your Claude Code subscription |
 
-> **Note:** Models are as of February 2026. The orchestrate.sh script uses the latest available models.
+> **Note:** Models are as of February 2026. The mp runtime script uses the latest available models.
 
 ### What Each Provider Excels At
 
@@ -431,7 +431,7 @@ When multi-AI mode is active, you'll see these indicators:
 
 ---
 
-## Under the Hood: orchestrate.sh
+## Under the Hood: mp runtime
 
 All workflows are powered by `bin/mp`:
 

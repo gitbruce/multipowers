@@ -2,7 +2,7 @@
 # Declarative YAML schema for defining multi-agent workflows
 #
 # Usage: Workflows define phases, agents, transitions, and quality gates
-# in a declarative format. orchestrate.sh reads these definitions at runtime
+# in a declarative format. mp runtime reads these definitions at runtime
 # instead of hardcoding phase logic.
 #
 # Schema version: 1.0

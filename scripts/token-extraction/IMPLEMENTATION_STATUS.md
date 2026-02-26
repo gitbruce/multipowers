@@ -128,7 +128,7 @@
 - ⏸️ #29: Create validation skill
 - ⏸️ #30: Create validation script
 - ⏸️ #31: Create validation certificate template
-- ⏸️ #32: Add validation function to orchestrate.sh
+- ⏸️ #32: Add validation function to mp runtime
 - ⏸️ #33: Update extract.md for validation flag
 - ⏸️ #34: Update types.ts for validation support
 - ⏸️ #35: Integrate validation into pipeline
@@ -146,7 +146,7 @@
 - Integration + E2E tests
 
 **Modified Files** (3):
-- `scripts/orchestrate.sh` - Add validate_extraction()
+- `scripts/mp` - Add validate_extraction()
 - `.claude-plugin/.claude/commands/extract.md` - Document --validate flag
 - `types.ts` + `pipeline.ts` - Validation integration
 
@@ -211,7 +211,7 @@
 
 **Requirements**:
 - ⏸️ Phase 2 complete
-- ⏸️ orchestrate.sh available in plugin structure
+- ⏸️ mp runtime available in plugin structure
 - ⏸️ Debate functionality tested
 
 ---
@@ -233,7 +233,7 @@
 ### Phase 3 Considerations:
 - Validation certificates provide audit trail
 - Quality gates ensure extraction completeness
-- Integration with orchestrate.sh workflow
+- Integration with mp runtime workflow
 
 ---
 

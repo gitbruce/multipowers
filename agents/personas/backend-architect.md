@@ -28,7 +28,7 @@ hooks:
   PostToolUse:
     - matcher:
         tool: Bash
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/architecture-gate.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"$PWD\" --json"
 ---
 
 You are a backend system architect specializing in scalable, resilient, and maintainable backend systems and APIs.

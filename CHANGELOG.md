@@ -288,7 +288,7 @@ All notable changes to Claude Octopus will be documented in this file.
   - Detects Claude Code v2.1.36+ which introduced `/fast` mode for Opus 4.6
   - Enables cost-aware model routing between standard and fast Opus
 
-- **`select_opus_mode()` routing function** in orchestrate.sh
+- **`select_opus_mode()` routing function** in mp runtime
   - Conservative routing: defaults to standard (cost-efficient) for all multi-phase workflows
   - Fast only for interactive single-shot Opus queries (no phase context)
   - Never uses fast in autonomous/background mode (no human waiting)
@@ -329,7 +329,7 @@ All notable changes to Claude Octopus will be documented in this file.
 
 **Claude Code v2.1.34 Integration** - Event-driven workflows, native metrics, and Workflow-as-Code:
 
-- **v2.1.34 feature detection** in orchestrate.sh
+- **v2.1.34 feature detection** in mp runtime
   - `SUPPORTS_STABLE_AGENT_TEAMS` flag - Stable Agent Teams (crash fix in v2.1.34)
   - `SUPPORTS_AGENT_MEMORY` flag - Memory frontmatter scope (v2.1.33+)
   - Version detection log line shows both new capability flags
@@ -383,14 +383,14 @@ All notable changes to Claude Octopus will be documented in this file.
   - New SWE-Bench Pro and Terminal-Bench leader
   - `codex exec --model gpt-5.3-codex` passed explicitly for premium/max tiers
   - Updated pricing: $4.00/$16.00 per MTok (input/output)
-  - Updated across: orchestrate.sh, config.yaml, metrics-tracker.sh, provider docs, skill files
+  - Updated across: mp runtime, config.yaml, metrics-tracker.sh, provider docs, skill files
 
 ### Changed
 
 - **agents/config.yaml** - Added `memory:` field to all agent entries + model upgraded to gpt-5.3-codex
 - **metrics-tracker.sh** - Version bumped to v8.3.0, updated session JSON schema with native metric fields, added gpt-5.3-codex pricing
 - **hooks.json** - Added `TeammateIdle` and `TaskCompleted` event handlers
-- **orchestrate.sh** - Default codex model now gpt-5.3-codex, role mappings updated, help text updated
+- **mp runtime** - Default codex model now gpt-5.3-codex, role mappings updated, help text updated
 - **config/providers/codex/CLAUDE.md** - Updated CLI examples and cost estimates for GPT-5.3-Codex
 - Version bump: 8.2.0 → 8.3.0
 
@@ -813,7 +813,7 @@ This release fixes critical systemic issues with multi-AI coordination that caus
   - Verify result files have meaningful content (>1KB) after completion
   - Fallback to raw output if filtering removes all content
   - Keep raw output for debugging when result files are suspiciously small
-- **Files Modified**: `spawn_agent()` in orchestrate.sh (lines 7063-7195)
+- **Files Modified**: `spawn_agent()` in mp runtime (lines 7063-7195)
 
 **P0.2 - Preserve Partial Output on Timeout**
 - **Issue**: Timeout (exit code 124) discarded 60KB+ of valuable partial work
@@ -1032,7 +1032,7 @@ Implements transparent cost estimation and user approval BEFORE multi-AI workflo
   - `/mp:tangle` - Develop phase (2 Codex + 2 Gemini calls)
   - `/mp:ink` - Deliver phase (1 Codex + 2 Gemini calls)
 
-**New Functions in orchestrate.sh:**
+**New Functions in mp runtime:**
 - `is_api_based_provider()` - Detects if provider uses API keys (costs money)
 - `calculate_agent_cost()` - Calculates per-call cost only for API-based providers
 - `display_workflow_cost_estimate()` - Shows cost breakdown with user approval prompt
@@ -1136,7 +1136,7 @@ Ensures all orchestration skills actually invoke multi-AI rather than substituti
 **Coverage:**
 - Total skills: 33
 - Skills with enforcement: 16 (up from 5)
-- Skills calling orchestrate.sh: 17
+- Skills calling mp runtime: 17
 - **Coverage: 94%** (16/17) ✅
 
 **Updated Skills:**
@@ -1154,7 +1154,7 @@ Ensures all orchestration skills actually invoke multi-AI rather than substituti
 
 **Enforcement Pattern:**
 1. **Visual Indicators** (BLOCKING) - Show 🐙 banner before execution
-2. **Mandatory Execution** (BLOCKING) - Must call orchestrate.sh
+2. **Mandatory Execution** (BLOCKING) - Must call mp runtime
 3. **Validation Gates** (BLOCKING) - Verify output artifacts exist
 4. **Attribution** (REQUIRED) - Credit multi-AI providers
 
@@ -1378,7 +1378,7 @@ octopus-extract/
 - flow-deliver.md - Full context validation, final metrics
 
 **Core Scripts:**
-- scripts/orchestrate.sh - State management integration
+- scripts/mp - State management integration
 
 **Skills Enhanced:**
 - 11 skills with validation gate enforcement
@@ -1609,7 +1609,7 @@ Added three safety functions to prevent race conditions and enable graceful degr
 
 ### 🔄 Updated
 
-- scripts/orchestrate.sh: Added all UX enhancement features
+- scripts/mp: Added all UX enhancement features
 - .claude-plugin/.claude/skills/flow-discover.md: Documented spinner verb examples
 - tests/: Added test-ux-features-v7.16.0.sh (15 tests)
 
@@ -1686,10 +1686,10 @@ Added three safety functions to prevent race conditions and enable graceful degr
 - **Solution**: Mandatory execution steps with strict validation gates.
 - **Mechanism**:
   - Blocking pre-execution checks
-  - Mandatory `orchestrate.sh` invocation
+  - Mandatory `mp runtime` invocation
   - File existence verification before proceeding
 - **Impact**:
-  - 100% orchestrate.sh execution rate
+  - 100% mp runtime execution rate
   - 4x faster execution (3-5 min vs 18 min)
   - 70% token savings
 
@@ -1894,7 +1894,7 @@ This release integrates with Claude Code v2.1.12+ for enhanced workflow orchestr
   - `hooks/task-completion-checkpoint.sh` - Session state persistence
 
 #### Wildcard Bash Permissions (Claude Code v2.1.12+)
-- **Flexible CLI patterns**: `codex *`, `gemini *`, `*/orchestrate.sh *`
+- **Flexible CLI patterns**: `codex *`, `gemini *`, `*/mp runtime *`
 - **Reduced friction**: Less granular permission prompts for trusted CLIs
 - **Security maintained**: Pattern validation with allow-list
 - New functions: `validate_cli_pattern()`, `check_cli_permissions()`
@@ -1914,7 +1914,7 @@ All 4 core flow skills now include v2.1.12+ metadata:
 - **Version awareness**: Indicates when running in fallback mode
 - Example: "📝 Tasks: 2 in progress, 1 completed, 1 pending"
 
-#### orchestrate.sh Enhanced (437KB → Updated)
+#### mp runtime Enhanced (437KB → Updated)
 - **Version detection**: Automatic Claude Code version detection at startup
 - **Feature flags**: `SUPPORTS_TASK_MANAGEMENT`, `SUPPORTS_FORK_CONTEXT`, etc.
 - **Graceful degradation**: Falls back to tmux-based async when features unavailable
@@ -1991,7 +1991,7 @@ All 4 core flow skills now include v2.1.12+ metadata:
 
 #### Files Modified
 - `.claude-plugin/hooks.json` - Added TaskCreate/TaskUpdate matchers
-- `scripts/orchestrate.sh` - Added version detection, task management, fork context
+- `scripts/mp` - Added version detection, task management, fork context
 - `.claude-plugin/.claude/skills/flow-discover.md` - Added v2.1.12+ frontmatter
 - `.claude-plugin/.claude/skills/flow-define.md` - Added v2.1.12+ frontmatter
 - `.claude-plugin/.claude/skills/flow-develop.md` - Added v2.1.12+ frontmatter
@@ -2208,8 +2208,8 @@ All 4 core flow skills now include v2.1.12+ metadata:
 ### Fixed - Path Resolution & Provider Error Handling
 
 #### Absolute Path References
-- Updated all skill and command files to use `${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh` instead of relative `./scripts/orchestrate.sh` paths
-- Prevents "orchestrate.sh not found" errors when commands run from different directories
+- Updated all skill and command files to use `/scripts/mp` instead of relative `./scripts/mp` paths
+- Prevents "mp runtime not found" errors when commands run from different directories
 
 #### Improved Provider Detection
 - Single-provider mode now works correctly (only need Codex OR Gemini, not both)
@@ -2404,7 +2404,7 @@ All flow skills now display session ID for debugging and cross-session correlati
 
 - **SHA Pinning**: Lock plugins to specific git commits for stability
 - **Bash History Autocomplete**: `!` + Tab to complete from history
-- **Wildcard Bash Permissions**: Pre-approve commands with patterns like `Bash(./scripts/orchestrate.sh *)`
+- **Wildcard Bash Permissions**: Pre-approve commands with patterns like `Bash(./scripts/mp *)`
 
 ### Changed
 
@@ -2678,7 +2678,7 @@ When a skill loads via `Skill(octo:prd)`, the content is already in context. But
 
 **Fixed `flock: command not found` error on macOS.**
 
-The `flock` command is Linux-only and not available on macOS. Updated orchestrate.sh to:
+The `flock` command is Linux-only and not available on macOS. Updated mp runtime to:
 - Check if `flock` exists before using it
 - Fall back to simple append on macOS (acceptable for our use case)
 
@@ -2834,7 +2834,7 @@ Based on 2026 AI coding assistant research:
 
 ### Added - Context Detection in CLI
 
-**Context detection now works in `orchestrate.sh` CLI**, not just skill instructions.
+**Context detection now works in `mp runtime` CLI**, not just skill instructions.
 
 #### CLI Enhancements
 
@@ -2846,10 +2846,10 @@ Based on 2026 AI coding assistant research:
 
 The `km` command now supports three modes:
 ```bash
-./scripts/orchestrate.sh km on     # Force Knowledge context
-./scripts/orchestrate.sh km off    # Force Dev context  
-./scripts/orchestrate.sh km auto   # Return to auto-detection (new!)
-./scripts/orchestrate.sh km        # Show current status
+./scripts/mp km on     # Force Knowledge context
+./scripts/mp km off    # Force Dev context  
+./scripts/mp km auto   # Return to auto-detection (new!)
+./scripts/mp km        # Show current status
 ```
 
 ### Fixed
@@ -3490,14 +3490,14 @@ See `docs/MIGRATION-v7.5.md` for:
 **Problem Solved**: Users couldn't distinguish between external CLI execution (which costs money) vs Claude subagents (included with Claude Code).
 
 **Visual Indicators** (Hook-Based)
-- 🐙 **Parallel Mode** - Multiple CLIs orchestrated via orchestrate.sh
+- 🐙 **Parallel Mode** - Multiple CLIs orchestrated via mp runtime
 - 🔴 **Codex CLI** - OpenAI Codex executing (uses OPENAI_API_KEY)
 - 🟡 **Gemini CLI** - Google Gemini executing (uses GEMINI_API_KEY)
 - 🔵 **Claude Subagent** - Claude Code Task tool (included, no additional cost)
 
 **Implementation**
 - Added PreToolUse hooks to `.claude-plugin/hooks.json`
-- Hooks inject visual indicators when orchestrate.sh or external CLIs execute
+- Hooks inject visual indicators when mp runtime or external CLIs execute
 - Automatic detection of provider execution context
 - Cost awareness messaging ("uses your API quotas")
 
@@ -3517,7 +3517,7 @@ Providers:
 
 ### Added - Natural Language Workflow Triggers
 
-**Problem Solved**: Users had to use CLI commands (`./scripts/orchestrate.sh probe`) instead of natural conversation.
+**Problem Solved**: Users had to use CLI commands (`./scripts/mp probe`) instead of natural conversation.
 
 **Workflow Skills** (New in v7.4)
 - `probe-workflow.md` - Research/exploration ("research X", "explore Y")
@@ -3533,7 +3533,7 @@ Providers:
 
 **Before v7.4**
 ```bash
-./scripts/orchestrate.sh probe "research OAuth patterns"
+./scripts/mp probe "research OAuth patterns"
 ```
 
 **After v7.4**
@@ -3605,7 +3605,7 @@ Providers:
 - Added comprehensive attribution section in README.md
 - Documented hybrid integration approach in plugin.json dependencies
 - Created debate-integration.md with enhancement details
-- Added debate command routing in orchestrate.sh with usage examples
+- Added debate command routing in mp runtime with usage examples
 - Documented contribution workflow for upstream enhancements
 
 ### Impact
@@ -4160,7 +4160,7 @@ This release implements competitive research recommendations to dramatically imp
 - Privacy-first: No PII, no full prompts, no API keys logged
 
 **Analytics Reporting**
-- **New `analytics` command**: `./scripts/orchestrate.sh analytics [days]`
+- **New `analytics` command**: `./scripts/mp analytics [days]`
 - **New `generate_analytics_report()` function** - Usage insights
 - Reports most/least used agents, phase distribution, and usage trends
 - Helps identify optimization opportunities
@@ -4241,7 +4241,7 @@ The three-phase approach (Documentation → Guidance → Analytics) ensures both
 
 #### Setup Command Path Resolution (Critical)
 - **Fixed `/claude-octopus:setup` command failing with "no such file or directory" error**
-- Updated `.claude-plugin/.claude/commands/setup.md` to use `${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh` instead of relative paths
+- Updated `.claude-plugin/.claude/commands/setup.md` to use `/scripts/mp` instead of relative paths
 - Works correctly when plugin installed via marketplace (versioned cache directory)
 - Applied fix to all 3 script invocations in setup command (detect-providers, verify, help)
 
@@ -4698,7 +4698,7 @@ This release includes both UX improvements (auto-configuration check) and critic
   - `agents/skills/code-review.md`
   - `agents/skills/security-audit.md`
   - `agents/skills/architecture.md`
-- **Skills Command** - `./scripts/orchestrate.sh skills` lists available skills
+- **Skills Command** - `./scripts/mp skills` lists available skills
 - **Plugin Registration** - Skills and agents in plugin.json
 
 #### Documentation & Testing
@@ -4770,7 +4770,7 @@ This release includes both UX improvements (auto-configuration check) and critic
 ## [1.0.2] - 2026-01-15
 
 ### Added
-- **Interactive Setup Wizard** (`./scripts/orchestrate.sh setup`)
+- **Interactive Setup Wizard** (`./scripts/mp setup`)
   - Step-by-step guided configuration for first-time users
   - Auto-installs Codex CLI and Gemini CLI via npm
   - Opens API key pages in browser (OpenAI, Google AI Studio)

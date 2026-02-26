@@ -1,6 +1,6 @@
-# CLI Reference - Direct orchestrate.sh Usage
+# CLI Reference - Direct mp runtime Usage
 
-This guide documents direct CLI usage of orchestrate.sh for advanced users and automation scenarios.
+This guide documents direct CLI usage of mp runtime for advanced users and automation scenarios.
 
 **Note:** For plugin users, natural language triggers (documented in [TRIGGERS.md](./TRIGGERS.md)) are the recommended way to use Claude Octopus. This CLI reference is for:
 - Automation scripts
@@ -571,7 +571,7 @@ export OPENAI_API_KEY="sk-..."
 ### Permission Denied
 
 ```bash
-# Make orchestrate.sh executable
+# Make mp runtime executable
 chmod +x ./bin/mp
 
 # Check file permissions

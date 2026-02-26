@@ -27,7 +27,7 @@ hooks:
   PostToolUse:
     - matcher:
         tool: Bash
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/perf-gate.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"$PWD\" --json"
 ---
 
 You are a performance engineer specializing in modern application optimization, observability, and scalable system performance.

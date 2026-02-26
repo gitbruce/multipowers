@@ -16,7 +16,7 @@ git merge --ff-only upstream/main
 git switch multipowers
 git merge main -m "chore(sync): merge main into multipowers"
 ./custom/scripts/mp-devx overlay
-bash tests/integration/test-sync-overlay.sh
+go test ./...
 ```
 
 ## Pre-Sync Guards

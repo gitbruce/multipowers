@@ -145,7 +145,7 @@ async function runDebateRound(
 
 /**
  * Call an AI provider (mock implementation)
- * In real implementation, this would call orchestrate.sh or AI CLI tools
+ * In real implementation, this would call mp runtime or AI CLI tools
  */
 async function callAIProvider(
   role: string,
@@ -156,7 +156,7 @@ async function callAIProvider(
 
   // Mock implementation - returns structured response
   // Real implementation would call:
-  // - orchestrate.sh grapple_debate
+  // - mp runtime grapple_debate
   // - codex CLI
   // - gemini CLI
 

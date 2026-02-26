@@ -25,7 +25,7 @@ External CLI providers (Codex and Gemini) are invoked when you:
 
 ### 2. Trigger Workflow Skills
 
-Natural language that triggers orchestrate.sh workflows:
+Natural language that triggers mp runtime workflows:
 
 - **Probe (Research)**: "research X", "explore Y", "investigate Z"
 - **Grasp (Define)**: "define requirements for X", "clarify scope of Y"
@@ -44,7 +44,7 @@ When Knowledge Mode is ON, research tasks use external CLIs:
 ### 4. Use Direct CLI Commands
 
 ```bash
-# Direct orchestrate.sh execution
+# Direct mp runtime execution
 ./bin/mp probe "research GraphQL vs REST"
 ./bin/mp tangle "implement user authentication"
 
@@ -131,7 +131,7 @@ Providers:
 🟡 Gemini CLI - Ecosystem and community research
 🔵 Claude - Strategic synthesis
 
-[Executes orchestrate.sh probe...]
+[Executes mp runtime probe...]
 
 # Research Findings: Authentication Best Practices
 
@@ -165,7 +165,7 @@ Providers:
 🟡 Gemini CLI - Alternative approaches
 🔵 Claude - Integration and refinement
 
-[Executes orchestrate.sh tangle...]
+[Executes mp runtime tangle...]
 
 # Implementation Plan: User Authentication System
 [Synthesized approach from all providers]
@@ -185,7 +185,7 @@ Providers:
 🟡 Gemini CLI - Security audit and edge cases
 🔵 Claude - Synthesis and validation report
 
-[Executes orchestrate.sh ink...]
+[Executes mp runtime ink...]
 
 # Validation Report: Authentication Implementation
 Overall Status: ⚠️ PASSED WITH WARNINGS
@@ -261,7 +261,7 @@ The visual indicators are injected via PreToolUse hooks. Verify:
 # Check hooks configuration
 cat .claude-plugin/hooks.json
 
-# Should contain PreToolUse hooks for orchestrate.sh
+# Should contain PreToolUse hooks for mp runtime
 ```
 
 ### Check 4: Task Type
@@ -332,7 +332,7 @@ File: `.claude-plugin/hooks.json`
 }
 ```
 
-These hooks inject context into Claude's prompt whenever orchestrate.sh or CLI commands execute, ensuring you always see what's running.
+These hooks inject context into Claude's prompt whenever mp runtime or CLI commands execute, ensuring you always see what's running.
 
 ---
 

@@ -4,7 +4,7 @@ Standard patterns for enforcing multi-AI orchestration across Claude Octopus ski
 
 ## Purpose
 
-Validation gates ensure that skills which invoke `orchestrate.sh` actually execute it rather than substituting with direct research or implementation. This is critical because:
+Validation gates ensure that skills which invoke `mp runtime` actually execute it rather than substituting with direct research or implementation. This is critical because:
 
 1. **Cost Transparency**: Users need to know when external providers are being used
 2. **Quality Assurance**: Multi-AI perspectives provide better outcomes than single-agent work
@@ -13,7 +13,7 @@ Validation gates ensure that skills which invoke `orchestrate.sh` actually execu
 
 ## Standard Enforcement Pattern
 
-All skills that invoke `orchestrate.sh` MUST include this pattern:
+All skills that invoke `mp runtime` MUST include this pattern:
 
 ### 1. Frontmatter Configuration
 
@@ -53,7 +53,7 @@ command -v codex &> /dev/null && codex_status="Available ✓" || codex_status="N
 command -v gemini &> /dev/null && gemini_status="Available ✓" || gemini_status="Not installed ✗"
 ```
 
-**Display this banner BEFORE orchestrate.sh execution:**
+**Display this banner BEFORE mp runtime execution:**
 
 ```
 🐙 **CLAUDE OCTOPUS ACTIVATED** - [Workflow type]
@@ -77,7 +77,7 @@ Provider Availability:
 
 ---
 
-### STEP 2: Execute orchestrate.sh [workflow] (MANDATORY - Use Bash Tool)
+### STEP 2: Execute mp runtime [workflow] (MANDATORY - Use Bash Tool)
 
 **You MUST execute this command via the Bash tool:**
 
@@ -86,18 +86,18 @@ ${CLAUDE_PLUGIN_ROOT}/bin/mp [workflow] "<user's request>"
 ```
 
 **CRITICAL: You are PROHIBITED from:**
-- ❌ Executing the task directly without calling orchestrate.sh
+- ❌ Executing the task directly without calling mp runtime
 - ❌ Using direct research/implementation as a substitute
 - ❌ Claiming you're "simulating" the workflow
 - ❌ Proceeding to Step 3 without running this command
 
-**This is NOT optional. You MUST use the Bash tool to invoke orchestrate.sh.**
+**This is NOT optional. You MUST use the Bash tool to invoke `${CLAUDE_PLUGIN_ROOT}/bin/mp` runtime commands.**
 
 ---
 
 ### STEP 3: Verify Execution (MANDATORY - Validation Gate)
 
-**After orchestrate.sh completes, verify it succeeded:**
+**After mp runtime completes, verify it succeeded:**
 
 ```bash
 # Find the latest synthesis/output file (created within last 10 minutes)
@@ -105,7 +105,7 @@ OUTPUT_FILE=$(find ~/.claude-octopus/results -name "[workflow]-*-*.md" -mmin -10
 
 if [[ -z "$OUTPUT_FILE" ]]; then
   echo "❌ VALIDATION FAILED: No output file found"
-  echo "orchestrate.sh did not execute properly"
+  echo "mp runtime did not execute properly"
   exit 1
 fi
 
@@ -142,7 +142,7 @@ Add clear prohibitions:
 
 You are EXPLICITLY PROHIBITED from:
 
-1. **Direct Execution**: Performing the task yourself instead of calling orchestrate.sh
+1. **Direct Execution**: Performing the task yourself instead of calling mp runtime
 2. **Web Search Substitution**: Using WebSearch instead of multi-AI orchestration
 3. **Simulation Claims**: Saying you're "simulating" or "representing" the workflow
 4. **Skipping Validation**: Proceeding without verifying synthesis file exists
@@ -217,7 +217,7 @@ See `.claude/skills/skill-deep-research.md` for reference implementation.
 
 **Key elements:**
 - Visual indicators showing all 3 providers
-- Bash tool invocation of `orchestrate.sh probe`
+- Bash tool invocation of `${CLAUDE_PLUGIN_ROOT}/bin/mp discover --dir "$PWD" --prompt "<user-prompt>" --json`
 - Synthesis file validation
 - Attribution in output
 
@@ -285,7 +285,7 @@ When updating a skill to add validation gates:
 - [ ] Add frontmatter fields (execution_mode, pre_execution_contract, validation_gates)
 - [ ] Add EXECUTION CONTRACT section with numbered steps
 - [ ] Add visual indicators (Step 1)
-- [ ] Add orchestrate.sh execution (Step 2) with Bash tool
+- [ ] Add mp runtime execution (Step 2) with Bash tool
 - [ ] Add validation gate (Step 3) with file existence check
 - [ ] Add result presentation (Step 4)
 - [ ] Add PROHIBITED SUBSTITUTIONS section
@@ -303,7 +303,7 @@ After adding validation gates, test:
 # 2. Verify visual indicators appear
 # Should see 🐙 banner with provider status
 
-# 3. Verify orchestrate.sh executes
+# 3. Verify mp runtime executes
 # Should see Bash tool invocation in transcript
 
 # 4. Verify synthesis file created
@@ -329,12 +329,12 @@ You MUST verify the synthesis file exists before proceeding.
 
 ### ❌ Mistake 2: Allowing Substitution
 ```markdown
-If orchestrate.sh fails, you can research directly.
+If mp runtime fails, you can research directly.
 ```
 
 **Fix:**
 ```markdown
-If orchestrate.sh fails:
+If mp runtime fails:
 1. Report error to user
 2. DO NOT substitute with direct research
 3. DO NOT proceed without fixing the error
@@ -342,7 +342,7 @@ If orchestrate.sh fails:
 
 ### ❌ Mistake 3: Missing Visual Indicators
 ```markdown
-Execute orchestrate.sh...
+Execute mp runtime...
 ```
 
 **Fix:**
@@ -352,17 +352,17 @@ Execute orchestrate.sh...
 
 **DO NOT PROCEED TO STEP 2 until banner displayed.**
 
-**STEP 2: Execute orchestrate.sh...**
+**STEP 2: Execute mp runtime...**
 ```
 
 ### ❌ Mistake 4: Weak Language
 ```markdown
-It would be good to run orchestrate.sh
+It would be good to run mp runtime
 ```
 
 **Fix:**
 ```markdown
-You MUST execute orchestrate.sh via the Bash tool.
+You MUST execute mp runtime via the Bash tool.
 You are PROHIBITED from skipping this step.
 ```
 
@@ -376,7 +376,7 @@ You are PROHIBITED from skipping this step.
 4. **Contractual Obligation**: Visual indicators are a promise to users
 
 **The Goal:**
-- 100% of skills that invoke orchestrate.sh actually invoke it
+- 100% of skills that invoke mp runtime actually invoke it
 - 0% substitution with direct work
 - 100% visibility via visual indicators
 - 100% validation via artifact checks
@@ -386,15 +386,15 @@ You are PROHIBITED from skipping this step.
 Validation gates transform skills from "suggestions" to "contracts":
 
 **Before (Weak):**
-- "You should call orchestrate.sh"
+- "You should call mp runtime"
 - No verification
 - Easy to skip
 - Users uncertain what's happening
 
 **After (Strong):**
-- "You MUST call orchestrate.sh"
+- "You MUST call mp runtime"
 - Mandatory verification
 - Impossible to skip
 - Users see exactly what's running
 
-All skills that use orchestrate.sh must follow this pattern to ensure consistent, reliable, transparent multi-AI orchestration.
+All skills that use mp runtime must follow this pattern to ensure consistent, reliable, transparent multi-AI orchestration.

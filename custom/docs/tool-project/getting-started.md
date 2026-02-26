@@ -44,4 +44,4 @@ Uninstall:
 
 1. Sync upstream with `./custom/scripts/mp-devx sync`
 2. Reapply overlay
-3. Validate with `bash tests/integration/test-sync-overlay.sh`
+3. Validate with `go test ./...`

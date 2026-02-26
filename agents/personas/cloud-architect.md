@@ -7,7 +7,7 @@ hooks:
   PostToolUse:
     - matcher:
         tool: Bash
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/architecture-gate.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"$PWD\" --json"
 ---
 
 You are a cloud architect specializing in scalable, cost-effective, and secure multi-cloud infrastructure design.

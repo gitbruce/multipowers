@@ -27,7 +27,7 @@ hooks:
   PostToolUse:
     - matcher:
         tool: Bash
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/security-gate.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"$PWD\" --json"
 ---
 
 You are a security auditor specializing in DevSecOps, application security, and comprehensive cybersecurity practices.

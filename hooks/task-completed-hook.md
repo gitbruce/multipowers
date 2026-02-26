@@ -131,7 +131,7 @@ This data feeds the smart routing optimizer for future task assignment.
 ## Requirements
 
 - Claude Code v2.1.33+ (TaskCompleted event support)
-- `SUPPORTS_HOOK_EVENTS=true` in orchestrate.sh
+- `SUPPORTS_HOOK_EVENTS=true` in mp runtime
 - Active workflow session
 
 ## Related Files

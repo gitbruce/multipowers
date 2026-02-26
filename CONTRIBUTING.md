@@ -12,7 +12,7 @@ Thanks for your interest in contributing to Claude Octopus! This document provid
    ```
 3. **Make scripts executable**:
    ```bash
-   chmod +x scripts/*.sh scripts/*.py
+   chmod +x scripts/build.sh scripts/*.py
    ```
 
 ## Development Setup
@@ -28,13 +28,13 @@ Thanks for your interest in contributing to Claude Octopus! This document provid
 
 ```bash
 # Check shell script syntax
-bash -n scripts/orchestrate.sh
+bash -n scripts/mp
 
 # Check Python syntax
 python3 -m py_compile scripts/coordinator.py
 
 # Dry-run test
-./scripts/orchestrate.sh -n auto "test prompt"
+./scripts/mp -n auto "test prompt"
 ```
 
 ## Making Changes

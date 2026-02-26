@@ -77,7 +77,7 @@ Use `claude` (Sonnet 4.5) for:
 
 ### Agent Teams (v2.1.32+)
 
-When Claude Code v2.1.32+ is detected, Agent Teams support is available. This enables peer-to-peer agent messaging for coordinated multi-agent workflows. Detection is automatic via `SUPPORTS_AGENT_TEAMS` flag in orchestrate.sh.
+When Claude Code v2.1.32+ is detected, Agent Teams support is available. This enables peer-to-peer agent messaging for coordinated multi-agent workflows. Detection is automatic via `SUPPORTS_AGENT_TEAMS` flag in mp runtime.
 
 ## Native Features
 

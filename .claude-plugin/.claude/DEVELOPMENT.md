@@ -145,7 +145,7 @@ make test-integration # Integration tests
 make test-e2e         # End-to-end tests
 
 # Individual test
-./tests/smoke/test-syntax.sh
+./go test ./...
 ```
 
 ### Writing Tests
@@ -160,7 +160,7 @@ set -euo pipefail
 echo "Test: my-feature"
 
 # Setup
-source tests/helpers/test-framework.sh
+source tests framework
 
 # Test logic
 result=$(my_function "input")
@@ -277,7 +277,7 @@ echo "Hook executed"
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/my-hook.sh"
+          "command": "${CLAUDE_PLUGIN_ROOT}/hooks/my-hook.md"
         }
       ]
     }
@@ -285,7 +285,7 @@ echo "Hook executed"
 }
 ```
 
-3. Make executable: `chmod +x hooks/my-hook.sh`
+3. Make executable: `chmod +x hooks/my-hook.md`
 
 ## 🔍 Debugging
 
@@ -398,7 +398,7 @@ make clean             # Clean artifacts
 
 ```bash
 scripts/install-hooks.sh    # Install git hooks
-tests/helpers/test-framework.sh  # Test utilities
+tests framework  # Test utilities
 ```
 
 ## 📚 Best Practices

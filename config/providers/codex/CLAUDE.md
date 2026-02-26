@@ -59,7 +59,7 @@ Use Codex for:
 ## Timeout Configuration
 
 Default timeout: 60 seconds
-Can be configured in orchestrate.sh:
+Can be configured in mp runtime:
 ```bash
 CODEX_TIMEOUT=120  # 2 minutes for complex queries
 ```

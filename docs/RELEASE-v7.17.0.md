@@ -46,7 +46,7 @@ All 5 planned phases implemented, tested, and committed:
 
 **Integration:**
 - All 4 flow skills read/write state
-- orchestrate.sh auto-initializes
+- mp runtime auto-initializes
 - State survives context resets
 
 ---
@@ -56,7 +56,7 @@ All 5 planned phases implemented, tested, and committed:
 **100% multi-AI compliance**
 
 - 94% coverage (16/17 skills enforced)
-- Mandatory orchestrate.sh execution
+- Mandatory mp runtime execution
 - Visual indicators required
 - Artifact validation
 
