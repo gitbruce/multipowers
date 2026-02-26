@@ -1,13 +1,13 @@
 # Persona Command
 
 ## What Changed From Upstream
-Introduced overlay-managed `/octo:persona` command source and lane display.
+Introduced overlay-managed `/mp:persona` command source and lane display.
 
 ## Why This Exists
 To keep persona behavior explicit and stable across upstream syncs.
 
 ## How To Use
-Use `/octo:persona list` and `/octo:persona <name> <prompt>`.
+Use `/mp:persona list` and `/mp:persona <name> <prompt>`.
 
 ### Persona List Table (with Model IDs)
 

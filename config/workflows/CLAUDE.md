@@ -83,7 +83,7 @@ The Double Diamond is a design methodology with 4 phases:
 Use `embrace` to run all 4 phases automatically:
 
 ```bash
-/octo:embrace "Build user authentication system"
+/mp:embrace "Build user authentication system"
 ```
 
 ## Autonomy Modes

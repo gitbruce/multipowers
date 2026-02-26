@@ -7,7 +7,7 @@ description: Development phase - Multi-AI implementation with quality gates
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:tangle <arguments>`):
+When the user invokes this command (e.g., `/mp:tangle <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```

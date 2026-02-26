@@ -7,5 +7,5 @@
 - Upstream setup protocol path: `commands/conductor/setup.toml`
 - Mirrored exactly into: `custom/config/setup.toml`
 - Borrowed behavior: interactive setup wizard flow, project context artifacts in `conductor/`, track-first spec workflow.
-- Copy policy: exact copy for template assets; setup protocol is adapted for `/octo:init` compatibility; behavior-level adaptation for orchestrator logic.
+- Copy policy: exact copy for template assets; setup protocol is adapted for `/mp:init` compatibility; behavior-level adaptation for orchestrator logic.
 - Attribution: retained in custom docs and this source map.

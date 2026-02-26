@@ -11,7 +11,7 @@ This document outlines critical configuration that must NOT be changed without c
 ```json
 // .claude-plugin/plugin.json
 {
-  "name": "octo"  // ⚠️ LOCKED - See details below
+  "name": "multipowers"  // ⚠️ LOCKED - See details below
 }
 ```
 
@@ -26,26 +26,26 @@ This document outlines critical configuration that must NOT be changed without c
 
 | File | Name | Purpose | Command Format |
 |------|------|---------|----------------|
-| `.claude-plugin/plugin.json` | `"octo"` | Command prefix in Claude Code | `/octo:discover`, `/octo:debate` |
+| `.claude-plugin/plugin.json` | `"multipowers"` | Command prefix in Claude Code | `/mp:discover`, `/mp:debate` |
 | `package.json` | `"claude-octopus"` | Package/marketplace identity | N/A (npm/git) |
 
 ### What Happens If You Change It
 
-❌ **Changing plugin name from `"octo"` to `"claude-octopus"`:**
+❌ **Changing plugin name from `"multipowers"` to `"claude-octopus"`:**
 
 ```diff
 // .claude-plugin/plugin.json
 {
-- "name": "octo"
+- "name": "multipowers"
 + "name": "claude-octopus"  // ❌ BREAKS ALL COMMANDS
 }
 ```
 
 **Impact:**
-- All commands change from `/octo:*` to `/claude-octopus:*`
+- All commands change from `/mp:*` to `/claude-octopus:*`
 - Existing documentation becomes incorrect
 - User workflows break
-- Skills/commands referencing `/octo:*` stop working
+- Skills/commands referencing `/mp:*` stop working
 - 100+ references across codebase need updating
 
 **Estimated fix time:** 4-8 hours + documentation updates + user migration
@@ -57,7 +57,7 @@ This configuration was broken and fixed multiple times:
 | Commit | Change | Result |
 |--------|--------|--------|
 | `3ebb189` | Set plugin name to `claude-octopus` | ❌ Broke command prefixes |
-| `d9e8354` | Reverted to `octo` | ✅ Fixed commands |
+| `d9e8354` | Reverted to `multipowers` | ✅ Fixed commands |
 | `57ce38c` | Removed namespace prefix from frontmatter | ✅ Correct format |
 
 ### Validation & Safeguards
@@ -100,7 +100,7 @@ Files:
 
 2. **Update tests:**
    - `tests/validate-plugin-name.sh` - Expected name
-   - All test files referencing `/octo:*`
+   - All test files referencing `/mp:*`
 
 3. **Notify users:**
    - Create migration guide
@@ -163,7 +163,7 @@ description: "Discovery phase..."
 **Incorrect (do not use):**
 ```yaml
 ---
-command: octo:discover  # ❌ WRONG - namespace added twice
+command: multipowers:discover  # ❌ WRONG - namespace added twice
 ---
 ```
 
@@ -200,10 +200,10 @@ Use: `scripts/bump-version.sh` to update all at once (if it exists, otherwise ma
 
 Before releasing a new version:
 
-- [ ] Run `make test-plugin-name` - Verify plugin name is `"octo"`
+- [ ] Run `make test-plugin-name` - Verify plugin name is `"multipowers"`
 - [ ] Run `make test-smoke` - Verify all smoke tests pass
 - [ ] Check version sync across `plugin.json`, `package.json`, `README.md`
-- [ ] Verify command references use `/octo:*` format
+- [ ] Verify command references use `/mp:*` format
 - [ ] Test installation from marketplace
 - [ ] Verify commands work after installation
 
@@ -216,13 +216,13 @@ Before releasing a new version:
 **Plugin name changed:**
 ```bash
 ./tests/validate-plugin-name.sh
-# Should output: ✅ Plugin name is correct: "octo"
+# Should output: ✅ Plugin name is correct: "multipowers"
 ```
 
 **Commands not working:**
 ```bash
 # Try running a command in Claude Code
-/octo:discover test query
+/mp:discover test query
 
 # If it fails, check plugin.json name field
 grep '"name"' .claude-plugin/plugin.json
@@ -235,7 +235,7 @@ If plugin name gets changed accidentally:
 1. **Revert the change immediately:**
    ```bash
    # In .claude-plugin/plugin.json, set:
-   "name": "octo"
+   "name": "multipowers"
    ```
 
 2. **Verify fix:**
@@ -245,7 +245,7 @@ If plugin name gets changed accidentally:
 
 3. **Test commands:**
    - Reload plugin in Claude Code
-   - Run `/octo:discover test` to verify
+   - Run `/mp:discover test` to verify
 
 ---
 

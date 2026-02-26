@@ -1,4 +1,4 @@
-# Implementation Status: P0 & P1 Features for /octo:extract
+# Implementation Status: P0 & P1 Features for /mp:extract
 
 **Last Updated**: February 1, 2026
 **Overall Progress**: 16/38 tasks complete (42%)

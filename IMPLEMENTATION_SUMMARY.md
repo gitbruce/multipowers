@@ -24,7 +24,7 @@ All phases of the native integration plan have been implemented:
 - Created MIGRATION-7.23.0.md user guide
 
 ### ✅ Phase 3: Hybrid Plan Mode Integration (v7.24.0)
-- Updated /octo:plan command with hybrid routing logic
+- Updated /mp:plan command with hybrid routing logic
 - Added detection for when native EnterPlanMode is beneficial
 - Implemented intelligent routing based on task complexity
 - Documented when to use each system
@@ -92,7 +92,7 @@ analysis/
 **Impact:** Tasks now show in native Claude Code interface
 
 ### 2. Hybrid Planning
-**What:** Intelligent routing between native EnterPlanMode and /octo:plan
+**What:** Intelligent routing between native EnterPlanMode and /mp:plan
 **Why:** Use the right tool for the job
 **Impact:** Simple planning uses native, complex uses multi-AI orchestration
 
@@ -119,7 +119,7 @@ cp .claude/todos.md .claude/todos.md.backup
 
 **Step 2: Run Migration**
 ```bash
-~/.claude/plugins/cache/nyldn-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
 ```
 
 **Step 3: Verify**
@@ -355,7 +355,7 @@ Include:
 - [x] Test migration with sample todos
 
 ### Phase 3: Hybrid Planning
-- [x] Update /octo:plan with routing logic
+- [x] Update /mp:plan with routing logic
 - [x] Add native plan mode detection
 - [x] Implement intelligent routing
 - [x] Document when to use each system

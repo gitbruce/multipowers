@@ -3,13 +3,13 @@
 ## What Was Broken
 
 Commands were breaking because the plugin name kept getting changed:
-- Changed: `"octo"` → `"claude-octopus"` ❌
+- Changed: `"multipowers"` → `"claude-octopus"` ❌
 - Commands became: `/claude-octopus:discover` (too long, broke workflows)
-- Should be: `/octo:discover` ✅
+- Should be: `/mp:discover` ✅
 
 ## What's Protected Now
 
-✅ **Plugin name locked to `"octo"` with 4 layers of protection:**
+✅ **Plugin name locked to `"multipowers"` with 4 layers of protection:**
 
 ### Layer 1: Documentation Warnings
 ```
@@ -46,8 +46,8 @@ make test-plugin-name
 Expected output:
 ```
 🔍 Validating plugin name...
-✅ Plugin name is correct: "octo"
-   Commands will work as: /octo:discover, /octo:debate, etc.
+✅ Plugin name is correct: "multipowers"
+   Commands will work as: /mp:discover, /mp:debate, etc.
 ```
 
 ## If It Breaks Again
@@ -55,13 +55,13 @@ Expected output:
 1. Check the plugin name:
    ```bash
    grep '"name"' .claude-plugin/plugin.json
-   # Should show: "name": "octo"
+   # Should show: "name": "multipowers"
    ```
 
 2. If wrong, fix it immediately:
    ```json
    {
-     "name": "octo"  // ← Must be exactly this
+     "name": "multipowers"  // ← Must be exactly this
    }
    ```
 
@@ -74,7 +74,7 @@ Expected output:
 
 | Purpose | File | Name |
 |---------|------|------|
-| Command prefix | `.claude-plugin/plugin.json` | `"octo"` |
+| Command prefix | `.claude-plugin/plugin.json` | `"multipowers"` |
 | Marketplace ID | `package.json` | `"claude-octopus"` |
 
 Both are correct and serve different purposes.
@@ -83,4 +83,4 @@ Both are correct and serve different purposes.
 
 **Status:** ✅ All safeguards active
 **Last Verified:** 2026-01-21
-**Commands Working:** `/octo:discover`, `/octo:debate`, `/octo:embrace`, etc.
+**Commands Working:** `/mp:discover`, `/mp:debate`, `/mp:embrace`, etc.

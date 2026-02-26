@@ -2,11 +2,11 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Remove shell as runtime dependency completely by migrating all invoked `.sh` logic to Go, switching all call sites to `bin/octo`, and deleting all `.sh` files only after parity verification passes.
+**Goal:** Remove shell as runtime dependency completely by migrating all invoked `.sh` logic to Go, switching all call sites to `bin/mp`, and deleting all `.sh` files only after parity verification passes.
 
-**Architecture:** Keep `cmd/octo` as the only runtime executable. Move remaining shell-owned behaviors (persona routing, state/context/provider utilities, hook helpers, CI/test harness entrypoints) into focused Go packages and subcommands. Enforce with a strict validator that blocks any runtime/docs/CI references to `.sh` execution.
+**Architecture:** Keep `cmd/mp` as the only runtime executable. Move remaining shell-owned behaviors (persona routing, state/context/provider utilities, hook helpers, CI/test harness entrypoints) into focused Go packages and subcommands. Enforce with a strict validator that blocks any runtime/docs/CI references to `.sh` execution.
 
-**Tech Stack:** Go 1.24 (`cmd/octo`, `internal/*`, `pkg/api/*`), GitHub Actions, Markdown command/skill files, Makefile.
+**Tech Stack:** Go 1.24 (`cmd/mp`, `internal/*`, `pkg/api/*`), GitHub Actions, Markdown command/skill files, Makefile.
 
 ---
 
@@ -14,7 +14,7 @@
 
 - In scope: runtime entrypoints, plugin commands/skills call sites, hooks, CI/test harness, docs references that instruct users to run `.sh`, deletion of shell files.
 - Out of scope: adding new end-user features unrelated to shell removal.
-- Success definition: user-facing and CI-facing execution paths run only through `bin/octo` (or `go run ./cmd/octo` in build contexts), with zero `.sh` files remaining.
+- Success definition: user-facing and CI-facing execution paths run only through `bin/mp` (or `go run ./cmd/mp` in build contexts), with zero `.sh` files remaining.
 
 ## Baseline Evidence to Capture First
 
@@ -54,13 +54,13 @@ pkg/
 
 ### Mapping Rules (current -> target)
 
-- `scripts/orchestrate*.sh` -> `cmd/octo` + `internal/cli` + `internal/workflows`
-- `scripts/octo state` -> `internal/tracks`
-- `scripts/octo context` -> `internal/context`
-- `scripts/octo providers` -> `internal/providers`
+- `scripts/orchestrate*.sh` -> `cmd/mp` + `internal/cli` + `internal/workflows`
+- `scripts/mp state` -> `internal/tracks`
+- `scripts/mp context` -> `internal/context`
+- `scripts/mp providers` -> `internal/providers`
 - `hooks/*.sh` runtime logic -> `internal/hooks`
-- `tests/*.sh` harness -> `cmd/octo-devx` + `internal/devx`
-- shell-based validation scripts -> `internal/validation` + `cmd/octo validate`
+- `tests/*.sh` harness -> `cmd/mp-devx` + `internal/devx`
+- shell-based validation scripts -> `internal/validation` + `cmd/mp validate`
 
 ---
 
@@ -69,7 +69,7 @@ pkg/
 **Why:** Without a stable package map, migration work will scatter and create second-round refactors.
 
 **Files:**
-- Modify: `cmd/octo/main.go`
+- Modify: `cmd/mp/main.go`
 - Modify: `internal/cli/root.go`
 - Create: `internal/devx/.keep` (replace when Task 5 starts)
 - Create: `internal/workflows/persona.go` (stub only in this task)
@@ -89,19 +89,19 @@ Expected: FAIL if required package path is missing or misplaced.
 
 - Keep package boundaries strict (no cross-domain utility dumping).
 - Keep each file < 500 lines; split aggressively when near threshold.
-- Ensure `cmd/octo` remains the only user runtime entrypoint.
+- Ensure `cmd/mp` remains the only user runtime entrypoint.
 
 **Step 4: Run full compile and tests**
 
 Run:
-1. `go build ./cmd/octo`
+1. `go build ./cmd/mp`
 2. `go test ./...`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add cmd/octo/main.go internal pkg
+git add cmd/mp/main.go internal pkg
 git commit -m "refactor(arch): normalize go package layout for strict no-shell migration"
 ```
 
@@ -119,7 +119,7 @@ git commit -m "refactor(arch): normalize go package layout for strict no-shell m
 
 ```go
 func TestNoShellRuntimeValidator_FailsOnShellInvocation(t *testing.T) {
-    refs := []string{".claude-plugin/commands/persona.md:${CLAUDE_PLUGIN_ROOT}/bin/octo persona"}
+    refs := []string{".claude-plugin/commands/persona.md:${CLAUDE_PLUGIN_ROOT}/bin/mp persona"}
     got := ValidateNoShellRuntimeRefs(refs)
     if got.Valid {
         t.Fatalf("expected invalid, got valid")
@@ -144,7 +144,7 @@ type NoShellRuntimeResult struct {
 }
 ```
 
-- Add CLI command: `octo validate --strict-no-shell --json`.
+- Add CLI command: `mp validate --strict-no-shell --json`.
 
 **Step 4: Run tests to verify pass**
 
@@ -187,7 +187,7 @@ Expected: FAIL.
 **Step 3: Implement persona subcommand in Go and switch command file**
 
 - Add `octo persona --prompt "..." --json` in `root.go`.
-- Change `.claude-plugin/commands/persona.md` from `bin/octo` to `bin/octo persona ...`.
+- Change `.claude-plugin/commands/persona.md` from `bin/mp` to `bin/mp persona ...`.
 
 **Step 4: Run tests**
 
@@ -270,7 +270,7 @@ Expected: FAIL.
 
 **Step 3: Implement behavior in Go and validate hooks.json schema**
 
-- Ensure all hook commands point to `${CLAUDE_PLUGIN_ROOT}/bin/octo hook ...`.
+- Ensure all hook commands point to `${CLAUDE_PLUGIN_ROOT}/bin/mp hook ...`.
 - Ensure JSON output includes stable keys for Claude hook parser.
 
 **Step 4: Re-run tests**
@@ -291,7 +291,7 @@ git commit -m "feat(hooks): complete go hook pipeline and remove shell dependenc
 
 **Files:**
 - Modify: `Makefile`
-- Create: `cmd/octo-devx/main.go`
+- Create: `cmd/mp-devx/main.go`
 - Create: `internal/devx/runner.go`
 - Create: `internal/devx/runner_test.go`
 - Deprecate references in: `tests/run-all.sh`, `tests/helpers/generate-coverage-report.sh`
@@ -312,10 +312,10 @@ Expected: FAIL.
 **Step 3: Implement Go test harness command + Makefile switch**
 
 - New command examples:
-1. `go run ./cmd/octo-devx --suite smoke`
-2. `go run ./cmd/octo-devx --suite unit`
-3. `go run ./cmd/octo-devx --suite integration`
-- Replace Makefile `.sh` invocations with `go run ./cmd/octo-devx ...`.
+1. `go run ./cmd/mp-devx --suite smoke`
+2. `go run ./cmd/mp-devx --suite unit`
+3. `go run ./cmd/mp-devx --suite integration`
+- Replace Makefile `.sh` invocations with `go run ./cmd/mp-devx ...`.
 
 **Step 4: Run tests and smoke**
 
@@ -327,7 +327,7 @@ Expected: PASS.
 **Step 5: Commit**
 
 ```bash
-git add Makefile cmd/octo-devx/main.go internal/devx/runner.go internal/devx/runner_test.go
+git add Makefile cmd/mp-devx/main.go internal/devx/runner.go internal/devx/runner_test.go
 git commit -m "feat(devx): replace shell harness with go runner"
 ```
 
@@ -346,19 +346,19 @@ git commit -m "feat(devx): replace shell harness with go runner"
 
 **Step 2: Run validator (expect fail)**
 
-Run: `go run ./cmd/octo validate --strict-no-shell --dir . --json`
+Run: `go run ./cmd/mp validate --strict-no-shell --dir . --json`
 Expected: `status=error`, violations include workflow files.
 
 **Step 3: Replace CI run commands with Go entrypoints**
 
-- Replace `chmod +x bin/octo` and `./bin/octo ...` with:
-1. `go build -o bin/octo ./cmd/octo`
-2. `./bin/octo <cmd> --dir "$PWD" --json`
-- Replace test `.sh` harness calls with `go run ./cmd/octo-devx --suite ...`.
+- Replace `chmod +x bin/mp` and `./bin/mp ...` with:
+1. `go build -o bin/mp ./cmd/mp`
+2. `./bin/mp <cmd> --dir "$PWD" --json`
+- Replace test `.sh` harness calls with `go run ./cmd/mp-devx --suite ...`.
 
 **Step 4: Re-run validator**
 
-Run: `go run ./cmd/octo validate --strict-no-shell --dir . --json`
+Run: `go run ./cmd/mp validate --strict-no-shell --dir . --json`
 Expected: PASS (no workflow violations).
 
 **Step 5: Commit**
@@ -384,17 +384,17 @@ git commit -m "ci: remove shell runtime invocations from workflows"
 
 **Step 2: Run validator (expect fail)**
 
-Run: `go run ./cmd/octo validate --strict-no-shell --dir . --json`
+Run: `go run ./cmd/mp validate --strict-no-shell --dir . --json`
 Expected: doc violations.
 
 **Step 3: Update docs to Go-only runtime paths**
 
-- Replace `bin/octo` examples with `bin/octo` equivalents.
+- Replace `bin/mp` examples with `bin/mp` equivalents.
 - Keep migration history notes in archive docs only (non-runtime section clearly labeled).
 
 **Step 4: Re-run validator**
 
-Run: `go run ./cmd/octo validate --strict-no-shell --dir . --json`
+Run: `go run ./cmd/mp validate --strict-no-shell --dir . --json`
 Expected: no docs runtime violations.
 
 **Step 5: Commit**
@@ -455,7 +455,7 @@ git commit -m "test: enforce parity and perf gates before shell deletion"
 
 Run:
 1. `go test ./...`
-2. `go run ./cmd/octo validate --strict-no-shell --dir . --json`
+2. `go run ./cmd/mp validate --strict-no-shell --dir . --json`
 Expected: all pass.
 
 **Step 2: Delete files**
@@ -467,14 +467,14 @@ Run:
 **Step 3: Build and test**
 
 Run:
-1. `go build ./cmd/octo`
+1. `go build ./cmd/mp`
 2. `go test ./...`
 3. `make test-unit`
 Expected: PASS without shell runtime.
 
 **Step 4: Re-run strict validator**
 
-Run: `go run ./cmd/octo validate --strict-no-shell --dir . --json`
+Run: `go run ./cmd/mp validate --strict-no-shell --dir . --json`
 Expected: zero violations.
 
 **Step 5: Commit**
@@ -500,9 +500,9 @@ git commit -m "refactor: remove all shell scripts after go runtime migration com
 Run:
 1. `go test ./...`
 2. `go vet ./...`
-3. `go run ./cmd/octo validate --strict-no-shell --dir . --json`
-4. `go run ./cmd/octo init --dir /tmp/octo-target --json`
-5. `go run ./cmd/octo develop --dir /tmp/octo-target --prompt "smoke" --json`
+3. `go run ./cmd/mp validate --strict-no-shell --dir . --json`
+4. `go run ./cmd/mp init --dir /tmp/mp-target --json`
+5. `go run ./cmd/mp develop --dir /tmp/mp-target --prompt "smoke" --json`
 Expected: all pass.
 
 **Step 2: Update version + release notes**
@@ -528,15 +528,15 @@ Expected: remote updated.
 
 - [x] `rg --files | rg '\\.sh$'` returns `0`
 - [x] `go test ./...` passes
-- [x] `go run ./cmd/octo validate --strict-no-shell --dir . --json` returns `status=ok`
+- [x] `go run ./cmd/mp validate --strict-no-shell --dir . --json` returns `status=ok`
 - [x] No `.claude`, `.claude-plugin`, `docs`, `Makefile`, `.github` runtime instructions reference `.sh` execution
-- [x] `/octo:init`, `/octo:plan`, `/octo:develop`, `/octo:deliver`, `/octo:debate`, `/octo:persona` all run through Go runtime only
+- [x] `/mp:init`, `/mp:plan`, `/mp:develop`, `/mp:deliver`, `/mp:debate`, `/mp:persona` all run through Go runtime only
 - [x] Evidence committed under `docs/plans/evidence/no-shell-runtime/`
 
 ## Risks and Mitigations
 
 - Risk: deleting helper `.sh` used only by local maintainer workflows.
-  - Mitigation: port essential maintenance flows to Go `cmd/octo-devx`; document removed scripts in release notes.
+  - Mitigation: port essential maintenance flows to Go `cmd/mp-devx`; document removed scripts in release notes.
 - Risk: hidden shell invocation in markdown snippets causes operator confusion.
   - Mitigation: strict validator scans docs and command/skill markdown.
 - Risk: parity regressions with legacy orchestrator behavior.

@@ -7,7 +7,7 @@ description: Generate slide deck presentations from briefs or research
 
 ## Instructions for Claude
 
-When the user invokes this command (e.g., `/octo:deck <arguments>`):
+When the user invokes this command (e.g., `/mp:deck <arguments>`):
 
 **Use the Skill tool:**
 ```
@@ -39,14 +39,14 @@ Just describe what you need:
 ## Tips
 
 - Provide as much context upfront to skip clarification questions
-- Run `/octo:discover [topic]` first for research-heavy presentations
+- Run `/mp:discover [topic]` first for research-heavy presentations
 - The outline step lets you reshape the deck before rendering
 - Works best with `document-skills` plugin installed
 
 ## Examples
 
 ```
-/octo:deck investor pitch for AI-powered logistics startup
-/octo:deck quarterly business review for engineering leadership
-/octo:deck technical deep-dive on our microservices migration
+/mp:deck investor pitch for AI-powered logistics startup
+/mp:deck quarterly business review for engineering leadership
+/mp:deck technical deep-dive on our microservices migration
 ```

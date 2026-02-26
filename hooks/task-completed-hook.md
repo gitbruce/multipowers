@@ -107,7 +107,7 @@ When the final task completes, triggering phase transition:
 
 ## Embrace Workflow Integration
 
-For the full embrace workflow (`/octo:embrace`), this hook chains all four phases:
+For the full embrace workflow (`/mp:embrace`), this hook chains all four phases:
 
 ```
 probe TaskCompleted → grasp starts
@@ -138,5 +138,5 @@ This data feeds the smart routing optimizer for future task assignment.
 
 - `~/.claude-octopus/session.json` - Workflow state machine
 - `~/.claude-octopus/metrics/` - Per-task metrics for routing optimization
-- `bin/octo` - Phase transition logic
+- `bin/mp` - Phase transition logic
 - `hooks/teammate-idle-hook.md` - Companion hook for agent scheduling

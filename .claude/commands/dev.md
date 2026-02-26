@@ -26,12 +26,12 @@ When this command is executed:
 3. **Show confirmation:**
    - Display Dev Work Mode emoji (🔧)
    - List active personas
-   - Suggest available commands (octo build, octo review, etc.)
+   - Suggest available commands (mp build, mp review, etc.)
 
 ## Usage
 
 ```bash
-/octo:dev        # Switch to Dev Work mode
+/mp:dev        # Switch to Dev Work mode
 ```
 
 ## What is Dev Work Mode?
@@ -53,10 +53,10 @@ Claude Octopus has two work modes:
 
 2. **Knowledge Work Mode** 🎓
    - For: User research, strategy analysis, literature reviews
-   - Switch: `/octo:km on`
+   - Switch: `/mp:km on`
 
 Both modes use the same AI providers (Codex + Gemini), just optimized with different personas.
 
 ## Learn More
 
-Run `/octo:setup` to configure your preferences and choose your default mode.
+Run `/mp:setup` to configure your preferences and choose your default mode.

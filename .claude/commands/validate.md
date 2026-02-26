@@ -11,7 +11,7 @@ Run quality, security, and best-practices validation for a target path.
 Usage:
 
 ```bash
-/octo:validate <target> [--focus security|code-quality|best-practices|performance]
+/mp:validate <target> [--focus security|code-quality|best-practices|performance]
 ```
 
 Execution guidance:

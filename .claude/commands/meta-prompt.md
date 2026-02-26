@@ -3,14 +3,14 @@ command: meta-prompt
 description: "Generate an optimized prompt for any task using meta-prompting techniques"
 ---
 
-# /octo:meta-prompt
+# /mp:meta-prompt
 
 Generate well-structured, verifiable prompts using proven meta-prompting techniques.
 
 **Usage:**
 ```
-/octo:meta-prompt
-/octo:meta-prompt [task description]
+/mp:meta-prompt
+/mp:meta-prompt [task description]
 ```
 
 **What it does:**
@@ -33,7 +33,7 @@ Generate well-structured, verifiable prompts using proven meta-prompting techniq
 
 **Example:**
 ```
-/octo:meta-prompt create a code review checklist
+/mp:meta-prompt create a code review checklist
 
 → What is the main goal?
 → What's the expected output?

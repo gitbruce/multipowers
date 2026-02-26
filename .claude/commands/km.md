@@ -1,11 +1,11 @@
 ---
 command: km
 description: "Switch to Knowledge Work mode (or toggle with off)"
-usage: "/octo:km [on|off]"
+usage: "/mp:km [on|off]"
 examples:
-  - "/octo:km       # Switch to Knowledge Work mode"
-  - "/octo:km on    # Switch to Knowledge Work mode (explicit)"
-  - "/octo:km off   # Switch to Dev Work mode"
+  - "/mp:km       # Switch to Knowledge Work mode"
+  - "/mp:km on    # Switch to Knowledge Work mode (explicit)"
+  - "/mp:km off   # Switch to Dev Work mode"
 ---
 
 # Knowledge Mode Toggle
@@ -38,9 +38,9 @@ When this command is executed:
 ## Usage
 
 ```bash
-/octo:km         # Switch to Knowledge Work mode (default action)
-/octo:km on      # Switch to Knowledge Work mode (explicit)
-/octo:km off     # Switch to Dev Work mode (same as /octo:dev)
+/mp:km         # Switch to Knowledge Work mode (default action)
+/mp:km on      # Switch to Knowledge Work mode (explicit)
+/mp:km off     # Switch to Dev Work mode (same as /mp:dev)
 ```
 
 ## Two Work Modes
@@ -57,7 +57,7 @@ Both modes use the same AI providers (Codex + Gemini), just optimized with diffe
 
 ## Quick Switch
 
-- `/octo:dev` - Switch to Dev Work mode 🔧
-- `/octo:km` - Switch to Knowledge Work mode 🎓
+- `/mp:dev` - Switch to Dev Work mode 🔧
+- `/mp:km` - Switch to Knowledge Work mode 🎓
 
 Your mode choice persists across sessions.

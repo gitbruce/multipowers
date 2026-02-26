@@ -1,12 +1,12 @@
 # Target Project User Guide
 
-Audience: users who install this plugin and run `/octo` in their own project.
+Audience: users who install this plugin and run `/mp` in their own project.
 
 ## Install (User Scope)
 
 ```text
 /plugin marketplace add /mnt/f/src/ai/claude-octopus
-/plugin install octo@nyldn-plugins --scope user
+/plugin install multipowers@multipowers-plugins --scope user
 ```
 
 ## Initialize Once Per Target Project
@@ -14,7 +14,7 @@ Audience: users who install this plugin and run `/octo` in their own project.
 Open your target project directory, then run:
 
 ```text
-/octo:init
+/mp:init
 ```
 
 Expected behavior:
@@ -34,14 +34,14 @@ Expected behavior:
 ## Use Spec-Driven Commands
 
 Examples:
-- `/octo:plan <goal>`
-- `/octo:discover <topic>`
-- `/octo:define <scope>`
-- `/octo:develop <implementation>`
-- `/octo:deliver <validation>`
-- `/octo:embrace <end-to-end request>`
+- `/mp:plan <goal>`
+- `/mp:discover <topic>`
+- `/mp:define <scope>`
+- `/mp:develop <implementation>`
+- `/mp:deliver <validation>`
+- `/mp:embrace <end-to-end request>`
 
-If `.multipowers/` context is missing, spec-driven commands auto-run `/octo:init`.
+If `.multipowers/` context is missing, spec-driven commands auto-run `/mp:init`.
 
 ## Where Outputs Go
 
@@ -55,11 +55,11 @@ If `.multipowers/` context is missing, spec-driven commands auto-run `/octo:init
 ## Update / Remove
 
 ```text
-/plugin uninstall octo@nyldn-plugins --scope user
-/plugin marketplace remove nyldn-plugins
+/plugin uninstall multipowers@multipowers-plugins --scope user
+/plugin marketplace remove multipowers-plugins
 ```
 
 ## Troubleshooting
 
 - If Claude uses an old plugin cache version, reinstall in user scope.
-- If `/octo` behavior looks outdated, run uninstall/install again.
+- If `/mp` behavior looks outdated, run uninstall/install again.

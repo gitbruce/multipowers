@@ -101,7 +101,7 @@ Smart token optimization for large PDF documents.
 
 **Automatic (Extract Workflow):**
 ```bash
-/octo:extract ./docs/architecture.pdf
+/mp:extract ./docs/architecture.pdf
 # → Detects: 45 pages
 # → Prompts: "Which pages to extract?"
 # → Options: First 10, Specific range, All pages
@@ -158,7 +158,7 @@ pages=$(process_pdf_with_selection "/path/to/document.pdf")
 
 ```bash
 # Update to latest version
-cd ~/.claude/plugins/cache/nyldn-plugins/claude-octopus
+cd ~/.claude/plugins/cache/multipowers-plugins/claude-octopus
 git pull origin main
 
 # Or reinstall via Claude Code plugin manager

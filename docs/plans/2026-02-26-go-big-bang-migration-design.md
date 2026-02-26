@@ -44,7 +44,7 @@ Claude Code hooks are policy entry points. Hooks call Go subcommands only.
   - `.multipowers/CLAUDE.md`
   - current track status
 - Summary limit: each file summary <= 20 lines.
-- `UserPromptSubmit`: preflight guard for spec-driven `/octo:*`.
+- `UserPromptSubmit`: preflight guard for spec-driven `/mp:*`.
 - `PreToolUse`: write-boundary and dangerous command governance.
 - `PostToolUse`: FAQ/event/track post-processing.
 - `Stop`/`SubagentStop`: prevent premature termination when mandatory workflow state is incomplete.
@@ -64,7 +64,7 @@ Claude Code hooks are policy entry points. Hooks call Go subcommands only.
 ## 3. Directory Layout
 
 ```text
-cmd/octo/main.go
+cmd/mp/main.go
 internal/app/*
 internal/cli/*
 internal/context/*
@@ -103,7 +103,7 @@ Rejected:
 
 ## 5. Acceptance Criteria
 
-- All `/octo:*` execution paths enforced in Go pipeline.
+- All `/mp:*` execution paths enforced in Go pipeline.
 - Context guard hard-stop behavior is deterministic and non-bypassable.
 - Hook events route into Go handlers and are test-covered.
 - Runtime pre-run enforced when runtime config exists.

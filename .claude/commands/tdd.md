@@ -7,7 +7,7 @@ description: Test-driven development with red-green-refactor discipline
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:tdd <arguments>`):
+When the user invokes this command (e.g., `/mp:tdd <arguments>`):
 
 ### Step 1: Ask Clarifying Questions
 

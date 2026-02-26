@@ -7,7 +7,7 @@ description: Document delivery with export to PPTX, DOCX, PDF formats
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:docs <arguments>`):
+When the user invokes this command (e.g., `/mp:docs <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```

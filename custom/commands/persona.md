@@ -8,7 +8,7 @@ skill: skill-persona
 
 ## INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:persona <arguments>`):
+When the user invokes this command (e.g., `/mp:persona <arguments>`):
 
 ### REQUIRED EXECUTION PATH
 
@@ -35,8 +35,8 @@ Run an explicit persona from the Claude Octopus persona catalog.
 ## Usage
 
 ```bash
-/octo:persona list
-/octo:persona <persona-name> <prompt>
+/mp:persona list
+/mp:persona <persona-name> <prompt>
 ```
 
 ## Behavior

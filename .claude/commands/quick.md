@@ -11,7 +11,7 @@ Execute ad-hoc tasks without multi-AI orchestration overhead.
 ## Usage
 
 ```
-/octo:quick "<task description>"
+/mp:quick "<task description>"
 ```
 
 ## When to Use
@@ -33,10 +33,10 @@ Execute ad-hoc tasks without multi-AI orchestration overhead.
 ## Examples
 
 ```
-/octo:quick "fix typo in README"
-/octo:quick "update Next.js to v15"
-/octo:quick "remove console.log statements"
-/octo:quick "add error handling to login function"
+/mp:quick "fix typo in README"
+/mp:quick "update Next.js to v15"
+/mp:quick "remove console.log statements"
+/mp:quick "add error handling to login function"
 ```
 
 ## What It Does
@@ -56,7 +56,7 @@ No external provider costs.
 ## When to Escalate
 
 If the task becomes complex:
-- Use `/octo:discover` for research
-- Use `/octo:define` for planning
-- Use `/octo:develop` for building
-- Use `/octo:deliver` for validation
+- Use `/mp:discover` for research
+- Use `/mp:define` for planning
+- Use `/mp:develop` for building
+- Use `/mp:deliver` for validation

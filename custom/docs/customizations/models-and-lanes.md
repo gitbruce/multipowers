@@ -7,7 +7,7 @@ Added role-based lane mapping in `custom/config/models.json`.
 To keep workload-specific model selection without deep core edits.
 
 ## How To Use
-Edit `custom/config/models.json` and run `./custom/scripts/octo-devx overlay`.
+Edit `custom/config/models.json` and run `./custom/scripts/mp-devx overlay`.
 
 ## Operational Impact
 Predictable model routing for heavy coding, docs/tests, architecture, and business analysis.

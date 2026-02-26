@@ -6,13 +6,13 @@ Claude Octopus provides structured, multi-provider AI orchestration for Claude C
 
 ## Users and Scope
 
-- Primary users: maintainers of this repository and operators using `/octo:*` commands in Claude Code.
+- Primary users: maintainers of this repository and operators using `/mp:*` commands in Claude Code.
 - Secondary users: teams adopting orchestration patterns from this repo's docs, workflows, and templates.
 - Scope of this product context: how this repository evolves and is operated.
 
 ## What This Repository Delivers
 
-1. Workflow orchestration engine in `bin/octo`.
+1. Workflow orchestration engine in `bin/mp`.
 2. Command surface in `.claude/commands/*` and skill implementations in `.claude/skills/*`.
 3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
 4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.

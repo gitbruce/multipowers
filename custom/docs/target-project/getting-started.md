@@ -4,7 +4,7 @@
 
 ```text
 /plugin marketplace add /mnt/f/src/ai/claude-octopus
-/plugin install octo@nyldn-plugins --scope user
+/plugin install multipowers@multipowers-plugins --scope user
 ```
 
 ## Initialize in Your Project
@@ -12,7 +12,7 @@
 In your target project directory:
 
 ```text
-/octo:init
+/mp:init
 ```
 
 Expected:
@@ -23,7 +23,7 @@ Expected:
 
 ## Optional: Configure Pre-Run Hooks
 
-During `/octo:init`, you can configure pre-run hooks (for any runtime/toolchain).
+During `/mp:init`, you can configure pre-run hooks (for any runtime/toolchain).
 
 Example use cases:
 - activate an environment
@@ -37,11 +37,11 @@ All external provider executions (`codex`, `gemini`, `claude`) read this file be
 
 ## Run Spec-Driven Commands
 
-- `/octo:plan`
-- `/octo:discover`, `/octo:define`, `/octo:develop`, `/octo:deliver`
-- `/octo:embrace`, `/octo:review`, `/octo:debate`, `/octo:research`
+- `/mp:plan`
+- `/mp:discover`, `/mp:define`, `/mp:develop`, `/mp:deliver`
+- `/mp:embrace`, `/mp:review`, `/mp:debate`, `/mp:research`
 
-If context is missing, `/octo:init` is auto-triggered.
+If context is missing, `/mp:init` is auto-triggered.
 
 ## FAQ Learning Loop
 

@@ -8,12 +8,12 @@ skill: skill-persona
 
 ## INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:persona <arguments>`):
+When the user invokes this command (e.g., `/mp:persona <arguments>`):
 
 ### REQUIRED EXECUTION PATH
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo persona --dir "$PWD" --prompt "$ARGUMENTS" --json
+${CLAUDE_PLUGIN_ROOT}/bin/mp persona --dir "$PWD" --prompt "$ARGUMENTS" --json
 ```
 
 ### PROHIBITED
@@ -23,8 +23,8 @@ Do NOT run persona requests using Claude Code Task tool subagents.
 ## Usage
 
 ```bash
-/octo:persona list
-/octo:persona <persona-name> <prompt>
+/mp:persona list
+/mp:persona <persona-name> <prompt>
 ```
 
 ## Output Contract

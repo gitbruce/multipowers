@@ -1,17 +1,17 @@
 ---
 command: setup
-description: "Shortcut for /octo:sys-setup - Check Claude Octopus setup status"
+description: "Shortcut for /mp:sys-setup - Check Claude Octopus setup status"
 redirect: sys-setup
 ---
 
 # Setup (Shortcut)
 
-This is a shortcut alias for `/octo:sys-setup`.
+This is a shortcut alias for `/mp:sys-setup`.
 
 Running setup detection...
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo detect-providers
+${CLAUDE_PLUGIN_ROOT}/bin/mp detect-providers
 ```
 
-For full setup documentation, see `/octo:sys-setup`.
+For full setup documentation, see `/mp:sys-setup`.

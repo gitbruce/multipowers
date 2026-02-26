@@ -7,7 +7,7 @@ description: Execute tasks in loops with conditions, iterative improvements unti
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:loop <arguments>`):
+When the user invokes this command (e.g., `/mp:loop <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```
@@ -36,8 +36,8 @@ Just use natural language:
 
 Or use the explicit command:
 ```
-/octo:loop "run tests and fix issues" --max 5
-/octo:loop "optimize performance until < 100ms"
+/mp:loop "run tests and fix issues" --max 5
+/mp:loop "optimize performance until < 100ms"
 ```
 
 ## Loop Execution Approach
@@ -108,7 +108,7 @@ Or use the explicit command:
 
 ## Integration with Other Skills
 
-- Combines well with `/octo:debug` for iterative bug fixing
-- Works with `/octo:tdd` for red-green-refactor loops
-- Useful with `/octo:review` for iterative quality improvements
-- Pairs with `/octo:security` for iterative vulnerability remediation
+- Combines well with `/mp:debug` for iterative bug fixing
+- Works with `/mp:tdd` for red-green-refactor loops
+- Useful with `/mp:review` for iterative quality improvements
+- Pairs with `/mp:security` for iterative vulnerability remediation

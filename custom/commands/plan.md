@@ -1,12 +1,12 @@
 ---
 command: plan
-description: "Create plan artifacts under .multipowers/tracks via orchestrate.sh (guarded by /octo:init context check)"
+description: "Create plan artifacts under .multipowers/tracks via orchestrate.sh (guarded by /mp:init context check)"
 aliases:
   - build-plan
   - intent
 ---
 
-# /octo:plan
+# /mp:plan
 
 ## Mandatory Behavior
 

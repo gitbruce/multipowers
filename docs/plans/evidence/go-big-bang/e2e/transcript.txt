@@ -1,4 +1,4 @@
-target=/tmp/octo-e2e-lor6
+target=/tmp/mp-e2e-lor6
 {"status":"ok","message":"initialized"}
 {"status":"ok","action_required":"continue"}
 {"status":"ok","data":{"prompt":"e2e plan","provider_strategy":{"mode":"plan","available":["claude","codex","gemini"],"selected":["claude"],"warnings":["single-provider mode selected by policy"],"minimum_for_success":1},"workflow":"define"}}

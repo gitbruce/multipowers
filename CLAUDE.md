@@ -20,7 +20,7 @@ When executing Claude Octopus workflows, you MUST display visual indicators so u
 ### When to Display Indicators
 
 Display indicators when:
-- Invoking any `/octo:` command
+- Invoking any `/mp:` command
 - Running `orchestrate.sh` with any workflow (probe, grasp, tangle, ink, embrace, etc.)
 - User triggers workflow with "octo" prefix ("octo research X", "octo build Y")
 - Executing multi-provider operations
@@ -187,7 +187,7 @@ echo "Progress: 50%" > ~/.claude/scratchpad/$(cat ~/.claude/session-id)/phase1-p
 | `octo build X` | Develop | 🐙 🛠️ 🔴 🟡 🔵 |
 | `octo review X` | Deliver | 🐙 ✅ 🔴 🟡 🔵 |
 | `octo debate X` | Debate | 🐙 🔴 🟡 🔵 |
-| `/octo:embrace X` | All 4 phases | 🐙 (all phase emojis) |
+| `/mp:embrace X` | All 4 phases | 🐙 (all phase emojis) |
 
 ---
 
@@ -239,7 +239,7 @@ Claude Code's auto memory (`~/.claude/projects/.../memory/MEMORY.md`) persists a
 
 - **User's preferred autonomy mode** (interactive vs autonomous workflow execution)
 - **Provider availability** (which CLIs are installed, auth methods configured)
-- **Frequently used commands** (e.g., user prefers `/octo:quick` over full embrace)
+- **Frequently used commands** (e.g., user prefers `/mp:quick` over full embrace)
 - **Past project contexts** (tech stack, coding conventions, deployment targets)
 - **Model preferences** (whether user prefers Opus 4.6 for premium tasks)
 

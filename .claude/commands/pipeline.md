@@ -3,14 +3,14 @@ command: pipeline
 description: "Run content analysis pipeline on URL(s) to extract patterns and create anatomy guides"
 ---
 
-# /octo:pipeline
+# /mp:pipeline
 
 Analyze content from URLs to extract patterns, psychological techniques, and structural elements.
 
 **Usage:**
 ```
-/octo:pipeline <url>
-/octo:pipeline <url1> <url2> <url3>
+/mp:pipeline <url>
+/mp:pipeline <url1> <url2> <url3>
 ```
 
 **What it does:**
@@ -25,7 +25,7 @@ Analyze content from URLs to extract patterns, psychological techniques, and str
 
 **Example:**
 ```
-/octo:pipeline https://example.com/great-article
+/mp:pipeline https://example.com/great-article
 
 → Fetching content...
 → Analyzing structure, psychology, mechanics...

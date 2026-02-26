@@ -1,19 +1,19 @@
-# Conductor Context and /octo:init
+# Conductor Context and /mp:init
 
 ## What Changed
 
-Spec-driven `/octo` commands now use project context under `conductor/` in the target project, not `.claude/session-*` files.
+Spec-driven `/mp` commands now use project context under `conductor/` in the target project, not `.claude/session-*` files.
 
-## `/octo:init`
+## `/mp:init`
 
 Run:
 
 ```text
-/octo:init
+/mp:init
 ```
 
 Execution anchor:
-- `/octo:init` should pass `--dir "$PWD"` to `bin/octo` so `conductor/` is created in the current target project, not plugin/cache directories.
+- `/mp:init` should pass `--dir "$PWD"` to `bin/mp` so `conductor/` is created in the current target project, not plugin/cache directories.
 - Runtime guard blocks spec/init commands if `PROJECT_ROOT` resolves to plugin/cache paths.
 
 This initializes:
@@ -29,9 +29,9 @@ Templates come from `custom/templates/conductor/`.
 
 ## Auto-Init Guard
 
-For spec-driven commands (`/octo:plan`, discover/define/develop/deliver, embrace, review, debate, research), orchestrator checks conductor context first.
+For spec-driven commands (`/mp:plan`, discover/define/develop/deliver, embrace, review, debate, research), orchestrator checks conductor context first.
 
-If missing/incomplete, it auto-runs `/octo:init` interactively before task execution.
+If missing/incomplete, it auto-runs `/mp:init` interactively before task execution.
 
 ## Track Files
 

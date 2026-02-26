@@ -9,15 +9,15 @@
 
 ## Core Execution Components
 
-- `bin/octo`: central command router and workflow engine.
-- `scripts/octo providers`: provider/model routing logic.
-- `scripts/octo state`: workflow state persistence helpers.
-- `scripts/octo-state.sh`: project/session state commands and context tiers.
+- `bin/mp`: central command router and workflow engine.
+- `scripts/mp providers`: provider/model routing logic.
+- `scripts/mp state`: workflow state persistence helpers.
+- `scripts/mp-state.sh`: project/session state commands and context tiers.
 - `scripts/agent-teams-bridge.sh`: coordination bridge for multi-agent execution.
 
 ## Command and Skill Surface
 
-- `.claude/commands/*.md`: `/octo:*` command entrypoints.
+- `.claude/commands/*.md`: `/mp:*` command entrypoints.
 - `.claude/skills/*.md`: workflow and discipline skills used by commands.
 - `workflows/embrace.yaml`: structured workflow graph definition.
 - `workflows/schema.yaml`: workflow schema/validation reference.

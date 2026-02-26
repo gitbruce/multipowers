@@ -41,7 +41,7 @@ All 5 planned phases implemented, tested, and committed:
 - Blocker management
 
 **Files Added:**
-- `scripts/octo state` (390 lines)
+- `scripts/mp state` (390 lines)
 - `.claude/state/state-manager.md` (280 lines)
 
 **Integration:**
@@ -83,7 +83,7 @@ All 5 planned phases implemented, tested, and committed:
 - Vision preservation
 
 **Files Added:**
-- `scripts/octo context` (210 lines)
+- `scripts/mp context` (210 lines)
 
 **Files Updated:**
 - `flow-define.md` with Phase Discussion step
@@ -134,8 +134,8 @@ All 5 planned phases implemented, tested, and committed:
 
 **Usage:**
 ```bash
-/octo:quick "fix typo in README"
-/octo:quick "update Next.js to v15"
+/mp:quick "fix typo in README"
+/mp:quick "update Next.js to v15"
 ```
 
 **Benefits:**
@@ -285,21 +285,21 @@ All 4 Double Diamond flows now include:
 
 ```bash
 # Discover: Research auth patterns
-/octo:discover "authentication patterns for web apps"
+/mp:discover "authentication patterns for web apps"
 # → State: Records research findings
 
 # Define: Clarify requirements
-/octo:define "JWT authentication system"
+/mp:define "JWT authentication system"
 # → Asks: User flow? Approach? Scope?
 # → State: Records decisions and context
 
 # Develop: Build implementation
-/octo:develop "implement JWT auth"
+/mp:develop "implement JWT auth"
 # → Reads: Prior decisions from state
 # → State: Records implementation approach
 
 # Deliver: Validate quality
-/octo:deliver "review auth implementation"
+/mp:deliver "review auth implementation"
 # → Reads: Full workflow context
 # → Runs: Stub detection
 # → State: Final metrics
@@ -309,14 +309,14 @@ All 4 Double Diamond flows now include:
 
 ```bash
 # Simple bug fix
-/octo:quick "fix typo in README line 42"
+/mp:quick "fix typo in README line 42"
 # → Direct implementation
 # → Atomic commit
 # → Summary generated
 # → State updated
 
 # Fast dependency update
-/octo:quick "update Next.js to v15"
+/mp:quick "update Next.js to v15"
 # → No multi-AI overhead
 # → Claude only (cost savings)
 # → Still tracked
@@ -335,7 +335,7 @@ All 4 Double Diamond flows now include:
 2. Validation gates enforce quality
 3. Phase discussion optional (flow-define asks questions)
 4. Stub detection runs on code review
-5. Quick mode available via `/octo:quick`
+5. Quick mode available via `/mp:quick`
 
 **Optional migration steps:**
 1. Review `.claude-octopus/state.json` after workflows
@@ -376,8 +376,8 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
 - `.claude/skills/skill-quick.md` - Quick mode documentation
 
 **Scripts:**
-- `scripts/octo state --help` - CLI help
-- `scripts/octo context help` - Context help
+- `scripts/mp state --help` - CLI help
+- `scripts/mp context help` - Context help
 
 ### Updated Documentation
 
@@ -438,7 +438,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
 **For users:**
 1. Update to v7.17.0
 2. Run workflows and check `.claude-octopus/state.json`
-3. Try `/octo:quick` for simple tasks
+3. Try `/mp:quick` for simple tasks
 4. Review stub detection in code reviews
 
 **For contributors:**

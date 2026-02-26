@@ -3,7 +3,7 @@ command: init
 description: Initialize .multipowers context via orchestrate.sh interactive wizard (no direct file writing path)
 ---
 
-# /octo:init
+# /mp:init
 
 This command MUST invoke the orchestrator wizard. Do not manually generate context files in chat.
 
@@ -34,4 +34,4 @@ This command MUST invoke the orchestrator wizard. Do not manually generate conte
 
 - Do not use `Write/Edit/Update` to create these files directly from command text.
 - Do not bypass `orchestrate.sh init`.
-- Do not continue to `/octo:plan` or other spec-driven commands when init failed.
+- Do not continue to `/mp:plan` or other spec-driven commands when init failed.

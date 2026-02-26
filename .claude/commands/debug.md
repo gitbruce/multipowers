@@ -7,7 +7,7 @@ description: Systematic debugging with methodical problem investigation
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:debug <arguments>`):
+When the user invokes this command (e.g., `/mp:debug <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```

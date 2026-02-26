@@ -7,7 +7,7 @@ description: Definition phase - Requirements clarification and scope definition
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:grasp <arguments>`):
+When the user invokes this command (e.g., `/mp:grasp <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```

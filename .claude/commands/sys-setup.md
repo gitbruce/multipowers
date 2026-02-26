@@ -14,7 +14,7 @@ This command checks your current setup and provides instructions for any missing
 Running setup detection...
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo detect-providers
+${CLAUDE_PLUGIN_ROOT}/bin/mp detect-providers
 ```
 
 Based on the results above, here's what you need:
@@ -101,7 +101,7 @@ export GEMINI_API_KEY="AIza..."
 
 After installing and configuring, verify with:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo detect-providers
+${CLAUDE_PLUGIN_ROOT}/bin/mp detect-providers
 ```
 
 You should see at least one provider with status:
@@ -160,7 +160,7 @@ Claude Octopus has two work modes optimized for different tasks. Both use the sa
 
 Switch to Dev mode:
 ```
-/octo:dev
+/mp:dev
 ```
 
 ### Knowledge Work Mode 🎓
@@ -168,7 +168,7 @@ Switch to Dev mode:
 
 Switch to Knowledge mode:
 ```
-/octo:km on
+/mp:km on
 ```
 
 **For Knowledge Work, we recommend installing document-skills:**
@@ -178,7 +178,7 @@ Switch to Knowledge mode:
 
 This adds support for PDF analysis, DOCX/PPTX/XLSX generation, and professional document export.
 
-**Note:** The mode you choose during setup will be remembered across sessions. You can switch modes anytime using `/octo:dev` or `/octo:km on`
+**Note:** The mode you choose during setup will be remembered across sessions. You can switch modes anytime using `/mp:dev` or `/mp:km on`
 
 ---
 
@@ -224,6 +224,6 @@ Add the export statement to your shell profile (~/.zshrc or ~/.bashrc) so it loa
 ## Getting Help
 
 If you encounter issues:
-1. Run `${CLAUDE_PLUGIN_ROOT}/bin/octo preflight` for a detailed system check
+1. Run `${CLAUDE_PLUGIN_ROOT}/bin/mp preflight` for a detailed system check
 2. Check the logs in `~/.claude-octopus/logs/`
 3. Report issues at: https://github.com/nyldn/claude-octopus/issues

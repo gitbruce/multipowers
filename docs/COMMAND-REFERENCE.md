@@ -6,50 +6,50 @@ Complete reference for all Claude Octopus commands.
 
 ## Quick Reference
 
-All commands use the `/octo:` namespace.
+All commands use the `/mp:` namespace.
 
 ### System Commands
 
 | Command | Description |
 |---------|-------------|
-| `/octo:setup` | Check setup status and configure providers |
-| `/octo:dev` | Switch to Dev Work mode |
-| `/octo:km` | Toggle Knowledge Work mode |
-| `/octo:sys-setup` | Full setup command |
-| `/octo:model-config` | Configure provider model selection |
-| `/octo:persona` | Run a specific persona or list configured personas |
+| `/mp:setup` | Check setup status and configure providers |
+| `/mp:dev` | Switch to Dev Work mode |
+| `/mp:km` | Toggle Knowledge Work mode |
+| `/mp:sys-setup` | Full setup command |
+| `/mp:model-config` | Configure provider model selection |
+| `/mp:persona` | Run a specific persona or list configured personas |
 
 ### Workflow Commands
 
 | Command | Phase | Description |
 |---------|-------|-------------|
-| `/octo:discover` | Discover | Multi-AI research and exploration |
-| `/octo:define` | Define | Requirements clarification and scope |
-| `/octo:develop` | Develop | Multi-AI implementation |
-| `/octo:deliver` | Deliver | Validation and quality assurance |
-| `/octo:embrace` | All | Full 4-phase Double Diamond workflow |
+| `/mp:discover` | Discover | Multi-AI research and exploration |
+| `/mp:define` | Define | Requirements clarification and scope |
+| `/mp:develop` | Develop | Multi-AI implementation |
+| `/mp:deliver` | Deliver | Validation and quality assurance |
+| `/mp:embrace` | All | Full 4-phase Double Diamond workflow |
 
 ### Skill Commands
 
 | Command | Description |
 |---------|-------------|
-| `/octo:debate` | AI Debate Hub - 3-way debates (Claude + Gemini + Codex) |
-| `/octo:review` | Expert code review with quality assessment |
-| `/octo:research` | Deep research with multi-source synthesis |
-| `/octo:security` | Security audit with OWASP compliance |
-| `/octo:debug` | Systematic debugging with investigation |
-| `/octo:tdd` | Test-driven development workflows |
-| `/octo:docs` | Document delivery (PPTX/DOCX/PDF export) |
+| `/mp:debate` | AI Debate Hub - 3-way debates (Claude + Gemini + Codex) |
+| `/mp:review` | Expert code review with quality assessment |
+| `/mp:research` | Deep research with multi-source synthesis |
+| `/mp:security` | Security audit with OWASP compliance |
+| `/mp:debug` | Systematic debugging with investigation |
+| `/mp:tdd` | Test-driven development workflows |
+| `/mp:docs` | Document delivery (PPTX/DOCX/PDF export) |
 
 ### Project Lifecycle Commands
 
 | Command | Description |
 |---------|-------------|
-| `/octo:status` | Show project progress dashboard |
-| `/octo:resume` | Restore context from previous session |
-| `/octo:ship` | Finalize project with Multi-AI validation |
-| `/octo:issues` | Track issues across sessions |
-| `/octo:rollback` | Restore from checkpoint |
+| `/mp:status` | Show project progress dashboard |
+| `/mp:resume` | Restore context from previous session |
+| `/mp:ship` | Finalize project with Multi-AI validation |
+| `/mp:issues` | Track issues across sessions |
+| `/mp:rollback` | Restore from checkpoint |
 
 ---
 
@@ -57,11 +57,11 @@ All commands use the `/octo:` namespace.
 
 Commands for managing project state across sessions.
 
-### `/octo:status`
+### `/mp:status`
 
 Show project progress dashboard.
 
-**Usage:** `/octo:status`
+**Usage:** `/mp:status`
 
 **Output:**
 - Current phase and position
@@ -71,11 +71,11 @@ Show project progress dashboard.
 
 ---
 
-### `/octo:resume`
+### `/mp:resume`
 
 Restore context from previous session.
 
-**Usage:** `/octo:resume`
+**Usage:** `/mp:resume`
 
 **Behavior:**
 1. Reads `.octo/STATE.md` for current position
@@ -85,11 +85,11 @@ Restore context from previous session.
 
 ---
 
-### `/octo:ship`
+### `/mp:ship`
 
 Finalize project with Multi-AI validation.
 
-**Usage:** `/octo:ship`
+**Usage:** `/mp:ship`
 
 **Behavior:**
 1. Verifies project ready (all phases complete)
@@ -100,11 +100,11 @@ Finalize project with Multi-AI validation.
 
 ---
 
-### `/octo:issues`
+### `/mp:issues`
 
 Track issues across sessions.
 
-**Usage:** `/octo:issues [list|add|resolve|show] [args]`
+**Usage:** `/mp:issues [list|add|resolve|show] [args]`
 
 **Subcommands:**
 - `list` - Show all open issues (default)
@@ -118,11 +118,11 @@ Track issues across sessions.
 
 ---
 
-### `/octo:rollback`
+### `/mp:rollback`
 
 Restore from checkpoint.
 
-**Usage:** `/octo:rollback [list|<tag>]`
+**Usage:** `/mp:rollback [list|<tag>]`
 
 **Subcommands:**
 - `list` - Show available checkpoints (default)
@@ -137,13 +137,13 @@ Restore from checkpoint.
 
 ## System Commands
 
-### `/octo:setup`
+### `/mp:setup`
 
 Check setup status and configure AI providers.
 
 **Usage:**
 ```
-/octo:setup
+/mp:setup
 ```
 
 **What it does:**
@@ -160,18 +160,18 @@ Providers:
   Codex CLI: ready
   Gemini CLI: ready
 
-You're all set! Try: octo research OAuth patterns
+You're all set! Try: mp research OAuth patterns
 ```
 
-### `/octo:km`
+### `/mp:km`
 
 Toggle between Dev Work mode and Knowledge Work mode.
 
 **Usage:**
 ```
-/octo:km          # Show current status
-/octo:km on       # Enable Knowledge Work mode
-/octo:km off      # Disable (return to Dev Work mode)
+/mp:km          # Show current status
+/mp:km on       # Enable Knowledge Work mode
+/mp:km off      # Disable (return to Dev Work mode)
 ```
 
 **Modes:**
@@ -180,32 +180,32 @@ Toggle between Dev Work mode and Knowledge Work mode.
 | Dev Work (default) | Code, tests, debugging | Software development |
 | Knowledge Work | Research, strategy, UX | Consulting, research, product work |
 
-### `/octo:dev`
+### `/mp:dev`
 
 Shortcut to switch to Dev Work mode.
 
 **Usage:**
 ```
-/octo:dev
+/mp:dev
 ```
 
-Equivalent to `/octo:km off`.
+Equivalent to `/mp:km off`.
 
-### `/octo:persona`
+### `/mp:persona`
 
 Run a specific pre-configured persona, or list available personas.
 
 **Usage:**
 ```
-/octo:persona list
-/octo:persona <persona-name> <prompt>
+/mp:persona list
+/mp:persona <persona-name> <prompt>
 ```
 
 **Examples:**
 ```
-/octo:persona list
-/octo:persona backend-architect design a scalable webhook ingestion pipeline
-/octo:persona security-auditor review auth flow for OWASP risks
+/mp:persona list
+/mp:persona backend-architect design a scalable webhook ingestion pipeline
+/mp:persona security-auditor review auth flow for OWASP risks
 ```
 
 **What it does:**
@@ -216,13 +216,13 @@ Run a specific pre-configured persona, or list available personas.
 
 ## Workflow Commands
 
-### `/octo:discover`
+### `/mp:discover`
 
 Discovery phase - Multi-AI research and exploration.
 
 **Usage:**
 ```
-/octo:discover OAuth authentication patterns
+/mp:discover OAuth authentication patterns
 ```
 
 **What it does:**
@@ -231,17 +231,17 @@ Discovery phase - Multi-AI research and exploration.
 - Shows visual indicator: 🐙 🔍
 
 **Natural language triggers:**
-- `octo research X`
-- `octo explore Y`
-- `octo investigate Z`
+- `mp research X`
+- `mp explore Y`
+- `mp investigate Z`
 
-### `/octo:define`
+### `/mp:define`
 
 Definition phase - Clarify requirements and scope.
 
 **Usage:**
 ```
-/octo:define requirements for user authentication
+/mp:define requirements for user authentication
 ```
 
 **What it does:**
@@ -250,17 +250,17 @@ Definition phase - Clarify requirements and scope.
 - Shows visual indicator: 🐙 🎯
 
 **Natural language triggers:**
-- `octo define requirements for X`
-- `octo clarify scope of Y`
-- `octo scope out Z feature`
+- `mp define requirements for X`
+- `mp clarify scope of Y`
+- `mp scope out Z feature`
 
-### `/octo:develop`
+### `/mp:develop`
 
 Development phase - Multi-AI implementation.
 
 **Usage:**
 ```
-/octo:develop user authentication system
+/mp:develop user authentication system
 ```
 
 **What it does:**
@@ -269,17 +269,17 @@ Development phase - Multi-AI implementation.
 - Shows visual indicator: 🐙 🛠️
 
 **Natural language triggers:**
-- `octo build X`
-- `octo implement Y`
-- `octo create Z`
+- `mp build X`
+- `mp implement Y`
+- `mp create Z`
 
-### `/octo:deliver`
+### `/mp:deliver`
 
 Delivery phase - Validation and quality assurance.
 
 **Usage:**
 ```
-/octo:deliver authentication implementation
+/mp:deliver authentication implementation
 ```
 
 **What it does:**
@@ -288,17 +288,17 @@ Delivery phase - Validation and quality assurance.
 - Shows visual indicator: 🐙 ✅
 
 **Natural language triggers:**
-- `octo review X`
-- `octo validate Y`
+- `mp review X`
+- `mp validate Y`
 - `octo audit Z`
 
-### `/octo:embrace`
+### `/mp:embrace`
 
 Full Double Diamond workflow - all 4 phases.
 
 **Usage:**
 ```
-/octo:embrace complete authentication system
+/mp:embrace complete authentication system
 ```
 
 **What it does:**
@@ -313,15 +313,15 @@ Shows visual indicator: 🐙 (all phases)
 
 ## Skill Commands
 
-### `/octo:debate`
+### `/mp:debate`
 
 AI Debate Hub - Structured 3-way debates.
 
 **Usage:**
 ```
-/octo:debate Redis vs Memcached for caching
-/octo:debate -r 3 Should we use GraphQL or REST
-/octo:debate -d adversarial Review auth.ts security
+/mp:debate Redis vs Memcached for caching
+/mp:debate -r 3 Should we use GraphQL or REST
+/mp:debate -d adversarial Review auth.ts security
 ```
 
 **Options:**
@@ -336,18 +336,18 @@ AI Debate Hub - Structured 3-way debates.
 - Produces synthesis with recommendations
 
 **Natural language triggers:**
-- `octo debate X vs Y`
+- `mp debate X vs Y`
 - `run a debate about Z`
 - `I want gemini and codex to review X`
 
-### `/octo:review`
+### `/mp:review`
 
 Expert code review with quality assessment.
 
 **Usage:**
 ```
-/octo:review auth.ts
-/octo:review src/components/
+/mp:review auth.ts
+/mp:review src/components/
 ```
 
 **What it does:**
@@ -356,13 +356,13 @@ Expert code review with quality assessment.
 - Architecture review
 - Best practices enforcement
 
-### `/octo:research`
+### `/mp:research`
 
 Deep research with multi-source synthesis.
 
 **Usage:**
 ```
-/octo:research microservices patterns
+/mp:research microservices patterns
 ```
 
 **What it does:**
@@ -370,14 +370,14 @@ Deep research with multi-source synthesis.
 - Documentation lookup via librarian
 - Synthesizes findings into actionable insights
 
-### `/octo:security`
+### `/mp:security`
 
 Security audit with OWASP compliance.
 
 **Usage:**
 ```
-/octo:security auth.ts
-/octo:security src/api/
+/mp:security auth.ts
+/mp:security src/api/
 ```
 
 **What it does:**
@@ -386,13 +386,13 @@ Security audit with OWASP compliance.
 - Input validation checks
 - Red team analysis (adversarial testing)
 
-### `/octo:debug`
+### `/mp:debug`
 
 Systematic debugging with investigation.
 
 **Usage:**
 ```
-/octo:debug failing test in auth.spec.ts
+/mp:debug failing test in auth.spec.ts
 ```
 
 **What it does:**
@@ -401,13 +401,13 @@ Systematic debugging with investigation.
 3. Hypothesize: Form theories
 4. Implement: Fix with verification
 
-### `/octo:tdd`
+### `/mp:tdd`
 
 Test-driven development workflows.
 
 **Usage:**
 ```
-/octo:tdd implement user registration
+/mp:tdd implement user registration
 ```
 
 **What it does:**
@@ -415,14 +415,14 @@ Test-driven development workflows.
 - Green: Minimal code to pass
 - Refactor: Improve while keeping tests green
 
-### `/octo:docs`
+### `/mp:docs`
 
 Document delivery with export options.
 
 **Usage:**
 ```
-/octo:docs create API documentation
-/octo:docs export report.md to PPTX
+/mp:docs create API documentation
+/mp:docs export report.md to PPTX
 ```
 
 **Supported formats:**
@@ -464,10 +464,10 @@ Instead of slash commands, you can use natural language with the "octo" prefix:
 
 | You Say | Equivalent Command |
 |---------|--------------------|
-| `octo research OAuth patterns` | `/octo:discover OAuth patterns` |
-| `octo build user auth` | `/octo:develop user auth` |
-| `octo review my code` | `/octo:deliver my code` |
-| `octo debate X vs Y` | `/octo:debate X vs Y` |
+| `mp research OAuth patterns` | `/mp:discover OAuth patterns` |
+| `mp build user auth` | `/mp:develop user auth` |
+| `mp review my code` | `/mp:deliver my code` |
+| `mp debate X vs Y` | `/mp:debate X vs Y` |
 
 **Why "octo"?** Common words like "research" may conflict with Claude's base behaviors. The "octo" prefix ensures reliable activation.
 

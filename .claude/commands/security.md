@@ -7,7 +7,7 @@ description: Security audit with OWASP compliance and vulnerability detection
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:security <arguments>`):
+When the user invokes this command (e.g., `/mp:security <arguments>`):
 
 ### Step 1: Ask Clarifying Questions
 
@@ -97,7 +97,7 @@ Just use natural language:
 ## Audit Types
 
 - **Standard Audit**: OWASP compliance check
-- **Adversarial**: Red team security testing (use `/octo:debate` with adversarial mode)
+- **Adversarial**: Red team security testing (use `/mp:debate` with adversarial mode)
 - **Quick Check**: Pre-commit security scan
 
 ## Natural Language Examples

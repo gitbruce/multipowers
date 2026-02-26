@@ -7,7 +7,7 @@ Claude Octopus includes **async task management** and **tmux visualization** for
 Enable async mode for improved progress tracking and parallel execution:
 
 ```bash
-./bin/octo probe "research auth patterns" --async
+./bin/mp probe "research auth patterns" --async
 ```
 
 **Benefits:**
@@ -26,7 +26,7 @@ Enable async mode for improved progress tracking and parallel execution:
 Watch agents work in real-time with tmux panes:
 
 ```bash
-./bin/octo embrace "implement auth system" --tmux
+./bin/mp embrace "implement auth system" --tmux
 ```
 
 **What you get:**
@@ -76,17 +76,17 @@ export OCTOPUS_ASYNC_MODE=true
 export OCTOPUS_TMUX_MODE=true
 
 # Run workflow
-./bin/octo probe "research caching strategies"
+./bin/mp probe "research caching strategies"
 ```
 
 ## Disabling Features
 
 ```bash
 # Disable async (use standard progress tracking)
-./bin/octo probe "..." --no-async
+./bin/mp probe "..." --no-async
 
 # Disable tmux (use terminal output)
-./bin/octo probe "..." --no-tmux
+./bin/mp probe "..." --no-tmux
 ```
 
 ## Comparison: Standard vs Async vs Tmux
@@ -104,19 +104,19 @@ export OCTOPUS_TMUX_MODE=true
 
 **For maximum performance:**
 ```bash
-./bin/octo embrace "task" --async -p 8
+./bin/mp embrace "task" --async -p 8
 # Enables: async mode + 8 parallel agents
 ```
 
 **For best transparency:**
 ```bash
-./bin/octo embrace "task" --tmux --verbose
+./bin/mp embrace "task" --tmux --verbose
 # Enables: tmux visualization + detailed logging
 ```
 
 **For CI/CD:**
 ```bash
-./bin/octo embrace "task" --ci
+./bin/mp embrace "task" --ci
 # Uses: standard mode (no tmux), non-interactive, JSON output
 ```
 

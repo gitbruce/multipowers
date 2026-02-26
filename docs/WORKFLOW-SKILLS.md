@@ -2,7 +2,7 @@
 
 Claude Octopus includes **workflow skills** - lightweight wrappers that auto-invoke common multi-AI workflows. These activate automatically when you use certain phrases.
 
-## 🔍 Quick Code Review (`/octo:review`)
+## 🔍 Quick Code Review (`/mp:review`)
 
 **Auto-activates when you say:**
 - "review this code"
@@ -24,7 +24,7 @@ User: "Review my authentication module for security issues"
 → Output: Prioritized findings with fixes
 ```
 
-## 🔬 Deep Research (`/octo:research`)
+## 🔬 Deep Research (`/mp:research`)
 
 **Auto-activates when you say:**
 - "research this topic"
@@ -46,7 +46,7 @@ User: "Research state management options for React"
 → Output: Decision matrix with pros/cons
 ```
 
-## 🛡️ Adversarial Security (`/octo:security`)
+## 🛡️ Adversarial Security (`/mp:security`)
 
 **Auto-activates when you say:**
 - "security audit"
@@ -73,10 +73,10 @@ User: "Security audit the authentication module"
 
 | Use Case | Workflow Skill | Time | Agents | Best For |
 |----------|---------------|------|--------|----------|
-| Code review | `/octo:review` | 2-5 min | 2-3 | PR checks, quality gates |
-| Research | `/octo:research` | 2-3 min | 4 | Architecture decisions |
-| Security testing | `/octo:security` | 5-10 min | 2 (adversarial) | Finding vulnerabilities |
-| Full workflow | `/octo:embrace` | 5-10 min | 4-8 | New features, complete cycle |
+| Code review | `/mp:review` | 2-5 min | 2-3 | PR checks, quality gates |
+| Research | `/mp:research` | 2-3 min | 4 | Architecture decisions |
+| Security testing | `/mp:security` | 5-10 min | 2 (adversarial) | Finding vulnerabilities |
+| Full workflow | `/mp:embrace` | 5-10 min | 4-8 | New features, complete cycle |
 
 ## Architecture: Skills vs Orchestrator
 
@@ -103,11 +103,11 @@ Understanding the distinction:
 
 **Example of all three working together:**
 ```
-1. User: "octo research authentication patterns"
-   → /octo:research skill activates (entry point)
+1. User: "mp research authentication patterns"
+   → /mp:research skill activates (entry point)
    → Triggers discover workflow (orchestrator)
 
-2. User: "octo build authentication module"
+2. User: "mp build authentication module"
    → Claude Octopus orchestrates embrace workflow
    → Agents generate implementation
 
@@ -128,7 +128,7 @@ Understanding the distinction:
 
 **What it does:** Enters a high-reliability, self-correcting mode for long-running tasks.
 - **Reliability First**: Uses atomic file operations (`WriteFile`) instead of shell editing.
-- **Self-Correcting**: Automatically loops (`/octo:loop`) and retries on failure without asking.
+- **Self-Correcting**: Automatically loops (`/mp:loop`) and retries on failure without asking.
 - **Quiet Mode**: Suppresses chatter, reporting only status via JSON or milestones.
 - **Timeout Handling**: Uses extended timeouts for long builds/tests.
 

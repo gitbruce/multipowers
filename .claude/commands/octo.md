@@ -1,5 +1,5 @@
 ---
-command: octo
+command: mp
 description: Smart router - Single entry point with natural language intent detection
 version: 1.0.0
 category: workflow
@@ -8,7 +8,7 @@ created: 2025-02-03
 updated: 2025-02-03
 ---
 
-# Smart Router (/octo)
+# Smart Router (/mp)
 
 Single entry point for all Claude Octopus workflows with natural language intent detection. The router analyzes your request and automatically routes to the optimal workflow.
 
@@ -16,11 +16,11 @@ Single entry point for all Claude Octopus workflows with natural language intent
 
 ```bash
 # Just describe what you want - the router figures out the workflow
-/octo research OAuth authentication patterns
-/octo build user authentication system
-/octo validate src/auth.ts
-/octo should we use Redis or Memcached?
-/octo create a complete e-commerce platform
+/mp research OAuth authentication patterns
+/mp build user authentication system
+/mp validate src/auth.ts
+/mp should we use Redis or Memcached?
+/mp create a complete e-commerce platform
 ```
 
 ## Routing Intelligence
@@ -31,14 +31,14 @@ The router uses keyword matching and confidence scoring to determine the best wo
 
 | Intent | Keywords | Routes To | Confidence Threshold |
 |--------|----------|-----------|---------------------|
-| **Research** | research, investigate, explore, learn, study, understand, analyze | `/octo:discover` | 70% |
-| **Build (Clear)** | build X, create Y, implement Z, develop X | `/octo:develop` | 80% |
-| **Build (Vague)** | build, create, make (without specific target) | `/octo:plan` | 60% |
-| **Validate** | validate, review, check, audit, inspect, verify | `/octo:review` | 75% |
-| **Debate** | should, vs, or, compare, versus, decide, which | `/octo:debate` | 70% |
-| **Specify** | spec, specify, specification, requirements, define scope, nlspec | `/octo:spec` | 75% |
-| **Parallel** | parallel, team, decompose, work packages, compound, multi-instance | `/octo:parallel` | 80% |
-| **Lifecycle** | end-to-end, complete, full, entire, whole | `/octo:embrace` | 85% |
+| **Research** | research, investigate, explore, learn, study, understand, analyze | `/mp:discover` | 70% |
+| **Build (Clear)** | build X, create Y, implement Z, develop X | `/mp:develop` | 80% |
+| **Build (Vague)** | build, create, make (without specific target) | `/mp:plan` | 60% |
+| **Validate** | validate, review, check, audit, inspect, verify | `/mp:review` | 75% |
+| **Debate** | should, vs, or, compare, versus, decide, which | `/mp:debate` | 70% |
+| **Specify** | spec, specify, specification, requirements, define scope, nlspec | `/mp:spec` | 75% |
+| **Parallel** | parallel, team, decompose, work packages, compound, multi-instance | `/mp:parallel` | 80% |
+| **Lifecycle** | end-to-end, complete, full, entire, whole | `/mp:embrace` | 85% |
 
 ### Confidence Levels
 
@@ -50,43 +50,43 @@ The router uses keyword matching and confidence scoring to determine the best wo
 
 ### Research Intent
 ```bash
-/octo research OAuth security patterns
-# → Routes to /octo:discover
+/mp research OAuth security patterns
+# → Routes to /mp:discover
 # 🔍 Multi-AI research and exploration
 ```
 
 ### Build Intent (Clear)
 ```bash
-/octo build user authentication with JWT
-# → Routes to /octo:develop
+/mp build user authentication with JWT
+# → Routes to /mp:develop
 # 🛠️ Multi-AI implementation with quality gates
 ```
 
 ### Build Intent (Vague)
 ```bash
-/octo build something for users
-# → Routes to /octo:plan (with clarification)
+/mp build something for users
+# → Routes to /mp:plan (with clarification)
 # 🎯 Clarifies requirements before routing
 ```
 
 ### Validation Intent
 ```bash
-/octo validate the authentication implementation
-# → Routes to /octo:review
+/mp validate the authentication implementation
+# → Routes to /mp:review
 # 🛡️ Multi-AI quality assurance and review
 ```
 
 ### Debate Intent
 ```bash
-/octo should we use TypeScript or JavaScript?
-# → Routes to /octo:debate
+/mp should we use TypeScript or JavaScript?
+# → Routes to /mp:debate
 # 🐙 Three-way AI debate (Codex, Gemini, Claude)
 ```
 
 ### Lifecycle Intent
 ```bash
-/octo complete implementation of payment system
-# → Routes to /octo:embrace
+/mp complete implementation of payment system
+# → Routes to /mp:embrace
 # 🐙 Full 4-phase workflow (Discover → Define → Develop → Deliver)
 ```
 
@@ -103,16 +103,16 @@ If the router can't determine intent with confidence:
 You can always bypass the router and call workflows directly:
 
 ```bash
-/octo:discover     # Research phase
-/octo:define       # Definition phase
-/octo:develop      # Development phase
-/octo:deliver      # Delivery phase
-/octo:debate       # AI debate
-/octo:embrace      # Full lifecycle
-/octo:spec         # NLSpec authoring
-/octo:parallel     # Team of Teams - parallel work packages
-/octo:plan         # Requirements planning
-/octo:review       # Quality review and validation
+/mp:discover     # Research phase
+/mp:define       # Definition phase
+/mp:develop      # Development phase
+/mp:deliver      # Delivery phase
+/mp:debate       # AI debate
+/mp:embrace      # Full lifecycle
+/mp:spec         # NLSpec authoring
+/mp:parallel     # Team of Teams - parallel work packages
+/mp:plan         # Requirements planning
+/mp:review       # Quality review and validation
 ```
 
 ## Advanced Usage
@@ -120,29 +120,29 @@ You can always bypass the router and call workflows directly:
 ### Force Specific Workflow
 ```bash
 # Override router with explicit workflow
-/octo:develop build payment system
+/mp:develop build payment system
 ```
 
 ### Multi-Provider Override
 ```bash
 # Use model configuration with router
 export OCTOPUS_CODEX_MODEL="claude-opus-4-6"
-/octo research advanced ML architectures
+/mp research advanced ML architectures
 # → Uses premium model for research
 ```
 
 ### Chain Workflows
 ```bash
 # Router can suggest chaining
-/octo build and validate authentication system
-# → Suggests: /octo:develop → /octo:review
+/mp build and validate authentication system
+# → Suggests: /mp:develop → /mp:review
 ```
 
 ---
 
 ## EXECUTION CONTRACT (Mandatory)
 
-When the user invokes `/octo <query>`, you MUST:
+When the user invokes `/mp <query>`, you MUST:
 
 ### 1. Parse User Query
 
@@ -207,13 +207,13 @@ Wait for user confirmation before routing.
 ```
 I'm not sure which workflow fits best. Here are your options:
 
-1. **Research** (/octo:discover) - Multi-AI research and exploration
-2. **Specify** (/octo:spec) - Structured NLSpec authoring
-3. **Build** (/octo:develop) - Implementation with quality gates
-4. **Validate** (/octo:validate) - Quality assurance and validation
-5. **Debate** (/octo:debate) - Three-way AI debate
-6. **Parallel** (/octo:parallel) - Team of Teams parallel work packages
-7. **Lifecycle** (/octo:embrace) - Full 4-phase workflow
+1. **Research** (/mp:discover) - Multi-AI research and exploration
+2. **Specify** (/mp:spec) - Structured NLSpec authoring
+3. **Build** (/mp:develop) - Implementation with quality gates
+4. **Validate** (/mp:validate) - Quality assurance and validation
+5. **Debate** (/mp:debate) - Three-way AI debate
+6. **Parallel** (/mp:parallel) - Team of Teams parallel work packages
+7. **Lifecycle** (/mp:embrace) - Full 4-phase workflow
 
 Which would you like, or would you like to rephrase your request?
 ```
@@ -284,7 +284,7 @@ Providers:
 
 ### Example 1: High Confidence Research
 ```
-User: /octo research OAuth 2.0 security best practices
+User: /mp research OAuth 2.0 security best practices
 
 Analysis:
 - Keywords: "research" (research intent)
@@ -292,7 +292,7 @@ Analysis:
 - Confidence: 95% (high)
 
 Response:
-✓ Routing to Research workflow (/octo:discover)
+✓ Routing to Research workflow (/mp:discover)
 
 🐙 **CLAUDE OCTOPUS ACTIVATED** - Multi-provider research mode
 🔍 Discover Phase: Researching OAuth 2.0 security best practices
@@ -302,12 +302,12 @@ Providers:
 🟡 Gemini CLI - Ecosystem and community research
 🔵 Claude - Strategic synthesis
 
-[Execute /octo:discover]
+[Execute /mp:discover]
 ```
 
 ### Example 2: Medium Confidence Build
 ```
-User: /octo create authentication
+User: /mp create authentication
 
 Analysis:
 - Keywords: "create" (build intent, vague)
@@ -315,18 +315,18 @@ Analysis:
 - Confidence: 75% (medium)
 
 Response:
-I think you want: Implementation workflow (/octo:develop)
+I think you want: Implementation workflow (/mp:develop)
 This will build the authentication system with multi-AI quality gates.
 
 However, since the requirements aren't fully clear, I could also route to:
-- Planning workflow (/octo:plan) to clarify requirements first
+- Planning workflow (/mp:plan) to clarify requirements first
 
 Should I proceed with implementation, or plan first? (implement/plan)
 ```
 
 ### Example 3: Low Confidence Ambiguous
 ```
-User: /octo do something with the database
+User: /mp do something with the database
 
 Analysis:
 - Keywords: "do" (no clear intent)
@@ -346,7 +346,7 @@ Please clarify what you'd like to accomplish.
 
 ### Example 4: Debate Intent
 ```
-User: /octo should we use Redis or Memcached for session storage?
+User: /mp should we use Redis or Memcached for session storage?
 
 Analysis:
 - Keywords: "should", "or" (debate intent)
@@ -354,7 +354,7 @@ Analysis:
 - Confidence: 90% (high)
 
 Response:
-✓ Routing to AI Debate Hub (/octo:debate)
+✓ Routing to AI Debate Hub (/mp:debate)
 
 🐙 **CLAUDE OCTOPUS ACTIVATED** - AI Debate Hub
 🐙 Debate: Redis vs Memcached for session storage
@@ -364,7 +364,7 @@ Participants:
 🟡 Gemini CLI - Ecosystem perspective
 🔵 Claude - Moderator and synthesis
 
-[Execute /octo:debate]
+[Execute /mp:debate]
 ```
 
 ---
@@ -372,7 +372,7 @@ Participants:
 ## Notes
 
 - The router is optimized for natural language - users don't need to learn command syntax
-- All existing `/octo:*` commands still work and bypass the router
+- All existing `/mp:*` commands still work and bypass the router
 - Router learns from user corrections (future enhancement)
 - Confidence thresholds are tunable in future versions
 - Works seamlessly with model configuration (`OCTOPUS_CODEX_MODEL`, etc.)

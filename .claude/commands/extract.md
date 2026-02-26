@@ -6,11 +6,11 @@ aliases:
   - analyze-codebase
 ---
 
-# /octo:extract - Design System & Product Reverse-Engineering
+# /mp:extract - Design System & Product Reverse-Engineering
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:extract <target>` or `/octo:extract <target>`):
+When the user invokes this command (e.g., `/mp:extract <target>` or `/mp:extract <target>`):
 
 ### Step 0: PDF Page Selection (if target is PDF)
 
@@ -81,7 +81,7 @@ Reading all pages may use 33,750 tokens (~34 API calls).
 **Parse the command arguments:**
 ```bash
 # Expected format:
-# /octo:extract <target> [options]
+# /mp:extract <target> [options]
 # target: URL or local directory path
 # options: --mode, --scope, --depth, --output, --storybook, --ignore
 ```
@@ -94,7 +94,7 @@ const geminiAvailable = await checkCommandAvailable('gemini');
 
 if (!codexAvailable && !geminiAvailable) {
   console.log("⚠️ Multi-AI providers not detected. Running in single-provider mode.");
-  console.log("For best results, run `/octo:setup` to configure Codex and Gemini.");
+  console.log("For best results, run `/mp:setup` to configure Codex and Gemini.");
 }
 ```
 
@@ -1197,34 +1197,34 @@ View full results: ${config.outputDir}/README.md
 
 ```bash
 # Basic usage - extract from local directory
-/octo:extract ./my-app
+/mp:extract ./my-app
 
 # Extract from URL
-/octo:extract https://example.com
+/mp:extract https://example.com
 
 # With options
-/octo:extract ./my-app --mode design --depth deep --storybook true
+/mp:extract ./my-app --mode design --depth deep --storybook true
 
 # Extract with specific output location
-/octo:extract ./my-app --output ./extraction-results
+/mp:extract ./my-app --output ./extraction-results
 
 # Quick mode for fast analysis
-/octo:extract ./my-app --depth quick
+/mp:extract ./my-app --depth quick
 
 # With multi-AI debate for token validation
-/octo:extract ./my-app --with-debate --debate-rounds 2
+/mp:extract ./my-app --with-debate --debate-rounds 2
 
 # Deep extraction with debate
-/octo:extract ./my-app --depth deep --with-debate
+/mp:extract ./my-app --depth deep --with-debate
 
 # Feature detection for large codebases
-/octo:extract ./my-app --detect-features
+/mp:extract ./my-app --detect-features
 
 # Extract specific feature
-/octo:extract ./my-app --feature authentication
+/mp:extract ./my-app --feature authentication
 
 # Feature extraction with debate
-/octo:extract ./my-app --feature payment --with-debate
+/mp:extract ./my-app --feature payment --with-debate
 ```
 
 ---
@@ -1276,13 +1276,13 @@ Debate generates:
 
 ```bash
 # Standard debate (2 rounds)
-/octo:extract ./my-app --with-debate
+/mp:extract ./my-app --with-debate
 
 # Extended debate for complex systems (3 rounds)
-/octo:extract ./my-app --with-debate --debate-rounds 3
+/mp:extract ./my-app --with-debate --debate-rounds 3
 
 # Combine with deep extraction
-/octo:extract ./my-app --depth deep --with-debate
+/mp:extract ./my-app --depth deep --with-debate
 ```
 
 ### Performance
@@ -1327,7 +1327,7 @@ For large codebases, simply run:
 
 ```bash
 # Claude automatically detects features and guides you through selection
-/octo:extract ./my-app
+/mp:extract ./my-app
 ```
 
 **What happens:**
@@ -1349,13 +1349,13 @@ If you already know which feature you want:
 
 ```bash
 # Force feature detection (even for small codebases)
-/octo:extract ./my-app --detect-features
+/mp:extract ./my-app --detect-features
 
 # Skip detection, extract specific feature by name
-/octo:extract ./my-app --feature authentication
+/mp:extract ./my-app --feature authentication
 
 # Combine with debate for validated extraction
-/octo:extract ./my-app --feature payment --with-debate
+/mp:extract ./my-app --feature payment --with-debate
 ```
 
 ### Custom Scopes (Expert Mode)
@@ -1364,7 +1364,7 @@ For programmatic/CI use or very specific scopes:
 
 ```bash
 # Manually define scope with JSON
-/octo:extract ./my-app --feature-scope '{
+/mp:extract ./my-app --feature-scope '{
   "name":"auth",
   "includePaths":["src/auth/**","lib/auth/**"],
   "excludePaths":["**/*.test.ts"],
@@ -1509,9 +1509,9 @@ Common error codes:
 
 ## Related Commands
 
-- `/octo:setup` - Configure multi-AI providers
-- `/octo:review` - Review extracted outputs for quality
-- `/octo:deliver` - Validate extraction results
+- `/mp:setup` - Configure multi-AI providers
+- `/mp:review` - Review extracted outputs for quality
+- `/mp:deliver` - Validate extraction results
 
 ---
 

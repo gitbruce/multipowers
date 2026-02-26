@@ -143,12 +143,12 @@ claude --add-dir=config/workflows          # Double Diamond methodology
 
 3. **Verify Installation:**
    ```bash
-   /octo:setup
+   /mp:setup
    ```
 
 4. **Test a Simple Workflow:**
    ```bash
-   octo research "test v7.13.0 features"
+   mp research "test v7.13.0 features"
    ```
 
    You should see:
@@ -186,7 +186,7 @@ claude --version  # Must be v2.1.16+
 **Problem:** Autonomy mode not saving
 
 **Solution:**
-Set autonomy mode in `/octo:setup`:
+Set autonomy mode in `/mp:setup`:
 - **Supervised**: Prompt after each phase (default)
 - **Semi-autonomous**: Prompt only on quality gate failures
 - **Autonomous**: Never prompt
@@ -234,7 +234,7 @@ With v7.13.0, you get:
 
 Start using the new features:
 ```bash
-/octo:embrace "build a feature with full visibility"
+/mp:embrace "build a feature with full visibility"
 ```
 
 Watch for task creation, background permission prompts, and session tracking!

@@ -171,7 +171,7 @@ What kind of review?
 ├─ General quality     → code-reviewer
 ├─ Security focused    → security-auditor
 ├─ Performance focused → performance-engineer
-└─ Multiple concerns   → Use /octo:review skill
+└─ Multiple concerns   → Use /mp:review skill
 ```
 
 ---
@@ -218,10 +218,10 @@ What kind of review?
 
 | Skill | Does What |
 |-------|-----------|
-| `/octo:review` | Fast code review (define + develop) |
-| `/octo:research` | Deep research (4-perspective discover) |
-| `/octo:security` | Security audit (red team/blue team) |
-| `/octo:embrace` | Full 4-phase Double Diamond workflow |
+| `/mp:review` | Fast code review (define + develop) |
+| `/mp:research` | Deep research (4-perspective discover) |
+| `/mp:security` | Security audit (red team/blue team) |
+| `/mp:embrace` | Full 4-phase Double Diamond workflow |
 
 ---
 

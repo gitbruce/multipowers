@@ -15,7 +15,7 @@ func RunSpecPipeline(projectDir string, autoInit bool, tags []string, execFn Exe
 			return api.Response{Status: "blocked", Action: "run_init", ErrorCode: ErrCtxMissing, Missing: missing}
 		}
 		if err := context.RunInit(projectDir); err != nil {
-			return api.Response{Status: "error", ErrorCode: ErrInitFailed, Message: err.Error(), Remediation: "Run /octo:init interactively."}
+			return api.Response{Status: "error", ErrorCode: ErrInitFailed, Message: err.Error(), Remediation: "Run /mp:init interactively."}
 		}
 		if missing = context.Missing(projectDir); len(missing) > 0 {
 			return api.Response{Status: "error", ErrorCode: ErrCtxMissing, Missing: missing}

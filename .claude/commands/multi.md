@@ -9,7 +9,7 @@ description: Force multi-provider parallel execution for any task - manual overr
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:multi <task>`):
+When the user invokes this command (e.g., `/mp:multi <task>`):
 
 ### Step 1: Cost Awareness & Intent Confirmation
 
@@ -61,7 +61,7 @@ const geminiAvailable = await checkCommandAvailable('gemini');
 
 if (!codexAvailable && !geminiAvailable) {
   console.log("⚠️ No external providers available. Multi-provider mode requires Codex and/or Gemini.");
-  console.log("Run `/octo:setup` to configure external providers, or use Claude directly.");
+  console.log("Run `/mp:setup` to configure external providers, or use Claude directly.");
   return;
 }
 
@@ -84,9 +84,9 @@ Just use natural language:
 
 Or use explicit commands:
 ```
-/octo:multi "Explain how OAuth works"
-/octo:multi "Review this simple function"
-/octo:multi "What is JWT?"
+/mp:multi "Explain how OAuth works"
+/mp:multi "Review this simple function"
+/mp:multi "What is JWT?"
 ```
 
 ## How It Works
@@ -100,11 +100,11 @@ This command activates the multi-provider skill in **forced mode**, which:
 ## What This Does
 
 Normal Claude Octopus workflows automatically decide when to use multiple providers:
-- "octo research OAuth" → automatically triggers multi-provider (probe workflow)
+- "mp research OAuth" → automatically triggers multi-provider (probe workflow)
 - "What is OAuth?" → uses Claude only (simple question)
 
 **The multi command forces multi-provider mode even for simple tasks:**
-- `/octo:multi "What is OAuth?"` → forces Codex + Gemini + Claude
+- `/mp:multi "What is OAuth?"` → forces Codex + Gemini + Claude
 - "Run this with all providers: Explain Redis" → forces multi-provider execution
 
 ## When to Use
@@ -116,7 +116,7 @@ Use forced parallel mode when:
 - **Learning different approaches** - exploring how each model thinks about a topic
 
 Don't use forced parallel mode when:
-- Task already auto-triggers workflows (octo research, octo build, octo review)
+- Task already auto-triggers workflows (mp research, mp build, mp review)
 - Simple factual questions Claude can answer reliably
 - Cost efficiency is important (external CLIs cost ~$0.02-0.08 per query)
 
@@ -147,7 +147,7 @@ You can also force parallel mode with natural language:
 
 **Force parallel for simple question:**
 ```
-/octo:multi "What is the difference between OAuth and JWT?"
+/mp:multi "What is the difference between OAuth and JWT?"
 ```
 → Gets perspectives from Codex, Gemini, and Claude even though Claude could answer alone
 
@@ -159,7 +159,7 @@ You can also force parallel mode with natural language:
 
 **Force parallel for code review:**
 ```
-/octo:multi "Review this simple helper function for edge cases"
+/mp:multi "Review this simple helper function for edge cases"
 ```
 → Gets thorough review from multiple models even for small code
 
@@ -181,7 +181,7 @@ Then you'll see results from each provider marked with their indicator (🔴 �
 
 ## See Also
 
-- `/octo:debate` - Structured three-way debates (better for adversarial analysis)
-- `/octo:research` - Research workflow (auto-triggers multi-provider for research)
-- `/octo:review` - Review workflow (auto-triggers multi-provider for validation)
+- `/mp:debate` - Structured three-way debates (better for adversarial analysis)
+- `/mp:research` - Research workflow (auto-triggers multi-provider for research)
+- `/mp:review` - Review workflow (auto-triggers multi-provider for validation)
 - [TRIGGERS.md](../../docs/TRIGGERS.md) - Full guide to what triggers multi-provider mode

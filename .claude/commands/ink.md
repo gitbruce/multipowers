@@ -7,7 +7,7 @@ description: Delivery phase - Quality assurance, validation, and review
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:ink <arguments>`):
+When the user invokes this command (e.g., `/mp:ink <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```

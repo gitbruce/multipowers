@@ -14,7 +14,7 @@ This guide documents direct CLI usage of orchestrate.sh for advanced users and a
 
 ```bash
 # Execute from repository root
-./bin/octo <command> [options] "<prompt>"
+./bin/mp <command> [options] "<prompt>"
 ```
 
 ### Core Commands
@@ -82,13 +82,13 @@ source ~/.bashrc
 
 ```bash
 # Check provider status
-./bin/octo detect-providers
+./bin/mp detect-providers
 
 # Run full preflight check
-./bin/octo preflight
+./bin/mp preflight
 
 # Show current status
-./bin/octo status
+./bin/mp status
 ```
 
 ---
@@ -114,7 +114,7 @@ source ~/.bashrc
 Parallel research from multiple perspectives - problem space, existing solutions, edge cases, technical feasibility.
 
 ```bash
-./bin/octo discover "What are the best approaches for real-time notifications?"
+./bin/mp discover "What are the best approaches for real-time notifications?"
 ```
 
 **Output:**
@@ -126,7 +126,7 @@ Parallel research from multiple perspectives - problem space, existing solutions
 Multi-AI consensus on problem definition, success criteria, and constraints.
 
 ```bash
-./bin/octo define "Define requirements for notification system"
+./bin/mp define "Define requirements for notification system"
 ```
 
 **Output:**
@@ -138,7 +138,7 @@ Multi-AI consensus on problem definition, success criteria, and constraints.
 Enhanced map-reduce with 75% quality gate threshold.
 
 ```bash
-./bin/octo develop "Implement notification service"
+./bin/mp develop "Implement notification service"
 ```
 
 **Output:**
@@ -151,7 +151,7 @@ Enhanced map-reduce with 75% quality gate threshold.
 Validation and final deliverable generation.
 
 ```bash
-./bin/octo deliver "Deliver notification system"
+./bin/mp deliver "Deliver notification system"
 ```
 
 **Output:**
@@ -164,7 +164,7 @@ Validation and final deliverable generation.
 Run all four phases in sequence:
 
 ```bash
-./bin/octo embrace "Create a complete user dashboard feature"
+./bin/mp embrace "Create a complete user dashboard feature"
 ```
 
 **Executes:**
@@ -190,9 +190,9 @@ The `auto` command detects intent and routes to the appropriate workflow:
 
 **Usage:**
 ```bash
-./bin/octo auto "research OAuth patterns"           # -> discover
-./bin/octo auto "build user login"                  # -> develop + deliver
-./bin/octo auto "security audit auth.ts"            # -> squeeze
+./bin/mp auto "research OAuth patterns"           # -> discover
+./bin/mp auto "build user login"                  # -> develop + deliver
+./bin/mp auto "security audit auth.ts"            # -> squeeze
 ```
 
 ---
@@ -202,9 +202,9 @@ The `auto` command detects intent and routes to the appropriate workflow:
 Use `persona` when you want to force a specific configured persona instead of intent-based auto-selection.
 
 ```bash
-./bin/octo persona list
-./bin/octo persona backend-architect "Design a resilient webhook pipeline"
-./bin/octo persona security-auditor "Review auth module for OWASP risks"
+./bin/mp persona list
+./bin/mp persona backend-architect "Design a resilient webhook pipeline"
+./bin/mp persona security-auditor "Review auth module for OWASP risks"
 ```
 
 Before execution, Octopus prints the selected lane in verbose format, for example:
@@ -247,10 +247,10 @@ Context is detected from:
 When auto-detection is wrong, use the knowledge mode toggle:
 
 ```bash
-./bin/octo km on     # Force Knowledge context
-./bin/octo km off    # Force Dev context
-./bin/octo km auto   # Return to auto-detection
-./bin/octo km        # Show current status
+./bin/mp km on     # Force Knowledge context
+./bin/mp km off    # Force Dev context
+./bin/mp km auto   # Return to auto-detection
+./bin/mp km        # Show current status
 ```
 
 ---
@@ -262,8 +262,8 @@ Different AI models have different blind spots. Crossfire forces models to criti
 ### Grapple - Adversarial Debate
 
 ```bash
-./bin/octo grapple "implement password reset API"
-./bin/octo grapple --principles security "implement JWT auth"
+./bin/mp grapple "implement password reset API"
+./bin/mp grapple --principles security "implement JWT auth"
 ```
 
 **How it works:**
@@ -285,19 +285,19 @@ Round 3: Synthesis determines winner + final implementation
 **Examples:**
 ```bash
 # General quality review
-./bin/octo grapple "implement user registration"
+./bin/mp grapple "implement user registration"
 
 # Security-focused review
-./bin/octo grapple --principles security "implement JWT auth"
+./bin/mp grapple --principles security "implement JWT auth"
 
 # Performance-focused review
-./bin/octo grapple --principles performance "implement API caching"
+./bin/mp grapple --principles performance "implement API caching"
 ```
 
 ### Squeeze - Red Team Security Review
 
 ```bash
-./bin/octo squeeze "implement user login form"
+./bin/mp squeeze "implement user login form"
 ```
 
 **How it works:**
@@ -311,7 +311,7 @@ Round 3: Synthesis determines winner + final implementation
 
 **Example:**
 ```bash
-./bin/octo squeeze "review auth.ts for vulnerabilities"
+./bin/mp squeeze "review auth.ts for vulnerabilities"
 ```
 
 ---
@@ -354,16 +354,16 @@ The configuration wizard sets your subscription tier for each provider:
 **Usage:**
 ```bash
 # Check current provider status
-./bin/octo status
+./bin/mp status
 
 # Force cost-first routing
-./bin/octo --cost-first auto "research best practices"
+./bin/mp --cost-first auto "research best practices"
 
 # Force specific provider
-./bin/octo --provider gemini probe "research OAuth patterns"
+./bin/mp --provider gemini probe "research OAuth patterns"
 
 # Quality-first for critical tasks
-./bin/octo --quality-first tangle "implement authentication"
+./bin/mp --quality-first tangle "implement authentication"
 ```
 
 ---
@@ -382,16 +382,16 @@ The configuration wizard sets your subscription tier for each provider:
 **Examples:**
 ```bash
 # Dry run to preview execution
-./bin/octo -n probe "research caching"
+./bin/mp -n probe "research caching"
 
 # Verbose mode for debugging
-./bin/octo -v tangle "implement auth"
+./bin/mp -v tangle "implement auth"
 
 # Extended timeout for complex tasks
-./bin/octo -t 1200 embrace "build complete dashboard"
+./bin/mp -t 1200 embrace "build complete dashboard"
 
 # Cost-optimized research
-./bin/octo --cost-first probe "research microservices"
+./bin/mp --cost-first probe "research microservices"
 ```
 
 ---
@@ -415,7 +415,7 @@ Quality gates ensure minimum standards before delivery:
 **Example:**
 ```bash
 # Tangle phase includes automatic quality gates
-./bin/octo tangle "implement user authentication"
+./bin/mp tangle "implement user authentication"
 
 # Output includes quality score:
 # Quality Score: 82/100 (WARNING - below 90%)
@@ -432,7 +432,7 @@ Quality gates ensure minimum standards before delivery:
 ### Interactive Configuration Wizard
 
 ```bash
-./bin/octo octopus-configure
+./bin/mp octopus-configure
 ```
 
 **Configures:**
@@ -445,7 +445,7 @@ Quality gates ensure minimum standards before delivery:
 ### Preflight Checks
 
 ```bash
-./bin/octo preflight
+./bin/mp preflight
 ```
 
 **Verifies:**
@@ -458,7 +458,7 @@ Quality gates ensure minimum standards before delivery:
 ### Status
 
 ```bash
-./bin/octo status
+./bin/mp status
 ```
 
 **Shows:**
@@ -506,41 +506,41 @@ Debates are stored in session-aware folders:
 
 ```bash
 # Phase 1: Research authentication patterns
-./bin/octo discover "authentication best practices for React apps"
+./bin/mp discover "authentication best practices for React apps"
 
 # Phase 2: Define requirements
-./bin/octo define "define requirements for JWT authentication"
+./bin/mp define "define requirements for JWT authentication"
 
 # Phase 3: Implement
-./bin/octo develop "implement JWT authentication system"
+./bin/mp develop "implement JWT authentication system"
 
 # Phase 4: Validate
-./bin/octo deliver "validate authentication implementation"
+./bin/mp deliver "validate authentication implementation"
 ```
 
 ### Or use embrace for all phases:
 ```bash
-./bin/octo embrace "build complete JWT authentication system"
+./bin/mp embrace "build complete JWT authentication system"
 ```
 
 ### Security Audit
 
 ```bash
 # Red team security review
-./bin/octo squeeze "audit auth.ts for security vulnerabilities"
+./bin/mp squeeze "audit auth.ts for security vulnerabilities"
 
 # Adversarial security-focused debate
-./bin/octo grapple --principles security "review login implementation"
+./bin/mp grapple --principles security "review login implementation"
 ```
 
 ### Cost-Optimized Research
 
 ```bash
 # Use cheapest provider for research
-./bin/octo --cost-first discover "research React state management"
+./bin/mp --cost-first discover "research React state management"
 
 # Use quality-first for critical implementation
-./bin/octo --quality-first develop "implement payment processing"
+./bin/mp --quality-first develop "implement payment processing"
 ```
 
 ---
@@ -551,7 +551,7 @@ Debates are stored in session-aware folders:
 
 ```bash
 # Check provider status
-./bin/octo detect-providers
+./bin/mp detect-providers
 
 # Expected output:
 # CODEX_STATUS=ready
@@ -572,10 +572,10 @@ export OPENAI_API_KEY="sk-..."
 
 ```bash
 # Make orchestrate.sh executable
-chmod +x ./bin/octo
+chmod +x ./bin/mp
 
 # Check file permissions
-ls -la ./bin/octo
+ls -la ./bin/mp
 ```
 
 ### Session Directory Not Found
@@ -593,7 +593,7 @@ mkdir -p ~/.claude-octopus/debates
 
 ```bash
 # Increase timeout for complex tasks
-./bin/octo -t 1200 embrace "complex feature"
+./bin/mp -t 1200 embrace "complex feature"
 
 # Default timeout is 120 seconds (2 minutes)
 # Maximum timeout is 1800 seconds (30 minutes)
@@ -623,7 +623,7 @@ jobs:
 
       - name: Run code review
         run: |
-          ./bin/octo ink "review changes in this PR"
+          ./bin/mp ink "review changes in this PR"
 
       - name: Post results
         uses: actions/github-script@v6

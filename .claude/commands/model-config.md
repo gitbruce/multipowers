@@ -25,7 +25,7 @@ In this environment:
 
 ## Principles-Aligned Policy
 
-Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `bin/octo`):
+Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `bin/mp`):
 
 - Planning, architecture, and important decisions -> Codex (`gpt-5.3-codex`)
 - Heavy coding/implementation -> Claude Opus (`claude-opus`; mapped by your Claude Code env, e.g. GLM-5)
@@ -36,32 +36,32 @@ Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.ya
   - Light/lower-token -> Codex
 
 Important scope note:
-- `/octo:model-config` configures Codex/Gemini models in `~/.claude-octopus/config/providers.json`.
+- `/mp:model-config` configures Codex/Gemini models in `~/.claude-octopus/config/providers.json`.
 - Claude model family selection is primarily controlled by routing (`claude` vs `claude-opus`) and your Claude Code defaults (`ANTHROPIC_DEFAULT_*`), not by this command.
 
 ## Usage
 
 ```bash
 # View current configuration (models + phase routing)
-/octo:model-config
+/mp:model-config
 
 # Set codex model (persistent)
-/octo:model-config codex gpt-5.3-codex
+/mp:model-config codex gpt-5.3-codex
 
 # Set gemini model (persistent)
-/octo:model-config gemini gemini-3-pro-preview
+/mp:model-config gemini gemini-3-pro-preview
 
 # Set session-only override (doesn't modify config file)
-/octo:model-config codex gpt-5.3-codex --session
+/mp:model-config codex gpt-5.3-codex --session
 
 # Configure phase routing (which codex model to use in which phase)
-/octo:model-config phase deliver gpt-5.3-codex
-/octo:model-config phase develop gpt-5.3-codex
+/mp:model-config phase deliver gpt-5.3-codex
+/mp:model-config phase develop gpt-5.3-codex
 
 # Reset to defaults
-/octo:model-config reset codex
-/octo:model-config reset phases
-/octo:model-config reset all
+/mp:model-config reset codex
+/mp:model-config reset phases
+/mp:model-config reset all
 ```
 
 ## Model Precedence
@@ -128,25 +128,25 @@ Requires `OPENROUTER_API_KEY` to be set. These are automatically selected when O
 
 ```bash
 # Use full codex for review/decision phases
-/octo:model-config phase deliver gpt-5.3-codex
-/octo:model-config phase review gpt-5.3-codex
+/mp:model-config phase deliver gpt-5.3-codex
+/mp:model-config phase review gpt-5.3-codex
 
 # Reset phase routing to defaults
-/octo:model-config reset phases
+/mp:model-config reset phases
 ```
 
 ## Examples
 
 ### Planning/Architecture First (Codex)
 ```bash
-/octo:model-config codex gpt-5.3-codex
-/octo:model-config phase define gpt-5.3-codex
-/octo:model-config phase review gpt-5.3-codex
+/mp:model-config codex gpt-5.3-codex
+/mp:model-config phase define gpt-5.3-codex
+/mp:model-config phase review gpt-5.3-codex
 ```
 
 ### External Research (Gemini)
 ```bash
-/octo:model-config gemini gemini-3-pro-preview
+/mp:model-config gemini gemini-3-pro-preview
 ```
 
 ### Claude Lane Reminder
@@ -215,7 +215,7 @@ For heavy implementation and heavy-token quality checks, rely on Claude Opus rou
 
 ## EXECUTION CONTRACT (Mandatory)
 
-When the user invokes `/octo:model-config`, you MUST:
+When the user invokes `/mp:model-config`, you MUST:
 
 1. **Parse arguments** to determine action:
    - No args → View current configuration including phase routing
@@ -240,7 +240,7 @@ When the user invokes `/octo:model-config`, you MUST:
 3. **Set Model** (`<provider> <model>` or with `--session`):
    ```bash
    # Call set_provider_model from orchestrate.sh
-   source "${CLAUDE_PLUGIN_ROOT}/bin/octo"
+   source "${CLAUDE_PLUGIN_ROOT}/bin/mp"
    set_provider_model <provider> <model> [--session]
 
    # Show updated configuration
@@ -274,7 +274,7 @@ PY
 5. **Reset Model** (`reset <provider|phases|all>`):
    ```bash
    # Call reset_provider_model from orchestrate.sh
-   source "${CLAUDE_PLUGIN_ROOT}/bin/octo"
+   source "${CLAUDE_PLUGIN_ROOT}/bin/mp"
    reset_provider_model <provider>
 
    # For phases: reset phase_routing to defaults

@@ -10,7 +10,7 @@ Resume work from the last known project state.
 
 Execution guidance:
 1. Use the `skill-resume` workflow to restore context from persisted Octopus state.
-2. If no state exists, explain that there is nothing to resume and suggest `/octo:embrace` or `/octo:discover`.
+2. If no state exists, explain that there is nothing to resume and suggest `/mp:embrace` or `/mp:discover`.
 3. After restoration, provide:
    - Current phase
    - Open blockers/issues

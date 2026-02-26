@@ -25,16 +25,16 @@ Keep customization isolated in `custom/*`:
 ## Operational Commands
 
 ```bash
-./custom/scripts/octo-devx sync
-./custom/scripts/octo-devx overlay
+./custom/scripts/mp-devx sync
+./custom/scripts/mp-devx overlay
 bash tests/integration/test-sync-overlay.sh
 ```
 
 ## What To Verify After Sync
 
 1. Overlay applies cleanly.
-2. `/octo:persona list` works.
-3. `/octo:init` uses `custom/config/setup.toml` and writes into target project `.multipowers/`.
+2. `/mp:persona list` works.
+3. `/mp:init` uses `custom/config/setup.toml` and writes into target project `.multipowers/`.
 4. Spec-driven outputs go under `.multipowers/tracks/<track_id>/`.
 5. Auto-learning FAQ updates `.multipowers/FAQ.md` without writing to `$HOME` or tool project paths.
 

@@ -56,7 +56,7 @@ Claude Octopus coordinates **three AI providers** to give you multi-perspective 
 
 ### Discover Phase (probe)
 
-**Trigger:** `octo research X` or `/octo:discover`
+**Trigger:** `mp research X` or `/mp:discover`
 
 ```
 User Request
@@ -104,7 +104,7 @@ User Request
 
 ### Define Phase (grasp)
 
-**Trigger:** `octo define X` or `/octo:define`
+**Trigger:** `mp define X` or `/mp:define`
 
 ```
 User Request
@@ -150,7 +150,7 @@ User Request
 
 ### Develop Phase (tangle)
 
-**Trigger:** `octo build X` or `/octo:develop`
+**Trigger:** `mp build X` or `/mp:develop`
 
 ```
 User Request
@@ -207,7 +207,7 @@ The quality gate is based on subtask success rate:
 
 ### Deliver Phase (ink)
 
-**Trigger:** `octo review X` or `/octo:deliver`
+**Trigger:** `mp review X` or `/mp:deliver`
 
 ```
 User Request
@@ -264,7 +264,7 @@ User Request
 
 ### Debate (grapple)
 
-**Trigger:** `octo debate X vs Y` or `/octo:debate`
+**Trigger:** `mp debate X vs Y` or `/mp:debate`
 
 ```
 User Question
@@ -318,7 +318,7 @@ User Question
 
 ### Full Workflow (embrace)
 
-**Trigger:** `/octo:embrace`
+**Trigger:** `/mp:embrace`
 
 ```
 User Request
@@ -376,7 +376,7 @@ All four phases run sequentially. Each phase uses the output of the previous pha
 | Strategy | How |
 |----------|-----|
 | **Use one provider** | Only install Codex OR Gemini (not both) |
-| **Skip unnecessary phases** | Use `/octo:develop` instead of `/octo:embrace` for simple tasks |
+| **Skip unnecessary phases** | Use `/mp:develop` instead of `/mp:embrace` for simple tasks |
 | **Use Claude-only** | For simple tasks, don't use "octo" prefix - just ask directly |
 
 ---
@@ -387,7 +387,7 @@ Claude Octopus auto-detects which providers are available:
 
 ```bash
 # Check status
-/octo:setup
+/mp:setup
 
 # Output example:
 # Providers:
@@ -433,14 +433,14 @@ When multi-AI mode is active, you'll see these indicators:
 
 ## Under the Hood: orchestrate.sh
 
-All workflows are powered by `bin/octo`:
+All workflows are powered by `bin/mp`:
 
 ```bash
 # Direct CLI usage (advanced)
-./bin/octo probe "research OAuth patterns"
-./bin/octo tangle "implement authentication"
-./bin/octo ink "review auth code"
-./bin/octo embrace "complete auth feature"
+./bin/mp probe "research OAuth patterns"
+./bin/mp tangle "implement authentication"
+./bin/mp ink "review auth code"
+./bin/mp embrace "complete auth feature"
 ```
 
 The plugin wraps these commands and provides:

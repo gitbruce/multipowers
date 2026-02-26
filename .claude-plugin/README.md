@@ -2,17 +2,17 @@
 
 ## ⚠️ CRITICAL: Plugin Name
 
-**The plugin name in `plugin.json` MUST remain `"octo"`**
+**The plugin name in `plugin.json` MUST remain `"multipowers"`**
 
 ```json
 {
-  "name": "octo"  // ⚠️ DO NOT CHANGE
+  "name": "multipowers"  // ⚠️ DO NOT CHANGE
 }
 ```
 
 ### Why?
 
-- Command prefix: `/octo:discover`, `/octo:debate`, etc.
+- Command prefix: `/mp:discover`, `/mp:debate`, etc.
 - Changing this breaks all existing commands and user workflows
 - Package name (`claude-octopus` in `package.json`) is different and correct
 

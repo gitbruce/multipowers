@@ -8,15 +8,15 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 | Reliable Trigger | Workflow | Indicator |
 |------------------|----------|-----------|
-| `octo research X` | Discover (probe) | 🐙 🔍 |
-| `octo build X` | Develop (tangle) | 🐙 🛠️ |
-| `octo review X` | Deliver (ink) | 🐙 ✅ |
-| `octo define X` | Define (grasp) | 🐙 🎯 |
-| `octo debate X` | AI Debate Hub | 🐙 |
+| `mp research X` | Discover (probe) | 🐙 🔍 |
+| `mp build X` | Develop (tangle) | 🐙 🛠️ |
+| `mp review X` | Deliver (ink) | 🐙 ✅ |
+| `mp define X` | Define (grasp) | 🐙 🎯 |
+| `mp debate X` | AI Debate Hub | 🐙 |
 
 **Alternative prefixes that also work:**
 - `co-research X`, `co-build X`, `co-review X`
-- `/octo:discover X`, `/octo:develop X`, `/octo:deliver X`
+- `/mp:discover X`, `/mp:develop X`, `/mp:deliver X`
 
 ---
 
@@ -24,11 +24,11 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 | User Says | What Triggers | Provider(s) | Indicator |
 |-----------|---------------|-------------|-----------|
-| `octo research X` | Discover workflow | Codex + Gemini + Claude | 🐙 🔍 |
-| `octo build X` | Develop workflow | Codex + Gemini + Claude | 🐙 🛠️ |
-| `octo review X` | Deliver workflow | Codex + Gemini + Claude | 🐙 ✅ |
-| `octo define X` | Define workflow | Codex + Gemini + Claude | 🐙 🎯 |
-| `octo debate X` | Debate skill | Gemini + Codex + Claude | 🐙 |
+| `mp research X` | Discover workflow | Codex + Gemini + Claude | 🐙 🔍 |
+| `mp build X` | Develop workflow | Codex + Gemini + Claude | 🐙 🛠️ |
+| `mp review X` | Deliver workflow | Codex + Gemini + Claude | 🐙 ✅ |
+| `mp define X` | Define workflow | Codex + Gemini + Claude | 🐙 🎯 |
+| `mp debate X` | Debate skill | Gemini + Codex + Claude | 🐙 |
 | "read file.ts" | Read tool | Claude only | (none) |
 | "what does this do?" | Analysis | Claude only | (none) |
 
@@ -41,11 +41,11 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ### Triggers 🐙 🔍
 
 **Reliable triggers (always work):**
-- `octo research X`
-- `octo discover X`
-- `octo explore X`
+- `mp research X`
+- `mp discover X`
+- `mp explore X`
 - `co-research X`
-- `/octo:discover X`
+- `/mp:discover X`
 
 **Natural language triggers (may conflict with Claude's base behaviors):**
 - "research X"
@@ -59,10 +59,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 **Examples:**
 ```
-✅ "octo research OAuth 2.0 authentication patterns"
+✅ "mp research OAuth 2.0 authentication patterns"
    → Guaranteed to trigger discover workflow
 
-✅ "octo explore different caching strategies for Node.js"
+✅ "mp explore different caching strategies for Node.js"
    → Guaranteed to trigger discover workflow
 
 ⚠️ "Research OAuth 2.0 authentication patterns"
@@ -89,11 +89,11 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ### Triggers 🐙 🛠️
 
 **Reliable triggers (always work):**
-- `octo build X`
-- `octo develop X`
-- `octo implement X`
+- `mp build X`
+- `mp develop X`
+- `mp implement X`
 - `co-build X`
-- `/octo:develop X`
+- `/mp:develop X`
 
 **Natural language triggers (may conflict):**
 - "build X"
@@ -106,10 +106,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 **Examples:**
 ```
-✅ "octo build a user authentication system"
+✅ "mp build a user authentication system"
    → Guaranteed to trigger develop workflow
 
-✅ "octo implement JWT token generation"
+✅ "mp implement JWT token generation"
    → Guaranteed to trigger develop workflow
 
 ⚠️ "Build a user authentication system"
@@ -136,11 +136,11 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ### Triggers 🐙 ✅
 
 **Reliable triggers (always work):**
-- `octo review X`
-- `octo validate X`
-- `octo deliver X`
+- `mp review X`
+- `mp validate X`
+- `mp deliver X`
 - `co-review X`
-- `/octo:deliver X`
+- `/mp:deliver X`
 
 **Natural language triggers (may conflict):**
 - "review X"
@@ -155,10 +155,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 **Examples:**
 ```
-✅ "octo review the authentication implementation"
+✅ "mp review the authentication implementation"
    → Guaranteed to trigger deliver workflow
 
-✅ "octo validate the API endpoints"
+✅ "mp validate the API endpoints"
    → Guaranteed to trigger deliver workflow
 
 ⚠️ "Review the authentication implementation"
@@ -184,11 +184,11 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ### Triggers 🐙 🎯
 
 **Reliable triggers (always work):**
-- `octo define X`
-- `octo scope X`
-- `octo clarify X`
+- `mp define X`
+- `mp scope X`
+- `mp clarify X`
 - `co-define X`
-- `/octo:define X`
+- `/mp:define X`
 
 **Natural language triggers (may conflict):**
 - "define the requirements for X"
@@ -200,10 +200,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 **Examples:**
 ```
-✅ "octo define the requirements for our authentication system"
+✅ "mp define the requirements for our authentication system"
    → Guaranteed to trigger define workflow
 
-✅ "octo scope the notification feature"
+✅ "mp scope the notification feature"
    → Guaranteed to trigger define workflow
 
 ⚠️ "Define the exact requirements for our authentication system"
@@ -229,9 +229,9 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ### Triggers 🐙 (Debate)
 
 **Reliable triggers (always work):**
-- `octo debate X`
+- `mp debate X`
 - `co-debate X`
-- `/octo:debate X`
+- `/mp:debate X`
 - `/debate <question>`
 - `/debate -r N -d STYLE <question>`
 
@@ -242,10 +242,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 **Examples:**
 ```
-✅ "octo debate whether we should use Redis or in-memory cache"
+✅ "mp debate whether we should use Redis or in-memory cache"
    → Guaranteed to trigger debate skill
 
-✅ /octo:debate -r 3 -d adversarial "Review our API design"
+✅ /mp:debate -r 3 -d adversarial "Review our API design"
    → Guaranteed to trigger debate skill, 3 rounds
 
 ⚠️ "Run a debate about whether to use TypeScript"
@@ -271,7 +271,7 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ### Triggers 🐙 (Force Multi-Provider)
 
 **Explicit command:**
-- `/octo:multi "<task>"`
+- `/mp:multi "<task>"`
 
 **Natural language triggers (force parallel mode):**
 - "run this with all providers: [task]"
@@ -285,10 +285,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 **Examples:**
 ```
-✅ /octo:multi "What is OAuth?"
+✅ /mp:multi "What is OAuth?"
    → Forces multi-provider execution for simple question
 
-✅ /octo:multi "Explain the difference between JWT and OAuth"
+✅ /mp:multi "Explain the difference between JWT and OAuth"
    → Forces parallel mode even for simple questions
 
 ✅ "Run this with all providers: Review this simple function"
@@ -297,10 +297,10 @@ This guide explains exactly what natural language phrases trigger external CLI e
 ✅ "I want all three AI models to look at our architecture"
    → Forces comprehensive multi-model analysis
 
-⚠️  "octo research OAuth patterns"
+⚠️  "mp research OAuth patterns"
    → Automatically triggers discover workflow (no force needed)
 
-⚠️  "octo build auth system"
+⚠️  "mp build auth system"
    → Automatically triggers develop workflow (no force needed)
 ```
 
@@ -314,7 +314,7 @@ This guide explains exactly what natural language phrases trigger external CLI e
 - Learning different approaches to the same concept
 
 **Don't force parallel mode when:**
-- Task already auto-triggers workflows (octo research, octo build, octo review)
+- Task already auto-triggers workflows (mp research, mp build, mp review)
 - Simple factual questions Claude can answer reliably
 - Cost efficiency is important (see cost implications below)
 - File operations or code navigation tasks
@@ -337,15 +337,15 @@ Use judiciously for tasks where multiple perspectives genuinely add value.
 
 **Auto-triggered workflows (built-in intelligence):**
 ```
-"octo research OAuth" → 🐙 🔍 Discover Phase
-"octo build auth"     → 🐙 🛠️ Develop Phase
-"octo review code"    → 🐙 ✅ Deliver Phase
+"mp research OAuth" → 🐙 🔍 Discover Phase
+"mp build auth"     → 🐙 🛠️ Develop Phase
+"mp review code"    → 🐙 ✅ Deliver Phase
 ```
 → Automatically uses multi-provider when beneficial
 
 **Forced parallel mode (manual override):**
 ```
-/octo:multi "What is OAuth?" → 🐙 Multi-provider mode
+/mp:multi "What is OAuth?" → 🐙 Multi-provider mode
 "Run with all providers: explain JWT" → 🐙 Multi-provider mode
 ```
 → Forces multi-provider even for simple tasks
@@ -368,9 +368,9 @@ Providers:
 
 ### See Also
 
-- `/octo:debate` - Better for adversarial analysis with structured rounds
-- `/octo:research` - Auto-triggers multi-provider for research tasks
-- `/octo:review` - Auto-triggers multi-provider for validation tasks
+- `/mp:debate` - Better for adversarial analysis with structured rounds
+- `/mp:research` - Auto-triggers multi-provider for research tasks
+- `/mp:review` - Auto-triggers multi-provider for validation tasks
 
 ---
 
@@ -381,7 +381,7 @@ Providers:
 When you've enabled Knowledge Mode, research-oriented tasks automatically use external CLIs:
 
 ```bash
-/octo:km on
+/mp:km on
 ```
 
 **Then these trigger multi-provider:**
@@ -575,12 +575,12 @@ If you want to ensure you're **not** using external CLIs (to save costs):
 
 | Reliable Trigger | Workflow | External CLIs | Typical Cost |
 |------------------|----------|---------------|--------------|
-| `octo research X` | Discover | Yes | $0.01-0.05 |
-| `octo build X` | Develop | Yes | $0.02-0.10 |
-| `octo review X` | Deliver | Yes | $0.02-0.08 |
-| `octo define X` | Define | Yes | $0.01-0.05 |
-| `octo debate X` | Debate | Yes | $0.05-0.15 |
-| `/octo:multi X` | Force Multi | Yes | $0.02-0.08 |
+| `mp research X` | Discover | Yes | $0.01-0.05 |
+| `mp build X` | Develop | Yes | $0.02-0.10 |
+| `mp review X` | Deliver | Yes | $0.02-0.08 |
+| `mp define X` | Define | Yes | $0.01-0.05 |
+| `mp debate X` | Debate | Yes | $0.05-0.15 |
+| `/mp:multi X` | Force Multi | Yes | $0.02-0.08 |
 | read, show, explain | (none) | No | Included |
 | git, bash commands | (none) | No | Included |
 

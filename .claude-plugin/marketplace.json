@@ -1,5 +1,5 @@
 {
-  "name": "nyldn-plugins",
+  "name": "multipowers-plugins",
   "owner": {
     "name": "nyldn"
   },
@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "octo",
+      "name": "multipowers",
       "source": "./",
       "description": "v9.1.0-no-shell - strict no-shell runtime with Go-only execution paths and shell-free CI.",
       "version": "9.1.0-no-shell",

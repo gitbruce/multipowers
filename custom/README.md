@@ -11,5 +11,5 @@ This directory contains fork-specific customizations designed to minimize confli
 Runtime policy:
 - No shell runtime dependencies.
 - Execution entrypoints are Go binaries:
-  - `bin/octo`
-  - `go run ./cmd/octo-devx`
+  - `bin/mp`
+  - `go run ./cmd/mp-devx`

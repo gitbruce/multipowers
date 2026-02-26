@@ -11,14 +11,14 @@ import (
 
 func TestUserPromptSubmitBlocksMissingContext(t *testing.T) {
 	d := t.TempDir()
-	r := Handle(d, api.HookEvent{Event: "UserPromptSubmit", ToolInput: map[string]any{"prompt": "/octo:develop x"}})
+	r := Handle(d, api.HookEvent{Event: "UserPromptSubmit", ToolInput: map[string]any{"prompt": "/mp:develop x"}})
 	if r.Decision != "block" {
 		t.Fatalf("expected block, got %+v", r)
 	}
 	if err := ctxpkg.RunInit(d); err != nil {
 		t.Fatal(err)
 	}
-	r = Handle(d, api.HookEvent{Event: "UserPromptSubmit", ToolInput: map[string]any{"prompt": "/octo:develop x"}})
+	r = Handle(d, api.HookEvent{Event: "UserPromptSubmit", ToolInput: map[string]any{"prompt": "/mp:develop x"}})
 	if r.Decision != "allow" {
 		t.Fatalf("expected allow after init, got %+v", r)
 	}

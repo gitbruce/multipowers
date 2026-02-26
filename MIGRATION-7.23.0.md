@@ -55,10 +55,10 @@ cp .claude/todos.md .claude/todos.md.backup
 
 ```bash
 # Preview changes first
-~/.claude/plugins/cache/nyldn-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh --dry-run
+~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh --dry-run
 
 # If preview looks good, run migration
-~/.claude/plugins/cache/nyldn-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
 ```
 
 **Step 3: Verify tasks**
@@ -139,7 +139,7 @@ Note: TodoWrite support will be removed in v7.25.0 (Q2 2026).
 - ✅ State management (`.claude-octopus/state.json`)
 - ✅ Multi-AI orchestration (Codex + Gemini + Claude)
 - ✅ Double Diamond workflows (Discover → Define → Develop → Deliver)
-- ✅ All commands (`/octo:research`, `/octo:develop`, etc.)
+- ✅ All commands (`/mp:research`, `/mp:develop`, etc.)
 - ✅ Git-based checkpointing (WIP commits)
 
 Only the **task tracking mechanism** has changed.
@@ -279,7 +279,7 @@ echo "---\nuse_native_tasks: false\n---" > .claude/claude-octopus.local.md
 
 # Re-run migration from backup
 cp .claude/todos.md.backup .claude/todos.md
-~/.claude/plugins/cache/nyldn-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
 ```
 
 ---

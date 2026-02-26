@@ -1,5 +1,5 @@
 {
-  "name": "octo",
+  "name": "multipowers",
   "version": "9.1.0-no-shell",
   "description": "Strict no-shell runtime: Go-only execution engine with .multipowers boundary enforcement and shell-free CI/runtime paths.",
   "author": {
@@ -86,7 +86,7 @@
     "./.claude/skills/skill-persona.md"
   ],
   "commands": [
-    "./.claude/commands/octo.md",
+    "./.claude/commands/multipowers.md",
     "./.claude/commands/prd.md",
     "./.claude/commands/pipeline.md",
     "./.claude/commands/brainstorm.md",

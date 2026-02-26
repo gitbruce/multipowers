@@ -23,7 +23,7 @@ claude-octopus v7.23.0+ uses a **hybrid approach** that combines:
 | Feature | Native Claude Code | Claude-Octopus | When to Use |
 |---------|-------------------|----------------|-------------|
 | **Task Management** | TaskCreate/TaskUpdate/TaskList | (v7.23.0+) Uses native tools | Always use native (v7.23.0+) |
-| **Planning** | EnterPlanMode/ExitPlanMode | /octo:plan with intent contracts | Simple: native, Complex: octopus |
+| **Planning** | EnterPlanMode/ExitPlanMode | /mp:plan with intent contracts | Simple: native, Complex: octopus |
 | **State Persistence** | Context summarization | .claude-octopus/state.json | Multi-session projects: octopus |
 | **Multi-AI Orchestration** | Not available | Codex + Gemini + Claude | When diverse perspectives needed |
 | **Workflows** | Single-phase | Double Diamond (4-phase) | Complex features: octopus |
@@ -54,7 +54,7 @@ See [MIGRATION-7.23.0.md](../MIGRATION-7.23.0.md) for complete migration guide.
 cp .claude/todos.md .claude/todos.md.backup
 
 # Run migration
-~/.claude/plugins/cache/nyldn-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
 
 # Verify tasks
 /tasks
@@ -138,9 +138,9 @@ Claude detects:
 → Suggests: "Use native EnterPlanMode"
 ```
 
-#### When to Use /octo:plan
+#### When to Use /mp:plan
 
-✅ **Use /octo:plan for:**
+✅ **Use /mp:plan for:**
 - Multi-AI orchestration (Codex + Gemini + Claude)
 - Double Diamond 4-phase execution
 - State needs to persist across sessions
@@ -156,7 +156,7 @@ Claude detects:
 - Multiple perspectives needed ✓
 - Requires research ✓
 
-→ Routes to: /octo:debate or /octo:embrace
+→ Routes to: /mp:debate or /mp:embrace
 ```
 
 ### Routing Logic
@@ -166,10 +166,10 @@ IF single_phase AND well_defined AND NOT high_stakes:
     → Suggest native EnterPlanMode
 
 IF multi_ai_needed OR complex_scope OR high_stakes:
-    → Use /octo:plan with weighted phases
+    → Use /mp:plan with weighted phases
 
 IF decision_between_alternatives:
-    → Use /octo:debate
+    → Use /mp:debate
 ```
 
 ### Context Clearing Compatibility
@@ -232,7 +232,7 @@ if [[ -f .claude-octopus/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]];
     echo "🔄 Reloading prior session context..."
 
     # Load state
-    state=$("${CLAUDE_PLUGIN_ROOT}/scripts/octo state" read_state)
+    state=$("${CLAUDE_PLUGIN_ROOT}/scripts/mp state" read_state)
 
     # Restore context
     discover_context=$(echo "$state" | python3 -r '.context.discover')
@@ -292,7 +292,7 @@ fi
 
 **Day 1:**
 ```bash
-/octo:embrace "Build authentication system"
+/mp:embrace "Build authentication system"
 → Runs discover, define phases
 → Saves state to .claude-octopus/state.json
 → User ends session
@@ -300,7 +300,7 @@ fi
 
 **Day 2 (after context cleared):**
 ```bash
-/octo:resume  # or just continue with /octo:develop
+/mp:resume  # or just continue with /mp:develop
 → Auto-detects context was cleared
 → Loads state.json
 → Restores discover + define findings
@@ -386,7 +386,7 @@ Proven design methodology with 4 phases:
 
 **Example:**
 ```bash
-/octo:embrace "Build payment processing"
+/mp:embrace "Build payment processing"
 → Discover: Research payment gateways, compliance requirements
 → Define: Lock scope (Stripe, PCI compliance, refund handling)
 → Develop: Implement with quality gates
@@ -416,26 +416,26 @@ Each phase includes validation:
 ### Use Octopus Features When Needed
 
 ```
-✅ /octo:plan for complex intent capture
-✅ /octo:research for multi-AI research
-✅ /octo:embrace for complete 4-phase workflows
-✅ /octo:debate for high-stakes decisions
+✅ /mp:plan for complex intent capture
+✅ /mp:research for multi-AI research
+✅ /mp:embrace for complete 4-phase workflows
+✅ /mp:debate for high-stakes decisions
 ```
 
 ### State Management
 
 ```bash
 # Always initialize state at workflow start
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" init_state
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" init_state
 
 # Record decisions
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" write_decision \
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" write_decision \
   "define" \
   "Use React 19" \
   "Modern features and Server Components"
 
 # Update context after each phase
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" update_context \
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" update_context \
   "discover" \
   "Researched auth patterns, recommend JWT"
 ```
@@ -444,12 +444,12 @@ Each phase includes validation:
 
 ```bash
 # Day 1
-/octo:embrace "Build feature X"
+/mp:embrace "Build feature X"
 → Completes discover, define
 → State saved to .claude-octopus/state.json
 
 # Day 2 (new session, context cleared)
-/octo:resume  # or just continue
+/mp:resume  # or just continue
 → Auto-reloads state
 → Continues seamlessly
 ```
@@ -477,7 +477,7 @@ Each phase includes validation:
 **Solution:**
 ```bash
 # Run migration
-~/.claude/plugins/cache/nyldn-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
 
 # View native tasks
 /tasks
@@ -490,7 +490,7 @@ Each phase includes validation:
 **Solution:**
 ```bash
 # Initialize state
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" init_state
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" init_state
 
 # Verify file exists
 ls .claude-octopus/state.json
@@ -515,25 +515,25 @@ ls .claude-octopus/state.json
 
 ```bash
 # Initialize
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" init_state
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" init_state
 
 # Read state
-state=$("${CLAUDE_PLUGIN_ROOT}/scripts/octo state" read_state)
+state=$("${CLAUDE_PLUGIN_ROOT}/scripts/mp state" read_state)
 
 # Set workflow
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" set_current_workflow \
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" set_current_workflow \
   "flow-discover" "discover"
 
 # Record decision
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" write_decision \
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" write_decision \
   "<phase>" "<decision>" "<rationale>"
 
 # Update context
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" update_context \
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" update_context \
   "<phase>" "<summary>"
 
 # Track metrics
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" update_metrics \
+"${CLAUDE_PLUGIN_ROOT}/scripts/mp state" update_metrics \
   "phases_completed" "1"
 ```
 

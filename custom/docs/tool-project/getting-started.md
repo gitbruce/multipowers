@@ -14,12 +14,12 @@ git switch main
 git fetch upstream
 git merge --ff-only upstream/main
 git switch multipowers
-./custom/scripts/octo-devx overlay
-./bin/octo persona list
+./custom/scripts/mp-devx overlay
+./bin/mp persona list
 ```
 
 ## Daily Maintainer Workflow
 
-1. Sync upstream with `./custom/scripts/octo-devx sync`
+1. Sync upstream with `./custom/scripts/mp-devx sync`
 2. Reapply overlay
 3. Validate with `bash tests/integration/test-sync-overlay.sh`

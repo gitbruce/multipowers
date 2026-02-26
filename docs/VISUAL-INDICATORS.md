@@ -37,7 +37,7 @@ Natural language that triggers orchestrate.sh workflows:
 When Knowledge Mode is ON, research tasks use external CLIs:
 
 ```
-/octo:km on
+/mp:km on
 "Research market opportunities in healthcare"
 ```
 
@@ -45,8 +45,8 @@ When Knowledge Mode is ON, research tasks use external CLIs:
 
 ```bash
 # Direct orchestrate.sh execution
-./bin/octo probe "research GraphQL vs REST"
-./bin/octo tangle "implement user authentication"
+./bin/mp probe "research GraphQL vs REST"
+./bin/mp tangle "implement user authentication"
 
 # Direct CLI execution
 codex exec "Generate API endpoint for users"
@@ -245,11 +245,11 @@ If you're not seeing visual indicators when you expect them:
 ```
 /plugin list
 ```
-Look for `claude-octopus@nyldn-plugins` in the installed list.
+Look for `claude-octopus@multipowers-plugins` in the installed list.
 
 ### Check 2: Provider Configuration
 ```
-/octo:setup
+/mp:setup
 ```
 Verify that Codex and/or Gemini CLIs are installed.
 

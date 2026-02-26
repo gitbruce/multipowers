@@ -2,25 +2,25 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task.
 
-**Goal:** Replace `.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, with auto-init and checkbox tracking for all spec-driven `/octo` commands.
+**Goal:** Replace `.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, with auto-init and checkbox tracking for all spec-driven `/mp` commands.
 
-**Architecture:** Keep upstream-impact minimal: implement most behavior in `custom/*` (templates/libs/docs/tests), and add only thin hooks in high-churn upstream files. Use a central command-level guard in `bin/octo` for spec-driven commands. If context is missing/incomplete, auto-run interactive `/octo:init`, render templates from `custom/templates/`, then execute with mandatory conductor-context loading and `conductor/tracks/` checkbox updates.
+**Architecture:** Keep upstream-impact minimal: implement most behavior in `custom/*` (templates/libs/docs/tests), and add only thin hooks in high-churn upstream files. Use a central command-level guard in `bin/mp` for spec-driven commands. If context is missing/incomplete, auto-run interactive `/mp:init`, render templates from `custom/templates/`, then execute with mandatory conductor-context loading and `conductor/tracks/` checkbox updates.
 
-**Tech Stack:** Bash (`bin/octo`, command markdown contracts), custom overlay libs/scripts, markdown templates, shell tests.
+**Tech Stack:** Bash (`bin/mp`, command markdown contracts), custom overlay libs/scripts, markdown templates, shell tests.
 
 ---
 
 ## Task 0: Branch Strategy Guardrails (Main-Upstream Principle)
 
 **Files:**
-- Modify: `custom/scripts/octo-devx sync`
+- Modify: `custom/scripts/mp-devx sync`
 - Create: `tests/unit/test-main-upstream-discipline.sh`
 - Modify: `custom/docs/sync/upstream-sync-playbook.md`
 
 **Subtasks:**
 - [x] T0.1 Document invariant: `main` is upstream mirror only (no custom commits)
 - [x] T0.2 Enforce all customization work on `multipowers` only
-- [x] T0.3 Add conflict-budget rule: minimize edits in `.claude/*`, `.claude-plugin/*`, `bin/octo`
+- [x] T0.3 Add conflict-budget rule: minimize edits in `.claude/*`, `.claude-plugin/*`, `bin/mp`
 - [x] T0.4 Add verification command to show customization footprint is mostly `custom/*`
 
 **Verification:**
@@ -90,16 +90,16 @@
 
 ---
 
-## Task 3: Add `/octo:init` Interactive Setup
+## Task 3: Add `/mp:init` Interactive Setup
 
 **Files:**
 - Create: `custom/commands/init.md`
 - Modify: `.claude-plugin/plugin.json`
-- Modify: `bin/octo`
-- Modify: `custom/scripts/octo-devx overlay`
+- Modify: `bin/mp`
+- Modify: `custom/scripts/mp-devx overlay`
 
 **Subtasks:**
-- [x] T3.1 Add command contract for `/octo:init` under `custom/commands/`
+- [x] T3.1 Add command contract for `/mp:init` under `custom/commands/`
 - [x] T3.2 Register `init` command in plugin command list
 - [x] T3.3 Add orchestrator command handler for `init`
 - [x] T3.4 Implement interactive Q&A flow (conductor-style)
@@ -108,15 +108,15 @@
 - [x] T3.7 Sync `custom/commands/init.md` into runtime command path via overlay script
 
 **Verification:**
-- [x] `bash -n bin/octo`
-- [x] `/octo:init` creates all required conductor files
+- [x] `bash -n bin/mp`
+- [x] `/mp:init` creates all required conductor files
 
 ---
 
 ## Task 4: Route Plan/Intent Outputs from `.claude` to `conductor/tracks`
 
 **Files:**
-- Modify: `bin/octo`
+- Modify: `bin/mp`
 - Modify: `custom/commands/plan.md` (if override is required)
 
 **Subtasks:**
@@ -127,7 +127,7 @@
 - [x] T4.5 Keep upstream command/skill file edits to minimum; prefer override through `custom/commands/*`
 
 **Verification:**
-- [x] `/octo:plan` writes only under `conductor/tracks/`
+- [x] `/mp:plan` writes only under `conductor/tracks/`
 - [x] `rg -n "conductor/tracks/.*/(plan|intent)\.md" scripts` confirms conductor track write paths
 
 ---
@@ -135,17 +135,17 @@
 ## Task 5: Add Command-Level Guard to All Spec-Driven Commands
 
 **Files:**
-- Modify: `bin/octo`
+- Modify: `bin/mp`
 - Modify: `custom/lib/conductor-context.sh`
 - Modify: `docs/COMMAND-REFERENCE.md`
 
 **Subtasks:**
 - [x] T5.1 Add preflight call to `ensure_conductor_context`
-- [x] T5.2 If missing context, auto-call `/octo:init`
+- [x] T5.2 If missing context, auto-call `/mp:init`
 - [x] T5.3 Re-check context after init before proceeding
 - [x] T5.4 Exclude non-spec commands from this guard
 - [x] T5.5 Implement spec-driven command allowlist in one central place
-- [x] T5.6 Keep upstream hook footprint minimal (single dispatch point in `bin/octo`)
+- [x] T5.6 Keep upstream hook footprint minimal (single dispatch point in `bin/mp`)
 
 **Verification:**
 - [x] Missing conductor context triggers init automatically
@@ -156,7 +156,7 @@
 ## Task 6: Mandatory Context Read Before Spec-Driven Execution
 
 **Files:**
-- Modify: `bin/octo`
+- Modify: `bin/mp`
 - Modify: `custom/lib/conductor-context.sh`
 
 **Subtasks:**
@@ -173,7 +173,7 @@
 ## Task 7: Checkbox Tracking in `conductor/tracks/`
 
 **Files:**
-- Modify: `bin/octo`
+- Modify: `bin/mp`
 - Create/Modify: `custom/templates/conductor/tracks.md`
 
 **Subtasks:**
@@ -222,7 +222,7 @@
 - Modify: `custom/docs/sync/upstream-sync-playbook.md`
 
 **Subtasks:**
-- [x] T9.1 Document `/octo:init` usage and prompts
+- [x] T9.1 Document `/mp:init` usage and prompts
 - [x] T9.2 Document spec-driven command guard behavior
 - [x] T9.3 Document conductor file structure and track workflow
 - [x] T9.4 Add migration note from `.claude/session-*` to `conductor/tracks/*`
@@ -243,13 +243,13 @@
 **Subtasks:**
 - [x] T10.1 Run syntax checks on changed shell scripts
 - [x] T10.2 Run targeted unit/integration tests
-- [x] T10.3 Manual sanity pass for `/octo:init` and `/octo:plan`
+- [x] T10.3 Manual sanity pass for `/mp:init` and `/mp:plan`
 - [x] T10.4 Commit in logical slices (core guard/init, then docs/tests)
 - [x] T10.5 Push to `origin/multipowers`
 - [x] T10.6 Verify customization impact is minimized in upstream-heavy paths
 
 **Verification Commands:**
-- [x] `bash -n bin/octo custom/lib/*.sh custom/scripts/*.sh`
+- [x] `bash -n bin/mp custom/lib/*.sh custom/scripts/*.sh`
 - [x] `bash tests/unit/test-conductor-context-guard.sh`
 - [x] `bash tests/integration/test-spec-commands-auto-init.sh`
 - [x] `bash tests/integration/test-tracks-checkbox-updates.sh`
@@ -258,13 +258,13 @@
 ---
 
 ## Rollback Plan
-- Revert guard wiring in command files and `bin/octo`.
-- Keep `/octo:init` command isolated behind feature flag if needed.
+- Revert guard wiring in command files and `bin/mp`.
+- Keep `/mp:init` command isolated behind feature flag if needed.
 - Restore prior plan behavior only if conductor flow cannot be stabilized.
 
 ## Done Criteria
-- [x] Spec-driven `/octo` commands write plan/intent under `conductor/tracks/<track_id>/`.
-- [x] Missing conductor context triggers interactive `/octo:init` automatically.
+- [x] Spec-driven `/mp` commands write plan/intent under `conductor/tracks/<track_id>/`.
+- [x] Missing conductor context triggers interactive `/mp:init` automatically.
 - [x] Spec-driven commands read `conductor/*.md` before execution.
 - [x] Track files in `conductor/tracks/` contain checkbox status and are updated during run.
 - [x] Tests cover guard/init/context/tracking contracts.

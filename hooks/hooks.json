@@ -4,7 +4,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/bin/octo hook --event SessionStart --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event SessionStart --dir \"${CLAUDE_PROJECT_DIR}\" --json"
         }
       ]
     }
@@ -14,7 +14,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/bin/octo hook --event UserPromptSubmit --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event UserPromptSubmit --dir \"${CLAUDE_PROJECT_DIR}\" --json"
         }
       ]
     }
@@ -24,7 +24,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/bin/octo hook --event PreToolUse --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PreToolUse --dir \"${CLAUDE_PROJECT_DIR}\" --json"
         }
       ]
     }
@@ -34,7 +34,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/bin/octo hook --event PostToolUse --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"${CLAUDE_PROJECT_DIR}\" --json"
         }
       ]
     }
@@ -44,7 +44,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/bin/octo hook --event Stop --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event Stop --dir \"${CLAUDE_PROJECT_DIR}\" --json"
         }
       ]
     }
@@ -54,7 +54,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "${CLAUDE_PLUGIN_ROOT}/bin/octo hook --event SubagentStop --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event SubagentStop --dir \"${CLAUDE_PROJECT_DIR}\" --json"
         }
       ]
     }

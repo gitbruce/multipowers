@@ -1,7 +1,7 @@
 # Multipowers Command Governance & Auto-FAQ Design
 
 ## 1. Goal
-Build a low-conflict, upstream-friendly governance layer for `/octo:*` commands that improves execution reliability and prevents repeated failures in target projects.
+Build a low-conflict, upstream-friendly governance layer for `/mp:*` commands that improves execution reliability and prevents repeated failures in target projects.
 
 This design extends existing multipowers customizations with:
 - standardized preflight checks
@@ -36,7 +36,7 @@ Out of scope:
 3. Provider fallback handling -> continue with remaining providers if quorum remains.
 4. Runtime contract -> mandatory pre-run command application from runtime config.
 5. Artifact isolation -> hard output boundary under target `/.multipowers/`.
-6. Wizarded context bootstrap -> `/octo:init` setup-first behavior.
+6. Wizarded context bootstrap -> `/mp:init` setup-first behavior.
 7. Observability -> structured failure events for diagnosis and FAQ extraction.
 8. Dual-view docs -> separate tool maintenance docs and target usage docs.
 9. Anti-regression knowledge loop -> `CLAUDE.md` + auto-maintained `FAQ.md`.
@@ -44,13 +44,13 @@ Out of scope:
 ## 5. Command-Level Governance Design
 ### 5.1 Spec-driven command set
 Spec-driven commands include at least:
-- `/octo:plan`
-- `/octo:discover`
-- `/octo:define`
-- `/octo:develop`
-- `/octo:deliver`
-- `/octo:embrace`
-- `/octo:research`
+- `/mp:plan`
+- `/mp:discover`
+- `/mp:define`
+- `/mp:develop`
+- `/mp:deliver`
+- `/mp:embrace`
+- `/mp:research`
 
 ### 5.2 Mandatory Step 0 preflight
 Before command-specific logic:
@@ -62,7 +62,7 @@ Before command-specific logic:
    - `workflow.md`
    - `tracks.md`
    - `CLAUDE.md`
-3. If missing, force `/octo:init` wizard.
+3. If missing, force `/mp:init` wizard.
 4. Re-check context; fail-fast if still incomplete.
 5. If `/.multipowers/context/runtime.json` exists, load runtime preconditions.
 6. Execute pre-run commands per fail-fast policy.
@@ -90,7 +90,7 @@ Tool project templates:
 - `custom/templates/CLAUDE.md`
 - `custom/templates/FAQ.md`
 
-Generated in target project by `/octo:init`:
+Generated in target project by `/mp:init`:
 - `/.multipowers/CLAUDE.md`
 - `/.multipowers/FAQ.md`
 
@@ -133,7 +133,7 @@ Explicit requirements:
 - No backup file generation.
 
 ## 9. Data Flow
-1. User runs `/octo:*`.
+1. User runs `/mp:*`.
 2. Step 0 preflight validates context and runtime preconditions.
 3. Command executes provider/tool logic.
 4. Errors and retries emit structured failure events.
@@ -183,7 +183,7 @@ Target project docs (usage):
 - Add/extend tests for preflight, runtime contract, provider quorum, FAQ dedup/regeneration.
 
 ## 14. Acceptance Criteria
-- `/octo:init` creates `/.multipowers/CLAUDE.md` and `/.multipowers/FAQ.md` from templates.
+- `/mp:init` creates `/.multipowers/CLAUDE.md` and `/.multipowers/FAQ.md` from templates.
 - Spec-driven commands enforce Step 0 preflight before command-specific workflow.
 - Step 0 required context files are `product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`, `CLAUDE.md`.
 - Runtime preconditions from `runtime.json` are optional to presence, mandatory to enforce when configured, and fail-fast.

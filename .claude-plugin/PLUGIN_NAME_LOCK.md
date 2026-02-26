@@ -2,14 +2,14 @@
 
 ## CRITICAL: DO NOT CHANGE THE PLUGIN NAME
 
-The plugin name in `plugin.json` **MUST remain "octo"**.
+The plugin name in `plugin.json` **MUST remain "multipowers"**.
 
 ### Why?
 
 ```json
 // ✅ CORRECT - plugin.json
 {
-  "name": "octo"  // This produces /octo:discover, /octo:debate, etc.
+  "name": "multipowers"  // This produces /mp:discover, /mp:debate, etc.
 }
 ```
 
@@ -27,19 +27,19 @@ These are **different** and serve **different purposes**:
 | File | Name | Purpose |
 |------|------|---------|
 | `package.json` | `"claude-octopus"` | Marketplace/repository identity |
-| `.claude-plugin/plugin.json` | `"octo"` | Command prefix (`/octo:*`) |
+| `.claude-plugin/plugin.json` | `"multipowers"` | Command prefix (`/mp:*`) |
 
 ### Command Path Formation
 
 Command paths are formed as: `/[plugin-name]:[command-name]`
 
-- Plugin name: `"octo"` + Command: `discover` = `/octo:discover` ✅
+- Plugin name: `"multipowers"` + Command: `discover` = `/mp:discover` ✅
 - Plugin name: `"claude-octopus"` + Command: `discover` = `/claude-octopus:discover` ❌
 
 ### Historical Context
 
 **Commits that fixed this:**
-- `d9e8354` - Reverted plugin name to 'octo' for correct command prefixes
+- `d9e8354` - Reverted plugin name to 'multipowers' for correct command prefixes
 - `57ce38c` - Removed namespace prefix from command frontmatter
 
 **Why it broke:**
@@ -52,7 +52,7 @@ Run `make test-plugin-name` to verify the plugin name is correct.
 ### If You Need to Change It
 
 **Don't.** But if you absolutely must:
-1. Update all documentation showing `/octo:*` commands
+1. Update all documentation showing `/mp:*` commands
 2. Update README.md examples
 3. Update all skill files with command references
 4. Notify all users about the breaking change
@@ -64,4 +64,4 @@ Run `make test-plugin-name` to verify the plugin name is correct.
 ---
 
 **Last verified:** 2026-01-21
-**Status:** ✅ Plugin name is "octo" and LOCKED
+**Status:** ✅ Plugin name is "multipowers" and LOCKED

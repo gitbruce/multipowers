@@ -34,7 +34,7 @@ Set the `OCTOPUS_CODEX_SANDBOX` environment variable:
 ```bash
 # Temporary (current session only)
 export OCTOPUS_CODEX_SANDBOX=danger-full-access
-octo research "audit code in mounted repo"
+mp research "audit code in mounted repo"
 
 # Permanent (add to ~/.bashrc or ~/.zshrc)
 echo 'export OCTOPUS_CODEX_SANDBOX=danger-full-access' >> ~/.bashrc
@@ -45,7 +45,7 @@ source ~/.bashrc
 
 ```bash
 # One-time override
-OCTOPUS_CODEX_SANDBOX=danger-full-access octo research "audit /mnt/nas/repo"
+OCTOPUS_CODEX_SANDBOX=danger-full-access mp research "audit /mnt/nas/repo"
 ```
 
 ### Verify Configuration
@@ -69,7 +69,7 @@ export OCTOPUS_CODEX_SANDBOX=danger-full-access
 
 # Run audit
 cd /mnt/projects/my-repo
-octo research "analyze authentication implementation"
+mp research "analyze authentication implementation"
 ```
 
 ### NFS Shared Storage
@@ -80,7 +80,7 @@ export OCTOPUS_CODEX_SANDBOX=danger-full-access
 
 # Run embrace workflow
 cd /opt/shared/repos/published/my-project
-/octo:embrace "comprehensive security audit"
+/mp:embrace "comprehensive security audit"
 ```
 
 ### CI/CD Pipeline
@@ -91,7 +91,7 @@ env:
   OCTOPUS_CODEX_SANDBOX: danger-full-access
 
 script:
-  - octo review "security audit on artifact directory"
+  - mp review "security audit on artifact directory"
 ```
 
 ## Security Considerations
@@ -161,7 +161,7 @@ export OCTOPUS_CODEX_SANDBOX=danger-full-access
 
 To suppress warnings (not recommended):
 ```bash
-OCTOPUS_LOG_LEVEL=ERROR OCTOPUS_CODEX_SANDBOX=danger-full-access octo research ...
+OCTOPUS_LOG_LEVEL=ERROR OCTOPUS_CODEX_SANDBOX=danger-full-access mp research ...
 ```
 
 ## Advanced: Future Configuration Options
@@ -171,7 +171,7 @@ OCTOPUS_LOG_LEVEL=ERROR OCTOPUS_CODEX_SANDBOX=danger-full-access octo research .
 - `.octopus.yml` configuration file support
 - Per-agent sandbox configuration
 - CLI flag: `--codex-sandbox MODE`
-- Integration with `/octo:setup` wizard
+- Integration with `/mp:setup` wizard
 
 See [Issue #9](https://github.com/nyldn/claude-octopus/issues/9) for roadmap.
 
@@ -189,7 +189,7 @@ export OCTOPUS_CODEX_SANDBOX=danger-full-access
 
 # Run audit on published repos
 cd /mnt/nas-repos/my-published-project
-octo review "comprehensive security audit"
+mp review "comprehensive security audit"
 ```
 
 ### Example 2: CI/CD Security Scanning
@@ -216,7 +216,7 @@ jobs:
           OCTOPUS_CODEX_SANDBOX: danger-full-access
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          octo review "security audit focusing on authentication"
+          mp review "security audit focusing on authentication"
 ```
 
 ## See Also

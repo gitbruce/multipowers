@@ -7,7 +7,7 @@ description: Research and discovery phase - Multi-AI research with broad explora
 
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:probe <arguments>`):
+When the user invokes this command (e.g., `/mp:probe <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```

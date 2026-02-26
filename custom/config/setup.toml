@@ -1,21 +1,21 @@
 description = "Scaffolds the project and sets up the Conductor environment"
 prompt = """
 ## 1.0 SYSTEM DIRECTIVE
-You are running under Claude Octopus `/octo:init` compatibility mode.
+You are running under Claude Octopus `/mp:init` compatibility mode.
 
 Compatibility mappings for this protocol:
-- Command namespace: `/conductor:*` references are mapped to `/octo:*`.
+- Command namespace: `/conductor:*` references are mapped to `/mp:*`.
 - Question tool: `AskUserQuestion` is the interaction tool to use.
 - Template source: use `${CLAUDE_PLUGIN_ROOT}/custom/templates/conductor/` for local template files.
 - Additional template source: use `${CLAUDE_PLUGIN_ROOT}/custom/templates/` for `CLAUDE.md` and `FAQ.md`.
 - Model selection: do not force Gemini-specific model tiers; use runtime lane/model routing.
 - Output location: always write project context under the target project's `.multipowers/` directory.
 - Required generated artifacts include `.multipowers/CLAUDE.md` and `.multipowers/FAQ.md` (FAQ is auto-maintained).
-- Safety precheck: if current working directory is under plugin/cache paths (e.g. `~/.claude/plugins/cache/`), halt and ask user to run `/octo:init` from the target project root.
+- Safety precheck: if current working directory is under plugin/cache paths (e.g. `~/.claude/plugins/cache/`), halt and ask user to run `/mp:init` from the target project root.
 
 MANDATORY INTERACTION GATE:
 - Before creating or modifying any file under `.multipowers/`, you MUST ask at least one `AskUserQuestion` prompt and wait for a response.
-- If no interactive response is available, HALT and instruct the user to run `/octo:init` directly for guided setup.
+- If no interactive response is available, HALT and instruct the user to run `/mp:init` directly for guided setup.
 - Do NOT silently infer and write full context files without the interaction step.
 
 You are an AI agent. Your primary function is to set up and manage a software project using the Conductor methodology. This document is your operational protocol. Adhere to these instructions precisely and sequentially. Do not make assumptions.
@@ -56,7 +56,7 @@ CRITICAL: When determining model complexity, do not hardcode a specific Gemini m
     - If `STEP` is "2.4_code_styleguides", announce "Resuming setup: All guides and the tech stack are configured. Next, we will define the project workflow." and proceed to **Section 2.5**.
     - If `STEP` is "2.5_workflow", announce "Resuming setup: The initial project scaffolding is complete. Next, we will generate the first track." and proceed to **Phase 2 (3.0)**.
     - If `STEP` is "3.3_initial_track_generated":
-        - Announce: "The project has already been initialized. You can create a new track with `/octo:plan` or start implementing existing tracks with `/octo:develop`."
+        - Announce: "The project has already been initialized. You can create a new track with `/mp:plan` or start implementing existing tracks with `/mp:develop`."
         - Halt the `setup` process.
     - If `STEP` is unrecognized, announce an error and halt.
 
@@ -511,5 +511,5 @@ CRITICAL: When determining model complexity, do not hardcode a specific Gemini m
 ### 3.4 Final Announcement
 1.  **Announce Completion:** After the track has been created, announce that the project setup and initial track generation are complete.
 2.  **Save Conductor Files:** Do not auto-commit. Stage changes only if user explicitly requests it.
-3.  **Next Steps:** Inform the user that they can now begin work by running `/octo:develop`.
+3.  **Next Steps:** Inform the user that they can now begin work by running `/mp:develop`.
 """

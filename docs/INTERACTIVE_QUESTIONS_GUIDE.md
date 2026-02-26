@@ -44,7 +44,7 @@ All commands with interactive questions should follow this pattern:
 ```markdown
 ## 🤖 INSTRUCTIONS FOR CLAUDE
 
-When the user invokes this command (e.g., `/octo:command <arguments>`):
+When the user invokes this command (e.g., `/mp:command <arguments>`):
 
 ### Step 1: Ask Clarifying Questions
 
@@ -369,12 +369,12 @@ This doesn't impact execution, so don't ask.
 
 **Interactive (Recommended):**
 ```bash
-/octo:command <target>  # Guided flow with questions
+/mp:command <target>  # Guided flow with questions
 ```
 
 **Direct (Advanced):**
 ```bash
-/octo:command <target> --scope <json>  # Manual configuration
+/mp:command <target> --scope <json>  # Manual configuration
 ```
 
 Note: Most users should use the interactive flow. Direct mode is for automation/CI.
