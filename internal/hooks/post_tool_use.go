@@ -1,7 +1,26 @@
 package hooks
 
-import "github.com/gitbruce/claude-octopus/pkg/api"
+import (
+	"os"
+	"path/filepath"
 
-func PostToolUse() api.HookResult {
-	return api.HookResult{Decision: "allow", Reason: "post-processing complete"}
+	"github.com/gitbruce/claude-octopus/internal/faq"
+	"github.com/gitbruce/claude-octopus/internal/fsboundary"
+	"github.com/gitbruce/claude-octopus/internal/tracks"
+	"github.com/gitbruce/claude-octopus/pkg/api"
+)
+
+func PostToolUse(projectDir string, evt api.HookEvent) api.HookResult {
+	faqFile := filepath.Join(projectDir, ".multipowers", "FAQ.md")
+	if err := fsboundary.ValidateArtifactPath(faqFile, projectDir); err != nil {
+		return api.HookResult{Decision: "block", Reason: err.Error()}
+	}
+	events := []faq.Event{{Type: faq.Classify(evt.ToolName), RootCause: evt.ToolName, Fix: "review command output and retry safely"}}
+	events = faq.Dedup(events)
+	_ = faq.Write(projectDir, events)
+
+	tid := tracks.NewTrackID("post-tool")
+	_ = tracks.WriteTracking(projectDir, tid, "# Track\n\n- [x] PostToolUse processed\n")
+	_, _ = os.Stat(faqFile)
+	return api.HookResult{Decision: "allow", Reason: "post-processing complete", Metadata: map[string]any{"track_id": tid}}
 }

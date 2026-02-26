@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.17",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.17) Uses project-local workspace at .multipowers/temp, applies proxy routing for Codex/Gemini CLI calls, keeps debate fallback behavior when a provider is unavailable, and auto-maintains .multipowers/FAQ.md from failure patterns. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "9.0.0-go",
+  "description": "Go runtime cutover: octo single-binary kernel with hooks-first governance and .multipowers boundary enforcement.",
   "author": {
     "name": "nyldn"
   },

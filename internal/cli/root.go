@@ -11,6 +11,8 @@ import (
 	"github.com/gitbruce/claude-octopus/internal/app"
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
 	"github.com/gitbruce/claude-octopus/internal/hooks"
+	"github.com/gitbruce/claude-octopus/internal/providers"
+	"github.com/gitbruce/claude-octopus/internal/validation"
 	"github.com/gitbruce/claude-octopus/internal/workflows"
 	"github.com/gitbruce/claude-octopus/pkg/api"
 )
@@ -55,7 +57,13 @@ func Run(args []string) int {
 
 	exec := func(name string, fn func(string) map[string]any) int {
 		r := app.RunSpecPipeline(absDir, *autoInit, []string{name, "all"}, func() api.Response {
-			return api.Response{Status: "ok", Data: fn(*prompt)}
+			st := providers.Degrade(name, providers.AvailableProviders())
+			if st.Error != "" {
+				return api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: st.Error}
+			}
+			data := fn(*prompt)
+			data["provider_strategy"] = st
+			return api.Response{Status: "ok", Data: data}
 		})
 		return respond(r)
 	}
@@ -78,6 +86,12 @@ func Run(args []string) int {
 			r.Action = "continue"
 		}
 		return respond(r)
+	case "validate":
+		res := validation.EnsureTargetWorkspace(absDir)
+		if !res.Valid {
+			return respond(api.Response{Status: "error", Message: res.Reason, ErrorCode: app.ErrCtxMissing})
+		}
+		return respond(api.Response{Status: "ok", Data: map[string]any{"validation": "passed"}})
 	case "plan":
 		return exec("plan", workflows.Define)
 	case "discover", "research":
@@ -100,7 +114,7 @@ func Run(args []string) int {
 		})
 		return respond(r)
 	case "hook":
-		e := api.HookEvent{Event: *event, CWD: absDir}
+		e := api.HookEvent{Event: *event, CWD: absDir, ToolInput: map[string]any{"prompt": *prompt}}
 		hr := hooks.Handle(absDir, e)
 		if *asJSON {
 			_ = json.NewEncoder(os.Stdout).Encode(hr)

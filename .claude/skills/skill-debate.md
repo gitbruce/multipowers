@@ -1,13 +1,9 @@
 # skill-debate
 
-This skill is a thin Go wrapper.
+Thin wrapper skill.
 
-Execute:
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/bin/octo" debate --dir "$PWD" --prompt "<user-prompt>" --json
 ```
 
-Rules:
-- Parse JSON response only.
-- If `status` is `error` or `blocked`, stop immediately.
-- Do not perform direct implementation logic in this markdown skill.
+Parse JSON and stop on error/blocked.

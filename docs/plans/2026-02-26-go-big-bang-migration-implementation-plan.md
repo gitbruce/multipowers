@@ -329,7 +329,7 @@ Decision semantics:
   - sample output documented and validated in tests
 
 ### Task 2.4 Preserve init rollback semantics
-- [ ] Task 2.4
+- [x] Task 2.4
 - Why: failed init must not leave corrupted partial artifacts.
 - What: rollback created files/folders on init failure.
 - How:
@@ -365,7 +365,7 @@ Decision semantics:
   - integration test proves fail-fast behavior
 
 ### Task 3.3 Implement validation gate primitives using target workspace paths
-- [ ] Task 3.3
+- [x] Task 3.3
 - Why: replace shell-era ad-hoc validation checks and remove home-path dependence.
 - What: validation gates read only target project workspace (under `/.multipowers/*`).
 - How:
@@ -438,7 +438,7 @@ Decision semantics:
   - integration tests verify timeout and cancel semantics
 
 ### Task 4.6 Define provider degradation and fallback strategy
-- [ ] Task 4.6
+- [x] Task 4.6
 - Why: prevent inconsistent behavior when one provider is unavailable/slow/failing.
 - What: explicit degradation policy for single and multi-provider flows.
 - How:
@@ -475,7 +475,7 @@ Decision semantics:
   - SessionStart payload tests validate line limits and fields
 
 ### Task 5.3 Enforce UserPromptSubmit preflight for spec-driven commands
-- [ ] Task 5.3
+- [x] Task 5.3
 - Why: prevent entering expensive flows with invalid context.
 - What: block spec-driven command start when context guard fails.
 - How:
@@ -497,7 +497,7 @@ Decision semantics:
   - boundary tests for allowed/blocked paths
 
 ### Task 5.5 Implement PostToolUse event + FAQ/track updates
-- [ ] Task 5.5
+- [x] Task 5.5
 - Why: close governance loop and reduce repeated failures.
 - What: classify events, update FAQ, update track status.
 - How:
@@ -522,7 +522,7 @@ Decision semantics:
   - test matrix covers all decision branches
 
 ### Task 5.7 Define hooks JSON I/O schema used by Go handlers
-- [ ] Task 5.7
+- [x] Task 5.7
 - Why: any AI/tool integration needs stable schema to parse hook requests/responses reliably.
 - What: versioned JSON schema for hook input and output payloads.
 - How:
@@ -548,7 +548,7 @@ Decision semantics:
   - command invocation smoke tests pass
 
 ### Task 6.2 Convert `.claude/skills/*` to thin Go wrappers
-- [ ] Task 6.2
+- [x] Task 6.2
 - Why: avoid model-side divergence from enforced execution policy.
 - What: skill contracts call Go commands and parse JSON only.
 - How:
@@ -558,7 +558,7 @@ Decision semantics:
   - skill smoke tests pass across spec-driven flows
 
 ### Task 6.3 Keep upstream-diff discipline
-- [ ] Task 6.3
+- [x] Task 6.3
 - Why: preserve periodic upstream sync with minimal merge conflict.
 - What: only necessary wiring deltas in high-churn files.
 - How:
@@ -568,7 +568,7 @@ Decision semantics:
   - diff review report under `custom/docs/sync/`
 
 ### Task 6.4 Add optional public API package (`pkg/api/*`) for integration stability
-- [ ] Task 6.4
+- [x] Task 6.4
 - Why: provide stable typed contracts for hooks, wrappers, and external automation without leaking internals.
 - What: define minimal exported types/envelopes in `pkg/api/*` (optional but recommended).
 - How:
@@ -596,7 +596,7 @@ Decision semantics:
 ## Phase 7 - Filesystem Boundary + FAQ Engine
 
 ### Task 7.1 Enforce target-project-only artifact paths
-- [ ] Task 7.1
+- [x] Task 7.1
 - Why: user requirement forbids artifact pollution outside target project.
 - What: all generated artifacts under target `/.multipowers/*`.
 - How:
@@ -606,7 +606,7 @@ Decision semantics:
   - integration tests validate no writes to `$HOME` or tool project artifacts
 
 ### Task 7.2 Implement FAQ synthesis lifecycle
-- [ ] Task 7.2
+- [x] Task 7.2
 - Why: auto-learning loop must be deterministic and maintainable.
 - What: classify, dedup, and regenerate FAQ by error type.
 - How:
@@ -617,7 +617,7 @@ Decision semantics:
   - golden-file tests for FAQ output
 
 ### Task 7.3 Enforce and test no-home/no-tool runtime artifact policy
-- [ ] Task 7.3
+- [x] Task 7.3
 - Why: this is a hard user requirement and a recurring historical regression.
 - What: runtime artifacts and command outputs must never write to `$HOME` or tool project during target execution.
 - How:
@@ -645,7 +645,7 @@ Decision semantics:
 ## Phase 8 - Verification and Cutover
 
 ### Task 8.1 Port and run critical regression suites
-- [ ] Task 8.1
+- [x] Task 8.1
 - Why: big-bang migration must prove no critical governance regressions.
 - What: unit/integration/E2E coverage for core contracts.
 - How:
@@ -655,7 +655,7 @@ Decision semantics:
   - test matrix report committed to docs evidence folder
 
 ### Task 8.2 Validate target project E2E behaviors
-- [ ] Task 8.2
+- [x] Task 8.2
 - Why: acceptance is behavior in real target projects, not only local unit tests.
 - What: run `/octo:init`, `/octo:plan`, `/octo:develop`, `/octo:debate` on clean target repo.
 - How:
@@ -666,7 +666,7 @@ Decision semantics:
   - E2E transcript files under evidence folder
 
 ### Task 8.3 Cut over plugin runtime to Go binary
-- [ ] Task 8.3
+- [x] Task 8.3
 - Why: finalize migration and remove shell as execution source of truth.
 - What: plugin command paths point to Go runtime.
 - How:
@@ -736,7 +736,7 @@ Decision semantics:
 ## Phase 9 - Cleanup and Release
 
 ### Task 9.1 Remove shell core or reduce to compatibility wrapper
-- [ ] Task 9.1
+- [x] Task 9.1
 - Why: prevent dual-source drift and maintenance confusion.
 - What: deprecate legacy shell logic.
 - How:
@@ -746,7 +746,7 @@ Decision semantics:
   - no command path depends on old shell core
 
 ### Task 9.2 Version bump, release notes, and migration docs
-- [ ] Task 9.2
+- [x] Task 9.2
 - Why: operational rollout needs explicit upgrade guidance.
 - What: bump plugin version and update user/tool docs.
 - How:
@@ -757,7 +757,7 @@ Decision semantics:
   - tagged release commit with complete notes
 
 ### Task 9.3 Final sign-off checklist
-- [ ] Task 9.3
+- [x] Task 9.3
 - Why: ensure all acceptance criteria are explicitly validated.
 - What: one-page sign-off with pass/fail for each criterion.
 - How:
@@ -771,7 +771,7 @@ Decision semantics:
 ## Rollback Strategy
 
 ### Task R1 Pre-migration tag
-- [ ] Task R1
+- [x] Task R1
 - Why: instant rollback safety.
 - What: create immutable rollback tag before cutover.
 - How:
@@ -781,7 +781,7 @@ Decision semantics:
   - tag visible locally and remotely
 
 ### Task R2 Runtime fallback toggle during cutover window
-- [ ] Task R2
+- [x] Task R2
 - Why: reduce blast radius if latent issues appear post-cutover.
 - What: feature flag or wrapper switch to fallback runtime.
 - How:

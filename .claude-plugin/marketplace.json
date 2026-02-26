@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v8.12.17 - Applies proxy routing to Codex/Gemini CLI execution paths, keeps debate running with remaining models when one provider fails (minimum two participants), and auto-maintains .multipowers/FAQ.md from failure patterns.",
-      "version": "8.12.17",
+      "description": "v9.0.0-go - Go runtime cutover with hooks-first governance and .multipowers boundary policies.",
+      "version": "9.0.0-go",
       "author": {
         "name": "nyldn"
       },
