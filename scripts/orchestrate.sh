@@ -5777,8 +5777,6 @@ run_octo_init_interactive() {
     local track_dir="${croot}/tracks"
     local interactive_mode="true"
 
-    mkdir -p "$croot" "$croot/code_styleguides" "$track_dir" "$croot/context"
-
     local project_name product_summary target_users primary_goal non_goals constraints
     local runtime framework database deployment workflow_flow
     local pre_run_enabled="false" pre_run_match_tags="all" pre_run_on_fail="stop"
@@ -5847,6 +5845,8 @@ run_octo_init_interactive() {
                 ;;
         esac
     fi
+
+    mkdir -p "$croot" "$croot/code_styleguides" "$track_dir" "$croot/context"
 
     write_from_template() {
         local src="$1"
@@ -6078,6 +6078,88 @@ PY
     echo "✅ Project contract: $croot/CLAUDE.md"
     echo "✅ Auto-FAQ: $croot/FAQ.md"
     echo ""
+}
+
+capture_multipowers_snapshot() {
+    local croot="$1"
+    local snapshot_file="$2"
+    if [[ -d "$croot" ]]; then
+        (cd "$croot" && find . -mindepth 1 -printf '%P\n' | sort) > "$snapshot_file"
+    else
+        : > "$snapshot_file"
+    fi
+}
+
+rollback_failed_init_artifacts() {
+    local croot="$1"
+    local snapshot_file="$2"
+    local croot_preexisting="${3:-0}"
+
+    [[ -d "$croot" ]] || return 0
+
+    if [[ "$croot_preexisting" != "1" ]]; then
+        rm -rf "$croot"
+        return 0
+    fi
+
+    python3 - "$croot" "$snapshot_file" <<'PY'
+import os
+import shutil
+import sys
+
+croot, snap = sys.argv[1], sys.argv[2]
+before = set()
+if os.path.exists(snap):
+    with open(snap, "r", encoding="utf-8") as f:
+        before = {line.strip() for line in f if line.strip()}
+
+current = []
+for root, dirs, files in os.walk(croot):
+    rel_root = os.path.relpath(root, croot)
+    if rel_root != ".":
+        current.append(rel_root)
+    for name in files:
+        p = os.path.join(rel_root, name) if rel_root != "." else name
+        current.append(p)
+    for name in dirs:
+        p = os.path.join(rel_root, name) if rel_root != "." else name
+        current.append(p)
+
+for rel in sorted(set(current), key=lambda x: len(x.split(os.sep)), reverse=True):
+    if rel in before:
+        continue
+    target = os.path.join(croot, rel)
+    try:
+        if os.path.islink(target) or os.path.isfile(target):
+            os.remove(target)
+        elif os.path.isdir(target):
+            shutil.rmtree(target, ignore_errors=True)
+    except Exception:
+        pass
+PY
+
+    # Remove any now-empty directories that were not in snapshot.
+    find "$croot" -depth -type d -empty -delete 2>/dev/null || true
+}
+
+run_octo_init_with_rollback() {
+    local croot="${PROJECT_ROOT}/.multipowers"
+    local snapshot_file
+    local croot_preexisting=0
+    snapshot_file="$(mktemp)"
+
+    [[ -d "$croot" ]] && croot_preexisting=1
+    capture_multipowers_snapshot "$croot" "$snapshot_file"
+
+    run_octo_init_interactive
+    local rc=$?
+
+    if [[ $rc -ne 0 ]]; then
+        rollback_failed_init_artifacts "$croot" "$snapshot_file" "$croot_preexisting"
+    fi
+
+    rm -f "$snapshot_file"
+    return $rc
 }
 
 create_conductor_plan() {
@@ -16171,7 +16253,7 @@ ensure_spec_command_context() {
             conductor_missing_requirements | sed 's/^/  - /'
         fi
         echo "Running /octo:init setup now..."
-        run_octo_init_interactive || {
+        run_octo_init_with_rollback || {
             log ERROR "/octo:init failed; cannot continue spec-driven command '$cmd'"
             octo_record_failure "$cmd" "context-guard" "none" "init failed" "interactive init failed" \
                 "Run /octo:init manually and complete required context prompts." 1
@@ -16407,7 +16489,7 @@ case "$COMMAND" in
         elif [[ "${1:-}" == "--interactive" ]] || [[ "${1:-}" == "-i" ]]; then
             init_interactive
         else
-            run_octo_init_interactive
+            run_octo_init_with_rollback
         fi
         ;;
     config|configure|preferences)
