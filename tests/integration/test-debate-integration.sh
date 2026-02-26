@@ -236,8 +236,7 @@ test_acknowledgments_section_complete() {
     local readme="$PROJECT_ROOT/README.md"
 
     if grep -q "## Acknowledgments" "$readme" && \
-       grep -A 10 "## Acknowledgments" "$readme" | grep -q "wolverin0/claude-skills" && \
-       grep -A 20 "## Acknowledgments" "$readme" | grep -q "obra/superpowers"; then
+       grep -A 10 "## Acknowledgments" "$readme" | grep -q "wolverin0/claude-skills"; then
         test_pass
     else
         test_fail "README Acknowledgments incomplete"

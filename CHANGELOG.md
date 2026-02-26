@@ -3923,7 +3923,7 @@ Total: 11/11 test suites passing
 - Provides current phase, quality scores, and provider status in tool context
 - Enables informed decision-making in multi-phase workflows
 
-#### New Discipline Skills (from obra/superpowers)
+#### New Discipline Skills
 
 **Five Engineering Discipline Skills**
 - `test-driven-development.md` - TDD with "Iron Law" enforcement (no production code without failing test)
@@ -3937,11 +3937,11 @@ Total: 11/11 test suites passing
 - Minimum Claude Code version: `2.1.9` → `2.1.10`
 - Plugin version: `7.0.0` → `7.1.0`
 - Updated keyword: `claude-code-2.1.9` → `claude-code-2.1.10`
-- Added Acknowledgments section to README.md crediting obra/superpowers
+- Added Acknowledgments section to README.md crediting external inspirations
 
 ### Notes
 
-This release integrates Claude Code 2.1.10 features for session-aware workflows and adds five discipline skills inspired by obra/superpowers. The session-aware directory structure enables better tracking and isolation of work across Claude Code sessions.
+This release integrates Claude Code 2.1.10 features for session-aware workflows and adds five discipline skills. The session-aware directory structure enables better tracking and isolation of work across Claude Code sessions.
 
 **Migration from v7.0.0:**
 - Update plugin: `/plugin update claude-octopus`

@@ -1,6 +1,6 @@
 # Conductor Context Auto-Init Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task.
 
 **Goal:** Replace `.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, with auto-init and checkbox tracking for all spec-driven `/octo` commands.
 

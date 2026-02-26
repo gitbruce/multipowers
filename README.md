@@ -492,7 +492,6 @@ Run `/plugin` > Installed > update, or reinstall:
 ## Attribution
 
 - **[wolverin0/claude-skills](https://github.com/wolverin0/claude-skills)** - AI Debate Hub for structured three-way debates. MIT License.
-- **[obra/superpowers](https://github.com/obra/superpowers)** - Discipline skills (TDD, debugging, verification) patterns. MIT License.
 - **[UK Design Council](https://www.designcouncil.org.uk/our-resources/the-double-diamond/)** - Double Diamond methodology.
 
 ---

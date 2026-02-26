@@ -1,6 +1,6 @@
 # Multipowers Overlay Migration Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task.
 
 **Goal:** Migrate from the current `multipowers` customization model to a low-conflict overlay architecture on a new `multipowers` design branch, with explicit handling of the current in-progress rebase (`resolve` or `abort`) and operator-first documentation.
 
