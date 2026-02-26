@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.15",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.15) Uses project-local workspace at .multipowers/temp, applies proxy routing for Codex/Gemini CLI calls, keeps debate fallback behavior when a provider is unavailable, and auto-maintains .multipowers/FAQ.md from failure patterns. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.16",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.16) Uses project-local workspace at .multipowers/temp, applies proxy routing for Codex/Gemini CLI calls, keeps debate fallback behavior when a provider is unavailable, and auto-maintains .multipowers/FAQ.md from failure patterns. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },
