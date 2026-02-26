@@ -22,6 +22,7 @@ When the user invokes this command (e.g., `/octo:develop <arguments>`):
   - `tracks.md`
 - If any context file is missing, run `/octo:init` first.
 - Continue only after context is present.
+- Do **not** perform any implementation action (`Write/Edit/Update`) before Step 0 is complete.
 
 **✓ CORRECT - Use the Skill tool:**
 ```

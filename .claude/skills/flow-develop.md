@@ -58,6 +58,23 @@ Before starting development, context under `.multipowers/` is required.
 
 This skill uses **ENFORCED execution mode**. You MUST follow this exact sequence.
 
+### STEP 0: Enforce `.multipowers` Context Guard (MANDATORY)
+
+Before any analysis, coding, or file edits:
+1. Verify required context files exist under `$PWD/.multipowers/`:
+   - `product.md`
+   - `product-guidelines.md`
+   - `tech-stack.md`
+   - `workflow.md`
+   - `tracks.md`
+2. If any file is missing, you MUST call `/octo:init` immediately.
+3. Re-check the same files after init.
+4. If still missing, STOP with initialization failure.
+
+Hard prohibition:
+- Do not run `Write`, `Edit`, `Update`, or code-modifying tool calls before STEP 0 passes.
+- Do not offer a bypass path such as "continue without init".
+
 ### STEP 1: Detect Work Context (MANDATORY)
 
 Analyze the user's prompt and project to determine context:
