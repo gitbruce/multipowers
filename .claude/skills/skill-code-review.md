@@ -16,6 +16,23 @@ validation_gates:
 
 # Code Review Skill
 
+## Step 0: Enforce `.multipowers` Context Guard (MANDATORY)
+
+Before any review actions:
+1. Verify required context files exist under `$PWD/.multipowers/`:
+   - `product.md`
+   - `product-guidelines.md`
+   - `tech-stack.md`
+   - `workflow.md`
+   - `tracks.md`
+2. If any file is missing, you MUST call `/octo:init` immediately.
+3. Re-check the same files after init.
+4. If still missing, STOP with initialization failure.
+
+Hard prohibition:
+- Do not run `Write`, `Edit`, `Update`, or code-modifying tool calls before Step 0 passes.
+- Do not offer a bypass path such as "continue without init".
+
 Invokes the code-reviewer persona for thorough code analysis during the `ink` (deliver) phase.
 
 ## Usage

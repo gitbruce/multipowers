@@ -66,6 +66,7 @@ Hard rule:
 - If any required file is missing, you MUST run `/octo:init` first.
 - Do NOT offer alternatives like “proceed without init” or “direct discovery”.
 - If init fails or remains incomplete, STOP and report initialization failure.
+- Do not run code/file-modifying tools before context check passes.
 
 ---
 
@@ -104,6 +105,23 @@ fi
 ## ⚠️ EXECUTION CONTRACT (MANDATORY - CANNOT SKIP)
 
 This skill uses **ENFORCED execution mode**. You MUST follow this exact sequence.
+
+### STEP 0: Enforce `.multipowers` Context Guard (MANDATORY)
+
+Before any analysis or implementation action:
+1. Verify required context files exist under `$PWD/.multipowers/`:
+   - `product.md`
+   - `product-guidelines.md`
+   - `tech-stack.md`
+   - `workflow.md`
+   - `tracks.md`
+2. If any file is missing, you MUST call `/octo:init` immediately.
+3. Re-check the same files after init.
+4. If still missing, STOP with initialization failure.
+
+Hard prohibition:
+- Do not run `Write`, `Edit`, `Update`, or code-modifying tool calls before STEP 0 passes.
+- Do not offer a bypass path such as "continue without init".
 
 ### STEP 1: Detect Work Context (MANDATORY)
 
