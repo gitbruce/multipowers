@@ -213,7 +213,7 @@ Hooks inject additional context or execute commands at specific points in the wo
 
 ### 4. MP runtime (Core Engine)
 
-**Location:** `bin/mp`
+**Location:** `.claude-plugin/bin/mp`
 
 **Purpose:** Bash script that coordinates multiple AI CLI providers.
 
@@ -415,7 +415,7 @@ evaluate_quality() {
    ↓
 5. Claude: Output visual indicator to user
    ↓
-6. Claude: Execute Bash tool: ./bin/mp probe "OAuth patterns"
+6. Claude: Execute Bash tool: ./.claude-plugin/bin/mp probe "OAuth patterns"
    ↓
 7. mp runtime:
    - Detect providers (Codex, Gemini available)
@@ -626,7 +626,7 @@ detect_providers() {
 
 ```bash
 export CLAUDE_OCTOPUS_DEBUG=1
-./bin/mp probe "test"
+./.claude-plugin/bin/mp probe "test"
 ```
 
 ### Check Hook Execution

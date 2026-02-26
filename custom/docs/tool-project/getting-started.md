@@ -3,7 +3,7 @@
 ## Naming Baseline
 
 - Slash command namespace: `/mp:*`
-- Plugin id: `multipowers`
+- Plugin id: `mp`
 - Marketplace id: `multipowers-plugins`
 
 ## Branch Discipline
@@ -20,7 +20,7 @@ git switch main
 git fetch upstream
 git merge --ff-only upstream/main
 git switch multipowers
-./custom/scripts/mp-devx overlay
+./scripts/mp-devx overlay
 ./scripts/mp persona list
 ```
 
@@ -42,6 +42,6 @@ Uninstall:
 
 ## Daily Maintainer Workflow
 
-1. Sync upstream with `./custom/scripts/mp-devx sync`
+1. Sync upstream with `./scripts/mp-devx sync`
 2. Reapply overlay
 3. Validate with `go test ./...`

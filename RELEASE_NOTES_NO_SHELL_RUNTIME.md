@@ -7,7 +7,7 @@ This release migrates runtime execution to Go-only entrypoints.
 ## Highlights
 
 - All runtime shell scripts removed from repository.
-- `/mp:*` command paths execute through `bin/mp`.
+- `/mp:*` command paths execute through `.claude-plugin/bin/mp`.
 - New dev/CI helper runtime: `cmd/mp-devx`.
 - Strict validator added: `octo validate --strict-no-shell --json`.
 - Shell-to-Go mapping evidence captured before deletion:
@@ -23,4 +23,4 @@ This release migrates runtime execution to Go-only entrypoints.
 ## Notes
 
 - If older docs mention shell paths, treat them as historical references only.
-- Runtime and CI should use `bin/mp` and `go run ./cmd/mp-devx`.
+- Runtime and CI should use `.claude-plugin/bin/mp` and `go run ./cmd/octo-devx`.

@@ -12,12 +12,12 @@ Claude Octopus provides structured, multi-provider AI orchestration for Claude C
 
 Naming contract:
 - slash namespace: `/mp:*`
-- plugin id: `multipowers`
+- plugin id: `mp`
 - marketplace id: `multipowers-plugins`
 
 ## What This Repository Delivers
 
-1. Workflow orchestration engine in `scripts/mp`.
+1. Workflow orchestration engine in `.claude-plugin/bin/mp` (developer wrapper: `scripts/mp`).
 2. Command surface in `.claude-plugin/.claude/commands/*` and skill implementations in `.claude-plugin/.claude/skills/*`.
 3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
 4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.

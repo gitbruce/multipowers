@@ -162,7 +162,7 @@ run_agent_sync "codex" "Analyze pages 1-10 of report.pdf" 120
 Enable debug logging to troubleshoot PDF processing:
 
 ```bash
-OCTOPUS_DEBUG=1 ./bin/mp research "analyze report.pdf"
+OCTOPUS_DEBUG=1 ./.claude-plugin/bin/mp research "analyze report.pdf"
 ```
 
 Debug output includes:
@@ -194,9 +194,9 @@ if [[ -f "$research_file" && "$research_file" =~ \.pdf$ ]]; then
         echo "Researching pages: ${pages:-all}"
 
         # Pass to research agent
-        ./bin/mp research "Analyze ${pages:+pages $pages of }$research_file"
+        ./.claude-plugin/bin/mp research "Analyze ${pages:+pages $pages of }$research_file"
     else
-        ./bin/mp research "Analyze $research_file"
+        ./.claude-plugin/bin/mp research "Analyze $research_file"
     fi
 fi
 ```
@@ -215,12 +215,12 @@ if [[ -f "$doc_file" && "$doc_file" =~ \.pdf$ ]]; then
 
     # Extract architecture from selected pages
     if [[ -n "$pages" ]]; then
-        ./bin/mp extract "$doc_file" \
+        ./.claude-plugin/bin/mp extract "$doc_file" \
             --pages "$pages" \
             --mode product \
             --depth standard
     else
-        ./bin/mp extract "$doc_file" \
+        ./.claude-plugin/bin/mp extract "$doc_file" \
             --mode product \
             --depth standard
     fi
@@ -237,7 +237,7 @@ page_range="1-5"  # First 5 pages of each PDF
 
 for pdf in docs/*.pdf; do
     echo "Processing: $pdf (pages $page_range)"
-    ./bin/mp research "Summarize pages $page_range of $pdf"
+    ./.claude-plugin/bin/mp research "Summarize pages $page_range of $pdf"
 done
 ```
 

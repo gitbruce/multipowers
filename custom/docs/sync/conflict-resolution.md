@@ -35,15 +35,15 @@ git fetch upstream origin
 git switch main
 git merge --ff-only upstream/main
 git switch multipowers
-./custom/scripts/mp-devx sync
+./scripts/mp-devx sync
 ```
 
 ## Manual Verification Checklist
 ```bash
 git status --short --branch
-./custom/scripts/mp-devx sync
-./custom/scripts/mp-devx overlay
-./bin/mp persona list
+./scripts/mp-devx sync
+./scripts/mp-devx overlay
+./.claude-plugin/bin/mp persona list
 ```
 
 Expected outcomes:

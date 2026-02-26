@@ -25,7 +25,7 @@ In this environment:
 
 ## Principles-Aligned Policy
 
-Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `bin/mp`):
+Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `.claude-plugin/bin/mp`):
 
 - Planning, architecture, and important decisions -> Codex (`gpt-5.3-codex`)
 - Heavy coding/implementation -> Claude Opus (`claude-opus`; mapped by your Claude Code env, e.g. GLM-5)

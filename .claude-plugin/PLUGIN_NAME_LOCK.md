@@ -2,7 +2,7 @@
 
 ## CRITICAL: DO NOT CHANGE THE PLUGIN NAME
 
-The plugin name in `plugin.json` **MUST remain "multipowers"**.
+The plugin name in `plugin.json` **MUST remain "mp"**.
 
 ### Why?
 
@@ -27,7 +27,7 @@ These are **different** and serve **different purposes**:
 | File | Name | Purpose |
 |------|------|---------|
 | `package.json` | `"claude-octopus"` | Marketplace/repository identity |
-| `.claude-plugin/plugin.json` | `"multipowers"` | Command prefix (`/mp:*`) |
+| `.claude-plugin/plugin.json` | `"mp"` | Command prefix (`/mp:*`) |
 
 ### Command Path Formation
 
@@ -63,5 +63,5 @@ Run `make test-plugin-name` to verify the plugin name is correct.
 
 ---
 
-**Last verified:** 2026-01-21
-**Status:** ✅ Plugin name is "multipowers" and LOCKED
+**Last verified:** 2026-02-26
+**Status:** ✅ Plugin name is "mp" and LOCKED

@@ -8,19 +8,19 @@ Enable detailed debug logging for troubleshooting Claude Octopus issues.
 
 ```bash
 export OCTOPUS_DEBUG=1
-./bin/mp <command>
+./.claude-plugin/bin/mp <command>
 ```
 
 ### Option 2: Command-line Flag
 
 ```bash
-./bin/mp --debug <command>
+./.claude-plugin/bin/mp --debug <command>
 ```
 
 ### Option 3: Inline
 
 ```bash
-OCTOPUS_DEBUG=1 ./bin/mp <command>
+OCTOPUS_DEBUG=1 ./.claude-plugin/bin/mp <command>
 ```
 
 ## What Debug Mode Shows
@@ -37,7 +37,7 @@ Debug mode provides detailed logging including:
 ## Example Output
 
 ```bash
-$ OCTOPUS_DEBUG=1 ./bin/mp detect-providers
+$ OCTOPUS_DEBUG=1 ./.claude-plugin/bin/mp detect-providers
 
 [DEBUG] ═══ MP runtime starting ═══
 [DEBUG] COMMAND=detect-providers
@@ -77,5 +77,5 @@ Debug mode automatically enables verbose mode (`--verbose`), so you'll see both 
 unset OCTOPUS_DEBUG
 
 # Or just don't use the --debug flag
-./bin/mp <command>
+./.claude-plugin/bin/mp <command>
 ```

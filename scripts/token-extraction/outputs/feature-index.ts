@@ -181,27 +181,18 @@ export async function generateFeatureExtractionScript(
   features: Feature[],
   outputPath: string
 ): Promise<void> {
-  let script = '#!/bin/bash\n\n';
-  script += '# Feature-specific token extraction script\n';
+  let script = '# Feature-specific token extraction commands\n';
   script += '# Auto-generated from feature detection\n\n';
-  script += 'set -e\n\n';
-
-  script += 'echo "Extracting tokens for all detected features..."\n';
-  script += 'echo ""\n\n';
+  script += '# Run each line manually in your preferred runner\n\n';
 
   for (const feature of features) {
     const featureName = feature.name.toLowerCase().replace(/\s+/g, '-');
     script += `# Extract ${feature.name}\n`;
-    script += `echo "Extracting ${feature.name}..."\n`;
-    script += `token-extraction --feature "${featureName}" --output "./design-tokens/${featureName}"\n`;
-    script += 'echo ""\n\n';
+    script += `token-extraction --feature "${featureName}" --output "./design-tokens/${featureName}"\n\n`;
   }
 
-  script += 'echo "All features extracted!"\n';
+  script += '# End of generated commands\n';
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
   await fs.writeFile(outputPath, script, 'utf-8');
-
-  // Make script executable
-  await fs.chmod(outputPath, 0o755);
 }

@@ -11,5 +11,5 @@ This directory contains fork-specific customizations designed to minimize confli
 Runtime policy:
 - No shell runtime dependencies.
 - Execution entrypoints are Go binaries:
-  - `scripts/mp`
+  - `.claude-plugin/bin/mp`
   - `go run ./cmd/octo-devx`

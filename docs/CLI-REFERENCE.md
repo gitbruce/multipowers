@@ -14,7 +14,7 @@ This guide documents direct CLI usage of mp runtime for advanced users and autom
 
 ```bash
 # Execute from repository root
-./bin/mp <command> [options] "<prompt>"
+./.claude-plugin/bin/mp <command> [options] "<prompt>"
 ```
 
 ### Core Commands
@@ -82,13 +82,13 @@ source ~/.bashrc
 
 ```bash
 # Check provider status
-./bin/mp detect-providers
+./.claude-plugin/bin/mp detect-providers
 
 # Run full preflight check
-./bin/mp preflight
+./.claude-plugin/bin/mp preflight
 
 # Show current status
-./bin/mp status
+./.claude-plugin/bin/mp status
 ```
 
 ---
@@ -114,7 +114,7 @@ source ~/.bashrc
 Parallel research from multiple perspectives - problem space, existing solutions, edge cases, technical feasibility.
 
 ```bash
-./bin/mp discover "What are the best approaches for real-time notifications?"
+./.claude-plugin/bin/mp discover "What are the best approaches for real-time notifications?"
 ```
 
 **Output:**
@@ -126,7 +126,7 @@ Parallel research from multiple perspectives - problem space, existing solutions
 Multi-AI consensus on problem definition, success criteria, and constraints.
 
 ```bash
-./bin/mp define "Define requirements for notification system"
+./.claude-plugin/bin/mp define "Define requirements for notification system"
 ```
 
 **Output:**
@@ -138,7 +138,7 @@ Multi-AI consensus on problem definition, success criteria, and constraints.
 Enhanced map-reduce with 75% quality gate threshold.
 
 ```bash
-./bin/mp develop "Implement notification service"
+./.claude-plugin/bin/mp develop "Implement notification service"
 ```
 
 **Output:**
@@ -151,7 +151,7 @@ Enhanced map-reduce with 75% quality gate threshold.
 Validation and final deliverable generation.
 
 ```bash
-./bin/mp deliver "Deliver notification system"
+./.claude-plugin/bin/mp deliver "Deliver notification system"
 ```
 
 **Output:**
@@ -164,7 +164,7 @@ Validation and final deliverable generation.
 Run all four phases in sequence:
 
 ```bash
-./bin/mp embrace "Create a complete user dashboard feature"
+./.claude-plugin/bin/mp embrace "Create a complete user dashboard feature"
 ```
 
 **Executes:**
@@ -190,9 +190,9 @@ The `auto` command detects intent and routes to the appropriate workflow:
 
 **Usage:**
 ```bash
-./bin/mp auto "research OAuth patterns"           # -> discover
-./bin/mp auto "build user login"                  # -> develop + deliver
-./bin/mp auto "security audit auth.ts"            # -> squeeze
+./.claude-plugin/bin/mp auto "research OAuth patterns"           # -> discover
+./.claude-plugin/bin/mp auto "build user login"                  # -> develop + deliver
+./.claude-plugin/bin/mp auto "security audit auth.ts"            # -> squeeze
 ```
 
 ---
@@ -202,9 +202,9 @@ The `auto` command detects intent and routes to the appropriate workflow:
 Use `persona` when you want to force a specific configured persona instead of intent-based auto-selection.
 
 ```bash
-./bin/mp persona list
-./bin/mp persona backend-architect "Design a resilient webhook pipeline"
-./bin/mp persona security-auditor "Review auth module for OWASP risks"
+./.claude-plugin/bin/mp persona list
+./.claude-plugin/bin/mp persona backend-architect "Design a resilient webhook pipeline"
+./.claude-plugin/bin/mp persona security-auditor "Review auth module for OWASP risks"
 ```
 
 Before execution, Octopus prints the selected lane in verbose format, for example:
@@ -247,10 +247,10 @@ Context is detected from:
 When auto-detection is wrong, use the knowledge mode toggle:
 
 ```bash
-./bin/mp km on     # Force Knowledge context
-./bin/mp km off    # Force Dev context
-./bin/mp km auto   # Return to auto-detection
-./bin/mp km        # Show current status
+./.claude-plugin/bin/mp km on     # Force Knowledge context
+./.claude-plugin/bin/mp km off    # Force Dev context
+./.claude-plugin/bin/mp km auto   # Return to auto-detection
+./.claude-plugin/bin/mp km        # Show current status
 ```
 
 ---
@@ -262,8 +262,8 @@ Different AI models have different blind spots. Crossfire forces models to criti
 ### Grapple - Adversarial Debate
 
 ```bash
-./bin/mp grapple "implement password reset API"
-./bin/mp grapple --principles security "implement JWT auth"
+./.claude-plugin/bin/mp grapple "implement password reset API"
+./.claude-plugin/bin/mp grapple --principles security "implement JWT auth"
 ```
 
 **How it works:**
@@ -285,19 +285,19 @@ Round 3: Synthesis determines winner + final implementation
 **Examples:**
 ```bash
 # General quality review
-./bin/mp grapple "implement user registration"
+./.claude-plugin/bin/mp grapple "implement user registration"
 
 # Security-focused review
-./bin/mp grapple --principles security "implement JWT auth"
+./.claude-plugin/bin/mp grapple --principles security "implement JWT auth"
 
 # Performance-focused review
-./bin/mp grapple --principles performance "implement API caching"
+./.claude-plugin/bin/mp grapple --principles performance "implement API caching"
 ```
 
 ### Squeeze - Red Team Security Review
 
 ```bash
-./bin/mp squeeze "implement user login form"
+./.claude-plugin/bin/mp squeeze "implement user login form"
 ```
 
 **How it works:**
@@ -311,7 +311,7 @@ Round 3: Synthesis determines winner + final implementation
 
 **Example:**
 ```bash
-./bin/mp squeeze "review auth.ts for vulnerabilities"
+./.claude-plugin/bin/mp squeeze "review auth.ts for vulnerabilities"
 ```
 
 ---
@@ -354,16 +354,16 @@ The configuration wizard sets your subscription tier for each provider:
 **Usage:**
 ```bash
 # Check current provider status
-./bin/mp status
+./.claude-plugin/bin/mp status
 
 # Force cost-first routing
-./bin/mp --cost-first auto "research best practices"
+./.claude-plugin/bin/mp --cost-first auto "research best practices"
 
 # Force specific provider
-./bin/mp --provider gemini probe "research OAuth patterns"
+./.claude-plugin/bin/mp --provider gemini probe "research OAuth patterns"
 
 # Quality-first for critical tasks
-./bin/mp --quality-first tangle "implement authentication"
+./.claude-plugin/bin/mp --quality-first tangle "implement authentication"
 ```
 
 ---
@@ -382,16 +382,16 @@ The configuration wizard sets your subscription tier for each provider:
 **Examples:**
 ```bash
 # Dry run to preview execution
-./bin/mp -n probe "research caching"
+./.claude-plugin/bin/mp -n probe "research caching"
 
 # Verbose mode for debugging
-./bin/mp -v tangle "implement auth"
+./.claude-plugin/bin/mp -v tangle "implement auth"
 
 # Extended timeout for complex tasks
-./bin/mp -t 1200 embrace "build complete dashboard"
+./.claude-plugin/bin/mp -t 1200 embrace "build complete dashboard"
 
 # Cost-optimized research
-./bin/mp --cost-first probe "research microservices"
+./.claude-plugin/bin/mp --cost-first probe "research microservices"
 ```
 
 ---
@@ -415,7 +415,7 @@ Quality gates ensure minimum standards before delivery:
 **Example:**
 ```bash
 # Tangle phase includes automatic quality gates
-./bin/mp tangle "implement user authentication"
+./.claude-plugin/bin/mp tangle "implement user authentication"
 
 # Output includes quality score:
 # Quality Score: 82/100 (WARNING - below 90%)
@@ -432,7 +432,7 @@ Quality gates ensure minimum standards before delivery:
 ### Interactive Configuration Wizard
 
 ```bash
-./bin/mp octopus-configure
+./.claude-plugin/bin/mp octopus-configure
 ```
 
 **Configures:**
@@ -445,7 +445,7 @@ Quality gates ensure minimum standards before delivery:
 ### Preflight Checks
 
 ```bash
-./bin/mp preflight
+./.claude-plugin/bin/mp preflight
 ```
 
 **Verifies:**
@@ -458,7 +458,7 @@ Quality gates ensure minimum standards before delivery:
 ### Status
 
 ```bash
-./bin/mp status
+./.claude-plugin/bin/mp status
 ```
 
 **Shows:**
@@ -506,41 +506,41 @@ Debates are stored in session-aware folders:
 
 ```bash
 # Phase 1: Research authentication patterns
-./bin/mp discover "authentication best practices for React apps"
+./.claude-plugin/bin/mp discover "authentication best practices for React apps"
 
 # Phase 2: Define requirements
-./bin/mp define "define requirements for JWT authentication"
+./.claude-plugin/bin/mp define "define requirements for JWT authentication"
 
 # Phase 3: Implement
-./bin/mp develop "implement JWT authentication system"
+./.claude-plugin/bin/mp develop "implement JWT authentication system"
 
 # Phase 4: Validate
-./bin/mp deliver "validate authentication implementation"
+./.claude-plugin/bin/mp deliver "validate authentication implementation"
 ```
 
 ### Or use embrace for all phases:
 ```bash
-./bin/mp embrace "build complete JWT authentication system"
+./.claude-plugin/bin/mp embrace "build complete JWT authentication system"
 ```
 
 ### Security Audit
 
 ```bash
 # Red team security review
-./bin/mp squeeze "audit auth.ts for security vulnerabilities"
+./.claude-plugin/bin/mp squeeze "audit auth.ts for security vulnerabilities"
 
 # Adversarial security-focused debate
-./bin/mp grapple --principles security "review login implementation"
+./.claude-plugin/bin/mp grapple --principles security "review login implementation"
 ```
 
 ### Cost-Optimized Research
 
 ```bash
 # Use cheapest provider for research
-./bin/mp --cost-first discover "research React state management"
+./.claude-plugin/bin/mp --cost-first discover "research React state management"
 
 # Use quality-first for critical implementation
-./bin/mp --quality-first develop "implement payment processing"
+./.claude-plugin/bin/mp --quality-first develop "implement payment processing"
 ```
 
 ---
@@ -551,7 +551,7 @@ Debates are stored in session-aware folders:
 
 ```bash
 # Check provider status
-./bin/mp detect-providers
+./.claude-plugin/bin/mp detect-providers
 
 # Expected output:
 # CODEX_STATUS=ready
@@ -572,10 +572,10 @@ export OPENAI_API_KEY="sk-..."
 
 ```bash
 # Make mp runtime executable
-chmod +x ./bin/mp
+chmod +x ./.claude-plugin/bin/mp
 
 # Check file permissions
-ls -la ./bin/mp
+ls -la ./.claude-plugin/bin/mp
 ```
 
 ### Session Directory Not Found
@@ -593,7 +593,7 @@ mkdir -p ~/.claude-octopus/debates
 
 ```bash
 # Increase timeout for complex tasks
-./bin/mp -t 1200 embrace "complex feature"
+./.claude-plugin/bin/mp -t 1200 embrace "complex feature"
 
 # Default timeout is 120 seconds (2 minutes)
 # Maximum timeout is 1800 seconds (30 minutes)
@@ -623,7 +623,7 @@ jobs:
 
       - name: Run code review
         run: |
-          ./bin/mp ink "review changes in this PR"
+          ./.claude-plugin/bin/mp ink "review changes in this PR"
 
       - name: Post results
         uses: actions/github-script@v6

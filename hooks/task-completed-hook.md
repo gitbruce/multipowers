@@ -138,5 +138,5 @@ This data feeds the smart routing optimizer for future task assignment.
 
 - `~/.claude-octopus/session.json` - Workflow state machine
 - `~/.claude-octopus/metrics/` - Per-task metrics for routing optimization
-- `bin/mp` - Phase transition logic
+- `.claude-plugin/bin/mp` - Phase transition logic
 - `hooks/teammate-idle-hook.md` - Companion hook for agent scheduling

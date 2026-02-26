@@ -5,7 +5,7 @@
 - `main` must remain a clean mirror of `upstream/main`.
 - `multipowers` is the only customization branch.
 - Sync direction is one-way: `upstream/main -> main -> multipowers`.
-- Minimize edits in high-conflict upstream files (`bin/mp`, `.claude-plugin/.claude/*`, `.claude-plugin/*`); prefer `custom/*`.
+- Minimize edits in high-conflict upstream files (`.claude-plugin/bin/mp`, `.claude-plugin/.claude/*`, `.claude-plugin/*`); prefer `custom/*`.
 
 ## Routine Sync Sequence
 
@@ -15,7 +15,7 @@ git switch main
 git merge --ff-only upstream/main
 git switch multipowers
 git merge main -m "chore(sync): merge main into multipowers"
-./custom/scripts/mp-devx overlay
+./scripts/mp-devx overlay
 go test ./...
 ```
 

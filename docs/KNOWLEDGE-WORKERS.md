@@ -20,7 +20,7 @@ Whether you are synthesizing user interviews, architecting a market entry strate
 Knowledge Work Mode is a global toggle that shifts the "brain" of the Octopus to prioritize research and strategy analysis over code generation. You can toggle it on or off with a single command:
 
 ```bash
-./bin/mp knowledge-toggle
+./.claude-plugin/bin/mp knowledge-toggle
 ```
 
 When enabled, the `auto` command will interpret ambiguous requests (like "Review this document") as knowledge tasks rather than code review tasks.
@@ -201,7 +201,7 @@ These tentacles are the backbone of v6.0. Use them individually with the `spawn`
 Knowledge work behavior is heavily influenced by your configuration.
 
 ### Selection of Intent
-When you run `./bin/mp config`, you can select specialized intents (choices 11, 12, 13) which sets your default persona and primary companion.
+When you run `./.claude-plugin/bin/mp config`, you can select specialized intents (choices 11, 12, 13) which sets your default persona and primary companion.
 
 | Choice | Intent | Default Companion |
 |--------|--------|-------------------|

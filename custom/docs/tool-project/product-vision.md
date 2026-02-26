@@ -17,7 +17,7 @@ The target outcome is not "more prompts". The target outcome is consistent, high
 
 ## Strategic Direction
 
-1. Keep `scripts/mp` as the single operational engine for routing, provider execution, and workflow control.
+1. Keep `.claude-plugin/bin/mp` as the single runtime engine for routing, provider execution, and workflow control.
 2. Keep command UX simple (`/mp:*` in Claude Code, CLI fallback via `./scripts/mp`) while expanding capability behind stable interfaces.
 3. Maintain provider flexibility (Codex, Gemini, Claude-native) with graceful degradation when one or more providers are unavailable.
 4. Continue strengthening quality gates, validation hooks, and review loops so major changes cannot silently bypass verification.

@@ -2,7 +2,7 @@
 
 ## ⚠️ CRITICAL: Plugin Name
 
-**The plugin name in `plugin.json` MUST remain `"multipowers"`**
+**The plugin name in `plugin.json` MUST remain `"mp"`**
 
 ```json
 {

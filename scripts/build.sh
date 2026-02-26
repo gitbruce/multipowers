@@ -8,9 +8,9 @@ if ! command -v go >/dev/null 2>&1; then
   exit 127
 fi
 
-mkdir -p "${ROOT_DIR}/bin"
-go build -o "${ROOT_DIR}/bin/mp" "${ROOT_DIR}/cmd/octo"
-go build -o "${ROOT_DIR}/bin/mp-devx" "${ROOT_DIR}/cmd/octo-devx"
+mkdir -p "${ROOT_DIR}/.claude-plugin/bin"
+go build -o "${ROOT_DIR}/.claude-plugin/bin/mp" "${ROOT_DIR}/cmd/octo"
+go build -o "${ROOT_DIR}/.claude-plugin/bin/mp-devx" "${ROOT_DIR}/cmd/octo-devx"
 
-echo "Built: ${ROOT_DIR}/bin/mp"
-echo "Built: ${ROOT_DIR}/bin/mp-devx"
+echo "Built: ${ROOT_DIR}/.claude-plugin/bin/mp"
+echo "Built: ${ROOT_DIR}/.claude-plugin/bin/mp-devx"

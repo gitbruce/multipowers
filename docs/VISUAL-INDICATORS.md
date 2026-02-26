@@ -45,8 +45,8 @@ When Knowledge Mode is ON, research tasks use external CLIs:
 
 ```bash
 # Direct mp runtime execution
-./bin/mp probe "research GraphQL vs REST"
-./bin/mp tangle "implement user authentication"
+./.claude-plugin/bin/mp probe "research GraphQL vs REST"
+./.claude-plugin/bin/mp tangle "implement user authentication"
 
 # Direct CLI execution
 codex exec "Generate API endpoint for users"

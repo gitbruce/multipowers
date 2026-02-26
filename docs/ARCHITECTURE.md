@@ -433,14 +433,14 @@ When multi-AI mode is active, you'll see these indicators:
 
 ## Under the Hood: mp runtime
 
-All workflows are powered by `bin/mp`:
+All workflows are powered by `.claude-plugin/bin/mp`:
 
 ```bash
 # Direct CLI usage (advanced)
-./bin/mp probe "research OAuth patterns"
-./bin/mp tangle "implement authentication"
-./bin/mp ink "review auth code"
-./bin/mp embrace "complete auth feature"
+./.claude-plugin/bin/mp probe "research OAuth patterns"
+./.claude-plugin/bin/mp tangle "implement authentication"
+./.claude-plugin/bin/mp ink "review auth code"
+./.claude-plugin/bin/mp embrace "complete auth feature"
 ```
 
 The plugin wraps these commands and provides:

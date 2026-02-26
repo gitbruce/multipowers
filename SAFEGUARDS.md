@@ -26,12 +26,12 @@ This document outlines critical configuration that must NOT be changed without c
 
 | File | Name | Purpose | Command Format |
 |------|------|---------|----------------|
-| `.claude-plugin/plugin.json` | `"multipowers"` | Command prefix in Claude Code | `/mp:discover`, `/mp:debate` |
+| `.claude-plugin/plugin.json` | `"mp"` | Command prefix in Claude Code | `/mp:discover`, `/mp:debate` |
 | `package.json` | `"claude-octopus"` | Package/marketplace identity | N/A (npm/git) |
 
 ### What Happens If You Change It
 
-❌ **Changing plugin name from `"multipowers"` to `"claude-octopus"`:**
+❌ **Changing plugin name from `"mp"` to `"claude-octopus"`:**
 
 ```diff
 // .claude-plugin/plugin.json
@@ -57,7 +57,7 @@ This configuration was broken and fixed multiple times:
 | Commit | Change | Result |
 |--------|--------|--------|
 | `3ebb189` | Set plugin name to `claude-octopus` | ❌ Broke command prefixes |
-| `d9e8354` | Reverted to `multipowers` | ✅ Fixed commands |
+| `d9e8354` | Reverted to `mp` | ✅ Fixed commands |
 | `57ce38c` | Removed namespace prefix from frontmatter | ✅ Correct format |
 
 ### Validation & Safeguards
@@ -200,7 +200,7 @@ Use: `scripts/bump-version.sh` to update all at once (if it exists, otherwise ma
 
 Before releasing a new version:
 
-- [ ] Run `make test-plugin-name` - Verify plugin name is `"multipowers"`
+- [ ] Run `make test-plugin-name` - Verify plugin name is `"mp"`
 - [ ] Run `make test-smoke` - Verify all smoke tests pass
 - [ ] Check version sync across `plugin.json`, `package.json`, `README.md`
 - [ ] Verify command references use `/mp:*` format
@@ -216,7 +216,7 @@ Before releasing a new version:
 **Plugin name changed:**
 ```bash
 ./tests/go test ./...
-# Should output: ✅ Plugin name is correct: "multipowers"
+# Should output: ✅ Plugin name is correct: "mp"
 ```
 
 **Commands not working:**

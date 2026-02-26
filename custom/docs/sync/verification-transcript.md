@@ -6,12 +6,12 @@
  M custom/docs/sync/conflict-resolution.md
 ?? custom/docs/sync/verification-transcript.md
 
-## ./custom/scripts/mp-devx sync
+## ./scripts/mp-devx sync
 
-## ./custom/scripts/mp-devx overlay
+## ./scripts/mp-devx overlay
 Overlay applied successfully
 
-## ./bin/mp persona list (first 20 lines)
+## ./.claude-plugin/bin/mp persona list (first 20 lines)
 [0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Claude Code v2.1.52 detected
 [0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Task Management: true | Fork Context: true | Agent Teams: true
 [0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Persistent Memory: true | Hook Events: true | Agent Type Routing: true
@@ -27,6 +27,6 @@ Overlay applied successfully
 [0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Optional progress tracking disabled
 
 [1;33m🐙 First time? Run the configuration wizard to get started:[0m
-   [0;36m./bin/mp octopus-configure[0m
+   [0;36m./.claude-plugin/bin/mp octopus-configure[0m
 
 [0;32mSUCCESS:[0m Initialized state file at .claude-octopus/state.json

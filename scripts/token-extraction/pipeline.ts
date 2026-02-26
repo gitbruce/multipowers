@@ -655,10 +655,10 @@ export class TokenExtractionPipeline {
       });
       console.log(`  Generated: ${featureIndexMdPath}`);
 
-      // Generate extraction script
-      const scriptPath = path.join(this.options.outputDir!, 'extract-all-features.sh');
-      await generateFeatureExtractionScript(this.featureDetectionResult.features, scriptPath);
-      console.log(`  Generated: ${scriptPath}`);
+      // Generate extraction command list (no-shell runtime compatible)
+      const commandsPath = path.join(this.options.outputDir!, 'extract-all-features.commands.txt');
+      await generateFeatureExtractionScript(this.featureDetectionResult.features, commandsPath);
+      console.log(`  Generated: ${commandsPath}`);
     }
 
     console.log('');

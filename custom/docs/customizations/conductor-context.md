@@ -13,7 +13,7 @@ Run:
 ```
 
 Execution anchor:
-- `/mp:init` should pass `--dir "$PWD"` to `bin/mp` so `conductor/` is created in the current target project, not plugin/cache directories.
+- `/mp:init` should pass `--dir "$PWD"` to `.claude-plugin/bin/mp` so `conductor/` is created in the current target project, not plugin/cache directories.
 - Runtime guard blocks spec/init commands if `PROJECT_ROOT` resolves to plugin/cache paths.
 
 This initializes:

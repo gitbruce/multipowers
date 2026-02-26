@@ -94,9 +94,9 @@ help:
 .PHONY: build-go test-go lint-go check-go-lines
 
 build-go:
-	@mkdir -p bin
-	@go build -o bin/mp ./cmd/octo
-	@go build -o bin/mp-devx ./cmd/octo-devx
+	@mkdir -p .claude-plugin/bin
+	@go build -o .claude-plugin/bin/mp ./cmd/octo
+	@go build -o .claude-plugin/bin/mp-devx ./cmd/octo-devx
 
 test-go:
 	@go test ./...

@@ -5,7 +5,7 @@ Audience: maintainers of this repository (`claude-octopus` fork), not end users.
 ## Naming Baseline
 
 - Slash command namespace: `/mp:*`
-- Plugin id: `multipowers`
+- Plugin id: `mp`
 - Marketplace id: `multipowers-plugins`
 
 ## Branch and Sync Discipline
@@ -24,15 +24,14 @@ Primary runbook:
 Keep customization isolated in `custom/*`:
 - `custom/config/`: model, persona-lane, proxy, and Conductor setup protocol config
 
-- `custom/lib/`: helper shell libraries (including FAQ synthesizer)
-- `custom/scripts/`: overlay/sync scripts
+- `scripts/`: developer wrappers for local build/run (`mp`, `mp-devx`)
 - `custom/templates/`: target-project templates (`conductor/*`, `CLAUDE.md`, `FAQ.md`)
 
 ## Operational Commands
 
 ```bash
-./custom/scripts/mp-devx sync
-./custom/scripts/mp-devx overlay
+./scripts/mp-devx sync
+./scripts/mp-devx overlay
 go test ./...
 ```
 
