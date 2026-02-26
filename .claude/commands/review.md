@@ -9,6 +9,17 @@ description: Expert code review with comprehensive quality assessment and securi
 
 When the user invokes this command (e.g., `/octo:review <arguments>`):
 
+### Step 0: Enforce Conductor Context Guard
+
+- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
+  - `product.md`
+  - `product-guidelines.md`
+  - `tech-stack.md`
+  - `workflow.md`
+  - `tracks.md`
+- If any context file is missing, run `/octo:init` first.
+- Continue only after context is present.
+
 ### Step 1: Ask Clarifying Questions
 
 **CRITICAL: Before starting the review, use the AskUserQuestion tool to gather context:**

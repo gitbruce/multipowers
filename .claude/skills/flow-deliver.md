@@ -36,30 +36,17 @@ trigger: |
   - Built-in commands (/plugin, /help, etc.)
 ---
 
-## Pre-Delivery: State Check
+## Pre-Delivery: Context Check
 
-Before starting delivery:
-1. Read `.octo/STATE.md` to verify Develop phase complete
-2. Update STATE.md:
-   - current_phase: 4
-   - phase_position: "Delivery"
-   - status: "in_progress"
-
-```bash
-# Verify Develop phase is complete
-if [[ -f ".octo/STATE.md" ]]; then
-  develop_status=$("${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" get_phase_status 3)
-  if [[ "$develop_status" != "complete" ]]; then
-    echo "⚠️ Warning: Develop phase not marked complete. Consider completing development first."
-  fi
-fi
-
-# Update state for Delivery phase
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" update_state \
-  --phase 4 \
-  --position "Delivery" \
-  --status "in_progress"
-```
+Before starting delivery, context under `.multipowers/` is required.
+1. Verify these files exist:
+   - `.multipowers/product.md`
+   - `.multipowers/product-guidelines.md`
+   - `.multipowers/tech-stack.md`
+   - `.multipowers/workflow.md`
+   - `.multipowers/tracks.md`
+2. If any file is missing, run `/octo:init` first.
+3. Continue only after context is complete.
 
 ---
 
@@ -780,29 +767,9 @@ Ink workflows typically cost $0.02-0.08 per validation depending on codebase siz
 ## Post-Delivery: Route to Ship
 
 After delivery validation completes:
-1. Update `.octo/STATE.md`:
-   - status: "complete"
-   - Add history entry: "All phases complete, ready to ship"
-2. Suggest: "Project ready! Run `/octo:ship` to finalize and archive."
-
-```bash
-# Update state after Delivery completion
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" update_state \
-  --status "complete" \
-  --history "All phases complete, ready to ship"
-
-# Display completion message with next steps
-echo ""
-echo "🎉 **EMBRACE WORKFLOW COMPLETE**"
-echo ""
-echo "All four phases have been completed:"
-echo "  ✅ Discover - Research and exploration"
-echo "  ✅ Define - Requirements and scope"
-echo "  ✅ Develop - Implementation"
-echo "  ✅ Deliver - Validation and quality"
-echo ""
-echo "📦 **Project ready! Run \`/octo:ship\` to finalize and archive.**"
-```
+1. Persist outputs under the target project `.multipowers/` only.
+2. Keep delivery artifacts in `.multipowers/tracks/<track_id>/`.
+3. Suggest: "Project ready! Run `/octo:ship` to finalize and archive."
 
 ---
 

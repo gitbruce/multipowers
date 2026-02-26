@@ -9,18 +9,25 @@ This command MUST execute the multi-LLM debate workflow. Do not return a single-
 
 ## Mandatory Behavior
 
-1. Build prompt text from user arguments.
-2. Execute debate workflow:
+1. Before debate, verify required context exists under `$PWD/.multipowers/`:
+   - `product.md`
+   - `product-guidelines.md`
+   - `tech-stack.md`
+   - `workflow.md`
+   - `tracks.md`
+   If any file is missing, run `/octo:init` first and continue only after context is present.
+2. Build prompt text from user arguments.
+3. Execute debate workflow:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" grapple "<user-prompt>"
 ```
 
-3. If command exits non-zero:
+4. If command exits non-zero:
 - Stop and report error.
 - Do not produce a synthetic single-model "debate" answer.
 
-4. If command succeeds:
+5. If command succeeds:
 - Summarize the debate result from generated artifacts/output.
 - Keep attribution clear: include Codex/Gemini/Claude perspectives when present.
 

@@ -45,30 +45,17 @@ trigger: |
   - Built-in commands (/plugin, /help, etc.)
 ---
 
-## Pre-Definition: State Check
+## Pre-Definition: Context Check
 
-Before starting definition:
-1. Read `.octo/STATE.md` to verify Discover phase complete
-2. Update STATE.md:
-   - current_phase: 2
-   - phase_position: "Definition"
-   - status: "in_progress"
-
-```bash
-# Verify Discover phase is complete
-if [[ -f ".octo/STATE.md" ]]; then
-  discover_status=$("${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" get_phase_status 1)
-  if [[ "$discover_status" != "complete" ]]; then
-    echo "⚠️ Warning: Discover phase not marked complete. Consider running discovery first."
-  fi
-fi
-
-# Update state for Definition phase
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" update_state \
-  --phase 2 \
-  --position "Definition" \
-  --status "in_progress"
-```
+Before starting definition, context under `.multipowers/` is required.
+1. Verify these files exist:
+   - `.multipowers/product.md`
+   - `.multipowers/product-guidelines.md`
+   - `.multipowers/tech-stack.md`
+   - `.multipowers/workflow.md`
+   - `.multipowers/tracks.md`
+2. If any file is missing, run `/octo:init` first.
+3. Continue only after context is complete.
 
 ---
 
@@ -731,22 +718,9 @@ Grasp workflows typically cost $0.01-0.05 per task depending on complexity.
 ## Post-Definition: State Update
 
 After definition completes:
-1. Update `.octo/STATE.md` with completion
-2. Populate `.octo/ROADMAP.md` with defined phases and success criteria
-
-```bash
-# Update state after Definition completion
-"${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" update_state \
-  --status "complete" \
-  --history "Define phase completed"
-
-# Populate ROADMAP.md with defined requirements
-if [[ -f "$SYNTHESIS_FILE" ]]; then
-  echo "📝 Updating .octo/ROADMAP.md with defined phases..."
-  "${CLAUDE_PLUGIN_ROOT}/scripts/octo-state.sh" update_roadmap \
-    --from-synthesis "$SYNTHESIS_FILE"
-fi
-```
+1. Persist outputs under the target project `.multipowers/` only.
+2. Keep definition artifacts in `.multipowers/tracks/<track_id>/`.
+3. Do not write to `.octo/*`, `$HOME`, or plugin/cache paths.
 
 ---
 
