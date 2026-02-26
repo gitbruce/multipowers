@@ -64,7 +64,7 @@ pkg/
 
 ---
 
-- [ ] ### Task 0: Normalize Go Package Layout Before Feature Migration
+- [x] ### Task 0: Normalize Go Package Layout Before Feature Migration
 
 **Why:** Without a stable package map, migration work will scatter and create second-round refactors.
 
@@ -107,7 +107,7 @@ git commit -m "refactor(arch): normalize go package layout for strict no-shell m
 
 ---
 
-- [ ] ### Task 1: Add Strict Runtime No-Shell Validator (red -> green)
+- [x] ### Task 1: Add Strict Runtime No-Shell Validator (red -> green)
 
 **Files:**
 - Create: `internal/validation/no_shell_runtime.go`
@@ -160,7 +160,7 @@ git commit -m "feat(validation): add strict no-shell runtime validator"
 
 ---
 
-- [ ] ### Task 2: Replace Persona Command Runtime Path with Go
+- [x] ### Task 2: Replace Persona Command Runtime Path with Go
 
 **Files:**
 - Modify: `.claude-plugin/commands/persona.md`
