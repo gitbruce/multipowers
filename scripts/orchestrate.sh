@@ -16264,7 +16264,7 @@ ensure_spec_command_context() {
                 log ERROR ".multipowers context remains incomplete after /octo:init"
                 octo_record_failure "$cmd" "context-guard" "none" "missing context" \
                     ".multipowers required files still missing after init" \
-                    "Complete /octo:init and ensure product/product-guidelines/tech-stack/workflow/tracks exist." 1
+                    "Complete /octo:init and ensure product/product-guidelines/tech-stack/workflow/tracks/CLAUDE exist." 1
                 exit 1
             }
         fi

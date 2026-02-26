@@ -1,52 +1,37 @@
 ---
 command: init
-description: Initialize .multipowers context in target project via interactive wizard
+description: Initialize .multipowers context via orchestrate.sh interactive wizard (no direct file writing path)
 ---
 
 # /octo:init
 
-This command MUST run an interactive wizard. Do not skip questions.
+This command MUST invoke the orchestrator wizard. Do not manually generate context files in chat.
 
 ## Mandatory Contract
 
 1. Target path is `$PWD/.multipowers`.
-2. If all required files exist, return success and stop:
+2. Execute init only through:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+```
+
+3. If command exits non-zero:
+- Stop immediately and report init failure.
+- Do not proceed to any spec-driven task.
+
+4. After success, required files must exist:
 - `.multipowers/product.md`
 - `.multipowers/product-guidelines.md`
 - `.multipowers/tech-stack.md`
 - `.multipowers/workflow.md`
 - `.multipowers/tracks.md`
-3. If any required file is missing, you MUST start wizard immediately with `AskUserQuestion`.
-4. Do not continue to any planning/task command until required files are created.
-
-## Wizard Flow (Required)
-
-1. Ask mode:
-- Header: `Init Mode`
-- Question: `Conductor context is missing. How do you want to initialize it?`
-- Options:
-  - `Interactive (Required)` - Ask guided questions then generate files.
-
-2. If `Interactive`, ask one batched `AskUserQuestion` set for:
-- product summary
-- target users
-- primary goal
-- runtime/framework
-- constraints
-
-3. Create required files under `.multipowers/` and `.multipowers/code_styleguides/`:
-- `product.md`
-- `product-guidelines.md`
-- `tech-stack.md`
-- `workflow.md`
-- `tracks.md`
-
-4. Confirm completion by re-checking the five required files.
-- If still missing, report failure and stop.
-- If complete, report success and stop.
+- `.multipowers/CLAUDE.md`
+- `.multipowers/FAQ.md`
+- `.multipowers/context/runtime.json`
 
 ## Prohibited
 
-- Do not bypass wizard with silent analysis-only behavior.
-- Do not generate context files from non-interactive defaults.
-- Do not jump to `/octo:plan` questions before required files exist.
+- Do not use `Write/Edit/Update` to create these files directly from command text.
+- Do not bypass `orchestrate.sh init`.
+- Do not continue to `/octo:plan` or other spec-driven commands when init failed.

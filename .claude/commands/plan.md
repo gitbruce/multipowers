@@ -29,11 +29,16 @@ Before asking Goal/Knowledge/Clarity questions, verify required project context 
 - `tech-stack.md`
 - `workflow.md`
 - `tracks.md`
+- `CLAUDE.md`
 
 If any file is missing:
-- Invoke `Skill(octo:init)` first (interactive wizard).
+- Run init through orchestrator only:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+```
 - Re-check the same files after init completes.
 - If still missing, stop with an initialization failure and do not continue planning.
+- Do not proceed with Goal/Knowledge/Clarity questions before Step 0 passes.
 
 ### Step 1: Capture Comprehensive Intent
 

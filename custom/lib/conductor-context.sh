@@ -2,7 +2,7 @@
 set -euo pipefail
 
 conductor_root_dir() {
-  echo "${PROJECT_ROOT:-$PWD}/conductor"
+  echo "${PROJECT_ROOT:-$PWD}/.multipowers"
 }
 
 is_spec_driven_command() {
@@ -23,7 +23,7 @@ conductor_context_complete() {
   [[ -f "$croot/tech-stack.md" ]] || return 1
   [[ -f "$croot/workflow.md" ]] || return 1
   [[ -f "$croot/tracks.md" ]] || return 1
-  [[ -d "$croot/code_styleguides" ]] || return 1
+  [[ -f "$croot/CLAUDE.md" ]] || return 1
   return 0
 }
 
@@ -36,7 +36,7 @@ conductor_missing_requirements() {
   [[ -f "$croot/tech-stack.md" ]] || missing+=("tech-stack.md")
   [[ -f "$croot/workflow.md" ]] || missing+=("workflow.md")
   [[ -f "$croot/tracks.md" ]] || missing+=("tracks.md")
-  [[ -d "$croot/code_styleguides" ]] || missing+=("code_styleguides/")
+  [[ -f "$croot/CLAUDE.md" ]] || missing+=("CLAUDE.md")
   printf '%s\n' "${missing[@]}"
 }
 
@@ -87,7 +87,7 @@ ensure_conductor_track_file() {
   file="$track_path/tracking.md"
 
   if [[ ! -f "$file" ]]; then
-    cat > "$file" <<EOF
+    cat > "$file" <<TRACK
 # Track: ${track_id}
 
 - command: ${cmd}
@@ -101,7 +101,7 @@ ensure_conductor_track_file() {
 
 ## Notes
 - created: $(date -Iseconds)
-EOF
+TRACK
   fi
 
   echo "$file"
@@ -117,8 +117,8 @@ mark_track_checkbox() {
 load_conductor_context_for_prompt() {
   local croot
   croot="$(conductor_root_dir)"
-  cat <<EOF
-<project_context source=\"conductor\">
+  cat <<CTX
+<project_context source="multipowers">
 $(cat "$croot/product.md" 2>/dev/null)
 
 $(cat "$croot/product-guidelines.md" 2>/dev/null)
@@ -127,20 +127,20 @@ $(cat "$croot/tech-stack.md" 2>/dev/null)
 
 $(cat "$croot/workflow.md" 2>/dev/null)
 </project_context>
-EOF
+CTX
 }
 
 apply_conductor_context_to_prompt() {
   local prompt="$1"
   if conductor_context_complete; then
-    cat <<EOF
+    cat <<PROMPT
 Use the following project context as source-of-truth before solving the task.
 
 $(load_conductor_context_for_prompt)
 
 Task:
 $prompt
-EOF
+PROMPT
   else
     echo "$prompt"
   fi

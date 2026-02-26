@@ -20,7 +20,12 @@ When the user invokes this command (e.g., `/octo:define <arguments>`):
   - `tech-stack.md`
   - `workflow.md`
   - `tracks.md`
-- If any context file is missing, run `/octo:init` first.
+  - `CLAUDE.md`
+- If any context file is missing, you MUST execute:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+```
+- Re-check all required files and hard-stop if any are still missing.
 - Continue only after context is present.
 
 **✓ CORRECT - Use the Skill tool:**

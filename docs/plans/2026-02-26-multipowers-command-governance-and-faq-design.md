@@ -61,9 +61,10 @@ Before command-specific logic:
    - `tech-stack.md`
    - `workflow.md`
    - `tracks.md`
+   - `CLAUDE.md`
 3. If missing, force `/octo:init` wizard.
 4. Re-check context; fail-fast if still incomplete.
-5. Load runtime preconditions from `/.multipowers/context/runtime.json`.
+5. If `/.multipowers/context/runtime.json` exists, load runtime preconditions.
 6. Execute pre-run commands per fail-fast policy.
 7. Proceed to command body only after Step 0 success.
 
@@ -80,6 +81,7 @@ Before command-specific logic:
 - Used by all commands/skills that invoke tools/providers.
 - Supports user-defined pre-run command lists (language-agnostic, not Python-specific).
 - Policy: `fail-fast` (confirmed).
+- Guard requirement: runtime file is optional for context readiness; when present, its pre-run policy is enforced.
 - If any pre-run command fails, stop immediately and report which step failed.
 
 ## 8. CLAUDE.md and FAQ.md Design
@@ -183,7 +185,8 @@ Target project docs (usage):
 ## 14. Acceptance Criteria
 - `/octo:init` creates `/.multipowers/CLAUDE.md` and `/.multipowers/FAQ.md` from templates.
 - Spec-driven commands enforce Step 0 preflight before command-specific workflow.
-- Runtime preconditions from `runtime.json` are mandatory and fail-fast.
+- Step 0 required context files are `product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`, `CLAUDE.md`.
+- Runtime preconditions from `runtime.json` are optional to presence, mandatory to enforce when configured, and fail-fast.
 - Multi-LLM debate uses up to 3 providers, continues with 2, fails below 2.
 - All artifacts/temp outputs remain under target `/.multipowers/`.
 - FAQ auto-updates, dedups, refines, and stays bounded without manual edits.

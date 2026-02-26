@@ -15,7 +15,12 @@ This command MUST execute the multi-LLM debate workflow. Do not return a single-
    - `tech-stack.md`
    - `workflow.md`
    - `tracks.md`
-   If any file is missing, run `/octo:init` first and continue only after context is present.
+   - `CLAUDE.md`
+   If any file is missing, you MUST execute:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+```
+   Re-check all required files and continue only when all are present; otherwise fail-fast.
 2. Build prompt text from user arguments.
 3. Execute debate workflow:
 

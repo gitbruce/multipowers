@@ -73,7 +73,11 @@ Before any analysis or implementation action:
    - `tech-stack.md`
    - `workflow.md`
    - `tracks.md`
-2. If any file is missing, you MUST call `/octo:init` immediately.
+   - `CLAUDE.md`
+2. If any file is missing, you MUST execute:
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+```
 3. Re-check the same files after init.
 4. If still missing, STOP with initialization failure.
 
