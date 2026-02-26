@@ -23,7 +23,7 @@ Primary runbook:
 
 Keep customization isolated in `custom/*`:
 - `custom/config/`: model, persona-lane, proxy, and Conductor setup protocol config
-- `custom/commands/`: overlay command docs
+
 - `custom/lib/`: helper shell libraries (including FAQ synthesizer)
 - `custom/scripts/`: overlay/sync scripts
 - `custom/templates/`: target-project templates (`conductor/*`, `CLAUDE.md`, `FAQ.md`)

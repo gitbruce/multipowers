@@ -1,19 +1,76 @@
 ---
 command: deliver
-description: Thin wrapper that delegates to Go runtime (octo)
+description: "Delivery phase - Review, validate, and test with multi-AI quality assurance"
+aliases:
+  - ink
+  - review-phase
 ---
 
-# /mp:deliver
+# Deliver - Delivery Phase ✅
 
-Use Go runtime only.
+## 🤖 INSTRUCTIONS FOR CLAUDE
 
-Actions:
-1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/mp` exists.
-2. Execute:
-```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/mp" deliver --dir "$PWD" --prompt "<user-prompt>" --json
+When the user invokes this command (e.g., `/mp:deliver <arguments>`):
+
+**✓ CORRECT - Use the Skill tool:**
 ```
-3. Parse JSON response.
-4. If `status` is `error` or `blocked`, stop immediately.
+Skill(skill: "mp:deliver", args: "<user's arguments>")
+```
 
-Do not implement command logic in markdown.
+**✗ INCORRECT - Do NOT use Task tool:**
+```
+Task(subagent_type: "mp:deliver", ...)  ❌ Wrong! This is a skill, not an agent type
+```
+
+**Why:** This command loads the `flow-deliver` skill. Skills use the `Skill` tool, not `Task`.
+
+---
+
+**Auto-loads the `flow-deliver` skill for the validation/review phase.**
+
+## Quick Usage
+
+Just use natural language:
+```
+"Review the authentication code for security"
+"Validate the caching implementation"
+"Test the notification system"
+```
+
+## What Is Deliver?
+
+The **Deliver** phase of the Double Diamond methodology (convergent thinking):
+- Validate and review implementations using external CLI providers
+- Security audit and edge case analysis
+- Final quality synthesis
+
+## What You Get
+
+- Multi-AI validation (Claude + Gemini + Codex)
+- Security audit (OWASP compliance, vulnerability detection)
+- Code quality review
+- Edge case analysis
+- Performance evaluation
+
+## When to Use Deliver
+
+Use deliver when you need:
+- **Review**: "Review X" or "Code review Y"
+- **Validation**: "Validate Z"
+- **Testing**: "Test the implementation"
+- **Quality Check**: "Check if X works correctly"
+
+**Don't use deliver for:**
+- Implementation tasks (use develop phase)
+- Research tasks (use discover phase)
+- Requirement definition (use define phase)
+
+## Part of the Full Workflow
+
+Deliver is phase 4 of 4 in the embrace (full) workflow:
+1. Discover
+2. Define
+3. Develop
+4. **Deliver** <- You are here
+
+To run all 4 phases: `/mp:embrace`

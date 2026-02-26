@@ -11,7 +11,7 @@
 1. Keep `main` synced to `upstream/main` only.
 2. Do all custom development on `multipowers`.
 3. Never merge `multipowers` back into `main`.
-4. Periodically merge `main` into `multipowers` and reapply overlay.
+4. Periodically merge `main` into `multipowers` and sync single-source command docs.
 
 ## Quick Start
 

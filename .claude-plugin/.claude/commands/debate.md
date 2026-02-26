@@ -1,19 +1,17 @@
 ---
 command: debate
-description: Thin wrapper that delegates to Go runtime (octo)
+description: "AI Debate Hub - Structured three-way debates between Claude, Gemini, and Codex"
+skill: skill-debate
 ---
 
-# /mp:debate
+# Debate
 
-Use Go runtime only.
+Structured three-way AI debates between Claude, Gemini, and Codex.
 
-Actions:
-1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/mp` exists.
-2. Execute:
-```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/mp" debate --dir "$PWD" --prompt "<user-prompt>" --json
-```
-3. Parse JSON response.
-4. If `status` is `error` or `blocked`, stop immediately.
-
-Do not implement command logic in markdown.
+Execution guidance:
+1. Follow the `skill-debate` instructions (Steps 1-7) exactly.
+2. Start with Step 1: check provider availability and display the visual indicator banner.
+3. Step 2: ask clarifying questions via AskUserQuestion before proceeding.
+4. Steps 3-5: parse arguments, set up debate folder, conduct rounds with all three participants.
+5. Steps 6-7: write final synthesis and present results to the user.
+6. Apply quality gates and cost tracking from `skill-debate-integration` throughout.

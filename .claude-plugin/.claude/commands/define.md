@@ -1,19 +1,76 @@
 ---
 command: define
-description: Thin wrapper that delegates to Go runtime (octo)
+description: "Definition phase - Clarify and scope problems with multi-AI consensus"
+aliases:
+  - grasp
+  - scope-phase
 ---
 
-# /mp:define
+# Define - Definition Phase 🎯
 
-Use Go runtime only.
+## 🤖 INSTRUCTIONS FOR CLAUDE
 
-Actions:
-1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/mp` exists.
-2. Execute:
-```bash
-"${CLAUDE_PLUGIN_ROOT}/bin/mp" define --dir "$PWD" --prompt "<user-prompt>" --json
+When the user invokes this command (e.g., `/mp:define <arguments>`):
+
+**✓ CORRECT - Use the Skill tool:**
 ```
-3. Parse JSON response.
-4. If `status` is `error` or `blocked`, stop immediately.
+Skill(skill: "mp:define", args: "<user's arguments>")
+```
 
-Do not implement command logic in markdown.
+**✗ INCORRECT - Do NOT use Task tool:**
+```
+Task(subagent_type: "mp:define", ...)  ❌ Wrong! This is a skill, not an agent type
+```
+
+**Why:** This command loads the `flow-define` skill. Skills use the `Skill` tool, not `Task`.
+
+---
+
+**Auto-loads the `flow-define` skill for the definition/scoping phase.**
+
+## Quick Usage
+
+Just use natural language:
+```
+"Define the requirements for user authentication"
+"Clarify the scope of the caching feature"
+"What exactly does the notification system need to do?"
+```
+
+## What Is Define?
+
+The **Define** phase of the Double Diamond methodology (convergent thinking):
+- Clarify and scope problems using external CLI providers
+- Technical requirements analysis
+- Problem synthesis and requirement definition
+
+## What You Get
+
+- Multi-AI consensus on requirements (Claude + Gemini + Codex)
+- Clear problem statement
+- Scoped requirements
+- Edge case identification
+- Constraint analysis
+
+## When to Use Define
+
+Use define when you need:
+- **Requirements**: "Define the requirements for X"
+- **Clarification**: "Clarify the scope of Y"
+- **Scoping**: "What exactly does X need to do?"
+- **Problem Understanding**: "Help me understand the problem with Y"
+
+**Don't use define for:**
+- Implementation tasks (use develop phase)
+- Research tasks (use discover phase)
+- Review tasks (use deliver phase)
+
+## Part of the Full Workflow
+
+Define is phase 2 of 4 in the embrace (full) workflow:
+1. Discover
+2. **Define** <- You are here
+3. Develop
+4. Deliver
+
+To run all 4 phases: `/mp:embrace`
