@@ -9,7 +9,7 @@ The plugin name in `plugin.json` **MUST remain "multipowers"**.
 ```json
 // ✅ CORRECT - plugin.json
 {
-  "name": "multipowers"  // This produces /mp:discover, /mp:debate, etc.
+  "name": "mp"  // This produces /mp:discover, /mp:debate, etc.
 }
 ```
 
@@ -33,13 +33,13 @@ These are **different** and serve **different purposes**:
 
 Command paths are formed as: `/[plugin-name]:[command-name]`
 
-- Plugin name: `"multipowers"` + Command: `discover` = `/mp:discover` ✅
+- plugin name: `"mp"` + Command: `discover` = `/mp:discover` ✅
 - Plugin name: `"claude-octopus"` + Command: `discover` = `/claude-octopus:discover` ❌
 
 ### Historical Context
 
 **Commits that fixed this:**
-- `d9e8354` - Reverted plugin name to 'multipowers' for correct command prefixes
+- `d9e8354` - reverted plugin name to 'mp'. for correct command prefixes
 - `57ce38c` - Removed namespace prefix from command frontmatter
 
 **Why it broke:**

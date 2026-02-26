@@ -6,7 +6,7 @@ Audience: users who install this plugin and run `/mp` in their own project.
 
 ```text
 /plugin marketplace add /mnt/f/src/ai/claude-octopus
-/plugin install multipowers@multipowers-plugins --scope user
+/plugin install mp@multipowers-plugins --scope user
 ```
 
 ## Initialize Once Per Target Project
@@ -55,7 +55,7 @@ If `.multipowers/` context is missing, spec-driven commands auto-run `/mp:init`.
 ## Update / Remove
 
 ```text
-/plugin uninstall multipowers@multipowers-plugins --scope user
+/plugin uninstall mp@multipowers-plugins --scope user
 /plugin marketplace remove multipowers-plugins
 ```
 

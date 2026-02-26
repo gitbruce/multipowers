@@ -9,10 +9,10 @@
   },
   "plugins": [
     {
-      "name": "multipowers",
+      "name": "mp",
       "source": "./",
-      "description": "v9.1.1 - strict no-shell runtime with Go-only execution paths and shell-free CI.",
-      "version": "9.1.1",
+      "description": "v9.1.3 - strict no-shell runtime with Go-only execution paths and shell-free CI.",
+      "version": "9.1.3",
       "author": {
         "name": "nyldn"
       },

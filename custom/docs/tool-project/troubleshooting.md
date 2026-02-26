@@ -5,8 +5,8 @@
 - If proxy behavior is wrong, verify `custom/config/proxy.json`.
 - If command docs drift, reapply overlay and verify `.claude/commands/*` against `custom/commands/*`.
 - If plugin state looks stale, reinstall in user scope:
-  - `/plugin uninstall multipowers@multipowers-plugins --scope user`
-  - `/plugin install multipowers@multipowers-plugins --scope user`
+  - `/plugin uninstall mp@multipowers-plugins --scope user`
+  - `/plugin install mp@multipowers-plugins --scope user`
 - If marketplace entry is corrupted, remove and re-add:
   - `/plugin marketplace remove multipowers-plugins`
   - `/plugin marketplace add /mnt/f/src/ai/claude-octopus`

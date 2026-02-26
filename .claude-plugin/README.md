@@ -6,7 +6,7 @@
 
 ```json
 {
-  "name": "multipowers"  // ⚠️ DO NOT CHANGE
+  "name": "mp"  // ⚠️ DO NOT CHANGE
 }
 ```
 

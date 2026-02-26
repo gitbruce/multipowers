@@ -4,13 +4,13 @@
 
 ```text
 /plugin marketplace add /mnt/f/src/ai/claude-octopus
-/plugin install multipowers@multipowers-plugins --scope user
+/plugin install mp@multipowers-plugins --scope user
 ```
 
 ## Uninstall Plugin / Marketplace (User Scope)
 
 ```text
-/plugin uninstall multipowers@multipowers-plugins --scope user
+/plugin uninstall mp@multipowers-plugins --scope user
 /plugin marketplace remove multipowers-plugins
 ```
 

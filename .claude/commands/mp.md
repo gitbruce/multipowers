@@ -1,5 +1,5 @@
 ---
-command: multipowers
+command: mp
 description: Multipowers root router alias
 ---
 

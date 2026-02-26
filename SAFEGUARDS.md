@@ -11,7 +11,7 @@ This document outlines critical configuration that must NOT be changed without c
 ```json
 // .claude-plugin/plugin.json
 {
-  "name": "multipowers"  // ⚠️ LOCKED - See details below
+  "name": "mp"  // ⚠️ LOCKED - See details below
 }
 ```
 
@@ -36,7 +36,7 @@ This document outlines critical configuration that must NOT be changed without c
 ```diff
 // .claude-plugin/plugin.json
 {
-- "name": "multipowers"
+- "name": "mp"
 + "name": "claude-octopus"  // ❌ BREAKS ALL COMMANDS
 }
 ```
@@ -235,7 +235,7 @@ If plugin name gets changed accidentally:
 1. **Revert the change immediately:**
    ```bash
    # In .claude-plugin/plugin.json, set:
-   "name": "multipowers"
+   "name": "mp"
    ```
 
 2. **Verify fix:**

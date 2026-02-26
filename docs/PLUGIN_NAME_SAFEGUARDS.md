@@ -55,13 +55,13 @@ Expected output:
 1. Check the plugin name:
    ```bash
    grep '"name"' .claude-plugin/plugin.json
-   # Should show: "name": "multipowers"
+   # Should show: "name": "mp"
    ```
 
 2. If wrong, fix it immediately:
    ```json
    {
-     "name": "multipowers"  // ← Must be exactly this
+     "name": "mp"  // ← Must be exactly this
    }
    ```
 
