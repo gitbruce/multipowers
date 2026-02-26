@@ -11,8 +11,8 @@
     {
       "name": "mp",
       "source": "./.claude-plugin",
-      "description": "v9.1.5 - isolated plugin source under .claude-plugin with bundled runtime binaries.",
-      "version": "9.1.5",
+      "description": "v9.1.6 - single-source command docs under .claude-plugin/.claude and reduced custom overlay coupling.",
+      "version": "9.1.6",
       "author": {
         "name": "nyldn"
       },
