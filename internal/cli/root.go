@@ -34,6 +34,7 @@ func Run(args []string) int {
 	prompt := fs.String("prompt", strings.Join(rest, " "), "prompt")
 	autoInit := fs.Bool("auto-init", true, "auto init")
 	asJSON := fs.Bool("json", false, "json output")
+	strictNoShell := fs.Bool("strict-no-shell", false, "validate no shell runtime references")
 	event := fs.String("event", "", "hook event")
 	if err := fs.Parse(rest); err != nil {
 		return 2
@@ -87,6 +88,16 @@ func Run(args []string) int {
 		}
 		return respond(r)
 	case "validate":
+		if *strictNoShell {
+			res, err := validation.ScanNoShellRuntime(absDir)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			if !res.Valid {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "strict no-shell validation failed", Data: map[string]any{"strict_no_shell": res}})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"strict_no_shell": res}})
+		}
 		res := validation.EnsureTargetWorkspace(absDir)
 		if !res.Valid {
 			return respond(api.Response{Status: "error", Message: res.Reason, ErrorCode: app.ErrCtxMissing})
