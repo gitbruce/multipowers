@@ -10,34 +10,15 @@ skill: skill-persona
 
 When the user invokes this command (e.g., `/octo:persona <arguments>`):
 
-### ✓ REQUIRED EXECUTION PATH
-
-Always execute via orchestrate CLI:
+### REQUIRED EXECUTION PATH
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh persona "$ARGUMENTS"
+${CLAUDE_PLUGIN_ROOT}/bin/octo persona --dir "$PWD" --prompt "$ARGUMENTS" --json
 ```
 
-### ✗ PROHIBITED
+### PROHIBITED
 
-Do NOT run persona requests using Claude Code Task tool subagents (for example `octo:personas:*`), because that path hides the provider:model lane and breaks `/octo:persona` contract.
-
-### REQUIRED OUTPUT
-
-Surface the orchestrator output, including the explicit model lane line:
-
-- `Using: <provider>:<model>`
-- If orchestrator returns native Claude payload markers:
-  - `OCTOPUS_NATIVE_PERSONA_BEGIN`
-  - `OCTOPUS_NATIVE_PERSONA_END`
-  then answer directly in the current Claude session using that payload.
-  Do not invoke external Claude CLI or Task tool subagents.
-
----
-
-# Persona Command
-
-Run an explicit persona from the Claude Octopus persona catalog.
+Do NOT run persona requests using Claude Code Task tool subagents.
 
 ## Usage
 
@@ -46,13 +27,7 @@ Run an explicit persona from the Claude Octopus persona catalog.
 /octo:persona <persona-name> <prompt>
 ```
 
-## Behavior
+## Output Contract
 
-- `list`: Shows all personas configured in `agents/config.yaml`.
-- `<persona-name> <prompt>`: Runs the prompt with that persona and prints the execution lane in verbose form (for example: `codex:gpt-5.3-codex`) before execution.
-
-## Implementation
-
-```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh persona "$ARGUMENTS"
-```
+- `list`: one-line table output in `name | description | model` format
+- run: includes `using_line` with `Using: <provider>:<model>`

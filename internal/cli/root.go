@@ -124,6 +124,12 @@ func Run(args []string) int {
 			return api.Response{Status: "ok", Data: data}
 		})
 		return respond(r)
+	case "persona":
+		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), *prompt)
+		if err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
+		return respond(api.Response{Status: "ok", Data: data})
 	case "hook":
 		e := api.HookEvent{Event: *event, CWD: absDir, ToolInput: map[string]any{"prompt": *prompt}}
 		hr := hooks.Handle(absDir, e)
