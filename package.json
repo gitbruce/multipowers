@@ -1,6 +1,6 @@
 {
   "name": "claude-octopus",
-  "version": "8.12.16",
+  "version": "8.12.17",
   "description": "Claude Octopus - Multi-agent orchestration with /octo:deck slide deck generator, outline approval gate, and PPTX export via document-skills",
   "main": "orchestrate.sh",
   "scripts": {
