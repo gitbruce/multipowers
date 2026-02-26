@@ -11,7 +11,7 @@ Display current Claude Octopus state, active agents, and provider readiness.
 Run:
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh status
+${CLAUDE_PLUGIN_ROOT}/bin/octo status
 ```
 
 Then summarize:

@@ -14,7 +14,7 @@ This guide documents direct CLI usage of orchestrate.sh for advanced users and a
 
 ```bash
 # Execute from repository root
-./scripts/orchestrate.sh <command> [options] "<prompt>"
+./bin/octo <command> [options] "<prompt>"
 ```
 
 ### Core Commands
@@ -82,13 +82,13 @@ source ~/.bashrc
 
 ```bash
 # Check provider status
-./scripts/orchestrate.sh detect-providers
+./bin/octo detect-providers
 
 # Run full preflight check
-./scripts/orchestrate.sh preflight
+./bin/octo preflight
 
 # Show current status
-./scripts/orchestrate.sh status
+./bin/octo status
 ```
 
 ---
@@ -114,7 +114,7 @@ source ~/.bashrc
 Parallel research from multiple perspectives - problem space, existing solutions, edge cases, technical feasibility.
 
 ```bash
-./scripts/orchestrate.sh discover "What are the best approaches for real-time notifications?"
+./bin/octo discover "What are the best approaches for real-time notifications?"
 ```
 
 **Output:**
@@ -126,7 +126,7 @@ Parallel research from multiple perspectives - problem space, existing solutions
 Multi-AI consensus on problem definition, success criteria, and constraints.
 
 ```bash
-./scripts/orchestrate.sh define "Define requirements for notification system"
+./bin/octo define "Define requirements for notification system"
 ```
 
 **Output:**
@@ -138,7 +138,7 @@ Multi-AI consensus on problem definition, success criteria, and constraints.
 Enhanced map-reduce with 75% quality gate threshold.
 
 ```bash
-./scripts/orchestrate.sh develop "Implement notification service"
+./bin/octo develop "Implement notification service"
 ```
 
 **Output:**
@@ -151,7 +151,7 @@ Enhanced map-reduce with 75% quality gate threshold.
 Validation and final deliverable generation.
 
 ```bash
-./scripts/orchestrate.sh deliver "Deliver notification system"
+./bin/octo deliver "Deliver notification system"
 ```
 
 **Output:**
@@ -164,7 +164,7 @@ Validation and final deliverable generation.
 Run all four phases in sequence:
 
 ```bash
-./scripts/orchestrate.sh embrace "Create a complete user dashboard feature"
+./bin/octo embrace "Create a complete user dashboard feature"
 ```
 
 **Executes:**
@@ -190,9 +190,9 @@ The `auto` command detects intent and routes to the appropriate workflow:
 
 **Usage:**
 ```bash
-./scripts/orchestrate.sh auto "research OAuth patterns"           # -> discover
-./scripts/orchestrate.sh auto "build user login"                  # -> develop + deliver
-./scripts/orchestrate.sh auto "security audit auth.ts"            # -> squeeze
+./bin/octo auto "research OAuth patterns"           # -> discover
+./bin/octo auto "build user login"                  # -> develop + deliver
+./bin/octo auto "security audit auth.ts"            # -> squeeze
 ```
 
 ---
@@ -202,9 +202,9 @@ The `auto` command detects intent and routes to the appropriate workflow:
 Use `persona` when you want to force a specific configured persona instead of intent-based auto-selection.
 
 ```bash
-./scripts/orchestrate.sh persona list
-./scripts/orchestrate.sh persona backend-architect "Design a resilient webhook pipeline"
-./scripts/orchestrate.sh persona security-auditor "Review auth module for OWASP risks"
+./bin/octo persona list
+./bin/octo persona backend-architect "Design a resilient webhook pipeline"
+./bin/octo persona security-auditor "Review auth module for OWASP risks"
 ```
 
 Before execution, Octopus prints the selected lane in verbose format, for example:
@@ -247,10 +247,10 @@ Context is detected from:
 When auto-detection is wrong, use the knowledge mode toggle:
 
 ```bash
-./scripts/orchestrate.sh km on     # Force Knowledge context
-./scripts/orchestrate.sh km off    # Force Dev context
-./scripts/orchestrate.sh km auto   # Return to auto-detection
-./scripts/orchestrate.sh km        # Show current status
+./bin/octo km on     # Force Knowledge context
+./bin/octo km off    # Force Dev context
+./bin/octo km auto   # Return to auto-detection
+./bin/octo km        # Show current status
 ```
 
 ---
@@ -262,8 +262,8 @@ Different AI models have different blind spots. Crossfire forces models to criti
 ### Grapple - Adversarial Debate
 
 ```bash
-./scripts/orchestrate.sh grapple "implement password reset API"
-./scripts/orchestrate.sh grapple --principles security "implement JWT auth"
+./bin/octo grapple "implement password reset API"
+./bin/octo grapple --principles security "implement JWT auth"
 ```
 
 **How it works:**
@@ -285,19 +285,19 @@ Round 3: Synthesis determines winner + final implementation
 **Examples:**
 ```bash
 # General quality review
-./scripts/orchestrate.sh grapple "implement user registration"
+./bin/octo grapple "implement user registration"
 
 # Security-focused review
-./scripts/orchestrate.sh grapple --principles security "implement JWT auth"
+./bin/octo grapple --principles security "implement JWT auth"
 
 # Performance-focused review
-./scripts/orchestrate.sh grapple --principles performance "implement API caching"
+./bin/octo grapple --principles performance "implement API caching"
 ```
 
 ### Squeeze - Red Team Security Review
 
 ```bash
-./scripts/orchestrate.sh squeeze "implement user login form"
+./bin/octo squeeze "implement user login form"
 ```
 
 **How it works:**
@@ -311,7 +311,7 @@ Round 3: Synthesis determines winner + final implementation
 
 **Example:**
 ```bash
-./scripts/orchestrate.sh squeeze "review auth.ts for vulnerabilities"
+./bin/octo squeeze "review auth.ts for vulnerabilities"
 ```
 
 ---
@@ -354,16 +354,16 @@ The configuration wizard sets your subscription tier for each provider:
 **Usage:**
 ```bash
 # Check current provider status
-./scripts/orchestrate.sh status
+./bin/octo status
 
 # Force cost-first routing
-./scripts/orchestrate.sh --cost-first auto "research best practices"
+./bin/octo --cost-first auto "research best practices"
 
 # Force specific provider
-./scripts/orchestrate.sh --provider gemini probe "research OAuth patterns"
+./bin/octo --provider gemini probe "research OAuth patterns"
 
 # Quality-first for critical tasks
-./scripts/orchestrate.sh --quality-first tangle "implement authentication"
+./bin/octo --quality-first tangle "implement authentication"
 ```
 
 ---
@@ -382,16 +382,16 @@ The configuration wizard sets your subscription tier for each provider:
 **Examples:**
 ```bash
 # Dry run to preview execution
-./scripts/orchestrate.sh -n probe "research caching"
+./bin/octo -n probe "research caching"
 
 # Verbose mode for debugging
-./scripts/orchestrate.sh -v tangle "implement auth"
+./bin/octo -v tangle "implement auth"
 
 # Extended timeout for complex tasks
-./scripts/orchestrate.sh -t 1200 embrace "build complete dashboard"
+./bin/octo -t 1200 embrace "build complete dashboard"
 
 # Cost-optimized research
-./scripts/orchestrate.sh --cost-first probe "research microservices"
+./bin/octo --cost-first probe "research microservices"
 ```
 
 ---
@@ -415,7 +415,7 @@ Quality gates ensure minimum standards before delivery:
 **Example:**
 ```bash
 # Tangle phase includes automatic quality gates
-./scripts/orchestrate.sh tangle "implement user authentication"
+./bin/octo tangle "implement user authentication"
 
 # Output includes quality score:
 # Quality Score: 82/100 (WARNING - below 90%)
@@ -432,7 +432,7 @@ Quality gates ensure minimum standards before delivery:
 ### Interactive Configuration Wizard
 
 ```bash
-./scripts/orchestrate.sh octopus-configure
+./bin/octo octopus-configure
 ```
 
 **Configures:**
@@ -445,7 +445,7 @@ Quality gates ensure minimum standards before delivery:
 ### Preflight Checks
 
 ```bash
-./scripts/orchestrate.sh preflight
+./bin/octo preflight
 ```
 
 **Verifies:**
@@ -458,7 +458,7 @@ Quality gates ensure minimum standards before delivery:
 ### Status
 
 ```bash
-./scripts/orchestrate.sh status
+./bin/octo status
 ```
 
 **Shows:**
@@ -506,41 +506,41 @@ Debates are stored in session-aware folders:
 
 ```bash
 # Phase 1: Research authentication patterns
-./scripts/orchestrate.sh discover "authentication best practices for React apps"
+./bin/octo discover "authentication best practices for React apps"
 
 # Phase 2: Define requirements
-./scripts/orchestrate.sh define "define requirements for JWT authentication"
+./bin/octo define "define requirements for JWT authentication"
 
 # Phase 3: Implement
-./scripts/orchestrate.sh develop "implement JWT authentication system"
+./bin/octo develop "implement JWT authentication system"
 
 # Phase 4: Validate
-./scripts/orchestrate.sh deliver "validate authentication implementation"
+./bin/octo deliver "validate authentication implementation"
 ```
 
 ### Or use embrace for all phases:
 ```bash
-./scripts/orchestrate.sh embrace "build complete JWT authentication system"
+./bin/octo embrace "build complete JWT authentication system"
 ```
 
 ### Security Audit
 
 ```bash
 # Red team security review
-./scripts/orchestrate.sh squeeze "audit auth.ts for security vulnerabilities"
+./bin/octo squeeze "audit auth.ts for security vulnerabilities"
 
 # Adversarial security-focused debate
-./scripts/orchestrate.sh grapple --principles security "review login implementation"
+./bin/octo grapple --principles security "review login implementation"
 ```
 
 ### Cost-Optimized Research
 
 ```bash
 # Use cheapest provider for research
-./scripts/orchestrate.sh --cost-first discover "research React state management"
+./bin/octo --cost-first discover "research React state management"
 
 # Use quality-first for critical implementation
-./scripts/orchestrate.sh --quality-first develop "implement payment processing"
+./bin/octo --quality-first develop "implement payment processing"
 ```
 
 ---
@@ -551,7 +551,7 @@ Debates are stored in session-aware folders:
 
 ```bash
 # Check provider status
-./scripts/orchestrate.sh detect-providers
+./bin/octo detect-providers
 
 # Expected output:
 # CODEX_STATUS=ready
@@ -572,10 +572,10 @@ export OPENAI_API_KEY="sk-..."
 
 ```bash
 # Make orchestrate.sh executable
-chmod +x ./scripts/orchestrate.sh
+chmod +x ./bin/octo
 
 # Check file permissions
-ls -la ./scripts/orchestrate.sh
+ls -la ./bin/octo
 ```
 
 ### Session Directory Not Found
@@ -593,7 +593,7 @@ mkdir -p ~/.claude-octopus/debates
 
 ```bash
 # Increase timeout for complex tasks
-./scripts/orchestrate.sh -t 1200 embrace "complex feature"
+./bin/octo -t 1200 embrace "complex feature"
 
 # Default timeout is 120 seconds (2 minutes)
 # Maximum timeout is 1800 seconds (30 minutes)
@@ -623,7 +623,7 @@ jobs:
 
       - name: Run code review
         run: |
-          ./scripts/orchestrate.sh ink "review changes in this PR"
+          ./bin/octo ink "review changes in this PR"
 
       - name: Post results
         uses: actions/github-script@v6

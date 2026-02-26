@@ -82,7 +82,7 @@ Provider Availability:
 **You MUST execute this command via the Bash tool:**
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh [workflow] "<user's request>"
+${CLAUDE_PLUGIN_ROOT}/bin/octo [workflow] "<user's request>"
 ```
 
 **CRITICAL: You are PROHIBITED from:**
@@ -232,7 +232,7 @@ validation_gates:
 
 Execute:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh code-review "<commit range or files>"
+${CLAUDE_PLUGIN_ROOT}/bin/octo code-review "<commit range or files>"
 ```
 
 Validate:
@@ -251,7 +251,7 @@ validation_gates:
 
 Execute:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh architecture "<system design prompt>"
+${CLAUDE_PLUGIN_ROOT}/bin/octo architecture "<system design prompt>"
 ```
 
 Validate:
@@ -270,7 +270,7 @@ validation_gates:
 
 Execute:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh security-audit "<scope>"
+${CLAUDE_PLUGIN_ROOT}/bin/octo security-audit "<scope>"
 ```
 
 Validate:

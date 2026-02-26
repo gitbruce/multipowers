@@ -12,7 +12,7 @@ Claude Octopus provides structured, multi-provider AI orchestration for Claude C
 
 ## What This Repository Delivers
 
-1. Workflow orchestration engine in `scripts/orchestrate.sh`.
+1. Workflow orchestration engine in `bin/octo`.
 2. Command surface in `.claude/commands/*` and skill implementations in `.claude/skills/*`.
 3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
 4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.
@@ -62,7 +62,7 @@ Default provider/model policy for this repository:
 
 ### 4) State, Context, and Resume
 
-- Operational state is managed by scripts such as `state-manager.sh` and `octo-state.sh`.
+- Operational state is managed by scripts such as `octo state` and `octo-state.sh`.
 - Resume/status/issue flows provide continuity across long-running work.
 - Stable product context belongs in `conductor/context/*`; transient implementation details belong in workflow/session artifacts.
 

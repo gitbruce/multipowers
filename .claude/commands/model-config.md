@@ -25,7 +25,7 @@ In this environment:
 
 ## Principles-Aligned Policy
 
-Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `scripts/orchestrate.sh`):
+Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `bin/octo`):
 
 - Planning, architecture, and important decisions -> Codex (`gpt-5.3-codex`)
 - Heavy coding/implementation -> Claude Opus (`claude-opus`; mapped by your Claude Code env, e.g. GLM-5)
@@ -240,7 +240,7 @@ When the user invokes `/octo:model-config`, you MUST:
 3. **Set Model** (`<provider> <model>` or with `--session`):
    ```bash
    # Call set_provider_model from orchestrate.sh
-   source "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh"
+   source "${CLAUDE_PLUGIN_ROOT}/bin/octo"
    set_provider_model <provider> <model> [--session]
 
    # Show updated configuration
@@ -274,7 +274,7 @@ PY
 5. **Reset Model** (`reset <provider|phases|all>`):
    ```bash
    # Call reset_provider_model from orchestrate.sh
-   source "${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh"
+   source "${CLAUDE_PLUGIN_ROOT}/bin/octo"
    reset_provider_model <provider>
 
    # For phases: reset phase_routing to defaults

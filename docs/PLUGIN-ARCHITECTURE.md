@@ -213,7 +213,7 @@ Hooks inject additional context or execute commands at specific points in the wo
 
 ### 4. Orchestrate.sh (Core Engine)
 
-**Location:** `scripts/orchestrate.sh`
+**Location:** `bin/octo`
 
 **Purpose:** Bash script that coordinates multiple AI CLI providers.
 
@@ -415,7 +415,7 @@ evaluate_quality() {
    ↓
 5. Claude: Output visual indicator to user
    ↓
-6. Claude: Execute Bash tool: ./scripts/orchestrate.sh probe "OAuth patterns"
+6. Claude: Execute Bash tool: ./bin/octo probe "OAuth patterns"
    ↓
 7. orchestrate.sh:
    - Detect providers (Codex, Gemini available)
@@ -626,7 +626,7 @@ detect_providers() {
 
 ```bash
 export CLAUDE_OCTOPUS_DEBUG=1
-./scripts/orchestrate.sh probe "test"
+./bin/octo probe "test"
 ```
 
 ### Check Hook Execution

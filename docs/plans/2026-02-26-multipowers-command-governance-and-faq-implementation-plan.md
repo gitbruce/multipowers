@@ -4,9 +4,9 @@
 
 **Goal:** Implement standardized spec-command preflight governance, runtime fail-fast contract, and fully automatic `CLAUDE.md` + `FAQ.md` knowledge loop for target projects.
 
-**Architecture:** Keep upstream conflict surface minimal by placing new logic in `custom/*` and using thin wiring in `scripts/orchestrate.sh`. Centralize spec-driven preflight and FAQ synthesis in reusable shell helpers; ensure all target-project writes stay under `/.multipowers/`.
+**Architecture:** Keep upstream conflict surface minimal by placing new logic in `custom/*` and using thin wiring in `bin/octo`. Centralize spec-driven preflight and FAQ synthesis in reusable shell helpers; ensure all target-project writes stay under `/.multipowers/`.
 
-**Tech Stack:** Bash (`scripts/orchestrate.sh`, `custom/lib/*.sh`), Markdown templates (`custom/templates/*`), shell tests (`tests/unit/*.sh`, `tests/integration/*.sh`).
+**Tech Stack:** Bash (`bin/octo`, `custom/lib/*.sh`), Markdown templates (`custom/templates/*`), shell tests (`tests/unit/*.sh`, `tests/integration/*.sh`).
 
 ---
 
@@ -37,7 +37,7 @@
   - Run: `git rev-parse --short HEAD`
   - Record in notes.
 - [x] P0.3 Verify existing syntax baseline
-  - Run: `bash -n scripts/orchestrate.sh`
+  - Run: `bash -n bin/octo`
   - Expected: no syntax error.
 
 **Commit checkpoint:** none (informational baseline)
@@ -70,7 +70,7 @@
 ### Phase 2: Wire `/octo:init` to Generate Both Files in Target `/.multipowers/`
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `custom/config/setup.toml`
 - Modify: `custom/lib/conductor-context.sh`
 - Test: `tests/unit/test-octo-init-render.sh`
@@ -88,14 +88,14 @@
   - Expected: PASS both.
 
 **Commit checkpoint:**
-- [x] `git add scripts/orchestrate.sh custom/config/setup.toml custom/lib/conductor-context.sh tests/unit/test-octo-init-render.sh tests/unit/test-claude-faq-init-render.sh && git commit -m "feat(init): generate CLAUDE and FAQ in target .multipowers"`
+- [x] `git add bin/octo custom/config/setup.toml custom/lib/conductor-context.sh tests/unit/test-octo-init-render.sh tests/unit/test-claude-faq-init-render.sh && git commit -m "feat(init): generate CLAUDE and FAQ in target .multipowers"`
 
 ---
 
 ### Phase 3: Harden Spec-Driven Step 0 Preflight (Single Contract)
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `custom/lib/conductor-context.sh`
 - Modify: `.claude/commands/plan.md`
 - Modify: `.claude/commands/discover.md`
@@ -117,14 +117,14 @@
   - Expected: PASS.
 
 **Commit checkpoint:**
-- [x] `git add scripts/orchestrate.sh custom/lib/conductor-context.sh .claude/commands/plan.md .claude/commands/discover.md .claude/commands/define.md .claude/commands/develop.md .claude/commands/deliver.md .claude/commands/embrace.md .claude/commands/research.md tests/unit/test-conductor-context-guard.sh tests/integration/test-spec-commands-auto-init.sh && git commit -m "fix(spec-commands): enforce unified Step-0 multipowers preflight"`
+- [x] `git add bin/octo custom/lib/conductor-context.sh .claude/commands/plan.md .claude/commands/discover.md .claude/commands/define.md .claude/commands/develop.md .claude/commands/deliver.md .claude/commands/embrace.md .claude/commands/research.md tests/unit/test-conductor-context-guard.sh tests/integration/test-spec-commands-auto-init.sh && git commit -m "fix(spec-commands): enforce unified Step-0 multipowers preflight"`
 
 ---
 
 ### Phase 4: Enforce Runtime Preconditions (`fail-fast`) in All Execution Paths
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `custom/docs/target-project/getting-started.md`
 - Modify: `custom/docs/target-project/troubleshooting.md`
 - Create: `tests/unit/test-runtime-prerun-failfast.sh`
@@ -140,14 +140,14 @@
   - Expected: PASS.
 
 **Commit checkpoint:**
-- [x] `git add scripts/orchestrate.sh custom/docs/target-project/getting-started.md custom/docs/target-project/troubleshooting.md tests/unit/test-runtime-prerun-failfast.sh && git commit -m "feat(runtime): enforce fail-fast pre-run contract across execution paths"`
+- [x] `git add bin/octo custom/docs/target-project/getting-started.md custom/docs/target-project/troubleshooting.md tests/unit/test-runtime-prerun-failfast.sh && git commit -m "feat(runtime): enforce fail-fast pre-run contract across execution paths"`
 
 ---
 
 ### Phase 5: Debate Provider Quorum/Fallback Guarantees
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `tests/unit/test-debate-routing.sh`
 - Modify: `tests/integration/test-debate-integration.sh`
 - Modify: `custom/docs/customizations/proxy-routing.md`
@@ -164,7 +164,7 @@
   - Expected: PASS.
 
 **Commit checkpoint:**
-- [x] `git add scripts/orchestrate.sh tests/unit/test-debate-routing.sh tests/integration/test-debate-integration.sh custom/docs/customizations/proxy-routing.md && git commit -m "fix(debate): enforce >=2 provider quorum with consistent fallback and proxy env"`
+- [x] `git add bin/octo tests/unit/test-debate-routing.sh tests/integration/test-debate-integration.sh custom/docs/customizations/proxy-routing.md && git commit -m "fix(debate): enforce >=2 provider quorum with consistent fallback and proxy env"`
 
 ---
 
@@ -172,7 +172,7 @@
 
 **Files:**
 - Create: `custom/lib/faq-synthesizer.sh`
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Create: `tests/unit/test-faq-synthesizer.sh`
 - Create: `tests/integration/test-faq-auto-update.sh`
 
@@ -190,7 +190,7 @@
   - Expected: PASS.
 
 **Commit checkpoint:**
-- [x] `git add custom/lib/faq-synthesizer.sh scripts/orchestrate.sh tests/unit/test-faq-synthesizer.sh tests/integration/test-faq-auto-update.sh && git commit -m "feat(faq): auto-generate deduped multipowers FAQ by error type"`
+- [x] `git add custom/lib/faq-synthesizer.sh bin/octo tests/unit/test-faq-synthesizer.sh tests/integration/test-faq-auto-update.sh && git commit -m "feat(faq): auto-generate deduped multipowers FAQ by error type"`
 
 ---
 
@@ -227,7 +227,7 @@
 
 **Steps:**
 - [x] P8.1 Run syntax checks
-  - Run: `bash -n scripts/orchestrate.sh && bash tests/smoke/test-syntax.sh`
+  - Run: `bash -n bin/octo && bash tests/smoke/test-syntax.sh`
 - [x] P8.2 Run focused test suite
   - Run: `bash tests/unit/test-conductor-context-guard.sh`
   - Run: `bash tests/unit/test-octo-init-render.sh`

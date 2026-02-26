@@ -7,7 +7,7 @@ Claude Octopus includes **async task management** and **tmux visualization** for
 Enable async mode for improved progress tracking and parallel execution:
 
 ```bash
-./scripts/orchestrate.sh probe "research auth patterns" --async
+./bin/octo probe "research auth patterns" --async
 ```
 
 **Benefits:**
@@ -26,7 +26,7 @@ Enable async mode for improved progress tracking and parallel execution:
 Watch agents work in real-time with tmux panes:
 
 ```bash
-./scripts/orchestrate.sh embrace "implement auth system" --tmux
+./bin/octo embrace "implement auth system" --tmux
 ```
 
 **What you get:**
@@ -76,17 +76,17 @@ export OCTOPUS_ASYNC_MODE=true
 export OCTOPUS_TMUX_MODE=true
 
 # Run workflow
-./scripts/orchestrate.sh probe "research caching strategies"
+./bin/octo probe "research caching strategies"
 ```
 
 ## Disabling Features
 
 ```bash
 # Disable async (use standard progress tracking)
-./scripts/orchestrate.sh probe "..." --no-async
+./bin/octo probe "..." --no-async
 
 # Disable tmux (use terminal output)
-./scripts/orchestrate.sh probe "..." --no-tmux
+./bin/octo probe "..." --no-tmux
 ```
 
 ## Comparison: Standard vs Async vs Tmux
@@ -104,19 +104,19 @@ export OCTOPUS_TMUX_MODE=true
 
 **For maximum performance:**
 ```bash
-./scripts/orchestrate.sh embrace "task" --async -p 8
+./bin/octo embrace "task" --async -p 8
 # Enables: async mode + 8 parallel agents
 ```
 
 **For best transparency:**
 ```bash
-./scripts/orchestrate.sh embrace "task" --tmux --verbose
+./bin/octo embrace "task" --tmux --verbose
 # Enables: tmux visualization + detailed logging
 ```
 
 **For CI/CD:**
 ```bash
-./scripts/orchestrate.sh embrace "task" --ci
+./bin/octo embrace "task" --ci
 # Uses: standard mode (no tmux), non-interactive, JSON output
 ```
 

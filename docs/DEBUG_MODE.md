@@ -8,19 +8,19 @@ Enable detailed debug logging for troubleshooting Claude Octopus issues.
 
 ```bash
 export OCTOPUS_DEBUG=1
-./scripts/orchestrate.sh <command>
+./bin/octo <command>
 ```
 
 ### Option 2: Command-line Flag
 
 ```bash
-./scripts/orchestrate.sh --debug <command>
+./bin/octo --debug <command>
 ```
 
 ### Option 3: Inline
 
 ```bash
-OCTOPUS_DEBUG=1 ./scripts/orchestrate.sh <command>
+OCTOPUS_DEBUG=1 ./bin/octo <command>
 ```
 
 ## What Debug Mode Shows
@@ -37,7 +37,7 @@ Debug mode provides detailed logging including:
 ## Example Output
 
 ```bash
-$ OCTOPUS_DEBUG=1 ./scripts/orchestrate.sh detect-providers
+$ OCTOPUS_DEBUG=1 ./bin/octo detect-providers
 
 [DEBUG] ═══ Orchestrate.sh starting ═══
 [DEBUG] COMMAND=detect-providers
@@ -77,5 +77,5 @@ Debug mode automatically enables verbose mode (`--verbose`), so you'll see both 
 unset OCTOPUS_DEBUG
 
 # Or just don't use the --debug flag
-./scripts/orchestrate.sh <command>
+./bin/octo <command>
 ```

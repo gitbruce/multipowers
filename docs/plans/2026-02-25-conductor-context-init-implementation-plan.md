@@ -4,23 +4,23 @@
 
 **Goal:** Replace `.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, with auto-init and checkbox tracking for all spec-driven `/octo` commands.
 
-**Architecture:** Keep upstream-impact minimal: implement most behavior in `custom/*` (templates/libs/docs/tests), and add only thin hooks in high-churn upstream files. Use a central command-level guard in `scripts/orchestrate.sh` for spec-driven commands. If context is missing/incomplete, auto-run interactive `/octo:init`, render templates from `custom/templates/`, then execute with mandatory conductor-context loading and `conductor/tracks/` checkbox updates.
+**Architecture:** Keep upstream-impact minimal: implement most behavior in `custom/*` (templates/libs/docs/tests), and add only thin hooks in high-churn upstream files. Use a central command-level guard in `bin/octo` for spec-driven commands. If context is missing/incomplete, auto-run interactive `/octo:init`, render templates from `custom/templates/`, then execute with mandatory conductor-context loading and `conductor/tracks/` checkbox updates.
 
-**Tech Stack:** Bash (`scripts/orchestrate.sh`, command markdown contracts), custom overlay libs/scripts, markdown templates, shell tests.
+**Tech Stack:** Bash (`bin/octo`, command markdown contracts), custom overlay libs/scripts, markdown templates, shell tests.
 
 ---
 
 ## Task 0: Branch Strategy Guardrails (Main-Upstream Principle)
 
 **Files:**
-- Modify: `custom/scripts/sync-upstream.sh`
+- Modify: `custom/scripts/octo-devx sync`
 - Create: `tests/unit/test-main-upstream-discipline.sh`
 - Modify: `custom/docs/sync/upstream-sync-playbook.md`
 
 **Subtasks:**
 - [x] T0.1 Document invariant: `main` is upstream mirror only (no custom commits)
 - [x] T0.2 Enforce all customization work on `multipowers` only
-- [x] T0.3 Add conflict-budget rule: minimize edits in `.claude/*`, `.claude-plugin/*`, `scripts/orchestrate.sh`
+- [x] T0.3 Add conflict-budget rule: minimize edits in `.claude/*`, `.claude-plugin/*`, `bin/octo`
 - [x] T0.4 Add verification command to show customization footprint is mostly `custom/*`
 
 **Verification:**
@@ -95,8 +95,8 @@
 **Files:**
 - Create: `custom/commands/init.md`
 - Modify: `.claude-plugin/plugin.json`
-- Modify: `scripts/orchestrate.sh`
-- Modify: `custom/scripts/apply-custom-overlay.sh`
+- Modify: `bin/octo`
+- Modify: `custom/scripts/octo-devx overlay`
 
 **Subtasks:**
 - [x] T3.1 Add command contract for `/octo:init` under `custom/commands/`
@@ -108,7 +108,7 @@
 - [x] T3.7 Sync `custom/commands/init.md` into runtime command path via overlay script
 
 **Verification:**
-- [x] `bash -n scripts/orchestrate.sh`
+- [x] `bash -n bin/octo`
 - [x] `/octo:init` creates all required conductor files
 
 ---
@@ -116,7 +116,7 @@
 ## Task 4: Route Plan/Intent Outputs from `.claude` to `conductor/tracks`
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `custom/commands/plan.md` (if override is required)
 
 **Subtasks:**
@@ -135,7 +135,7 @@
 ## Task 5: Add Command-Level Guard to All Spec-Driven Commands
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `custom/lib/conductor-context.sh`
 - Modify: `docs/COMMAND-REFERENCE.md`
 
@@ -145,7 +145,7 @@
 - [x] T5.3 Re-check context after init before proceeding
 - [x] T5.4 Exclude non-spec commands from this guard
 - [x] T5.5 Implement spec-driven command allowlist in one central place
-- [x] T5.6 Keep upstream hook footprint minimal (single dispatch point in `scripts/orchestrate.sh`)
+- [x] T5.6 Keep upstream hook footprint minimal (single dispatch point in `bin/octo`)
 
 **Verification:**
 - [x] Missing conductor context triggers init automatically
@@ -156,7 +156,7 @@
 ## Task 6: Mandatory Context Read Before Spec-Driven Execution
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Modify: `custom/lib/conductor-context.sh`
 
 **Subtasks:**
@@ -173,7 +173,7 @@
 ## Task 7: Checkbox Tracking in `conductor/tracks/`
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Create/Modify: `custom/templates/conductor/tracks.md`
 
 **Subtasks:**
@@ -249,7 +249,7 @@
 - [x] T10.6 Verify customization impact is minimized in upstream-heavy paths
 
 **Verification Commands:**
-- [x] `bash -n scripts/orchestrate.sh custom/lib/*.sh custom/scripts/*.sh`
+- [x] `bash -n bin/octo custom/lib/*.sh custom/scripts/*.sh`
 - [x] `bash tests/unit/test-conductor-context-guard.sh`
 - [x] `bash tests/integration/test-spec-commands-auto-init.sh`
 - [x] `bash tests/integration/test-tracks-checkbox-updates.sh`
@@ -258,7 +258,7 @@
 ---
 
 ## Rollback Plan
-- Revert guard wiring in command files and `scripts/orchestrate.sh`.
+- Revert guard wiring in command files and `bin/octo`.
 - Keep `/octo:init` command isolated behind feature flag if needed.
 - Restore prior plan behavior only if conductor flow cannot be stabilized.
 

@@ -35,15 +35,15 @@ git fetch upstream origin
 git switch main
 git merge --ff-only upstream/main
 git switch multipowers
-./custom/scripts/sync-upstream.sh
+./custom/scripts/octo-devx sync
 ```
 
 ## Manual Verification Checklist
 ```bash
 git status --short --branch
-./custom/scripts/sync-upstream.sh
-./custom/scripts/apply-custom-overlay.sh
-./scripts/orchestrate.sh persona list
+./custom/scripts/octo-devx sync
+./custom/scripts/octo-devx overlay
+./bin/octo persona list
 ```
 
 Expected outcomes:

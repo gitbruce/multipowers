@@ -24,8 +24,8 @@ Runs on Setup event (v2.1.10 feature):
 ## Implementation
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh init --quiet
-${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh detect-providers
+${CLAUDE_PLUGIN_ROOT}/bin/octo init --quiet
+${CLAUDE_PLUGIN_ROOT}/bin/octo detect-providers
 ```
 
 ## Output

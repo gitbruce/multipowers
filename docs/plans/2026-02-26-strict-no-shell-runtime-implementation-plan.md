@@ -55,9 +55,9 @@ pkg/
 ### Mapping Rules (current -> target)
 
 - `scripts/orchestrate*.sh` -> `cmd/octo` + `internal/cli` + `internal/workflows`
-- `scripts/state-manager.sh` -> `internal/tracks`
-- `scripts/context-manager.sh` -> `internal/context`
-- `scripts/provider-router.sh` -> `internal/providers`
+- `scripts/octo state` -> `internal/tracks`
+- `scripts/octo context` -> `internal/context`
+- `scripts/octo providers` -> `internal/providers`
 - `hooks/*.sh` runtime logic -> `internal/hooks`
 - `tests/*.sh` harness -> `cmd/octo-devx` + `internal/devx`
 - shell-based validation scripts -> `internal/validation` + `cmd/octo validate`
@@ -119,7 +119,7 @@ git commit -m "refactor(arch): normalize go package layout for strict no-shell m
 
 ```go
 func TestNoShellRuntimeValidator_FailsOnShellInvocation(t *testing.T) {
-    refs := []string{".claude-plugin/commands/persona.md:${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh persona"}
+    refs := []string{".claude-plugin/commands/persona.md:${CLAUDE_PLUGIN_ROOT}/bin/octo persona"}
     got := ValidateNoShellRuntimeRefs(refs)
     if got.Valid {
         t.Fatalf("expected invalid, got valid")
@@ -187,7 +187,7 @@ Expected: FAIL.
 **Step 3: Implement persona subcommand in Go and switch command file**
 
 - Add `octo persona --prompt "..." --json` in `root.go`.
-- Change `.claude-plugin/commands/persona.md` from `scripts/orchestrate.sh` to `bin/octo persona ...`.
+- Change `.claude-plugin/commands/persona.md` from `bin/octo` to `bin/octo persona ...`.
 
 **Step 4: Run tests**
 
@@ -203,7 +203,7 @@ git commit -m "feat(persona): route persona command to go runtime"
 
 ---
 
-- [ ] ### Task 3: Port Remaining Shell Utility Logic to Go (state/context/provider)
+- [x] ### Task 3: Port Remaining Shell Utility Logic to Go (state/context/provider)
 
 **Files:**
 - Modify: `internal/context/checker.go`
@@ -244,7 +244,7 @@ git commit -m "feat(core): complete go parity for context state and provider rou
 
 ---
 
-- [ ] ### Task 4: Move Hook Script Behaviors to Go Hook Subcommands
+- [x] ### Task 4: Move Hook Script Behaviors to Go Hook Subcommands
 
 **Files:**
 - Modify: `internal/hooks/handler.go`
@@ -287,7 +287,7 @@ git commit -m "feat(hooks): complete go hook pipeline and remove shell dependenc
 
 ---
 
-- [ ] ### Task 5: Replace Shell-Based Test Harness and Makefile Entrypoints
+- [x] ### Task 5: Replace Shell-Based Test Harness and Makefile Entrypoints
 
 **Files:**
 - Modify: `Makefile`
@@ -333,7 +333,7 @@ git commit -m "feat(devx): replace shell harness with go runner"
 
 ---
 
-- [ ] ### Task 6: Remove Shell from CI Workflows
+- [x] ### Task 6: Remove Shell from CI Workflows
 
 **Files:**
 - Modify: `.github/workflows/test.yml`
@@ -351,7 +351,7 @@ Expected: `status=error`, violations include workflow files.
 
 **Step 3: Replace CI run commands with Go entrypoints**
 
-- Replace `chmod +x scripts/orchestrate.sh` and `./scripts/orchestrate.sh ...` with:
+- Replace `chmod +x bin/octo` and `./bin/octo ...` with:
 1. `go build -o bin/octo ./cmd/octo`
 2. `./bin/octo <cmd> --dir "$PWD" --json`
 - Replace test `.sh` harness calls with `go run ./cmd/octo-devx --suite ...`.
@@ -370,7 +370,7 @@ git commit -m "ci: remove shell runtime invocations from workflows"
 
 ---
 
-- [ ] ### Task 7: Update Command/Skill Markdown Runtime Calls to Go-Only
+- [x] ### Task 7: Update Command/Skill Markdown Runtime Calls to Go-Only
 
 **Files:**
 - Modify: `.claude/commands/*.md` (all spec-driven + persona-related)
@@ -389,7 +389,7 @@ Expected: doc violations.
 
 **Step 3: Update docs to Go-only runtime paths**
 
-- Replace `scripts/orchestrate.sh` examples with `bin/octo` equivalents.
+- Replace `bin/octo` examples with `bin/octo` equivalents.
 - Keep migration history notes in archive docs only (non-runtime section clearly labeled).
 
 **Step 4: Re-run validator**
@@ -406,7 +406,7 @@ git commit -m "docs: switch runtime guidance from shell to go commands"
 
 ---
 
-- [ ] ### Task 8: Dual-Run Parity and Performance Gate Before Deletion
+- [x] ### Task 8: Dual-Run Parity and Performance Gate Before Deletion
 
 **Files:**
 - Modify: `scripts/go/dual-run-parity.sh` (replace shell dependency with stored legacy evidence inputs)
@@ -445,7 +445,7 @@ git commit -m "test: enforce parity and perf gates before shell deletion"
 
 ---
 
-- [ ] ### Task 9: Delete All .sh Files in One Batch
+- [x] ### Task 9: Delete All .sh Files in One Batch
 
 **Files:**
 - Delete: all `*.sh` tracked files (`rg --files | rg '\\.sh$'`)
@@ -486,7 +486,7 @@ git commit -m "refactor: remove all shell scripts after go runtime migration com
 
 ---
 
-- [ ] ### Task 10: Final Verification, Version Bump, Release Notes
+- [x] ### Task 10: Final Verification, Version Bump, Release Notes
 
 **Files:**
 - Modify: `package.json`
@@ -526,12 +526,12 @@ Expected: remote updated.
 
 ## Definition of Done Checklist
 
-- [ ] `rg --files | rg '\\.sh$'` returns `0`
-- [ ] `go test ./...` passes
-- [ ] `go run ./cmd/octo validate --strict-no-shell --dir . --json` returns `status=ok`
-- [ ] No `.claude`, `.claude-plugin`, `docs`, `Makefile`, `.github` runtime instructions reference `.sh` execution
-- [ ] `/octo:init`, `/octo:plan`, `/octo:develop`, `/octo:deliver`, `/octo:debate`, `/octo:persona` all run through Go runtime only
-- [ ] Evidence committed under `docs/plans/evidence/no-shell-runtime/`
+- [x] `rg --files | rg '\\.sh$'` returns `0`
+- [x] `go test ./...` passes
+- [x] `go run ./cmd/octo validate --strict-no-shell --dir . --json` returns `status=ok`
+- [x] No `.claude`, `.claude-plugin`, `docs`, `Makefile`, `.github` runtime instructions reference `.sh` execution
+- [x] `/octo:init`, `/octo:plan`, `/octo:develop`, `/octo:deliver`, `/octo:debate`, `/octo:persona` all run through Go runtime only
+- [x] Evidence committed under `docs/plans/evidence/no-shell-runtime/`
 
 ## Risks and Mitigations
 

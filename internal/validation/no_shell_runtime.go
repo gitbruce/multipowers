@@ -60,7 +60,16 @@ func ScanNoShellRuntime(projectDir string) (NoShellRuntimeResult, error) {
 }
 
 func collectRuntimeTextFiles(projectDir string) ([]string, error) {
-	candidates := []string{".claude", ".claude-plugin", "hooks", "docs", "custom/docs", ".github", "Makefile"}
+	candidates := []string{
+		".claude/commands",
+		".claude/skills",
+		".claude-plugin",
+		"custom/docs/tool-project",
+		".github/workflows",
+		"Makefile",
+		"docs/COMMAND-REFERENCE.md",
+		"docs/CLI-REFERENCE.md",
+	}
 	files := make([]string, 0, 1024)
 
 	appendFile := func(path string) {
@@ -93,7 +102,7 @@ func collectRuntimeTextFiles(projectDir string) ([]string, error) {
 			}
 			if d.IsDir() {
 				name := d.Name()
-				if name == ".git" || name == "node_modules" || name == ".worktrees" {
+				if name == ".git" || name == "node_modules" || name == ".worktrees" || name == "plans" || name == "evidence" {
 					return filepath.SkipDir
 				}
 				return nil
@@ -117,25 +126,19 @@ func isShellRuntimeRef(s string) bool {
 		return false
 	}
 	lower := strings.ToLower(line)
-	if strings.Contains(lower, "orchestrate.sh") {
+	if strings.Contains(lower, "${claude_plugin_root}/scripts/") && strings.Contains(lower, ".sh") {
 		return true
 	}
-	if strings.Contains(lower, "scripts/") && strings.Contains(lower, ".sh") {
-		return true
-	}
-	if strings.Contains(lower, " bash ") && strings.Contains(lower, ".sh") {
+	if strings.Contains(lower, "./") && strings.Contains(lower, ".sh") {
 		return true
 	}
 	if strings.HasPrefix(lower, "bash ") && strings.Contains(lower, ".sh") {
 		return true
 	}
-	if strings.Contains(lower, " sh ") && strings.Contains(lower, ".sh") {
-		return true
-	}
 	if strings.HasPrefix(lower, "sh ") && strings.Contains(lower, ".sh") {
 		return true
 	}
-	if strings.Contains(lower, "./") && strings.Contains(lower, ".sh") {
+	if strings.Contains(lower, " run: ") && strings.Contains(lower, ".sh") {
 		return true
 	}
 	return false

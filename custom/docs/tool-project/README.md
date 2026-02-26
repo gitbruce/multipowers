@@ -25,8 +25,8 @@ Keep customization isolated in `custom/*`:
 ## Operational Commands
 
 ```bash
-./custom/scripts/sync-upstream.sh
-./custom/scripts/apply-custom-overlay.sh
+./custom/scripts/octo-devx sync
+./custom/scripts/octo-devx overlay
 bash tests/integration/test-sync-overlay.sh
 ```
 

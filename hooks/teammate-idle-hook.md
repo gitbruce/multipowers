@@ -98,5 +98,5 @@ When no work is available (phase agents all complete):
 ## Related Files
 
 - `~/.claude-octopus/session.json` - Workflow session state with agent queue
-- `scripts/orchestrate.sh` - Main orchestration (populates agent queue)
+- `bin/octo` - Main orchestration (populates agent queue)
 - `hooks/task-completed-hook.md` - Companion hook for phase transitions

@@ -91,12 +91,12 @@ These are required references before starting any unchecked task:
 - `docs/plans/2026-02-26-go-big-bang-migration-design.md`
 
 2. Existing shell implementation (source of behavior truth):
-- `scripts/orchestrate.sh` (primary runtime behavior)
+- `bin/octo` (primary runtime behavior)
 - `custom/lib/conductor-context.sh` (context readiness contract)
 - `custom/lib/proxy-routing.sh` (proxy behavior expectations)
-- `scripts/provider-router.sh` (legacy provider routing)
-- `scripts/state-manager.sh` (legacy state semantics)
-- `scripts/context-manager.sh` (legacy context semantics)
+- `scripts/octo providers` (legacy provider routing)
+- `scripts/octo state` (legacy state semantics)
+- `scripts/octo context` (legacy context semantics)
 - `hooks/*.sh` (legacy hook policies)
 
 3. Existing command/skill invocation contracts:
@@ -127,18 +127,18 @@ Each row defines what to do with an existing shell capability.
 
 | Legacy Source | Legacy Functionality | Decision | Go Target | Validation ID |
 |---|---|---|---|---|
-| `scripts/orchestrate.sh` | Command routing (`init/plan/discover/...`) | Modify and replace core runtime | `internal/cli/*`, `internal/app/pipeline.go`, `cmd/octo/main.go` | V-CLI-001 |
-| `scripts/orchestrate.sh` | Spec-driven context guard + init fallback | Adopt (with 5+CLAUDE contract) | `internal/context/checker.go`, `internal/context/init_runner.go` | V-CTX-001 |
-| `scripts/orchestrate.sh` | Init rollback on failure | Adopt | `internal/context/init_runner.go` | V-INIT-002 |
-| `scripts/orchestrate.sh` | Runtime pre-run hooks | Adopt with optional-file semantics | `internal/runtime/config.go`, `internal/runtime/prerun.go` | V-RT-001 |
-| `scripts/orchestrate.sh` | Provider routing | Modify into typed interface/registry | `internal/providers/provider.go`, `registry.go`, `router.go` | V-PROV-001 |
-| `scripts/orchestrate.sh` | Debate quorum behavior | Adopt and harden (>=2) | `internal/providers/quorum.go`, workflow debate module | V-DEBATE-001 |
-| `scripts/orchestrate.sh` | Result/event persistence | Modify to target workspace paths | `internal/tracks/*`, `internal/faq/*` | V-PATH-001 |
+| `bin/octo` | Command routing (`init/plan/discover/...`) | Modify and replace core runtime | `internal/cli/*`, `internal/app/pipeline.go`, `cmd/octo/main.go` | V-CLI-001 |
+| `bin/octo` | Spec-driven context guard + init fallback | Adopt (with 5+CLAUDE contract) | `internal/context/checker.go`, `internal/context/init_runner.go` | V-CTX-001 |
+| `bin/octo` | Init rollback on failure | Adopt | `internal/context/init_runner.go` | V-INIT-002 |
+| `bin/octo` | Runtime pre-run hooks | Adopt with optional-file semantics | `internal/runtime/config.go`, `internal/runtime/prerun.go` | V-RT-001 |
+| `bin/octo` | Provider routing | Modify into typed interface/registry | `internal/providers/provider.go`, `registry.go`, `router.go` | V-PROV-001 |
+| `bin/octo` | Debate quorum behavior | Adopt and harden (>=2) | `internal/providers/quorum.go`, workflow debate module | V-DEBATE-001 |
+| `bin/octo` | Result/event persistence | Modify to target workspace paths | `internal/tracks/*`, `internal/faq/*` | V-PATH-001 |
 | `custom/lib/conductor-context.sh` | Context completeness predicate | Adopt (remove shell dependency) | `internal/context/requirements.go`, `checker.go` | V-CTX-002 |
 | `custom/lib/proxy-routing.sh` | Codex/Gemini proxy injection | Adopt with dynamic host detection | `internal/providers/proxy.go` | V-PROXY-001 |
-| `scripts/provider-router.sh` | Provider command selection | Modify into registry/adapters | `internal/providers/router.go` | V-PROV-002 |
-| `scripts/state-manager.sh` | Session/workflow state JSON I/O | Modify into typed state APIs | `internal/tracks/*` + app state module | V-STATE-001 |
-| `scripts/context-manager.sh` | Context read/merge for prompts | Modify into context loader/summarizer | `internal/context/loader.go`, `summarizer.go` | V-CONTEXT-001 |
+| `scripts/octo providers` | Provider command selection | Modify into registry/adapters | `internal/providers/router.go` | V-PROV-002 |
+| `scripts/octo state` | Session/workflow state JSON I/O | Modify into typed state APIs | `internal/tracks/*` + app state module | V-STATE-001 |
+| `scripts/octo context` | Context read/merge for prompts | Modify into context loader/summarizer | `internal/context/loader.go`, `summarizer.go` | V-CONTEXT-001 |
 | `hooks/*.sh` | Hook governance logic | Replace with Go hook dispatcher | `internal/hooks/*`, `hooks/hooks.json` | V-HOOK-001 |
 | `hooks/*.sh` | Boundary checks | Adopt and harden | `internal/fsboundary/*`, `internal/hooks/pre_tool_use.go` | V-BOUNDARY-001 |
 | Shell markdown logic | Model-side governance in skills/commands | Replace with thin wrappers | `.claude/commands/*`, `.claude/skills/*` -> `octo ... --json` | V-THIN-001 |

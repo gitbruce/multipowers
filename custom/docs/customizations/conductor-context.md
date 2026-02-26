@@ -13,7 +13,7 @@ Run:
 ```
 
 Execution anchor:
-- `/octo:init` should pass `--dir "$PWD"` to `scripts/orchestrate.sh` so `conductor/` is created in the current target project, not plugin/cache directories.
+- `/octo:init` should pass `--dir "$PWD"` to `bin/octo` so `conductor/` is created in the current target project, not plugin/cache directories.
 - Runtime guard blocks spec/init commands if `PROJECT_ROOT` resolves to plugin/cache paths.
 
 This initializes:

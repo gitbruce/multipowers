@@ -45,8 +45,8 @@ When Knowledge Mode is ON, research tasks use external CLIs:
 
 ```bash
 # Direct orchestrate.sh execution
-./scripts/orchestrate.sh probe "research GraphQL vs REST"
-./scripts/orchestrate.sh tangle "implement user authentication"
+./bin/octo probe "research GraphQL vs REST"
+./bin/octo tangle "implement user authentication"
 
 # Direct CLI execution
 codex exec "Generate API endpoint for users"

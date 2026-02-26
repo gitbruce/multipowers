@@ -5,7 +5,7 @@ test: test-smoke test-unit
 
 # Validate plugin name (critical - prevents command prefix breakage)
 test-plugin-name:
-	@./tests/validate-plugin-name.sh
+	@go run ./cmd/octo-devx --action suite --suite smoke
 
 # Run all tests
 test-all: test-smoke test-unit test-integration test-e2e
@@ -13,47 +13,47 @@ test-all: test-smoke test-unit test-integration test-e2e
 # Smoke tests (pre-commit, <30s)
 test-smoke: test-plugin-name
 	@echo "Running smoke tests..."
-	@./tests/run-all.sh smoke
+	@go run ./cmd/octo-devx --action suite --suite smoke
 
 # Unit tests (1-2min)
 test-unit:
 	@echo "Running unit tests..."
-	@./tests/run-all.sh unit
+	@go run ./cmd/octo-devx --action suite --suite unit
 
 # Integration tests (5-10min)
 test-integration:
 	@echo "Running integration tests..."
-	@./tests/run-all.sh integration
+	@go run ./cmd/octo-devx --action suite --suite integration
 
 # E2E tests (15-30min)
 test-e2e:
 	@echo "Running E2E tests..."
-	@./tests/run-all.sh e2e
+	@go run ./cmd/octo-devx --action suite --suite e2e
 
 # Live tests - real Claude Code sessions (2-5min per test, uses API)
 test-live:
 	@echo "Running live tests (real Claude Code sessions)..."
 	@echo "WARNING: This makes real API calls"
-	@./tests/run-all.sh live
+	@go run ./cmd/octo-devx --action suite --suite live
 
 # Performance tests
 test-performance:
 	@echo "Running performance tests..."
-	@./tests/run-all.sh performance
+	@go run ./cmd/octo-devx --action suite --suite performance
 
 # Regression tests
 test-regression:
 	@echo "Running regression tests..."
-	@./tests/run-all.sh regression
+	@go run ./cmd/octo-devx --action suite --suite regression
 
 # Coverage report
 test-coverage:
 	@echo "Generating coverage report..."
-	@./tests/helpers/generate-coverage-report.sh
+	@go run ./cmd/octo-devx --action suite --suite coverage
 
 # Verbose mode for debugging
 test-verbose:
-	@VERBOSE=true ./tests/run-all.sh all
+	@go run ./cmd/octo-devx --action suite --suite all
 
 # Clean test artifacts
 clean-tests:
@@ -66,7 +66,7 @@ clean-tests:
 
 # Sync fork main with upstream and rebase custom branch
 sync:
-	@./scripts/sync-upstream.sh
+	@echo "sync moved to go runtime; use project docs for upstream sync workflow"
 
 # Help
 help:
@@ -101,7 +101,7 @@ test-go:
 	@go test ./...
 
 check-go-lines:
-	@./scripts/check-go-file-length.sh
+	@go run ./scripts/check-go-file-length.go
 
 lint-go:
 	@go vet ./...

@@ -84,4 +84,4 @@ When `CI_MODE=true` (detected via `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` or `CI`
 
 - `~/.claude-octopus/results/tangle-validation-*.md` - Quality gate reports
 - `~/.claude-octopus/session.json` - Current session state
-- `scripts/orchestrate.sh` - Main orchestration script
+- `bin/octo` - Main orchestration script

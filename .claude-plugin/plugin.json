@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "9.0.0-go",
-  "description": "Go runtime cutover: octo single-binary kernel with hooks-first governance and .multipowers boundary enforcement.",
+  "version": "9.1.0-no-shell",
+  "description": "Strict no-shell runtime: Go-only execution engine with .multipowers boundary enforcement and shell-free CI/runtime paths.",
   "author": {
     "name": "nyldn"
   },

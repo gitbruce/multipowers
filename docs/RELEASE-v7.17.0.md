@@ -41,7 +41,7 @@ All 5 planned phases implemented, tested, and committed:
 - Blocker management
 
 **Files Added:**
-- `scripts/state-manager.sh` (390 lines)
+- `scripts/octo state` (390 lines)
 - `.claude/state/state-manager.md` (280 lines)
 
 **Integration:**
@@ -83,7 +83,7 @@ All 5 planned phases implemented, tested, and committed:
 - Vision preservation
 
 **Files Added:**
-- `scripts/context-manager.sh` (210 lines)
+- `scripts/octo context` (210 lines)
 
 **Files Updated:**
 - `flow-define.md` with Phase Discussion step
@@ -233,8 +233,8 @@ All 5 planned phases implemented, tested, and committed:
 └── state-manager.md           # State documentation
 
 scripts/
-├── state-manager.sh           # State utilities
-└── context-manager.sh         # Context utilities
+├── octo state           # State utilities
+└── octo context         # Context utilities
 ```
 
 ---
@@ -376,8 +376,8 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
 - `.claude/skills/skill-quick.md` - Quick mode documentation
 
 **Scripts:**
-- `scripts/state-manager.sh --help` - CLI help
-- `scripts/context-manager.sh help` - Context help
+- `scripts/octo state --help` - CLI help
+- `scripts/octo context help` - Context help
 
 ### Updated Documentation
 

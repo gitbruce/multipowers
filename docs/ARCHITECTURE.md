@@ -433,14 +433,14 @@ When multi-AI mode is active, you'll see these indicators:
 
 ## Under the Hood: orchestrate.sh
 
-All workflows are powered by `scripts/orchestrate.sh`:
+All workflows are powered by `bin/octo`:
 
 ```bash
 # Direct CLI usage (advanced)
-./scripts/orchestrate.sh probe "research OAuth patterns"
-./scripts/orchestrate.sh tangle "implement authentication"
-./scripts/orchestrate.sh ink "review auth code"
-./scripts/orchestrate.sh embrace "complete auth feature"
+./bin/octo probe "research OAuth patterns"
+./bin/octo tangle "implement authentication"
+./bin/octo ink "review auth code"
+./bin/octo embrace "complete auth feature"
 ```
 
 The plugin wraps these commands and provides:

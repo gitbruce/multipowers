@@ -232,7 +232,7 @@ if [[ -f .claude-octopus/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]];
     echo "🔄 Reloading prior session context..."
 
     # Load state
-    state=$("${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" read_state)
+    state=$("${CLAUDE_PLUGIN_ROOT}/scripts/octo state" read_state)
 
     # Restore context
     discover_context=$(echo "$state" | python3 -r '.context.discover')
@@ -426,16 +426,16 @@ Each phase includes validation:
 
 ```bash
 # Always initialize state at workflow start
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" init_state
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" init_state
 
 # Record decisions
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" write_decision \
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" write_decision \
   "define" \
   "Use React 19" \
   "Modern features and Server Components"
 
 # Update context after each phase
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" update_context \
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" update_context \
   "discover" \
   "Researched auth patterns, recommend JWT"
 ```
@@ -485,12 +485,12 @@ Each phase includes validation:
 
 ### Issue: "State not persisting"
 
-**Cause:** state-manager.sh not being called
+**Cause:** octo state not being called
 
 **Solution:**
 ```bash
 # Initialize state
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" init_state
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" init_state
 
 # Verify file exists
 ls .claude-octopus/state.json
@@ -515,25 +515,25 @@ ls .claude-octopus/state.json
 
 ```bash
 # Initialize
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" init_state
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" init_state
 
 # Read state
-state=$("${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" read_state)
+state=$("${CLAUDE_PLUGIN_ROOT}/scripts/octo state" read_state)
 
 # Set workflow
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" set_current_workflow \
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" set_current_workflow \
   "flow-discover" "discover"
 
 # Record decision
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" write_decision \
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" write_decision \
   "<phase>" "<decision>" "<rationale>"
 
 # Update context
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" update_context \
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" update_context \
   "<phase>" "<summary>"
 
 # Track metrics
-"${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" update_metrics \
+"${CLAUDE_PLUGIN_ROOT}/scripts/octo state" update_metrics \
   "phases_completed" "1"
 ```
 

@@ -9,9 +9,9 @@
 
 ## Core Execution Components
 
-- `scripts/orchestrate.sh`: central command router and workflow engine.
-- `scripts/provider-router.sh`: provider/model routing logic.
-- `scripts/state-manager.sh`: workflow state persistence helpers.
+- `bin/octo`: central command router and workflow engine.
+- `scripts/octo providers`: provider/model routing logic.
+- `scripts/octo state`: workflow state persistence helpers.
 - `scripts/octo-state.sh`: project/session state commands and context tiers.
 - `scripts/agent-teams-bridge.sh`: coordination bridge for multi-agent execution.
 

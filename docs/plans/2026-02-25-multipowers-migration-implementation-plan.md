@@ -4,7 +4,7 @@
 
 **Goal:** Migrate from the current `multipowers` customization model to a low-conflict overlay architecture on a new `multipowers` design branch, with explicit handling of the current in-progress rebase (`resolve` or `abort`) and operator-first documentation.
 
-**Architecture:** Keep upstream core files mostly unchanged and move customization policy into `custom/` (config + overlay libraries + command source), with thin hooks in `scripts/orchestrate.sh` and a deterministic overlay-apply script. Build a merge-based sync workflow around `main -> multipowers-design` with idempotent overlay reapplication and contract tests.
+**Architecture:** Keep upstream core files mostly unchanged and move customization policy into `custom/` (config + overlay libraries + command source), with thin hooks in `bin/octo` and a deterministic overlay-apply script. Build a merge-based sync workflow around `main -> multipowers-design` with idempotent overlay reapplication and contract tests.
 
 **Tech Stack:** Bash (`scripts/*.sh`), Markdown docs (`docs/multipowers/*`), shell test harness (`tests/helpers/test-framework.sh`), git branching/merge workflow.
 
@@ -51,7 +51,7 @@ Execution note (2026-02-25): direct full merge of `multipowers` into new `multip
 - [x] Task 5 complete
 - [x] T5.1 Add failing orchestrator hook test
 - [x] T5.2 Run test and confirm fail
-- [x] T5.3 Add optional hook source/invocation in `scripts/orchestrate.sh`
+- [x] T5.3 Add optional hook source/invocation in `bin/octo`
 - [x] T5.4 Re-run test and confirm pass
 - [x] T5.5 Commit
 
@@ -59,7 +59,7 @@ Execution note (2026-02-25): direct full merge of `multipowers` into new `multip
 - [x] Task 6 complete
 - [x] T6.1 Add failing command sync test
 - [x] T6.2 Run test and confirm fail
-- [x] T6.3 Create `custom/commands/persona.md` and `scripts/apply-custom-overlay.sh`
+- [x] T6.3 Create `custom/commands/persona.md` and `scripts/octo-devx overlay`
 - [x] T6.4 Run command/frontmatter registration tests and confirm pass
 - [x] T6.5 Commit
 
@@ -67,7 +67,7 @@ Execution note (2026-02-25): direct full merge of `multipowers` into new `multip
 - [x] Task 7 complete
 - [x] T7.1 Add failing sync integration test
 - [x] T7.2 Run test and confirm fail
-- [x] T7.3 Create `scripts/sync-upstream.sh`
+- [x] T7.3 Create `scripts/octo-devx sync`
 - [x] T7.4 Re-run test and confirm pass
 - [x] T7.5 Commit
 
@@ -145,7 +145,7 @@ Expected: either next conflict appears or rebase completes.
 
 If conflicts remain, resolve only these files, then continue:
 ```bash
-git add .claude-plugin/plugin.json README.md docs/COMMAND-REFERENCE.md scripts/orchestrate.sh
+git add .claude-plugin/plugin.json README.md docs/COMMAND-REFERENCE.md bin/octo
 git rebase --continue
 ```
 Expected: rebase completes and branch name is `multipowers` (not detached).
@@ -466,7 +466,7 @@ git commit -m "feat(custom): add overlay loader and routing libraries"
 ### Task 5: Integrate Thin Hooks into Core Orchestrator (TDD)
 
 **Files:**
-- Modify: `scripts/orchestrate.sh`
+- Modify: `bin/octo`
 - Create: `tests/unit/test-custom-orchestrate-hooks.sh`
 - Test: `tests/unit/test-custom-orchestrate-hooks.sh`
 
@@ -480,14 +480,14 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$PROJECT_ROOT/tests/helpers/test-framework.sh"
 
 test_case "orchestrate sources custom overlay loader"
-if grep -q 'custom/lib/overlay-loader.sh' "$PROJECT_ROOT/scripts/orchestrate.sh"; then
+if grep -q 'custom/lib/overlay-loader.sh' "$PROJECT_ROOT/bin/octo"; then
   test_pass "overlay loader source found"
 else
   test_fail "overlay loader source missing"
 fi
 
 test_case "orchestrate can call custom proxy resolver"
-if grep -q 'custom_proxy_url_for_provider' "$PROJECT_ROOT/scripts/orchestrate.sh"; then
+if grep -q 'custom_proxy_url_for_provider' "$PROJECT_ROOT/bin/octo"; then
   test_pass "custom proxy hook found"
 else
   test_fail "custom proxy hook missing"
@@ -504,7 +504,7 @@ bash tests/unit/test-custom-orchestrate-hooks.sh
 ```
 Expected: FAIL until hook lines are added.
 
-**Step 3: Add minimal non-breaking hooks in `scripts/orchestrate.sh`**
+**Step 3: Add minimal non-breaking hooks in `bin/octo`**
 
 Add near existing `source` block:
 ```bash
@@ -542,7 +542,7 @@ Expected: PASS.
 **Step 5: Commit**
 
 ```bash
-git add scripts/orchestrate.sh tests/unit/test-custom-orchestrate-hooks.sh
+git add bin/octo tests/unit/test-custom-orchestrate-hooks.sh
 git commit -m "feat(core): add thin optional hooks for multipowers overlay"
 ```
 
@@ -550,7 +550,7 @@ git commit -m "feat(core): add thin optional hooks for multipowers overlay"
 
 **Files:**
 - Create: `custom/commands/persona.md`
-- Create: `scripts/apply-custom-overlay.sh`
+- Create: `scripts/octo-devx overlay`
 - Modify: `.claude/commands/persona.md`
 - Test: `tests/unit/test-command-frontmatter.sh`
 - Test: `tests/test-command-registration.sh`
@@ -565,10 +565,10 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$PROJECT_ROOT/tests/helpers/test-framework.sh"
 
 test_case "apply-custom-overlay script exists and executable"
-if [[ -x "$PROJECT_ROOT/scripts/apply-custom-overlay.sh" ]]; then
+if [[ -x "$PROJECT_ROOT/scripts/octo-devx overlay" ]]; then
   test_pass "overlay apply script exists"
 else
-  test_fail "missing scripts/apply-custom-overlay.sh"
+  test_fail "missing scripts/octo-devx overlay"
 fi
 SH
 chmod +x tests/unit/test-custom-command-sync.sh
@@ -588,7 +588,7 @@ Expected: FAIL before script exists.
 mkdir -p custom/commands
 cp .claude/commands/persona.md custom/commands/persona.md
 
-cat > scripts/apply-custom-overlay.sh <<'SH'
+cat > scripts/octo-devx overlay <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -603,7 +603,7 @@ python3 empty "$ROOT_DIR/custom/config/persona-lanes.json" >/dev/null
 
 echo "Overlay applied successfully"
 SH
-chmod +x scripts/apply-custom-overlay.sh
+chmod +x scripts/octo-devx overlay
 ```
 
 **Step 4: Run tests and verify pass**
@@ -619,14 +619,14 @@ Expected: PASS with persona command still registered.
 **Step 5: Commit**
 
 ```bash
-git add custom/commands/persona.md scripts/apply-custom-overlay.sh .claude/commands/persona.md tests/unit/test-custom-command-sync.sh
+git add custom/commands/persona.md scripts/octo-devx overlay .claude/commands/persona.md tests/unit/test-custom-command-sync.sh
 git commit -m "feat(custom): make persona command overlay-managed"
 ```
 
 ### Task 7: Restore/Add Sync Script for Merge-Based Upstream Updates (TDD)
 
 **Files:**
-- Create: `scripts/sync-upstream.sh`
+- Create: `scripts/octo-devx sync`
 - Create: `tests/integration/test-sync-overlay.sh`
 - Test: `tests/integration/test-sync-overlay.sh`
 
@@ -640,14 +640,14 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "$PROJECT_ROOT/tests/helpers/test-framework.sh"
 
 test_case "sync-upstream script exists"
-if [[ -x "$PROJECT_ROOT/scripts/sync-upstream.sh" ]]; then
+if [[ -x "$PROJECT_ROOT/scripts/octo-devx sync" ]]; then
   test_pass "sync-upstream exists"
 else
-  test_fail "scripts/sync-upstream.sh missing"
+  test_fail "scripts/octo-devx sync missing"
 fi
 
 test_case "apply-custom-overlay is callable"
-if "$PROJECT_ROOT/scripts/apply-custom-overlay.sh" >/dev/null 2>&1; then
+if "$PROJECT_ROOT/scripts/octo-devx overlay" >/dev/null 2>&1; then
   test_pass "overlay apply callable"
 else
   test_fail "overlay apply failed"
@@ -664,10 +664,10 @@ bash tests/integration/test-sync-overlay.sh
 ```
 Expected: FAIL because sync script is currently missing.
 
-**Step 3: Create `scripts/sync-upstream.sh`**
+**Step 3: Create `scripts/octo-devx sync`**
 
 ```bash
-cat > scripts/sync-upstream.sh <<'SH'
+cat > scripts/octo-devx sync <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -685,7 +685,7 @@ git merge --ff-only "$UPSTREAM_REMOTE/$MAIN_BRANCH"
 git switch "$TARGET_BRANCH"
 git merge "$MAIN_BRANCH" -m "chore(sync): merge main into $TARGET_BRANCH"
 
-"$(dirname "$0")/apply-custom-overlay.sh"
+"$(dirname "$0")/octo-devx overlay"
 
 echo "Sync complete for $TARGET_BRANCH"
 
@@ -693,7 +693,7 @@ if [[ -n "$current_branch" && "$current_branch" != "$TARGET_BRANCH" ]]; then
   git switch "$current_branch"
 fi
 SH
-chmod +x scripts/sync-upstream.sh
+chmod +x scripts/octo-devx sync
 ```
 
 **Step 4: Run test to verify pass**
@@ -707,7 +707,7 @@ Expected: PASS.
 **Step 5: Commit**
 
 ```bash
-git add scripts/sync-upstream.sh tests/integration/test-sync-overlay.sh
+git add scripts/octo-devx sync tests/integration/test-sync-overlay.sh
 git commit -m "feat(sync): add merge-based upstream sync script with overlay apply"
 ```
 
@@ -820,9 +820,9 @@ Include both flows:
 Commands:
 ```bash
 git status --short --branch
-./scripts/sync-upstream.sh
-./scripts/apply-custom-overlay.sh
-./scripts/orchestrate.sh persona list
+./scripts/octo-devx sync
+./scripts/octo-devx overlay
+./bin/octo persona list
 ```
 Expected: clean state and functional persona command lane output.
 
@@ -863,7 +863,7 @@ Expected: all PASS.
 Run:
 ```bash
 git switch multipowers-design
-./scripts/sync-upstream.sh
+./scripts/octo-devx sync
 ```
 Expected: successful merge from `main`, overlay reapplied, no runtime errors.
 
@@ -871,8 +871,8 @@ Expected: successful merge from `main`, overlay reapplied, no runtime errors.
 
 Run:
 ```bash
-./scripts/orchestrate.sh persona list
-./scripts/orchestrate.sh model-config
+./bin/octo persona list
+./bin/octo model-config
 ```
 Expected: persona command works and configured model lanes reflect overlay policy.
 
@@ -906,7 +906,7 @@ git switch main
 git merge --ff-only upstream/main
 git switch multipowers-design
 git merge main -m "chore(sync): merge main into multipowers-design"
-./scripts/apply-custom-overlay.sh
+./scripts/octo-devx overlay
 bash tests/integration/test-sync-overlay.sh
 ```
 
@@ -947,6 +947,6 @@ Expected:
 ## Notes for Executor
 
 - Keep all policy changes in `custom/*`; avoid expanding custom logic directly inside core files.
-- Keep `scripts/orchestrate.sh` hook footprint minimal.
+- Keep `bin/octo` hook footprint minimal.
 - Do not skip the rebase decision gate; migration starts only after a stable branch state is achieved.
 - Prefer small commits per task exactly as listed.
