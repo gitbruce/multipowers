@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BIN_PATH="${ROOT_DIR}/bin/mp"
+
+if [[ ! -x "${BIN_PATH}" || "${ROOT_DIR}/cmd/octo/main.go" -nt "${BIN_PATH}" ]]; then
+  "${ROOT_DIR}/scripts/build.sh" >/dev/null
+fi
+
+exec "${BIN_PATH}" "$@"

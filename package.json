@@ -1,8 +1,8 @@
 {
   "name": "claude-octopus",
-  "version": "9.1.4",
+  "version": "9.1.5",
   "description": "Claude Octopus - Multi-agent orchestration with /mp:deck slide deck generator, outline approval gate, and PPTX export via document-skills",
-  "main": "bin/mp",
+  "main": "scripts/mp",
   "scripts": {
     "test": "make test",
     "test:smoke": "make test-smoke",

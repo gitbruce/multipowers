@@ -9,7 +9,7 @@
 
 ## Core Execution Components
 
-- `bin/octo`: central command router and workflow engine.
+- `scripts/mp`: central command router and workflow engine.
 - `cmd/octo-devx`: maintainer/CI helper entrypoint.
 - `internal/providers/*`: provider/model routing logic.
 - `internal/tracks/*`: workflow state persistence and track status.

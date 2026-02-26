@@ -17,7 +17,7 @@ Naming contract:
 
 ## What This Repository Delivers
 
-1. Workflow orchestration engine in `bin/octo`.
+1. Workflow orchestration engine in `scripts/mp`.
 2. Command surface in `.claude/commands/*` and skill implementations in `.claude/skills/*`.
 3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
 4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.

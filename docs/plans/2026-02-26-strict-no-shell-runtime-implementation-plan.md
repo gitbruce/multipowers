@@ -59,7 +59,7 @@ pkg/
 - `scripts/mp context` -> `internal/context`
 - `scripts/mp providers` -> `internal/providers`
 - `hooks/*.sh` runtime logic -> `internal/hooks`
-- `tests/*.sh` harness -> `cmd/mp-devx` + `internal/devx`
+- `tests/*.sh` harness -> `cmd/octo-devx` + `internal/devx`
 - shell-based validation scripts -> `internal/validation` + `cmd/mp validate`
 
 ---
@@ -291,7 +291,7 @@ git commit -m "feat(hooks): complete go hook pipeline and remove shell dependenc
 
 **Files:**
 - Modify: `Makefile`
-- Create: `cmd/mp-devx/main.go`
+- Create: `cmd/octo-devx/main.go`
 - Create: `internal/devx/runner.go`
 - Create: `internal/devx/runner_test.go`
 - Deprecate references in: `tests/run-all.sh`, `tests/helpers/generate-coverage-report.sh`
@@ -312,10 +312,10 @@ Expected: FAIL.
 **Step 3: Implement Go test harness command + Makefile switch**
 
 - New command examples:
-1. `go run ./cmd/mp-devx --suite smoke`
-2. `go run ./cmd/mp-devx --suite unit`
-3. `go run ./cmd/mp-devx --suite integration`
-- Replace Makefile `.sh` invocations with `go run ./cmd/mp-devx ...`.
+1. `go run ./cmd/octo-devx --suite smoke`
+2. `go run ./cmd/octo-devx --suite unit`
+3. `go run ./cmd/octo-devx --suite integration`
+- Replace Makefile `.sh` invocations with `go run ./cmd/octo-devx ...`.
 
 **Step 4: Run tests and smoke**
 
@@ -327,7 +327,7 @@ Expected: PASS.
 **Step 5: Commit**
 
 ```bash
-git add Makefile cmd/mp-devx/main.go internal/devx/runner.go internal/devx/runner_test.go
+git add Makefile cmd/octo-devx/main.go internal/devx/runner.go internal/devx/runner_test.go
 git commit -m "feat(devx): replace shell harness with go runner"
 ```
 
@@ -354,7 +354,7 @@ Expected: `status=error`, violations include workflow files.
 - Replace `chmod +x bin/mp` and `./bin/mp ...` with:
 1. `go build -o bin/mp ./cmd/mp`
 2. `./bin/mp <cmd> --dir "$PWD" --json`
-- Replace test `.sh` harness calls with `go run ./cmd/mp-devx --suite ...`.
+- Replace test `.sh` harness calls with `go run ./cmd/octo-devx --suite ...`.
 
 **Step 4: Re-run validator**
 
@@ -536,7 +536,7 @@ Expected: remote updated.
 ## Risks and Mitigations
 
 - Risk: deleting helper `.sh` used only by local maintainer workflows.
-  - Mitigation: port essential maintenance flows to Go `cmd/mp-devx`; document removed scripts in release notes.
+  - Mitigation: port essential maintenance flows to Go `cmd/octo-devx`; document removed scripts in release notes.
 - Risk: hidden shell invocation in markdown snippets causes operator confusion.
   - Mitigation: strict validator scans docs and command/skill markdown.
 - Risk: parity regressions with legacy orchestrator behavior.

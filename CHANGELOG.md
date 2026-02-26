@@ -305,7 +305,7 @@ All notable changes to Claude Octopus will be documented in this file.
   - Marks agents that support fast Opus but require explicit user opt-in due to 6x cost
   - Default behavior is standard mode; fast only when `OCTOPUS_OPUS_MODE=fast`
 
-- **Context window monitoring statusline** (`hooks/octopus-statusline.sh`)
+- **Context window monitoring statusline** (`hooks/statusline-hook.md`)
   - Displays real-time context usage with color-coded progress bar
   - Shows active workflow phase when session.json exists
   - Tracks cumulative session cost from `cost.total_cost_usd`
@@ -4777,7 +4777,7 @@ This release includes both UX improvements (auto-configuration check) and critic
   - Prompts for API keys with validation
   - Optionally persists keys to shell profile (~/.zshrc or ~/.bashrc)
 - **First-Run Detection** - Suggests setup wizard when dependencies are missing
-- **`/octopus-setup` Command** - Claude Code integration for setup wizard
+- **`/mp:setup` Command** - Claude Code integration for setup wizard
 - Cross-platform browser opening (macOS, Linux, Windows)
 
 ### Fixed

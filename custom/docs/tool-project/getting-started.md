@@ -21,7 +21,7 @@ git fetch upstream
 git merge --ff-only upstream/main
 git switch multipowers
 ./custom/scripts/mp-devx overlay
-./bin/octo persona list
+./scripts/mp persona list
 ```
 
 ## Install / Uninstall (User Scope)
@@ -29,7 +29,7 @@ git switch multipowers
 Install:
 
 ```text
-/plugin marketplace add /mnt/f/src/ai/claude-octopus
+/plugin marketplace add https://github.com/gitbruce/claude-octopus
 /plugin install mp@multipowers-plugins --scope user
 ```
 

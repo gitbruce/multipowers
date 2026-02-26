@@ -10,9 +10,9 @@
   "plugins": [
     {
       "name": "mp",
-      "source": "./",
-      "description": "v9.1.4 - bootstrap bin/mp launcher and align runtime/hook paths to mp.",
-      "version": "9.1.4",
+      "source": "./.claude-plugin",
+      "description": "v9.1.5 - isolated plugin source under .claude-plugin with bundled runtime binaries.",
+      "version": "9.1.5",
       "author": {
         "name": "nyldn"
       },

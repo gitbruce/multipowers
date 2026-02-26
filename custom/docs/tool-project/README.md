@@ -41,7 +41,7 @@ bash tests/integration/test-sync-overlay.sh
 Install / refresh:
 
 ```text
-/plugin marketplace add /mnt/f/src/ai/claude-octopus
+/plugin marketplace add https://github.com/gitbruce/claude-octopus
 /plugin install mp@multipowers-plugins --scope user
 ```
 

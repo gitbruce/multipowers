@@ -5,7 +5,7 @@ Audience: users who install this plugin and run `/mp` in their own project.
 ## Install (User Scope)
 
 ```text
-/plugin marketplace add /mnt/f/src/ai/claude-octopus
+/plugin marketplace add https://github.com/gitbruce/claude-octopus
 /plugin install mp@multipowers-plugins --scope user
 ```
 

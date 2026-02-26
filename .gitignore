@@ -105,3 +105,6 @@ coverage-report.html
 
 # Git worktrees
 /.worktrees/
+
+# Build artifacts
+/bin/
