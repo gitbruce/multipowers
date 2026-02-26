@@ -1,7 +1,7 @@
 {
   "name": "octo",
-  "version": "8.12.9",
-  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.9) Fixes /octo:debate to execute real multi-LLM grapple workflow instead of single-model summary behavior. Commands '/octo:*'. Run /octo:setup for guided setup.",
+  "version": "8.12.14",
+  "description": "Multi-tentacled orchestrator using Double Diamond methodology. (v8.12.14) Uses project-local workspace at .multipowers/temp, applies proxy routing for Codex/Gemini CLI calls, keeps debate fallback behavior when a provider is unavailable, and auto-maintains .multipowers/FAQ.md from failure patterns. Commands '/octo:*'. Run /octo:setup for guided setup.",
   "author": {
     "name": "nyldn"
   },

@@ -11,8 +11,8 @@
     {
       "name": "octo",
       "source": "./",
-      "description": "v8.12.9 - Fixes /octo:debate to run real multi-LLM grapple execution instead of single-model-only response flow.",
-      "version": "8.12.9",
+      "description": "v8.12.14 - Applies proxy routing to Codex/Gemini CLI execution paths, keeps debate running with remaining models when one provider fails (minimum two participants), and auto-maintains .multipowers/FAQ.md from failure patterns.",
+      "version": "8.12.14",
       "author": {
         "name": "nyldn"
       },
