@@ -5791,7 +5791,10 @@ run_octo_init_interactive() {
 
     if [[ ! -t 0 || ! -t 1 ]]; then
         interactive_mode="false"
-        log INFO "/octo:init running in non-interactive mode; applying defaults for context scaffolding"
+        log ERROR "/octo:init requires interactive wizard mode; non-interactive fallback is disabled"
+        echo "ERROR: /octo:init must run as an interactive wizard to create project context."
+        echo "Please run /octo:init from your target project and answer wizard questions."
+        return 1
     fi
 
     if [[ "$interactive_mode" == "true" ]]; then
@@ -5843,19 +5846,6 @@ run_octo_init_interactive() {
                 pre_run_enabled="false"
                 ;;
         esac
-    else
-        project_name="$(basename "$PROJECT_ROOT")"
-        product_summary="Project context initialized by /octo:init."
-        target_users="Engineering team and stakeholders."
-        primary_goal="Deliver value incrementally with clear quality gates."
-        non_goals="Undefined scope expansion without approval."
-        constraints="Time, architecture, and team capacity constraints."
-        runtime="unknown"
-        framework="unknown"
-        database="unknown"
-        deployment="unknown"
-        workflow_flow="Spec -> plan -> implementation -> validation -> delivery."
-        pre_run_enabled="false"
     fi
 
     write_from_template() {
