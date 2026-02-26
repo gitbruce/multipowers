@@ -22,6 +22,7 @@ When the user invokes this command (e.g., `/octo:discover <arguments>`):
   - `tracks.md`
 - If any context file is missing, run `/octo:init` first.
 - Continue only after context is present.
+- Do **not** offer a bypass path such as "continue without init" or "direct discovery".
 
 **✓ CORRECT - Use the Skill tool:**
 ```
