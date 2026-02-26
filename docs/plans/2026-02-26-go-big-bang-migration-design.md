@@ -79,7 +79,7 @@ internal/execx/*
 internal/render/*
 internal/util/*
 pkg/api/*
-hooks/hooks.json
+.claude-plugin/hooks.json
 ```
 
 ## 4. Adoption from tmp/gemini.md and tmp/cc.md

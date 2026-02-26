@@ -139,7 +139,7 @@ Each row defines what to do with an existing shell capability.
 | `scripts/mp providers` | Provider command selection | Modify into registry/adapters | `internal/providers/router.go` | V-PROV-002 |
 | `scripts/mp state` | Session/workflow state JSON I/O | Modify into typed state APIs | `internal/tracks/*` + app state module | V-STATE-001 |
 | `scripts/mp context` | Context read/merge for prompts | Modify into context loader/summarizer | `internal/context/loader.go`, `summarizer.go` | V-CONTEXT-001 |
-| `hooks/*.sh` | Hook governance logic | Replace with Go hook dispatcher | `internal/hooks/*`, `hooks/hooks.json` | V-HOOK-001 |
+| `hooks/*.sh` | Hook governance logic | Replace with Go hook dispatcher | `internal/hooks/*`, `.claude-plugin/hooks.json` | V-HOOK-001 |
 | `hooks/*.sh` | Boundary checks | Adopt and harden | `internal/fsboundary/*`, `internal/hooks/pre_tool_use.go` | V-BOUNDARY-001 |
 | Shell markdown logic | Model-side governance in skills/commands | Replace with thin wrappers | `.claude/commands/*`, `.claude/skills/*` -> `octo ... --json` | V-THIN-001 |
 | Legacy `~/.claude-octopus/*` references | Home-dir artifacts | Reject and remove | Target `/.multipowers/*` only | V-PATH-002 |
@@ -456,7 +456,7 @@ Decision semantics:
 ### Task 5.1 Move hooks to Go event handlers
 - [x] Task 5.1
 - Why: maximize Claude Code hook strengths and enforce policy before model actions.
-- What: `hooks/hooks.json` calls `octo hook --event <Event>`.
+- What: `.claude-plugin/hooks.json` calls `octo hook --event <Event>`.
 - How:
   1. implement handler dispatcher in `internal/hooks/handler.go`
   2. map SessionStart/UserPromptSubmit/PreToolUse/PostToolUse/Stop/SubagentStop

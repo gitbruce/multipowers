@@ -251,7 +251,7 @@ git commit -m "feat(core): complete go parity for context state and provider rou
 - Modify: `internal/hooks/pre_tool_use.go`
 - Modify: `internal/hooks/post_tool_use.go`
 - Modify: `internal/hooks/stop.go`
-- Modify: `hooks/hooks.json`
+- Modify: `.claude-plugin/hooks.json`
 - Modify: `.claude-plugin/hooks.json`
 - Test: `internal/hooks/handler_test.go`
 
@@ -281,7 +281,7 @@ Expected: PASS.
 **Step 5: Commit**
 
 ```bash
-git add internal/hooks/*.go hooks/hooks.json .claude-plugin/hooks.json
+git add internal/hooks/*.go .claude-plugin/hooks.json .claude-plugin/hooks.json
 git commit -m "feat(hooks): complete go hook pipeline and remove shell dependencies"
 ```
 
