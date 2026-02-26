@@ -2,6 +2,12 @@
 
 Audience: maintainers of this repository (`claude-octopus` fork), not end users.
 
+## Naming Baseline
+
+- Slash command namespace: `/mp:*`
+- Plugin id: `multipowers`
+- Marketplace id: `multipowers-plugins`
+
 ## Branch and Sync Discipline
 
 1. `main` mirrors `upstream/main` only.
@@ -28,6 +34,22 @@ Keep customization isolated in `custom/*`:
 ./custom/scripts/mp-devx sync
 ./custom/scripts/mp-devx overlay
 bash tests/integration/test-sync-overlay.sh
+```
+
+## Marketplace and Plugin (User Scope)
+
+Install / refresh:
+
+```text
+/plugin marketplace add /mnt/f/src/ai/claude-octopus
+/plugin install multipowers@multipowers-plugins --scope user
+```
+
+Uninstall / remove:
+
+```text
+/plugin uninstall multipowers@multipowers-plugins --scope user
+/plugin marketplace remove multipowers-plugins
 ```
 
 ## What To Verify After Sync

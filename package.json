@@ -1,6 +1,6 @@
 {
   "name": "claude-octopus",
-  "version": "9.1.0-no-shell",
+  "version": "9.1.1",
   "description": "Claude Octopus - Multi-agent orchestration with /mp:deck slide deck generator, outline approval gate, and PPTX export via document-skills",
   "main": "bin/mp",
   "scripts": {

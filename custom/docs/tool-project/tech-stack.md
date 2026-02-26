@@ -2,18 +2,18 @@
 
 ## Runtime and Languages
 
-- Bash (primary): orchestration core and operational scripts.
+- Go (primary): orchestration runtime and operational utilities.
 - Markdown/YAML (primary): command, skill, workflow, and policy definitions.
 - JavaScript/TypeScript (supporting): helper scripts and token-extraction subsystem.
 - Node.js (supporting runtime): package metadata and JS/TS tooling execution.
 
 ## Core Execution Components
 
-- `bin/mp`: central command router and workflow engine.
-- `scripts/mp providers`: provider/model routing logic.
-- `scripts/mp state`: workflow state persistence helpers.
-- `scripts/mp-state.sh`: project/session state commands and context tiers.
-- `scripts/agent-teams-bridge.sh`: coordination bridge for multi-agent execution.
+- `bin/octo`: central command router and workflow engine.
+- `cmd/octo-devx`: maintainer/CI helper entrypoint.
+- `internal/providers/*`: provider/model routing logic.
+- `internal/tracks/*`: workflow state persistence and track status.
+- `internal/hooks/*`: lifecycle and governance hooks.
 
 ## Command and Skill Surface
 
@@ -39,13 +39,13 @@
 
 ## Operational Hooks and Safeguards
 
-- `hooks/*.sh` and `hooks/*.md`: quality gates, lifecycle hooks, status indicators, and safety checks.
+- `hooks/*.md` and `.claude-plugin/hooks.json`: lifecycle hooks and runtime wiring.
 - `SAFEGUARDS.md` and `SECURITY.md`: policy-level security and safe-operation constraints.
 
 ## Test and Verification Stack
 
 - `make test`, `make test-smoke`, `make test-unit`, `make test-integration`.
-- Shell-based suites in `tests/` validate routing, workflow contracts, hook behavior, and release integrity.
+- Go test suites validate routing, workflow contracts, hook behavior, and release integrity.
 
 ## External Dependencies
 

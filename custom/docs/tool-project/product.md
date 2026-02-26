@@ -10,9 +10,14 @@ Claude Octopus provides structured, multi-provider AI orchestration for Claude C
 - Secondary users: teams adopting orchestration patterns from this repo's docs, workflows, and templates.
 - Scope of this product context: how this repository evolves and is operated.
 
+Naming contract:
+- slash namespace: `/mp:*`
+- plugin id: `multipowers`
+- marketplace id: `multipowers-plugins`
+
 ## What This Repository Delivers
 
-1. Workflow orchestration engine in `bin/mp`.
+1. Workflow orchestration engine in `bin/octo`.
 2. Command surface in `.claude/commands/*` and skill implementations in `.claude/skills/*`.
 3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
 4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.
@@ -62,7 +67,7 @@ Default provider/model policy for this repository:
 
 ### 4) State, Context, and Resume
 
-- Operational state is managed by scripts such as `octo state` and `octo-state.sh`.
+- Operational state is managed by Go runtime under `.multipowers/*` artifacts.
 - Resume/status/issue flows provide continuity across long-running work.
 - Stable product context belongs in `conductor/context/*`; transient implementation details belong in workflow/session artifacts.
 

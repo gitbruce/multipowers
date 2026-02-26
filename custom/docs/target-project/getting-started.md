@@ -7,6 +7,13 @@
 /plugin install multipowers@multipowers-plugins --scope user
 ```
 
+## Uninstall Plugin / Marketplace (User Scope)
+
+```text
+/plugin uninstall multipowers@multipowers-plugins --scope user
+/plugin marketplace remove multipowers-plugins
+```
+
 ## Initialize in Your Project
 
 In your target project directory:
