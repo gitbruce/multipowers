@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "providers": ["codex", "gemini"],
-  "host": "127.0.0.1",
+  "host": "auto",
   "port": 7890,
   "no_proxy": ["localhost", "127.0.0.1"]
 }

@@ -3,7 +3,7 @@
 # Tracks resource usage (tokens, duration, costs) for multi-AI operations.
 
 get_metrics_base() {
-    echo "${METRICS_BASE:-${WORKSPACE_DIR:-${HOME}/.claude-octopus}}"
+    echo "${METRICS_BASE:-${WORKSPACE_DIR:-${PWD}/.multipowers/temp}}"
 }
 
 init_metrics_tracking() {

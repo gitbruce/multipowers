@@ -2,7 +2,7 @@
 
 ## What Changed
 
-Spec-driven `/octo` commands now use project context under `conductor/` in the target project, not `.claude/session-*` files.
+Spec-driven `/octo` commands now use project context under `.multipowers/` in the target project, not `.claude/session-*` files.
 
 ## `/octo:init`
 
@@ -13,19 +13,19 @@ Run:
 ```
 
 Execution anchor:
-- `/octo:init` should pass `--dir "$PWD"` to `scripts/orchestrate.sh` so `conductor/` is created in the current target project, not plugin/cache directories.
+- `/octo:init` should pass `--dir "$PWD"` to `scripts/orchestrate.sh` so `.multipowers/` is created in the current target project, not plugin/cache directories.
 - Runtime guard blocks spec/init commands if `PROJECT_ROOT` resolves to plugin/cache paths.
 
 This initializes:
 
-- `conductor/product.md`
-- `conductor/product-guidelines.md`
-- `conductor/tech-stack.md`
-- `conductor/workflow.md`
-- `conductor/code_styleguides/`
-- `conductor/tracks.md`
+- `.multipowers/product.md`
+- `.multipowers/product-guidelines.md`
+- `.multipowers/tech-stack.md`
+- `.multipowers/workflow.md`
+- `.multipowers/code_styleguides/`
+- `.multipowers/tracks.md`
 
-Templates come from `custom/templates/conductor/`.
+Templates come from `custom/templates/.multipowers/`.
 
 ## Auto-Init Guard
 
@@ -37,14 +37,14 @@ If missing/incomplete, it auto-runs `/octo:init` interactively before task execu
 
 Spec-driven runs create or update checkbox-based tracking files in:
 
-- `conductor/tracks/`
+- `.multipowers/tracks/`
 
 Canonical paths:
 
-- `conductor/tracks.md`
-- `conductor/tracks/`
+- `.multipowers/tracks.md`
+- `.multipowers/tracks/`
 
-Spec-driven outputs are stored at `conductor/tracks/<track_id>/plan.md` and `conductor/tracks/<track_id>/intent.md`.
+Spec-driven outputs are stored at `.multipowers/tracks/<track_id>/plan.md` and `.multipowers/tracks/<track_id>/intent.md`.
 
 ## Upstream Borrowing
 

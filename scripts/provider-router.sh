@@ -4,11 +4,11 @@
 
 OCTOPUS_ROUTING_MODE="${OCTOPUS_ROUTING_MODE:-round-robin}"
 
-_ROUTER_STATE_FILE="${WORKSPACE_DIR:-${HOME}/.claude-octopus}/.router-state"
-_ROUTER_STATS_FILE="${WORKSPACE_DIR:-${HOME}/.claude-octopus}/.provider-stats.json"
+_ROUTER_STATE_FILE="${WORKSPACE_DIR:-${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}}/.router-state"
+_ROUTER_STATS_FILE="${WORKSPACE_DIR:-${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}}/.provider-stats.json"
 
 build_provider_stats() {
-    local metrics_dir="${WORKSPACE_DIR:-${HOME}/.claude-octopus}"
+    local metrics_dir="${WORKSPACE_DIR:-${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}}"
     local metrics_file="${metrics_dir}/metrics-session.json"
     local stats_file="$_ROUTER_STATS_FILE"
 

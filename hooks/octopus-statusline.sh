@@ -35,7 +35,7 @@ fi
 # BASH FALLBACK - Original statusline implementation
 # ═══════════════════════════════════════════════════════════════════════════════
 
-SESSION_FILE="${HOME}/.claude-octopus/session.json"
+SESSION_FILE="${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}/session.json"
 
 # Extract statusline data
 mapfile -t _status_values < <(python3 - <<'PY' "$input"

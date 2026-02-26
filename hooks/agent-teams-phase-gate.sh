@@ -3,7 +3,7 @@
 # TaskCompleted hook that checks bridge ledger for phase completion.
 set -euo pipefail
 
-BRIDGE_DIR="${HOME}/.claude-octopus/bridge"
+BRIDGE_DIR="${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}/bridge"
 BRIDGE_LEDGER="${BRIDGE_DIR}/task-ledger.json"
 hook_input=$(cat 2>/dev/null || true)
 
@@ -87,7 +87,7 @@ with open(path + ".tmp", "w", encoding="utf-8") as out:
 PY
 mv "${BRIDGE_LEDGER}.tmp" "$BRIDGE_LEDGER"
 
-session_file="${HOME}/.claude-octopus/session.json"
+session_file="${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}/session.json"
 if [[ -f "$session_file" ]]; then
     python3 - "$session_file" "$completed_tasks" <<'PY'
 import json, sys

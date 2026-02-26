@@ -4,7 +4,7 @@
 
 OCTOPUS_AGENT_TEAMS_BRIDGE="${OCTOPUS_AGENT_TEAMS_BRIDGE:-auto}"
 
-_BRIDGE_DIR="${HOME}/.claude-octopus/bridge"
+_BRIDGE_DIR="${WORKSPACE_DIR:-${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}}/bridge"
 _BRIDGE_LEDGER="${_BRIDGE_DIR}/task-ledger.json"
 _BRIDGE_LOCKFILE="${_BRIDGE_DIR}/.ledger.lock"
 

@@ -64,7 +64,7 @@ Default provider/model policy for this repository:
 
 - Operational state is managed by scripts such as `state-manager.sh` and `octo-state.sh`.
 - Resume/status/issue flows provide continuity across long-running work.
-- Stable product context belongs in `conductor/context/*`; transient implementation details belong in workflow/session artifacts.
+- Stable product context belongs in `.multipowers/context/*`; transient implementation details belong in workflow/session artifacts.
 
 ### 5) Quality and Governance
 

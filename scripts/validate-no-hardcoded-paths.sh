@@ -75,7 +75,7 @@ fi
 # Check for hardcoded workspace paths (should be relative or ~/...)
 echo ""
 echo "Checking for hardcoded workspace paths..."
-workspace_paths=$(grep -rn "\.claude-octopus" \
+workspace_paths=$(grep -rn "\.multipowers" \
   --include="*.sh" --include="*.js" \
   --exclude-dir=.git --exclude-dir=tests \
   . 2>/dev/null | \

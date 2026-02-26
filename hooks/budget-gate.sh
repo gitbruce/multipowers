@@ -15,7 +15,7 @@ fi
 cat > /dev/null 2>&1 || true
 
 # Locate metrics file
-metrics_dir="${WORKSPACE_DIR:-${HOME}/.claude-octopus}"
+metrics_dir="${WORKSPACE_DIR:-${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}}"
 metrics_file="${metrics_dir}/metrics-session.json"
 
 if [[ ! -f "$metrics_file" ]]; then

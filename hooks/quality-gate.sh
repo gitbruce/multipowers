@@ -3,7 +3,7 @@
 # Validates tangle output before continuing workflow
 # Returns JSON decision: {"decision": "continue|block", "reason": "..."}
 
-VALIDATION_FILE=$(ls -t ~/.claude-octopus/results/tangle-validation-*.md 2>/dev/null | head -1)
+VALIDATION_FILE=$(ls -t ${CLAUDE_OCTOPUS_WORKSPACE:-${PWD}/.multipowers/temp}/results/tangle-validation-*.md 2>/dev/null | head -1)
 
 if [[ -f "$VALIDATION_FILE" ]]; then
     # Check if quality gate passed

@@ -54,7 +54,7 @@ Expected outcomes:
 ## Conductor Path Canonicalization
 
 Use only:
-- `conductor/tracks.md`
-- `conductor/tracks/`
+- `.multipowers/tracks.md`
+- `.multipowers/tracks/`
 
-Avoid legacy or typo variants like `conductor/track/`.
+Avoid legacy or typo variants like `.multipowers/track/`.

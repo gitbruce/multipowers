@@ -7,7 +7,7 @@ set -euo pipefail
 if [[ -n "${CLAUDE_OCTOPUS_WORKSPACE:-}" && "${CLAUDE_OCTOPUS_WORKSPACE:0:1}" == "/" ]]; then
     STATE_DIR="${CLAUDE_OCTOPUS_WORKSPACE}"
 else
-    STATE_DIR="${HOME}/.claude-octopus"
+    STATE_DIR="${PWD}/.multipowers/temp"
 fi
 STATE_FILE="$STATE_DIR/state.json"
 BACKUP_FILE="$STATE_DIR/state.json.backup"

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Configuration
-CONTEXT_DIR=".claude-octopus/context"
+CONTEXT_DIR=".multipowers/temp/context"
 
 # Colors for output
 RED='\033[0;31m'
