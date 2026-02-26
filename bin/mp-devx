@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CACHE_DIR="${ROOT_DIR}/.cache/bin"
+BIN_PATH="${CACHE_DIR}/mp-devx"
+
+mkdir -p "$CACHE_DIR"
+
+if [[ ! -x "$BIN_PATH" || "$ROOT_DIR/cmd/octo-devx/main.go" -nt "$BIN_PATH" ]]; then
+  if ! command -v go >/dev/null 2>&1; then
+    echo "ERROR: go is required to bootstrap mp-devx runtime." >&2
+    exit 127
+  fi
+  go build -o "$BIN_PATH" "${ROOT_DIR}/cmd/octo-devx"
+fi
+
+exec "$BIN_PATH" "$@"

@@ -37,6 +37,6 @@ When in Dev mode, these expert personas are prioritized:
 
 ## Switch Modes
 
-- **Knowledge Work Mode:** `/octo:km on`
-- **Dev Work Mode:** `/octo:dev` or `/octo:km off`
-- **Auto-detect:** `/octo:km auto`
+- **Knowledge Work Mode:** `/mp:km on`
+- **Dev Work Mode:** `/mp:dev` or `/mp:km off`
+- **Auto-detect:** `/mp:km auto`

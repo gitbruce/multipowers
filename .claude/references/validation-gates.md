@@ -69,7 +69,7 @@ Provider Availability:
 ```
 
 **Validation:**
-- If BOTH Codex and Gemini unavailable → STOP, suggest: `/octo:setup`
+- If BOTH Codex and Gemini unavailable → STOP, suggest: `/mp:setup`
 - If ONE unavailable → Continue with available provider(s)
 - If BOTH available → Proceed normally
 
@@ -82,7 +82,7 @@ Provider Availability:
 **You MUST execute this command via the Bash tool:**
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo [workflow] "<user's request>"
+${CLAUDE_PLUGIN_ROOT}/bin/mp [workflow] "<user's request>"
 ```
 
 **CRITICAL: You are PROHIBITED from:**
@@ -232,7 +232,7 @@ validation_gates:
 
 Execute:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo code-review "<commit range or files>"
+${CLAUDE_PLUGIN_ROOT}/bin/mp code-review "<commit range or files>"
 ```
 
 Validate:
@@ -251,7 +251,7 @@ validation_gates:
 
 Execute:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo architecture "<system design prompt>"
+${CLAUDE_PLUGIN_ROOT}/bin/mp architecture "<system design prompt>"
 ```
 
 Validate:
@@ -270,7 +270,7 @@ validation_gates:
 
 Execute:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/octo security-audit "<scope>"
+${CLAUDE_PLUGIN_ROOT}/bin/mp security-audit "<scope>"
 ```
 
 Validate:
@@ -298,7 +298,7 @@ After adding validation gates, test:
 
 ```bash
 # 1. Try to execute skill
-/octo:[skill-name] "test prompt"
+/mp:[skill-name] "test prompt"
 
 # 2. Verify visual indicators appear
 # Should see 🐙 banner with provider status

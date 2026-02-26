@@ -11,8 +11,8 @@
     {
       "name": "mp",
       "source": "./",
-      "description": "v9.1.3 - strict no-shell runtime with Go-only execution paths and shell-free CI.",
-      "version": "9.1.3",
+      "description": "v9.1.4 - bootstrap bin/mp launcher and align runtime/hook paths to mp.",
+      "version": "9.1.4",
       "author": {
         "name": "nyldn"
       },

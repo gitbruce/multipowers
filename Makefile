@@ -5,7 +5,7 @@ test: test-smoke test-unit
 
 # Validate plugin name (critical - prevents command prefix breakage)
 test-plugin-name:
-	@go run ./cmd/mp-devx --action suite --suite smoke
+	@go run ./cmd/octo-devx --action suite --suite smoke
 
 # Run all tests
 test-all: test-smoke test-unit test-integration test-e2e
@@ -13,47 +13,47 @@ test-all: test-smoke test-unit test-integration test-e2e
 # Smoke tests (pre-commit, <30s)
 test-smoke: test-plugin-name
 	@echo "Running smoke tests..."
-	@go run ./cmd/mp-devx --action suite --suite smoke
+	@go run ./cmd/octo-devx --action suite --suite smoke
 
 # Unit tests (1-2min)
 test-unit:
 	@echo "Running unit tests..."
-	@go run ./cmd/mp-devx --action suite --suite unit
+	@go run ./cmd/octo-devx --action suite --suite unit
 
 # Integration tests (5-10min)
 test-integration:
 	@echo "Running integration tests..."
-	@go run ./cmd/mp-devx --action suite --suite integration
+	@go run ./cmd/octo-devx --action suite --suite integration
 
 # E2E tests (15-30min)
 test-e2e:
 	@echo "Running E2E tests..."
-	@go run ./cmd/mp-devx --action suite --suite e2e
+	@go run ./cmd/octo-devx --action suite --suite e2e
 
 # Live tests - real Claude Code sessions (2-5min per test, uses API)
 test-live:
 	@echo "Running live tests (real Claude Code sessions)..."
 	@echo "WARNING: This makes real API calls"
-	@go run ./cmd/mp-devx --action suite --suite live
+	@go run ./cmd/octo-devx --action suite --suite live
 
 # Performance tests
 test-performance:
 	@echo "Running performance tests..."
-	@go run ./cmd/mp-devx --action suite --suite performance
+	@go run ./cmd/octo-devx --action suite --suite performance
 
 # Regression tests
 test-regression:
 	@echo "Running regression tests..."
-	@go run ./cmd/mp-devx --action suite --suite regression
+	@go run ./cmd/octo-devx --action suite --suite regression
 
 # Coverage report
 test-coverage:
 	@echo "Generating coverage report..."
-	@go run ./cmd/mp-devx --action suite --suite coverage
+	@go run ./cmd/octo-devx --action suite --suite coverage
 
 # Verbose mode for debugging
 test-verbose:
-	@go run ./cmd/mp-devx --action suite --suite all
+	@go run ./cmd/octo-devx --action suite --suite all
 
 # Clean test artifacts
 clean-tests:
@@ -95,7 +95,8 @@ help:
 
 build-go:
 	@mkdir -p bin
-	@go build -o bin/mp ./cmd/mp
+	@go build -o bin/mp ./cmd/octo
+	@go build -o bin/mp-devx ./cmd/octo-devx
 
 test-go:
 	@go test ./...
