@@ -1,42 +1,19 @@
 ---
 command: debate
-description: Structured multi-LLM debate (Codex + Gemini + Claude) via orchestrate grapple workflow
+description: Thin wrapper that delegates to Go runtime (octo)
 ---
 
 # /octo:debate
 
-This command MUST execute the multi-LLM debate workflow. Do not return a single-model opinion.
+Use Go runtime only.
 
-## Mandatory Behavior
-
-1. Before debate, verify required context exists under `$PWD/.multipowers/`:
-   - `product.md`
-   - `product-guidelines.md`
-   - `tech-stack.md`
-   - `workflow.md`
-   - `tracks.md`
-   - `CLAUDE.md`
-   If any file is missing, you MUST execute:
+Actions:
+1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/octo` exists.
+2. Execute:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+"${CLAUDE_PLUGIN_ROOT}/bin/octo" debate --dir "$PWD" --prompt "<user-prompt>" --json
 ```
-   Re-check all required files and continue only when all are present; otherwise fail-fast.
-2. Build prompt text from user arguments.
-3. Execute debate workflow:
+3. Parse JSON response.
+4. If `status` is `error` or `blocked`, stop immediately.
 
-```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" grapple "<user-prompt>"
-```
-
-4. If command exits non-zero:
-- Stop and report error.
-- Do not produce a synthetic single-model "debate" answer.
-
-5. If command succeeds:
-- Summarize the debate result from generated artifacts/output.
-- Keep attribution clear: include Codex/Gemini/Claude perspectives when present.
-
-## Prohibited
-
-- Do not answer with one model only.
-- Do not skip debate execution when user explicitly requests `/octo:debate`.
+Do not implement command logic in markdown.

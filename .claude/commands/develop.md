@@ -1,92 +1,19 @@
 ---
 command: develop
-description: "Development phase - Build solutions with multi-AI implementation and quality gates"
-aliases:
-  - tangle
-  - build-phase
+description: Thin wrapper that delegates to Go runtime (octo)
 ---
 
-# Develop - Development Phase 🛠️
+# /octo:develop
 
-## 🤖 INSTRUCTIONS FOR CLAUDE
+Use Go runtime only.
 
-When the user invokes this command (e.g., `/octo:develop <arguments>`):
-
-### Step 0: Enforce Conductor Context Guard
-
-- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
-  - `product.md`
-  - `product-guidelines.md`
-  - `tech-stack.md`
-  - `workflow.md`
-  - `tracks.md`
-  - `CLAUDE.md`
-- If any context file is missing, you MUST execute:
+Actions:
+1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/octo` exists.
+2. Execute:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+"${CLAUDE_PLUGIN_ROOT}/bin/octo" develop --dir "$PWD" --prompt "<user-prompt>" --json
 ```
-- Re-check all required files and hard-stop if any are still missing.
-- Continue only after context is present.
-- Do **not** perform any implementation action (`Write/Edit/Update`) before Step 0 is complete.
+3. Parse JSON response.
+4. If `status` is `error` or `blocked`, stop immediately.
 
-**✓ CORRECT - Use the Skill tool:**
-```
-Skill(skill: "octo:develop", args: "<user's arguments>")
-```
-
-**✗ INCORRECT - Do NOT use Task tool:**
-```
-Task(subagent_type: "octo:develop", ...)  ❌ Wrong! This is a skill, not an agent type
-```
-
-**Why:** This command loads the `flow-develop` skill. Skills use the `Skill` tool, not `Task`.
-
----
-
-**Auto-loads the `flow-develop` skill for the implementation phase.**
-
-## Quick Usage
-
-Just use natural language:
-```
-"Build a user authentication system"
-"Implement OAuth 2.0 flow"
-"Create a caching layer for the API"
-```
-
-## What Is Develop?
-
-The **Develop** phase of the Double Diamond methodology (divergent thinking for solutions):
-- Multiple implementation approaches via external CLI providers
-- Code generation and technical patterns
-- Quality gate validation
-
-## What You Get
-
-- Multi-AI implementation (Claude + Gemini + Codex)
-- Multiple implementation approaches
-- Quality gate validation (75% consensus threshold)
-- Security checks (OWASP compliance)
-- Best practices enforcement
-
-## When to Use Develop
-
-Use develop when you need:
-- **Building**: "Build X" or "Implement Y"
-- **Creating**: "Create Z feature"
-- **Code Generation**: "Write code to do Y"
-
-**Don't use develop for:**
-- Simple code edits (use Edit tool)
-- Reading or reviewing code (use Read/review skills)
-- Trivial single-file changes
-
-## Part of the Full Workflow
-
-Develop is phase 3 of 4 in the embrace (full) workflow:
-1. Discover
-2. Define
-3. **Develop** <- You are here
-4. Deliver
-
-To run all 4 phases: `/octo:embrace`
+Do not implement command logic in markdown.

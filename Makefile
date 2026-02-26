@@ -89,3 +89,19 @@ help:
 	@echo "  make help              - Show this help message"
 	@echo ""
 	@echo "For more details, see tests/README.md"
+
+
+.PHONY: build-go test-go lint-go check-go-lines
+
+build-go:
+	@mkdir -p bin
+	@go build -o bin/octo ./cmd/octo
+
+test-go:
+	@go test ./...
+
+check-go-lines:
+	@./scripts/check-go-file-length.sh
+
+lint-go:
+	@go vet ./...

@@ -1,151 +1,19 @@
 ---
 command: discover
-description: "Discovery phase - Multi-AI research and exploration"
-aliases:
-  - probe
-  - research-phase
+description: Thin wrapper that delegates to Go runtime (octo)
 ---
 
-# Discover - Discovery Phase 🔍
+# /octo:discover
 
-## 🤖 INSTRUCTIONS FOR CLAUDE
+Use Go runtime only.
 
-When the user invokes this command (e.g., `/octo:discover <arguments>`):
-
-### Step 0: Enforce Conductor Context Guard
-
-- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
-  - `product.md`
-  - `product-guidelines.md`
-  - `tech-stack.md`
-  - `workflow.md`
-  - `tracks.md`
-  - `CLAUDE.md`
-- If any context file is missing, you MUST execute:
+Actions:
+1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/octo` exists.
+2. Execute:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+"${CLAUDE_PLUGIN_ROOT}/bin/octo" discover --dir "$PWD" --prompt "<user-prompt>" --json
 ```
-- Re-check all required files and hard-stop if any are still missing.
-- Continue only after context is present.
-- Do **not** offer a bypass path such as "continue without init" or "direct discovery".
+3. Parse JSON response.
+4. If `status` is `error` or `blocked`, stop immediately.
 
-**✓ CORRECT - Use the Skill tool:**
-```
-Skill(skill: "octo:discover", args: "<user's arguments>")
-```
-
-**✗ INCORRECT - Do NOT use Task tool:**
-```
-Task(subagent_type: "octo:discover", ...)  ❌ Wrong! This is a skill, not an agent type
-```
-
-**Why:** This command loads the `flow-discover` skill. Skills use the `Skill` tool, not `Task`.
-
-### Step 1: Ask Clarifying Questions
-
-**CRITICAL: Before starting discovery, use the AskUserQuestion tool to gather context:**
-
-Ask 3 clarifying questions to ensure focused research:
-
-```javascript
-AskUserQuestion({
-  questions: [
-    {
-      question: "How deep should the research go?",
-      header: "Depth",
-      multiSelect: false,
-      options: [
-        {label: "Quick overview (Recommended)", description: "1-2 min, surface-level scan"},
-        {label: "Moderate depth", description: "2-3 min, standard coverage"},
-        {label: "Comprehensive", description: "3-4 min, thorough analysis"},
-        {label: "Deep dive", description: "4-5 min, exhaustive research"}
-      ]
-    },
-    {
-      question: "What's your primary focus area?",
-      header: "Focus",
-      multiSelect: false,
-      options: [
-        {label: "Technical implementation (Recommended)", description: "Code patterns, APIs, architecture"},
-        {label: "Best practices", description: "Industry standards and conventions"},
-        {label: "Ecosystem & tools", description: "Libraries, frameworks, community"},
-        {label: "Trade-offs & comparisons", description: "Pros/cons analysis"}
-      ]
-    },
-    {
-      question: "How should the output be formatted?",
-      header: "Output",
-      multiSelect: false,
-      options: [
-        {label: "Detailed report (Recommended)", description: "Comprehensive write-up"},
-        {label: "Summary", description: "Concise key findings"},
-        {label: "Comparison table", description: "Side-by-side format"},
-        {label: "Recommendations", description: "Actionable next steps"}
-      ]
-    }
-  ]
-})
-```
-
-After receiving answers, incorporate them into the Skill invocation.
-
-### Step 2: Invoke Skill
-
-```
-Skill(skill: "octo:discover", args: "<user's arguments>")
-```
-
----
-
-**Auto-loads the `flow-discover` skill for the research/discovery phase.**
-
-## Quick Usage
-
-Just use natural language:
-```
-"Research OAuth authentication patterns"
-"Explore caching strategies for high-traffic APIs"
-"Investigate microservices best practices"
-```
-
-## What Is Discover?
-
-The **Discover** phase of the Double Diamond methodology:
-- Divergent thinking
-- Broad exploration
-- Multi-perspective research
-- Problem space understanding
-
-## What You Get
-
-- Multi-AI research (Claude + Gemini + Codex)
-- Comprehensive analysis of options
-- Trade-off evaluation
-- Best practice identification
-- Implementation considerations
-
-## When To Use
-
-- Starting a new feature
-- Researching technologies
-- Exploring design patterns
-- Understanding problem space
-- Gathering requirements
-
-## Natural Language Examples
-
-```
-"Research OAuth 2.0 vs JWT authentication"
-"Probe database options for our use case"
-"Explore state management patterns for React"
-```
-
-## Part of the Full Workflow
-
-Discover is phase 1 of 4 in the embrace (full) workflow:
-1. **Discover** <- You are here
-2. Define
-3. Develop
-4. Deliver
-
-To run all 4 phases: `/octo:embrace`
+Do not implement command logic in markdown.

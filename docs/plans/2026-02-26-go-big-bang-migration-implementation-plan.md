@@ -182,7 +182,7 @@ Decision semantics:
 ## Phase 0 - Branch and Baseline
 
 ### Task 0.1 Create `go` branch from current `multipowers` tip
-- [ ] Task 0.1
+- [x] Task 0.1
 - Why: isolate big-bang migration from ongoing multipowers stabilization.
 - What: create new working branch `go` from latest local `multipowers` and track remote.
 - How:
@@ -196,7 +196,7 @@ Decision semantics:
   - remote branch exists
 
 ### Task 0.2 Initialize Go 1.22 project skeleton
-- [ ] Task 0.2
+- [x] Task 0.2
 - Why: provide stable compilation boundary before migrating behavior.
 - What: add `go.mod`, root CLI entry, and initial package directories.
 - How:
@@ -209,7 +209,7 @@ Decision semantics:
   - repository includes expected Go tree
 
 ### Task 0.3 Add file-length soft warning (>500 lines)
-- [ ] Task 0.3
+- [x] Task 0.3
 - Why: enforce maintainability constraint without blocking migration velocity.
 - What: CI/local check emits warning for Go files over 500 lines.
 - How:
@@ -221,7 +221,7 @@ Decision semantics:
   - CI step present and non-blocking
 
 ### Task 0.4 Snapshot baseline behavior tests
-- [ ] Task 0.4
+- [x] Task 0.4
 - Why: compare post-migration behavior against known multipowers baseline.
 - What: run and save key shell/integration test outputs before rewriting logic.
 - How:
@@ -235,7 +235,7 @@ Decision semantics:
 ## Phase 1 - Kernel and Pipeline
 
 ### Task 1.1 Implement root CLI and subcommand router
-- [ ] Task 1.1
+- [x] Task 1.1
 - Why: all command execution must flow through one Go binary.
 - What: `octo <subcommand>` parser and dispatch table.
 - How:
@@ -247,7 +247,7 @@ Decision semantics:
   - each command returns JSON envelope with `status`
 
 ### Task 1.2 Implement unified pipeline contract
-- [ ] Task 1.2
+- [x] Task 1.2
 - Why: prevent markdown-layer bypass of mandatory governance.
 - What: reusable execution pipeline used by all spec-driven commands.
 - How:
@@ -259,7 +259,7 @@ Decision semantics:
   - failing guard prevents command body execution
 
 ### Task 1.3 Define deterministic error code system
-- [ ] Task 1.3
+- [x] Task 1.3
 - Why: enable machine-parseable remediation in hooks/skills/docs.
 - What: stable error code catalog (`E_CTX_MISSING`, `E_INIT_FAILED`, `E_RUNTIME_PRERUN_FAILED`, `E_PROVIDER_QUORUM`, etc.)
 - How:
@@ -270,7 +270,7 @@ Decision semantics:
   - command failures produce expected `error_code`
 
 ### Task 1.4 Define core interfaces and extension contracts
-- [ ] Task 1.4
+- [x] Task 1.4
 - Why: lock stable boundaries before broad implementation to prevent architectural drift.
 - What: define interfaces for guard/provider/gate/hook/boundary and shared JSON envelopes.
 - How:
@@ -291,7 +291,7 @@ Decision semantics:
 ## Phase 2 - Context and Init
 
 ### Task 2.1 Implement required-context checker (5 + CLAUDE)
-- [ ] Task 2.1
+- [x] Task 2.1
 - Why: enforce agreed minimum context contract.
 - What: required files are exactly:
   - `product.md`
@@ -308,7 +308,7 @@ Decision semantics:
   - checker tests pass for full and partial contexts
 
 ### Task 2.2 Implement auto-init + recheck + hard-stop behavior
-- [ ] Task 2.2
+- [x] Task 2.2
 - Why: stop “init failed but command continues” regressions.
 - What: when missing context -> run init -> recheck -> fail hard if still missing.
 - How:
@@ -319,7 +319,7 @@ Decision semantics:
   - integration test confirms no downstream action after init failure
 
 ### Task 2.3 Implement `octo context guard --json --auto-init`
-- [ ] Task 2.3
+- [x] Task 2.3
 - Why: shared primitive for hooks and markdown wrappers.
 - What: standalone command returning guard status JSON.
 - How:
@@ -344,7 +344,7 @@ Decision semantics:
 ## Phase 3 - Runtime Preconditions Contract
 
 ### Task 3.1 Implement optional runtime config loading
-- [ ] Task 3.1
+- [x] Task 3.1
 - Why: `runtime.json` is optional but actionable when present.
 - What: parse `.multipowers/context/runtime.json` if file exists.
 - How:
@@ -354,7 +354,7 @@ Decision semantics:
   - tests for missing, valid, malformed file cases
 
 ### Task 3.2 Execute pre-run commands with fail-fast semantics
-- [ ] Task 3.2
+- [x] Task 3.2
 - Why: guarantee preconditions are respected before provider execution.
 - What: run matching pre-run entries and stop on failure.
 - How:
@@ -381,7 +381,7 @@ Decision semantics:
 ## Phase 4 - Providers and Debate
 
 ### Task 4.1 Implement provider interface and registry
-- [ ] Task 4.1
+- [x] Task 4.1
 - Why: replace monolithic shell case routing with extensible typed contracts.
 - What: provider interface and static registration for codex/gemini/claude.
 - How:
@@ -392,7 +392,7 @@ Decision semantics:
   - registry tests and provider lookup tests pass
 
 ### Task 4.2 Unify proxy routing for codex/gemini paths
-- [ ] Task 4.2
+- [x] Task 4.2
 - Why: remove path-specific proxy drift and runtime inconsistency.
 - What: all codex/gemini invocations pass through same proxy policy.
 - How:
@@ -403,7 +403,7 @@ Decision semantics:
   - tests show env/proxy applied on every codex/gemini invocation path
 
 ### Task 4.3 Enforce debate quorum policy
-- [ ] Task 4.3
+- [x] Task 4.3
 - Why: debate must continue with 2 providers, fail below 2.
 - What: max 3 participants, minimum 2.
 - How:
@@ -414,7 +414,7 @@ Decision semantics:
   - integration tests for 3->2 continue and 2->1 fail
 
 ### Task 4.4 Implement explicit workflow modules (`internal/workflows/*`)
-- [ ] Task 4.4
+- [x] Task 4.4
 - Why: avoid routing/business logic collapse into one file and keep domain ownership clear.
 - What: create workflow modules for `discover/define/develop/deliver/embrace/debate` orchestration.
 - How:
@@ -426,7 +426,7 @@ Decision semantics:
   - workflow-level unit tests exist per module
 
 ### Task 4.5 Implement external command abstraction (`internal/execx/*`)
-- [ ] Task 4.5
+- [x] Task 4.5
 - Why: provider/hook execution needs consistent timeout, env, stdout/stderr capture, and cancellation behavior.
 - What: central `execx` package for all subprocess invocations.
 - How:
@@ -454,7 +454,7 @@ Decision semantics:
 ## Phase 5 - Hooks Migration (Claude Code First-Class)
 
 ### Task 5.1 Move hooks to Go event handlers
-- [ ] Task 5.1
+- [x] Task 5.1
 - Why: maximize Claude Code hook strengths and enforce policy before model actions.
 - What: `hooks/hooks.json` calls `octo hook --event <Event>`.
 - How:
@@ -464,7 +464,7 @@ Decision semantics:
   - hook simulation tests pass for all configured events
 
 ### Task 5.2 Implement SessionStart context injection (5 files + track)
-- [ ] Task 5.2
+- [x] Task 5.2
 - Why: give stable project context every session start.
 - What: inject summaries for product/product-guidelines/tech-stack/workflow/CLAUDE and track status.
 - How:
@@ -486,7 +486,7 @@ Decision semantics:
   - hook tests confirm blocking behavior
 
 ### Task 5.4 Enforce PreToolUse boundaries and command safety
-- [ ] Task 5.4
+- [x] Task 5.4
 - Why: stop writes outside allowed target scope and risky command misuse.
 - What: inspect write/edit/bash tool calls and enforce policy.
 - How:
@@ -508,7 +508,7 @@ Decision semantics:
   - deterministic FAQ regeneration tests
 
 ### Task 5.6 Specify `Stop` / `SubagentStop` hook behavior contract
-- [ ] Task 5.6
+- [x] Task 5.6
 - Why: termination hooks must be deterministic to prevent premature exit or dead-end sessions.
 - What: explicit allow/block conditions and remediation responses for `Stop` and `SubagentStop`.
 - How:
@@ -538,7 +538,7 @@ Decision semantics:
 ## Phase 6 - Command/Skill Thin Layer
 
 ### Task 6.1 Convert `.claude/commands/*` to thin Go wrappers
-- [ ] Task 6.1
+- [x] Task 6.1
 - Why: remove duplicated logic and reduce upstream conflict footprint.
 - What: commands only call `octo` binary and render result.
 - How:
@@ -580,7 +580,7 @@ Decision semantics:
   - compatibility note documented
 
 ### Task 6.5 Add centralized output rendering package (`internal/render/*`)
-- [ ] Task 6.5
+- [x] Task 6.5
 - Why: avoid scattered formatting logic and ensure consistent CLI/hook output across commands.
 - What: render helpers for banner/table/markdown/json status output.
 - How:
@@ -629,7 +629,7 @@ Decision semantics:
   - static scan report with zero forbidden runtime paths
 
 ### Task 7.4 Implement concurrent-safe state handling (`.multipowers/temp/state.json`)
-- [ ] Task 7.4
+- [x] Task 7.4
 - Why: hooks and commands can run concurrently; unsafe writes cause state corruption.
 - What: atomic, lock-protected read/write strategy for shared state files.
 - How:
@@ -677,7 +677,7 @@ Decision semantics:
   - plugin smoke checks in clean environment pass
 
 ### Task 8.4 Run key behavior parity tests (`plan`, `debate`, `embrace`)
-- [ ] Task 8.4
+- [x] Task 8.4
 - Why: preserve user-visible workflow semantics while changing runtime implementation.
 - What: compare old shell baseline vs Go runtime for key behavior parity.
 - How:
@@ -693,7 +693,7 @@ Decision semantics:
   - explicit pass/fail matrix for `plan`, `debate`, `embrace`
 
 ### Task 8.5 Run performance benchmarks for hook preflight
-- [ ] Task 8.5
+- [x] Task 8.5
 - Why: validate expected startup/latency gains from Go migration.
 - What: benchmark `octo hook preflight` response time.
 - How:
@@ -708,7 +708,7 @@ Decision semantics:
   - target threshold pass/fail summary
 
 ### Task 8.6 Add Go static analysis gate
-- [ ] Task 8.6
+- [x] Task 8.6
 - Why: big-bang migration increases defect risk; static checks catch issues early.
 - What: run `go vet`, staticcheck, and lint policy in CI/local.
 - How:
@@ -720,7 +720,7 @@ Decision semantics:
   - no critical static findings at cutover
 
 ### Task 8.7 Define and run dual-run migration tests (shell vs Go)
-- [ ] Task 8.7
+- [x] Task 8.7
 - Why: validate behavior before full cutover using side-by-side execution.
 - What: execute selected scenarios in both runtimes and compare normalized outputs.
 - How:

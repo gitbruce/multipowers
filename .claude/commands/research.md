@@ -1,67 +1,19 @@
 ---
 command: research
-description: Deep research with multi-source synthesis and comprehensive analysis
+description: Thin wrapper that delegates to Go runtime (octo)
 ---
 
-# Research - Deep Multi-AI Research
+# /octo:research
 
-## 🤖 INSTRUCTIONS FOR CLAUDE
+Use Go runtime only.
 
-When the user invokes this command (e.g., `/octo:research <arguments>`):
-
-### Step 0: Enforce Conductor Context Guard
-
-- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
-  - `product.md`
-  - `product-guidelines.md`
-  - `tech-stack.md`
-  - `workflow.md`
-  - `tracks.md`
-  - `CLAUDE.md`
-- If any context file is missing, you MUST execute:
+Actions:
+1. Ensure `${CLAUDE_PLUGIN_ROOT}/bin/octo` exists.
+2. Execute:
 ```bash
-"${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh" --dir "$PWD" init
+"${CLAUDE_PLUGIN_ROOT}/bin/octo" research --dir "$PWD" --prompt "<user-prompt>" --json
 ```
-- Re-check all required files and hard-stop if any are still missing.
-- Continue only after context is present.
+3. Parse JSON response.
+4. If `status` is `error` or `blocked`, stop immediately.
 
-**✓ CORRECT - Use the Skill tool:**
-```
-Skill(skill: "octo:discover", args: "<user's arguments>")
-```
-
-**✗ INCORRECT - Do NOT use Task tool:**
-```
-Task(subagent_type: "octo:discover", ...)  ❌ Wrong! This is a skill, not an agent type
-```
-
-**Why:** This command loads the `flow-discover` skill for multi-AI research. Skills use the `Skill` tool, not `Task`.
-
----
-
-**Auto-loads the `flow-discover` skill for comprehensive research tasks.**
-
-## Quick Usage
-
-Just use natural language:
-```
-"Research OAuth 2.0 authentication patterns"
-"Deep research on microservices architecture best practices"
-"Research the trade-offs between Redis and Memcached"
-```
-
-## What Is Research?
-
-An alias for the **Discover** phase of the Double Diamond methodology:
-- Multi-AI research (Claude + Gemini + Codex)
-- Comprehensive analysis of options
-- Trade-off evaluation
-- Best practice identification
-
-## Natural Language Examples
-
-```
-"Research GraphQL vs REST API design patterns"
-"I need deep research on Kubernetes security best practices"
-"Research authentication strategies for microservices"
-```
+Do not implement command logic in markdown.
