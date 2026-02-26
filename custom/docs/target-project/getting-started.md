@@ -16,8 +16,24 @@ In your target project directory:
 ```
 
 Expected:
-- creates `conductor/` in your target project
+- creates `.multipowers/` in your target project
 - initializes project context files and tracks registry
+- creates `.multipowers/CLAUDE.md` and `.multipowers/FAQ.md`
+- creates `.multipowers/context/runtime.json` for runtime/pre-run settings
+
+## Optional: Configure Pre-Run Hooks
+
+During `/octo:init`, you can configure pre-run hooks (for any runtime/toolchain).
+
+Example use cases:
+- activate an environment
+- source a shell profile
+- export required env vars
+
+Hooks are stored in:
+- `.multipowers/context/runtime.json`
+
+All external provider executions (`codex`, `gemini`, `claude`) read this file before running.
 
 ## Run Spec-Driven Commands
 
@@ -26,3 +42,9 @@ Expected:
 - `/octo:embrace`, `/octo:review`, `/octo:debate`, `/octo:research`
 
 If context is missing, `/octo:init` is auto-triggered.
+
+## FAQ Learning Loop
+
+- `.multipowers/FAQ.md` is auto-generated and auto-refined from observed failures.
+- Entries are categorized by error type and deduplicated.
+- No manual maintenance, backup, or archive files are required.

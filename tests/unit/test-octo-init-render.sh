@@ -34,5 +34,9 @@ rg -n 'if \[\[ ! -f "\$croot/product\.md" \]\]' "$ROOT/scripts/orchestrate.sh" >
 rg -n 'if \[\[ ! -f "\$croot/product-guidelines\.md" \]\]' "$ROOT/scripts/orchestrate.sh" >/dev/null
 rg -n 'if \[\[ ! -f "\$croot/tech-stack\.md" \]\]' "$ROOT/scripts/orchestrate.sh" >/dev/null
 rg -n 'if \[\[ ! -f "\$croot/tracks\.md" \]\]' "$ROOT/scripts/orchestrate.sh" >/dev/null
+rg -n 'if \[\[ ! -f "\$croot/CLAUDE\.md" \]\]' "$ROOT/scripts/orchestrate.sh" >/dev/null
+rg -n 'if \[\[ ! -f "\$croot/FAQ\.md" \]\]' "$ROOT/scripts/orchestrate.sh" >/dev/null
+[[ -f "$ROOT/custom/templates/CLAUDE.md" ]]
+[[ -f "$ROOT/custom/templates/FAQ.md" ]]
 
 echo "PASS test-octo-init-render"

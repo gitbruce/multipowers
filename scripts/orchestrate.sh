@@ -10,6 +10,28 @@ PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
 # Keep debug flag defined even when nounset is enabled by sourced scripts.
 OCTOPUS_DEBUG="${OCTOPUS_DEBUG:-false}"
 
+# Parse --dir early so PROJECT_ROOT resolves to target project.
+if [[ -z "${OCTO_TARGET_PROJECT_DIR:-}" ]]; then
+    _octo_early_target_dir=""
+    _octo_prev=""
+    for _octo_arg in "$@"; do
+        if [[ "$_octo_prev" == "--dir" ]]; then
+            _octo_early_target_dir="$_octo_arg"
+            break
+        fi
+        case "$_octo_arg" in
+            --dir=*)
+                _octo_early_target_dir="${_octo_arg#--dir=}"
+                break
+                ;;
+        esac
+        _octo_prev="$_octo_arg"
+    done
+    if [[ -n "$_octo_early_target_dir" ]]; then
+        export OCTO_TARGET_PROJECT_DIR="$_octo_early_target_dir"
+    fi
+fi
+
 # Resolve project root for target repo (not plugin/cache path)
 resolve_project_root() {
     local fallback="$PWD"
@@ -34,8 +56,22 @@ resolve_project_root() {
     (cd "$fallback" && pwd -P)
 }
 
-# Workspace location - uses home directory for global installation
+# Workspace location defaults to target project's .multipowers/temp
 PROJECT_ROOT="$(resolve_project_root)"
+DEFAULT_WORKSPACE_DIR="${PROJECT_ROOT}/.multipowers/temp"
+if [[ -z "${CLAUDE_OCTOPUS_WORKSPACE:-}" ]]; then
+    export CLAUDE_OCTOPUS_WORKSPACE="$DEFAULT_WORKSPACE_DIR"
+fi
+
+ensure_project_gitignore_entry() {
+    local gitignore_file="${PROJECT_ROOT}/.gitignore"
+    [[ -d "$PROJECT_ROOT" ]] || return 0
+    [[ "$PROJECT_ROOT" == "$PLUGIN_DIR"* ]] && return 0
+    touch "$gitignore_file"
+    if ! grep -Eq '^\.multipowers/$' "$gitignore_file" 2>/dev/null; then
+        printf "\n.multipowers/\n" >> "$gitignore_file"
+    fi
+}
 
 is_dangerous_project_root() {
     local root="${1:-}"
@@ -72,6 +108,20 @@ if [[ -f "${PLUGIN_DIR}/custom/lib/overlay-loader.sh" ]]; then
     source "${PLUGIN_DIR}/custom/lib/overlay-loader.sh"
 fi
 
+# Optional failure-learning hook from multipowers overlay.
+octo_record_failure() {
+    local command_name="${1:-unknown}"
+    local phase="${2:-unknown}"
+    local provider="${3:-none}"
+    local error_hint="${4:-failure}"
+    local root_cause="${5:-unknown}"
+    local suggested_fix="${6:-Check logs and retry.}"
+    local exit_code="${7:-1}"
+    if type record_failure_event &>/dev/null; then
+        record_failure_event "$command_name" "$phase" "$provider" "$error_hint" "$root_cause" "$suggested_fix" "$exit_code" || true
+    fi
+}
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECURITY: Path validation for workspace directory
 # Prevents path traversal attacks and restricts to safe locations
@@ -100,9 +150,9 @@ validate_workspace_path() {
         return 1
     fi
 
-    # Restrict to safe locations ($HOME or /tmp)
+    # Restrict to safe locations ($HOME, /tmp, or current PROJECT_ROOT)
     local is_safe=false
-    for safe_prefix in "$HOME" "/tmp" "/var/tmp"; do
+    for safe_prefix in "$HOME" "/tmp" "/var/tmp" "$PROJECT_ROOT"; do
         if [[ "$proposed_path" == "$safe_prefix"* ]]; then
             is_safe=true
             break
@@ -110,7 +160,7 @@ validate_workspace_path() {
     done
 
     if [[ "$is_safe" != "true" ]]; then
-        echo "ERROR: CLAUDE_OCTOPUS_WORKSPACE must be under \$HOME, /tmp, or /var/tmp" >&2
+        echo "ERROR: CLAUDE_OCTOPUS_WORKSPACE must be under \$HOME, /tmp, /var/tmp, or PROJECT_ROOT" >&2
         return 1
     fi
 
@@ -121,8 +171,9 @@ validate_workspace_path() {
 if [[ -n "${CLAUDE_OCTOPUS_WORKSPACE:-}" ]]; then
     WORKSPACE_DIR=$(validate_workspace_path "$CLAUDE_OCTOPUS_WORKSPACE") || exit 1
 else
-    WORKSPACE_DIR="${HOME}/.claude-octopus"
+    WORKSPACE_DIR="$DEFAULT_WORKSPACE_DIR"
 fi
+ensure_project_gitignore_entry
 
 # Ensure state manager writes under validated workspace, never relative to CWD.
 STATE_DIR="$WORKSPACE_DIR"
@@ -316,7 +367,7 @@ EOF
 # ═══════════════════════════════════════════════════════════════════════════════
 record_result_hash() {
     local result_file="$1"
-    local manifest_dir="${WORKSPACE_DIR:-${HOME}/.claude-octopus}"
+    local manifest_dir="${WORKSPACE_DIR}"
     local manifest="${manifest_dir}/.integrity-manifest"
 
     [[ "${OCTOPUS_SECURITY_V870:-true}" != "true" ]] && return 0
@@ -330,7 +381,7 @@ record_result_hash() {
 
 verify_result_integrity() {
     local result_file="$1"
-    local manifest_dir="${WORKSPACE_DIR:-${HOME}/.claude-octopus}"
+    local manifest_dir="${WORKSPACE_DIR}"
     local manifest="${manifest_dir}/.integrity-manifest"
 
     [[ "${OCTOPUS_SECURITY_V870:-true}" != "true" ]] && return 0
@@ -668,7 +719,8 @@ init_session_workspace() {
 }
 
 # Secure temporary directory (cleaned up on exit)
-OCTOPUS_TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/claude-octopus.XXXXXX")
+mkdir -p "${WORKSPACE_DIR}/tmp"
+OCTOPUS_TMP_DIR=$(mktemp -d "${WORKSPACE_DIR}/tmp/claude-octopus.XXXXXX")
 trap 'rm -rf "$OCTOPUS_TMP_DIR"' EXIT INT TERM
 
 # Performance: Preflight check cache (avoids repeated CLI checks)
@@ -1276,12 +1328,12 @@ enforce_context_budget() {
 
 # Get model for agent type with 4-tier precedence
 # Priority 1: Environment variables (OCTOPUS_CODEX_MODEL, OCTOPUS_GEMINI_MODEL)
-# Priority 2: Config file overrides (~/.claude-octopus/config/providers.json -> overrides)
-# Priority 3: Config file defaults (~/.claude-octopus/config/providers.json -> providers)
+# Priority 2: Config file overrides (<workspace>/config/providers.json -> overrides)
+# Priority 3: Config file defaults (<workspace>/config/providers.json -> providers)
 # Priority 4: Hard-coded defaults (existing case statement)
 get_agent_model() {
     local agent_type="$1"
-    local config_file="${HOME}/.claude-octopus/config/providers.json"
+    local config_file="${WORKSPACE_DIR}/config/providers.json"
     local model=""
 
     # Determine base provider type
@@ -1365,7 +1417,7 @@ get_agent_model() {
 # CONTEXTUAL MODEL ROUTING (v8.9.0)
 # Selects the best Codex model based on workflow phase and task context.
 # Precedence: OCTOPUS_CODEX_MODEL env var > phase_routing config > defaults
-# User can configure per-phase routing in ~/.claude-octopus/config/providers.json
+# User can configure per-phase routing in <workspace>/config/providers.json
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # Select the best codex model for a given workflow context
@@ -1375,7 +1427,7 @@ get_agent_model() {
 select_codex_model_for_context() {
     local phase="${1:-develop}"
     local task_hint="${2:-}"
-    local config_file="${HOME}/.claude-octopus/config/providers.json"
+    local config_file="${WORKSPACE_DIR}/config/providers.json"
 
     # Priority 1: Environment variable override (always wins)
     if [[ -n "${OCTOPUS_CODEX_MODEL:-}" ]]; then
@@ -1483,43 +1535,219 @@ get_codex_agent_for_phase() {
     esac
 }
 
+# Runtime context config file (persistent, project-local).
+runtime_context_file() {
+    echo "${PROJECT_ROOT}/.multipowers/context/runtime.json"
+}
+
+# Best-effort runtime tag for matching pre-run hooks.
+get_project_runtime_tag() {
+    local runtime_file
+    runtime_file="$(runtime_context_file)"
+
+    if [[ -f "$runtime_file" ]]; then
+        local runtime_tag=""
+        runtime_tag=$(python3 - "$runtime_file" <<'PY' 2>/dev/null || true
+import json, sys
+path = sys.argv[1]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+except Exception:
+    print("")
+    raise SystemExit(0)
+runtime = str(data.get("project", {}).get("runtime", "")).strip().lower()
+print(runtime)
+PY
+)
+        if [[ -n "$runtime_tag" ]]; then
+            echo "$runtime_tag" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g'
+            return 0
+        fi
+    fi
+
+    local stack_file="${PROJECT_ROOT}/.multipowers/tech-stack.md"
+    if [[ -f "$stack_file" ]]; then
+        local inferred=""
+        inferred=$(awk -F': ' '/^- Runtime:/ {print $2; exit}' "$stack_file" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9._-]/-/g')
+        if [[ -n "$inferred" ]]; then
+            echo "$inferred"
+            return 0
+        fi
+    fi
+
+    echo ""
+}
+
+collect_pre_run_commands() {
+    local agent_type="${1:-}"
+    local phase="${2:-unknown}"
+    local role="${3:-none}"
+    local runtime_file
+    runtime_file="$(runtime_context_file)"
+    [[ -f "$runtime_file" ]] || return 0
+
+    local runtime_tag
+    runtime_tag="$(get_project_runtime_tag)"
+
+    python3 - "$runtime_file" "$agent_type" "$phase" "$role" "$runtime_tag" <<'PY' 2>/dev/null || true
+import base64
+import json
+import sys
+
+runtime_file, agent_type, phase, role, runtime_tag = sys.argv[1:6]
+
+def norm(v: str) -> str:
+    return str(v or "").strip().lower()
+
+def provider_for_agent(agent: str) -> str:
+    a = norm(agent)
+    if a.startswith("codex"):
+        return "codex"
+    if a.startswith("gemini"):
+        return "gemini"
+    if a.startswith("claude"):
+        return "claude"
+    if a.startswith("openrouter"):
+        return "openrouter"
+    return a
+
+try:
+    with open(runtime_file, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+except Exception:
+    raise SystemExit(0)
+
+pre = cfg.get("pre_run", {})
+if not isinstance(pre, dict) or not pre.get("enabled", False):
+    raise SystemExit(0)
+
+entries = pre.get("entries", [])
+if not isinstance(entries, list):
+    raise SystemExit(0)
+
+tags = {norm("all"), norm(agent_type), norm(phase), norm(role), provider_for_agent(agent_type)}
+if runtime_tag:
+    tags.add(norm(runtime_tag))
+
+for entry in entries:
+    if not isinstance(entry, dict):
+        continue
+
+    raw_match = entry.get("match", ["all"])
+    if isinstance(raw_match, str):
+        raw_match = [raw_match]
+    if not isinstance(raw_match, list):
+        raw_match = ["all"]
+    match = {norm(m) for m in raw_match if norm(m)}
+    if not match:
+        match = {"all"}
+
+    if tags.isdisjoint(match):
+        continue
+
+    on_fail = norm(entry.get("on_fail", "stop"))
+    if on_fail not in {"stop", "continue"}:
+        on_fail = "stop"
+
+    commands = entry.get("commands", [])
+    if isinstance(commands, str):
+        commands = [commands]
+    if not isinstance(commands, list):
+        continue
+
+    for cmd in commands:
+        cmd = str(cmd).strip()
+        if not cmd:
+            continue
+        encoded = base64.b64encode(cmd.encode("utf-8")).decode("ascii")
+        print(f"{on_fail}\t{encoded}")
+PY
+}
+
+apply_pre_run_context() {
+    local agent_type="${1:-}"
+    local phase="${2:-unknown}"
+    local role="${3:-none}"
+
+    local -a prereq_lines=()
+    mapfile -t prereq_lines < <(collect_pre_run_commands "$agent_type" "$phase" "$role")
+    [[ ${#prereq_lines[@]} -gt 0 ]] || return 0
+
+    local idx=0
+    for line in "${prereq_lines[@]}"; do
+        local on_fail="${line%%$'\t'*}"
+        local b64="${line#*$'\t'}"
+        local cmd
+        cmd="$(printf '%s' "$b64" | base64 -d 2>/dev/null || true)"
+        [[ -n "$cmd" ]] || continue
+
+        idx=$((idx + 1))
+        log INFO "Executing pre-run hook $idx for $agent_type"
+
+        set +e
+        eval "$cmd"
+        local rc=$?
+        set -e
+
+        if [[ $rc -ne 0 ]]; then
+            log ERROR "Pre-run hook failed for $agent_type (rc=$rc): $cmd"
+            if [[ "$on_fail" != "continue" ]]; then
+                octo_record_failure "${COMMAND:-unknown}" "$phase" "$agent_type" "pre-run hook failed" "$cmd" \
+                    "Update .multipowers/context/runtime.json pre_run commands or fix environment prerequisites." "$rc"
+                return $rc
+            fi
+            log WARN "Continuing after pre-run hook failure (on_fail=continue)"
+        fi
+    done
+
+    return 0
+}
+
 # Configure proxy for external CLI providers (Codex/Gemini).
-# Reads ~/.claude-octopus/config/providers.json:
+# Reads <workspace>/config/providers.json:
 #   proxy.enabled: true|false (default: true)
 #   proxy.port: 1-65535 (default: 7890)
 configure_provider_proxy() {
     local agent_type="$1"
+    local provider_key=""
 
     case "$agent_type" in
-        codex*|gemini*) ;;
+        codex*) provider_key="codex" ;;
+        gemini*) provider_key="gemini" ;;
         *) return 0 ;;
     esac
 
     # Custom overlay proxy routing takes precedence when configured.
     if type custom_proxy_url_for_provider &>/dev/null; then
         local custom_proxy_url=""
-        custom_proxy_url=$(custom_proxy_url_for_provider "$agent_type" 2>/dev/null || true)
+        custom_proxy_url=$(custom_proxy_url_for_provider "$provider_key" 2>/dev/null || true)
         if [[ -n "$custom_proxy_url" ]]; then
             export http_proxy="$custom_proxy_url"
             export https_proxy="$custom_proxy_url"
             export HTTP_PROXY="$custom_proxy_url"
             export HTTPS_PROXY="$custom_proxy_url"
-            log "DEBUG" "Custom proxy enabled for $agent_type via $custom_proxy_url"
+            export all_proxy="$custom_proxy_url"
+            export ALL_PROXY="$custom_proxy_url"
+            log "INFO" "Proxy enabled for $agent_type via $custom_proxy_url"
             return 0
         fi
     fi
 
-    local config_file="${HOME}/.claude-octopus/config/providers.json"
+    local config_file="${WORKSPACE_DIR}/config/providers.json"
     local proxy_enabled="true"
+    local proxy_host=""
     local proxy_port="7890"
 
     if [[ -f "$config_file" ]]; then
         proxy_enabled=$(json_file_get "$config_file" "proxy.enabled" "true")
+        proxy_host=$(json_file_get "$config_file" "proxy.host" "")
         proxy_port=$(json_file_get "$config_file" "proxy.port" "7890")
     fi
 
     # Optional env overrides for one-off debugging
     [[ -n "${OCTOPUS_PROXY_ENABLED:-}" ]] && proxy_enabled="${OCTOPUS_PROXY_ENABLED}"
+    [[ -n "${OCTOPUS_PROXY_HOST:-}" ]] && proxy_host="${OCTOPUS_PROXY_HOST}"
     [[ -n "${OCTOPUS_PROXY_PORT:-}" ]] && proxy_port="${OCTOPUS_PROXY_PORT}"
 
     if [[ "$proxy_enabled" != "true" ]]; then
@@ -1531,24 +1759,59 @@ configure_provider_proxy() {
         return 0
     fi
 
-    local detected_host_ip=""
-    if command -v ip &>/dev/null; then
-        detected_host_ip=$(ip route show 2>/dev/null | awk '/^default/ {print $3; exit}')
+    # Support explicit auto/dynamic host selection.
+    if [[ "${proxy_host,,}" == "auto" || "${proxy_host,,}" == "detect" || "${proxy_host,,}" == "dynamic" ]]; then
+        proxy_host=""
     fi
 
-    if [[ -z "$detected_host_ip" ]]; then
-        log "WARN" "Proxy enabled but host IP auto-detection failed (ip route default gateway not found)"
+    # If host isn't explicitly configured, fall back to default gateway auto-detection.
+    if [[ -z "$proxy_host" ]]; then
+        if command -v ip &>/dev/null; then
+            proxy_host=$(ip route show 2>/dev/null | awk '/^default/ {print $3; exit}')
+        fi
+    fi
+    if [[ -z "$proxy_host" ]]; then
+        log "WARN" "Proxy enabled but host resolution failed"
         return 0
     fi
 
-    export host_ip="$detected_host_ip"
-    local proxy_url="http://${host_ip}:${proxy_port}"
+    local proxy_url="http://${proxy_host}:${proxy_port}"
     export http_proxy="$proxy_url"
     export https_proxy="$proxy_url"
     export HTTP_PROXY="$proxy_url"
     export HTTPS_PROXY="$proxy_url"
+    export all_proxy="$proxy_url"
+    export ALL_PROXY="$proxy_url"
 
-    log "DEBUG" "Proxy enabled for $agent_type via $proxy_url"
+    log "INFO" "Proxy enabled for $agent_type via $proxy_url"
+}
+
+# Force provider subprocesses to receive proxy env explicitly.
+# Usage: apply_proxy_env_to_command_array <agent_type> <array_name>
+apply_proxy_env_to_command_array() {
+    local agent_type="${1:-}"
+    local array_name="${2:-}"
+    local -n _target_cmd="$array_name"
+    local -a _proxy_env=()
+
+    case "$agent_type" in
+        codex*|gemini*) ;;
+        *) return 0 ;;
+    esac
+
+    [[ -n "${http_proxy:-}" ]] && _proxy_env+=("http_proxy=${http_proxy}")
+    [[ -n "${https_proxy:-}" ]] && _proxy_env+=("https_proxy=${https_proxy}")
+    [[ -n "${HTTP_PROXY:-}" ]] && _proxy_env+=("HTTP_PROXY=${HTTP_PROXY}")
+    [[ -n "${HTTPS_PROXY:-}" ]] && _proxy_env+=("HTTPS_PROXY=${HTTPS_PROXY}")
+    [[ -n "${all_proxy:-}" ]] && _proxy_env+=("all_proxy=${all_proxy}")
+    [[ -n "${ALL_PROXY:-}" ]] && _proxy_env+=("ALL_PROXY=${ALL_PROXY}")
+    [[ -n "${no_proxy:-}" ]] && _proxy_env+=("no_proxy=${no_proxy}")
+    [[ -n "${NO_PROXY:-}" ]] && _proxy_env+=("NO_PROXY=${NO_PROXY}")
+
+    [[ ${#_proxy_env[@]} -gt 0 ]] || return 0
+
+    _target_cmd=(env "${_proxy_env[@]}" "${_target_cmd[@]}")
+    log DEBUG "Injected proxy env for $agent_type"
 }
 
 # Set provider model in config file
@@ -1557,7 +1820,7 @@ set_provider_model() {
     local provider="$1"
     local model="$2"
     local session_only="${3:-}"
-    local config_file="${HOME}/.claude-octopus/config/providers.json"
+    local config_file="${WORKSPACE_DIR}/config/providers.json"
 
     # Validate provider
     if [[ ! "$provider" =~ ^(codex|gemini)$ ]]; then
@@ -1644,7 +1907,7 @@ PY
 # Usage: reset_provider_model <provider|all>
 reset_provider_model() {
     local provider="$1"
-    local config_file="${HOME}/.claude-octopus/config/providers.json"
+    local config_file="${WORKSPACE_DIR}/config/providers.json"
 
     if [[ ! -f "$config_file" ]]; then
         echo "No configuration file found"
@@ -3922,7 +4185,7 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") discover "How should we handle user authentication?"
 
 ${YELLOW}Output:${NC}
-  Results saved to: ~/.claude-octopus/results/discover-synthesis-*.md
+  Results saved to: .multipowers/temp/results/discover-synthesis-*.md
 EOF
             ;;
         define|grasp)
@@ -3939,7 +4202,7 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") define "implement caching" ./results/discover-synthesis-123.md
 
 ${YELLOW}Output:${NC}
-  Results saved to: ~/.claude-octopus/results/define-consensus-*.md
+  Results saved to: .multipowers/temp/results/define-consensus-*.md
 EOF
             ;;
         develop|tangle)
@@ -3961,7 +4224,7 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") develop "implement caching" ./results/define-consensus-123.md
 
 ${YELLOW}Output:${NC}
-  Results saved to: ~/.claude-octopus/results/develop-validation-*.md
+  Results saved to: .multipowers/temp/results/develop-validation-*.md
 EOF
             ;;
         deliver|ink)
@@ -3978,7 +4241,7 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") deliver "ship it" ./results/develop-validation-123.md
 
 ${YELLOW}Output:${NC}
-  Results saved to: ~/.claude-octopus/results/deliver-result-*.md
+  Results saved to: .multipowers/temp/results/deliver-result-*.md
 EOF
             ;;
         octopus-configure)
@@ -4121,7 +4384,7 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") init -i                  # Same as --interactive
 
 ${YELLOW}Created Structure:${NC}
-  ~/.claude-octopus/
+  .multipowers/temp/
   ├── results/    # Output from workflows
   ├── logs/       # Execution logs
   └── tasks.json  # Example task file
@@ -4147,7 +4410,7 @@ ${YELLOW}These settings affect:${NC}
   • Cost optimization strategies
 
 ${YELLOW}Config file:${NC}
-  ~/.claude-octopus/.user-config
+  .multipowers/temp/.user-config
 
 ${YELLOW}Examples:${NC}
   $(basename "$0") config              # Update preferences
@@ -4178,7 +4441,7 @@ ${YELLOW}Examples:${NC}
 ${YELLOW}Notes:${NC}
   • All decisions are logged to the audit trail
   • Use 'audit' command to view decision history
-  • Reviews are stored in ~/.claude-octopus/review-queue.json
+  • Reviews are stored in .multipowers/temp/review-queue.json
 EOF
             ;;
         audit)
@@ -4204,20 +4467,20 @@ ${YELLOW}Entry Format:${NC}
   Each entry shows: timestamp | action | phase | decision | reviewer
 
 ${YELLOW}Notes:${NC}
-  • Audit log stored at ~/.claude-octopus/audit.log
+  • Audit log stored at .multipowers/temp/audit.log
   • Entries are JSON (one per line) for easy parsing
   • Integrates with CI/CD for compliance tracking
 EOF
             ;;
         grapple)
             cat << EOF
-${YELLOW}grapple${NC} - Adversarial debate between Codex and Gemini
+${YELLOW}grapple${NC} - Adversarial multi-model debate with graceful fallback
 
 ${YELLOW}Usage:${NC} $(basename "$0") grapple [--principles TYPE] <prompt>
 
-Multi-round debate where Codex proposes, Gemini critiques, and they
-iterate until reaching consensus. Uses critique principles to guide
-the review (security, performance, maintainability, etc.).
+Multi-round debate across Codex, Gemini, and Sonnet (when available).
+If one provider fails, the workflow continues with the remaining models.
+Minimum 2 active providers are required to run the debate.
 
 ${YELLOW}Principles:${NC}
   general          General code quality critique (default)
@@ -4231,13 +4494,13 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") grapple --principles performance "optimize database queries"
 
 ${YELLOW}Workflow:${NC}
-  Round 1: Codex proposes solution
-  Round 2: Gemini critiques with principles
-  Round 3: Codex refines based on critique
-  Synthesis: Both agents converge on final solution
+  Round 1: Available providers generate proposals
+  Round 2: Available providers cross-critique each other
+  Round 3+: Optional rebuttal rounds
+  Synthesis: Final judgment with fallback order if a judge provider fails
 
 ${YELLOW}Output:${NC}
-  Results saved to: ~/.claude-octopus/results/grapple-*.md
+  Results saved to: .multipowers/temp/results/grapple-*.md
 EOF
             ;;
         squeeze|red-team)
@@ -4267,7 +4530,7 @@ ${YELLOW}Use Cases:${NC}
   • Compliance validation
 
 ${YELLOW}Output:${NC}
-  Results saved to: ~/.claude-octopus/results/squeeze-*.md
+  Results saved to: .multipowers/temp/results/squeeze-*.md
 EOF
             ;;
         *)
@@ -4431,7 +4694,7 @@ ${YELLOW}Examples:${NC}
   $(basename "$0") develop "user management API" -P --autonomy supervised
 
 ${YELLOW}Environment:${NC}
-  CLAUDE_OCTOPUS_WORKSPACE  Override workspace (default: ~/.claude-octopus)
+  CLAUDE_OCTOPUS_WORKSPACE  Override workspace (default: <project>/.multipowers/temp)
   OPENAI_API_KEY            Required for Codex CLI
   GEMINI_API_KEY            Required for Gemini CLI
 
@@ -5506,17 +5769,20 @@ init_interactive() {
     exit 1
 }
 
-# Conductor-style project context setup wizard for /octo:init.
+# Project context setup wizard for /octo:init.
 run_octo_init_interactive() {
-    local croot="${PROJECT_ROOT}/conductor"
+    local croot="${PROJECT_ROOT}/.multipowers"
     local templates_root="${PLUGIN_DIR}/custom/templates/conductor"
+    local custom_templates_root="${PLUGIN_DIR}/custom/templates"
     local track_dir="${croot}/tracks"
     local interactive_mode="true"
 
-    mkdir -p "$croot" "$croot/code_styleguides" "$track_dir"
+    mkdir -p "$croot" "$croot/code_styleguides" "$track_dir" "$croot/context"
 
     local project_name product_summary target_users primary_goal non_goals constraints
     local runtime framework database deployment workflow_flow
+    local pre_run_enabled="false" pre_run_match_tags="all" pre_run_on_fail="stop"
+    local -a pre_run_commands=()
 
     echo ""
     echo "🧭 Claude Octopus Project Context Setup (/octo:init)"
@@ -5551,6 +5817,32 @@ run_octo_init_interactive() {
         deployment="${deployment:-unknown}"
         read -r -p "Workflow flow description: " workflow_flow || true
         workflow_flow="${workflow_flow:-Spec -> plan -> implementation -> validation -> delivery.}"
+
+        echo ""
+        read -r -p "Configure pre-run hooks before command execution? [y/N]: " pre_run_answer || true
+        case "${pre_run_answer,,}" in
+            y|yes)
+                pre_run_enabled="true"
+                read -r -p "Match tags (comma-separated, e.g. all,codex,python) [all]: " pre_run_match_tags || true
+                pre_run_match_tags="${pre_run_match_tags:-all}"
+                read -r -p "On pre-run failure [stop/continue] (default stop): " pre_run_on_fail || true
+                pre_run_on_fail="${pre_run_on_fail:-stop}"
+                echo "Enter pre-run commands (one per line). Empty line to finish."
+                while true; do
+                    local pre_cmd=""
+                    read -r -p "pre-run> " pre_cmd || true
+                    [[ -n "$pre_cmd" ]] || break
+                    pre_run_commands+=("$pre_cmd")
+                done
+                if [[ ${#pre_run_commands[@]} -eq 0 ]]; then
+                    pre_run_enabled="false"
+                    echo "No commands entered. Pre-run hooks disabled."
+                fi
+                ;;
+            *)
+                pre_run_enabled="false"
+                ;;
+        esac
     else
         project_name="$(basename "$PROJECT_ROOT")"
         product_summary="Project context initialized by /octo:init."
@@ -5563,6 +5855,7 @@ run_octo_init_interactive() {
         database="unknown"
         deployment="unknown"
         workflow_flow="Spec -> plan -> implementation -> validation -> delivery."
+        pre_run_enabled="false"
     fi
 
     write_from_template() {
@@ -5612,7 +5905,15 @@ run_octo_init_interactive() {
         fi
     fi
 
-    # Required conductor artifacts that may not exist in upstream templates
+    # Multipowers-specific project contract templates.
+    if [[ -f "$custom_templates_root/CLAUDE.md" ]]; then
+        write_from_template "$custom_templates_root/CLAUDE.md" "$croot/CLAUDE.md"
+    fi
+    if [[ -f "$custom_templates_root/FAQ.md" ]]; then
+        write_from_template "$custom_templates_root/FAQ.md" "$croot/FAQ.md"
+    fi
+
+# Required context artifacts that may not exist in upstream templates
     # are generated via fallback defaults.
     if [[ ! -f "$croot/product.md" ]]; then
         # Fallback templates to avoid hard dependency on template path.
@@ -5651,7 +5952,49 @@ EOF
     if [[ ! -f "$croot/tracks.md" ]]; then
         cat > "$croot/tracks.md" <<'EOF'
 # Tracks Index
-- [ ] Add first track under conductor/tracks/
+- [ ] Add first track under .multipowers/tracks/
+EOF
+    fi
+    if [[ ! -f "$croot/CLAUDE.md" ]]; then
+        cat > "$croot/CLAUDE.md" <<EOF
+# ${project_name} - Claude Code Working Agreement
+
+- Scope: this file applies to this target project only.
+- Output boundary: write artifacts under .multipowers/.
+- Runtime policy: fail-fast. See .multipowers/context/runtime.json.
+- Learned failures: read .multipowers/FAQ.md before high-impact runs.
+EOF
+    fi
+    if [[ ! -f "$croot/FAQ.md" ]]; then
+        cat > "$croot/FAQ.md" <<'EOF'
+# Multipowers FAQ (Auto-Generated)
+
+This file is automatically generated and refined.
+Do not manually edit unless debugging the generator.
+
+## proxy-network
+_No entries yet._
+
+## timeout
+_No entries yet._
+
+## auth-permission
+_No entries yet._
+
+## missing-context
+_No entries yet._
+
+## model-unavailable
+_No entries yet._
+
+## path-boundary
+_No entries yet._
+
+## provider-capacity
+_No entries yet._
+
+## runtime-prerun
+_No entries yet._
 EOF
     fi
     if [[ ! -d "$croot/code_styleguides" ]] || ! compgen -G "$croot/code_styleguides/*.md" > /dev/null; then
@@ -5661,15 +6004,95 @@ Add language/framework-specific style guides here.
 EOF
     fi
 
+    write_runtime_context_config() {
+        local runtime_file="$croot/context/runtime.json"
+        local choice=""
+        if [[ -f "$runtime_file" ]]; then
+            if [[ "$interactive_mode" == "true" ]]; then
+                read -r -p "Runtime config exists: ${runtime_file}. [k]eep/[u]pdate/[r]eplace? " choice || true
+                case "${choice,,}" in
+                    k) return 0 ;;
+                    u|r) ;;
+                    *) return 0 ;;
+                esac
+            else
+                return 0
+            fi
+        fi
+
+        {
+            for cmd in "${pre_run_commands[@]}"; do
+                printf "%s\n" "$cmd"
+            done
+        } | python3 - "$runtime_file" "$runtime" "$pre_run_enabled" "$pre_run_match_tags" "$pre_run_on_fail" <<'PY'
+import json
+import os
+import sys
+
+runtime_file, runtime, enabled_raw, match_raw, on_fail = sys.argv[1:6]
+enabled = str(enabled_raw).strip().lower() == "true"
+on_fail = str(on_fail).strip().lower()
+if on_fail not in {"stop", "continue"}:
+    on_fail = "stop"
+
+commands = [line.rstrip("\n") for line in sys.stdin if line.strip()]
+matches = [m.strip().lower() for m in str(match_raw).split(",") if m.strip()]
+if not matches:
+    matches = ["all"]
+
+data = {}
+if os.path.exists(runtime_file):
+    try:
+        with open(runtime_file, "r", encoding="utf-8") as f:
+            loaded = json.load(f)
+            if isinstance(loaded, dict):
+                data = loaded
+    except Exception:
+        data = {}
+
+project = data.get("project", {})
+if not isinstance(project, dict):
+    project = {}
+project["runtime"] = str(runtime).strip().lower() or "unknown"
+data["project"] = project
+
+pre = data.get("pre_run", {})
+if not isinstance(pre, dict):
+    pre = {}
+pre["enabled"] = enabled and len(commands) > 0
+if pre["enabled"]:
+    pre["entries"] = [
+        {
+            "match": matches,
+            "commands": commands,
+            "on_fail": on_fail,
+        }
+    ]
+else:
+    pre["entries"] = []
+data["pre_run"] = pre
+
+os.makedirs(os.path.dirname(runtime_file), exist_ok=True)
+with open(runtime_file, "w", encoding="utf-8") as f:
+    json.dump(data, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+    }
+
+    write_runtime_context_config
+
     echo ""
-    echo "✅ Conductor context initialized at: $croot"
+    echo "✅ Project context initialized at: $croot"
     echo "✅ Canonical track directory: $track_dir"
+    echo "✅ Runtime config: $croot/context/runtime.json"
+    echo "✅ Project contract: $croot/CLAUDE.md"
+    echo "✅ Auto-FAQ: $croot/FAQ.md"
     echo ""
 }
 
 create_conductor_plan() {
     local prompt="$*"
-    local croot="${PROJECT_ROOT}/conductor"
+    local croot="${PROJECT_ROOT}/.multipowers"
     local track_dir="${croot}/tracks"
     mkdir -p "$track_dir"
 
@@ -5699,7 +6122,7 @@ create_conductor_plan() {
 $prompt
 
 ## Success Criteria
-- [ ] Requirements and scope validated against conductor context
+- [ ] Requirements and scope validated against .multipowers context
 - [ ] Plan reviewed before execution
 - [ ] Execution results validated against intent
 EOF
@@ -5720,13 +6143,13 @@ $(if type load_conductor_context_for_prompt &>/dev/null; then load_conductor_con
 - [ ] Deliver
 
 ## Tasks
-- [ ] Scope confirmed from conductor context
+- [ ] Scope confirmed from .multipowers context
 - [ ] Plan reviewed
 - [ ] Execution started
 
 ## Validation
-- [ ] Plan file exists at conductor/tracks/${track_id}/plan.md
-- [ ] Intent file exists at conductor/tracks/${track_id}/intent.md
+- [ ] Plan file exists at .multipowers/tracks/${track_id}/plan.md
+- [ ] Intent file exists at .multipowers/tracks/${track_id}/intent.md
 - [ ] Intent contract exists at ${intent_file}
 EOF
 
@@ -5872,7 +6295,7 @@ OLD_init_interactive_impl() {
     echo -e "${YELLOW}Step $step/$total_steps: Workspace Configuration${NC}"
     echo ""
 
-    local current_workspace="${CLAUDE_OCTOPUS_WORKSPACE:-$HOME/.claude-octopus}"
+    local current_workspace="${CLAUDE_OCTOPUS_WORKSPACE:-$DEFAULT_WORKSPACE_DIR}"
     echo -e "  Current workspace: ${CYAN}$current_workspace${NC}"
 
     if [[ -d "$current_workspace" ]]; then
@@ -6107,7 +6530,7 @@ preflight_with_recovery() {
     fi
 
     # Check workspace
-    if [[ ! -d "${WORKSPACE_DIR:-$HOME/.claude-octopus}" ]]; then
+    if [[ ! -d "" ]]; then
         show_error "E005"
         has_errors=true
     fi
@@ -6124,7 +6547,7 @@ preflight_with_recovery() {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 CI_MODE="${CI:-false}"
-AUDIT_LOG="${WORKSPACE_DIR:-$HOME/.claude-octopus}/audit.log"
+AUDIT_LOG="/audit.log"
 
 # Initialize CI mode from environment
 init_ci_mode() {
@@ -6233,7 +6656,7 @@ format_audit_entry() {
 # Manage pending reviews and batch approvals
 # ═══════════════════════════════════════════════════════════════════════════════
 
-REVIEW_QUEUE="${WORKSPACE_DIR:-$HOME/.claude-octopus}/review-queue.json"
+REVIEW_QUEUE="/review-queue.json"
 
 # Add item to review queue
 queue_for_review() {
@@ -6422,7 +6845,7 @@ show_review() {
 # Intent-aware and resource-aware configuration for personalized routing
 # ═══════════════════════════════════════════════════════════════════════════════
 
-USER_CONFIG_FILE="${USER_CONFIG_FILE:-${WORKSPACE_DIR:-$HOME/.claude-octopus}/.user-config}"
+USER_CONFIG_FILE="${USER_CONFIG_FILE:-/.user-config}"
 
 # User config variables (loaded from file)
 USER_INTENT_PRIMARY=""
@@ -6438,7 +6861,7 @@ KNOWLEDGE_WORK_MODE="false"
 # Intelligent routing based on provider subscriptions, costs, and capabilities
 # ═══════════════════════════════════════════════════════════════════════════════
 
-PROVIDERS_CONFIG_FILE="${WORKSPACE_DIR:-$HOME/.claude-octopus}/.providers-config"
+PROVIDERS_CONFIG_FILE="/.providers-config"
 
 # Provider configuration variables (loaded from file)
 PROVIDER_CODEX_INSTALLED="false"
@@ -7151,8 +7574,13 @@ detect_tier_openai() {
     # Attempt API detection with minimal test call
     if command -v codex &>/dev/null; then
         local test_response
-        # Use 5-second timeout for minimal "ok" prompt (3 tokens)
-        test_response=$(run_with_timeout 5 codex exec "ok" 2>&1 || echo "")
+        # Use 5-second timeout for minimal "ok" prompt (3 tokens).
+        # Apply pre-run context so environment bootstrapping is consistent.
+        local -a test_cmd=(codex exec)
+        configure_provider_proxy "codex"
+        apply_proxy_env_to_command_array "codex" test_cmd
+        apply_pre_run_context "codex" "status" "detector" || true
+        test_response=$(run_with_timeout 5 "${test_cmd[@]}" "ok" 2>&1 || echo "")
 
         # Check for tier indicators in response
         # o3-mini/gpt-4 access suggests plus tier
@@ -9602,7 +10030,7 @@ ${enhanced_prompt}"
         local opus_tier
         opus_tier=$(get_agent_config "${curated_agent:-}" "tier" 2>/dev/null) || opus_tier="premium"
         local session_autonomy
-        session_autonomy=$(json_file_get "${HOME}/.claude-octopus/session.json" "autonomy" "supervised")
+        session_autonomy=$(json_file_get "/session.json" "autonomy" "supervised")
         local opus_mode
         opus_mode=$(select_opus_mode "$phase" "$opus_tier" "$session_autonomy")
         if [[ "$opus_mode" == "fast" ]]; then
@@ -9682,6 +10110,12 @@ ${enhanced_prompt}"
     log "DEBUG" "Model selected: $model (from agent_type=$agent_type)"
     record_agent_call "$agent_type" "$model" "$enhanced_prompt" "${phase:-unknown}" "${role:-none}" "0"
 
+    # Run pre-run hooks as early as possible so all execution paths (including
+    # task-bridge failures or Agent Teams routing) still honor runtime context.
+    if [[ "$DRY_RUN" != "true" ]]; then
+        apply_pre_run_context "$agent_type" "${phase:-unknown}" "${role:-none}" || return $?
+    fi
+
     # v8.7.0: Register task in bridge ledger
     bridge_register_task "$task_id" "$agent_type" "${phase:-unknown}" "${role:-none}"
 
@@ -9692,7 +10126,7 @@ ${enhanced_prompt}"
 
         # Store metrics mapping for batch completion recording
         if [[ -n "$metrics_id" ]]; then
-            local metrics_base="${WORKSPACE_DIR:-${HOME}/.claude-octopus}"
+            local metrics_base="${WORKSPACE_DIR}"
             local metrics_map="${metrics_base}/.metrics-map"
             echo "${task_group}-${task_id}:${metrics_id}:${agent_type}:${model}" >> "$metrics_map"
         fi
@@ -9798,6 +10232,7 @@ PY
         # -p "" triggers headless mode; prompt content comes via stdin to avoid OS arg limits
         local exit_code=0
         configure_provider_proxy "$agent_type"
+        apply_proxy_env_to_command_array "$agent_type" cmd_array
         if [[ "$agent_type" == gemini* ]]; then
             cmd_array+=(-p "")
             if printf '%s' "$enhanced_prompt" | run_with_timeout "$TIMEOUT" "${cmd_array[@]}" 2> "$temp_errors" | tee "$raw_output" > "$temp_output"; then
@@ -10097,7 +10532,7 @@ auto_route() {
             echo -e "${RED}╔═══════════════════════════════════════════════════════════╗${NC}"
             echo -e "${RED}║  🤼 GRAPPLE - Adversarial Cross-Model Debate              ║${NC}"
             echo -e "${RED}╚═══════════════════════════════════════════════════════════╝${NC}"
-            echo "  Routing to grapple workflow: Codex vs Gemini debate."
+            echo "  Routing to grapple workflow: multi-model debate (fallback-enabled)."
             echo ""
             grapple_debate "$prompt" "general" "${DEBATE_ROUNDS:-3}"
             return
@@ -10297,7 +10732,7 @@ Focus on:
 
             # Create temp directory for audit results
             local audit_dir
-            audit_dir="${WORKSPACE:-$HOME/.claude-octopus}/results/audit-$(date +%Y%m%d-%H%M%S)"
+            audit_dir="/results/audit-$(date +%Y%m%d-%H%M%S)"
             mkdir -p "$audit_dir"
             local pids=()
             local domain_files=()
@@ -10395,7 +10830,7 @@ Format as markdown. Be specific and actionable."
 
             # Phase 3: Generate final report
             echo -e "  ${CYAN}Phase 3/3: Generating Final Report${NC}"
-            local final_report="${WORKSPACE:-$HOME/.claude-octopus}/results/full-audit-$(date +%Y%m%d-%H%M%S).md"
+            local final_report="/results/full-audit-$(date +%Y%m%d-%H%M%S).md"
             {
                 echo "# Full Site Optimization Audit"
                 echo ""
@@ -10793,7 +11228,7 @@ map_reduce() {
         return 0
     fi
 
-    gemini "$decompose_prompt" > "$decompose_result" 2>&1 || {
+    run_agent_sync "gemini" "$decompose_prompt" 120 "researcher" "map-reduce" > "$decompose_result" 2>&1 || {
         log WARN "Decomposition failed, falling back to fan-out"
         fan_out "$main_prompt"
         return
@@ -11939,15 +12374,18 @@ run_agent_sync() {
 
     # v8.10.0: Gemini uses stdin-based prompt delivery (Issue #25)
     # -p "" triggers headless mode; prompt content comes via stdin to avoid OS arg limits
+    apply_pre_run_context "$agent_type" "${phase:-unknown}" "${role:-none}" || return $?
     if [[ "$agent_type" == gemini* ]]; then
         cmd_array+=(-p "")
         output=$(
             configure_provider_proxy "$agent_type"
+            apply_proxy_env_to_command_array "$agent_type" cmd_array
             printf '%s' "$enhanced_prompt" | run_with_timeout "$timeout_secs" "${cmd_array[@]}" 2>"$temp_err"
         )
     else
         output=$(
             configure_provider_proxy "$agent_type"
+            apply_proxy_env_to_command_array "$agent_type" cmd_array
             run_with_timeout "$timeout_secs" "${cmd_array[@]}" "$enhanced_prompt" 2>"$temp_err"
         )
     fi
@@ -11956,9 +12394,13 @@ run_agent_sync() {
     # Check exit code and handle errors
     if [[ $exit_code -ne 0 ]]; then
         log ERROR "Agent $agent_type failed with exit code $exit_code (role=$role, phase=$phase)"
+        local err_detail="agent command failed"
         if [[ -s "$temp_err" ]]; then
-            log ERROR "Error details: $(cat "$temp_err")"
+            err_detail="$(cat "$temp_err")"
+            log ERROR "Error details: $err_detail"
         fi
+        octo_record_failure "${COMMAND:-unknown}" "${phase:-unknown}" "$agent_type" "agent execution failed" "$err_detail" \
+            "Check provider auth/proxy/model availability and rerun the command." "$exit_code"
         rm -f "$temp_err"
         return $exit_code
     fi
@@ -12204,7 +12646,7 @@ execute_workflow_phase() {
     local agent_idx=0
 
     # Update session state for hooks
-    local session_dir="${HOME}/.claude-octopus"
+    local session_dir="${WORKSPACE_DIR}"
     mkdir -p "$session_dir"
 
     # Count total agents for this phase
@@ -12437,7 +12879,7 @@ run_yaml_workflow() {
         export OCTOPUS_COMPLETED_PHASES=$((phase_num - 1))
 
         # Update session.json for hooks
-        local session_dir="${HOME}/.claude-octopus"
+        local session_dir="${WORKSPACE_DIR}"
         if [[ -f "$session_dir/session.json" ]]; then
             python3 - "$session_dir/session.json" "$phase_name" "running" "$((phase_num - 1))" <<'PY' || true
 import json, sys
@@ -13339,7 +13781,7 @@ embrace_full_workflow() {
     _write_embrace_session_state() {
         local phase="$1"
         local status="$2"
-        local session_dir="${HOME}/.claude-octopus"
+        local session_dir="${WORKSPACE_DIR}"
         mkdir -p "$session_dir"
         python3 - "$session_dir/session.json" "$phase" "$status" "$task_group" "$AUTONOMY_MODE" "$OCTOPUS_COMPLETED_PHASES" "$OCTOPUS_TOTAL_PHASES" <<'PY' || true
 import datetime, json, sys
@@ -13638,6 +14080,286 @@ PY
 # Two tentacles wrestling—adversarial debate until consensus 🤼
 # ═══════════════════════════════════════════════════════════════════════════
 
+grapple_debate_nested() {
+    local prompt="$1"
+    local principles="${2:-general}"
+    local rounds="${3:-3}"
+    local task_group
+    task_group=$(date +%s)
+
+    if [[ $rounds -lt 3 ]]; then rounds=3; fi
+    if [[ $rounds -gt 7 ]]; then rounds=7; fi
+
+    echo ""
+    echo -e "${RED}╔═══════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${RED}║  🤼 GRAPPLE - Nested Claude Mode                           ║${NC}"
+    echo -e "${RED}║  Codex vs Gemini debate (${rounds} rounds)                ║${NC}"
+    echo -e "${RED}╚═══════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+
+    log WARN "Nested Claude session detected; running degraded debate mode (Codex + Gemini with synthesis fallback)"
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log INFO "[DRY-RUN] Nested mode: Codex vs Gemini debate (no claude subprocess)"
+        return 0
+    fi
+
+    preflight_check || return 1
+    mkdir -p "$RESULTS_DIR" "$LOGS_DIR"
+
+    local principle_text=""
+    local principle_file="$PLUGIN_DIR/agents/principles/${principles}.md"
+    if [[ -f "$principle_file" ]]; then
+        principle_text=$(awk '/^---$/{if(++c==2)p=1;next}p' "$principle_file")
+    fi
+
+    local no_explore_constraint="IMPORTANT: Do NOT read, explore, or modify any files. Do NOT run any shell commands. Just output your response as TEXT directly. This is a debate exercise, not a coding session."
+
+    echo ""
+    echo -e "${CYAN}[Round 1/3] Generating competing proposals...${NC}"
+    echo ""
+
+    local codex_proposal gemini_proposal
+    codex_proposal=$(run_agent_sync "codex" "
+$no_explore_constraint
+
+You are the PROPOSER. Implement this task with your best approach:
+$prompt
+
+${principle_text:+Adhere to these principles:
+$principle_text}
+
+Output your implementation with clear reasoning. Be thorough and practical." 120 "implementer" "grapple")
+    [[ $? -eq 0 && -n "$codex_proposal" ]] || return 1
+
+    gemini_proposal=$(run_agent_sync "gemini" "
+$no_explore_constraint
+
+You are the PROPOSER. Implement this task with your best approach:
+$prompt
+
+${principle_text:+Adhere to these principles:
+$principle_text}
+
+Output your implementation with clear reasoning. Be thorough and practical." 120 "researcher" "grapple")
+    [[ $? -eq 0 && -n "$gemini_proposal" ]] || return 1
+
+    echo ""
+    echo -e "${CYAN}[Round 2/3] Cross-model critique...${NC}"
+    echo ""
+
+    local codex_critique gemini_critique
+    codex_critique=$(run_agent_sync "codex-review" "
+$no_explore_constraint
+
+You are a CRITICAL REVIEWER. Critique this Gemini implementation.
+
+IMPLEMENTATION (from Gemini):
+$gemini_proposal
+
+Find at least 3 issues. For each:
+- ISSUE
+- IMPACT
+- FIX
+
+${principle_text:+Evaluate against these principles:
+$principle_text}
+" 90 "code-reviewer" "grapple")
+    if [[ $? -ne 0 || -z "$codex_critique" ]]; then
+        codex_critique="Codex critique unavailable (provider error)."
+        log WARN "Nested grapple: Codex critique unavailable; continuing"
+    fi
+
+    gemini_critique=$(run_agent_sync "gemini" "
+$no_explore_constraint
+
+You are a CRITICAL REVIEWER. Critique this Codex implementation.
+
+IMPLEMENTATION (from Codex):
+$codex_proposal
+
+Find at least 3 issues. For each:
+- ISSUE
+- IMPACT
+- FIX
+
+${principle_text:+Evaluate against these principles:
+$principle_text}
+" 90 "security-auditor" "grapple")
+    if [[ $? -ne 0 || -z "$gemini_critique" ]]; then
+        gemini_critique="Gemini critique unavailable (provider error)."
+        log WARN "Nested grapple: Gemini critique unavailable; continuing"
+    fi
+
+    if [[ $rounds -gt 3 ]]; then
+        local i
+        for ((i=3; i<rounds; i++)); do
+            local codex_rebuttal gemini_rebuttal
+            codex_rebuttal=$(run_agent_sync "codex" "
+$no_explore_constraint
+You are DEFENDING your implementation.
+
+YOUR PROPOSAL:
+$codex_proposal
+
+CRITIQUE FROM GEMINI:
+$gemini_critique
+
+Respond with targeted improvements and defended decisions." 120 "implementer" "grapple")
+            [[ $? -eq 0 && -n "$codex_rebuttal" ]] || return 1
+
+            gemini_rebuttal=$(run_agent_sync "gemini" "
+$no_explore_constraint
+You are DEFENDING your implementation.
+
+YOUR PROPOSAL:
+$gemini_proposal
+
+CRITIQUE FROM CODEX:
+$codex_critique
+
+Respond with targeted improvements and defended decisions." 120 "researcher" "grapple")
+            [[ $? -eq 0 && -n "$gemini_rebuttal" ]] || return 1
+
+            codex_proposal="${codex_proposal}
+
+### Rebuttal (Round $i)
+${codex_rebuttal}"
+            gemini_proposal="${gemini_proposal}
+
+### Rebuttal (Round $i)
+${gemini_rebuttal}"
+        done
+    fi
+
+    echo ""
+    echo -e "${CYAN}[Round $rounds/$rounds] Final synthesis...${NC}"
+    echo ""
+
+    local synthesis=""
+    synthesis=$(run_agent_sync "gemini" "
+$no_explore_constraint
+
+You are the JUDGE resolving a $rounds-round debate between Codex and Gemini.
+
+CODEX PROPOSAL:
+$codex_proposal
+
+GEMINI PROPOSAL:
+$gemini_proposal
+
+CODEX CRITIQUE:
+$codex_critique
+
+GEMINI CRITIQUE:
+$gemini_critique
+
+Provide sections:
+1) Winner & Rationale
+2) Valid Critiques
+3) Final Recommended Implementation
+4) Key Trade-offs
+5) Next Steps (3 items)
+" 150 "synthesizer" "grapple")
+    if [[ $? -ne 0 || -z "$synthesis" ]]; then
+        log WARN "Nested grapple: Gemini synthesis unavailable; falling back to codex-review"
+        synthesis=$(run_agent_sync "codex-review" "
+$no_explore_constraint
+
+You are the JUDGE resolving a $rounds-round debate between Codex and Gemini.
+
+CODEX PROPOSAL:
+$codex_proposal
+
+GEMINI PROPOSAL:
+$gemini_proposal
+
+CODEX CRITIQUE:
+$codex_critique
+
+GEMINI CRITIQUE:
+$gemini_critique
+
+Provide sections:
+1) Winner & Rationale
+2) Valid Critiques
+3) Final Recommended Implementation
+4) Key Trade-offs
+5) Next Steps (3 items)
+" 150 "code-reviewer" "grapple")
+        if [[ $? -ne 0 || -z "$synthesis" ]]; then
+            log WARN "Nested grapple: codex-review synthesis unavailable; falling back to codex"
+            synthesis=$(run_agent_sync "codex" "
+$no_explore_constraint
+
+You are the JUDGE resolving a $rounds-round debate between Codex and Gemini.
+
+CODEX PROPOSAL:
+$codex_proposal
+
+GEMINI PROPOSAL:
+$gemini_proposal
+
+CODEX CRITIQUE:
+$codex_critique
+
+GEMINI CRITIQUE:
+$gemini_critique
+
+Provide sections:
+1) Winner & Rationale
+2) Valid Critiques
+3) Final Recommended Implementation
+4) Key Trade-offs
+5) Next Steps (3 items)
+" 150 "implementer" "grapple")
+            [[ $? -eq 0 && -n "$synthesis" ]] || return 1
+        fi
+    fi
+
+    local result_file="$RESULTS_DIR/grapple-${task_group}.md"
+    cat > "$result_file" << EOF
+# Crossfire Review: $prompt
+
+**Generated:** $(date)
+**Rounds:** $rounds
+**Principles:** $principles
+**Participants:** Codex, Gemini (Nested Claude mode)
+
+---
+
+## Round 1: Proposals
+
+### Codex Proposal
+$codex_proposal
+
+### Gemini Proposal
+$gemini_proposal
+
+---
+
+## Round 2: Cross-Critique
+
+### Codex's Critique (of Gemini)
+$codex_critique
+
+### Gemini's Critique (of Codex)
+$gemini_critique
+
+---
+
+## Round $rounds: Final Synthesis & Winner
+$synthesis
+EOF
+
+    echo ""
+    echo -e "${GREEN}✅ Debate complete (nested mode).${NC}"
+    echo -e "${CYAN}Result saved:${NC} $result_file"
+    echo ""
+    cat "$result_file"
+    return 0
+}
+
 grapple_debate() {
     local prompt="$1"
     local principles="${2:-general}"
@@ -13662,6 +14384,12 @@ grapple_debate() {
     echo ""
 
     log INFO "Starting adversarial cross-model debate ($rounds rounds)"
+
+    # Claude CLI cannot be safely spawned from within an active Claude Code session.
+    if [[ -n "${CLAUDE_SESSION_ID:-}" || -n "${CLAUDE_CODE_SESSION:-}" || -n "${CLAUDECODE:-}" || -n "${CLAUDE_CODE_TASK_ID:-}" || -n "${CLAUDE_TASK_ID:-}" || -n "${CLAUDE_CODE_CONTROL_PIPE:-}" || -n "${CLAUDE_CODE_CONTROL:-}" ]]; then
+        grapple_debate_nested "$prompt" "$principles" "$rounds"
+        return $?
+    fi
 
     if [[ "$DRY_RUN" == "true" ]]; then
         log INFO "[DRY-RUN] Would grapple on: $prompt"
@@ -13698,7 +14426,11 @@ grapple_debate() {
     # Constraint to prevent agentic file exploration
     local no_explore_constraint="IMPORTANT: Do NOT read, explore, or modify any files. Do NOT run any shell commands. Just output your response as TEXT directly. This is a debate exercise, not a coding session."
 
-    local codex_proposal gemini_proposal sonnet_proposal
+    local codex_proposal="" gemini_proposal="" sonnet_proposal=""
+    local codex_critique="" gemini_critique="" sonnet_critique=""
+    local participant_count=0
+    local participants_label=""
+
     codex_proposal=$(run_agent_sync "codex" "
 $no_explore_constraint
 
@@ -13709,13 +14441,11 @@ ${principle_text:+Adhere to these principles:
 $principle_text}
 
 Output your implementation with clear reasoning. Be thorough and practical." 120 "implementer" "grapple")
-
     if [[ $? -ne 0 || -z "$codex_proposal" ]]; then
-        echo ""
-        echo -e "${RED}❌ Codex proposal generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Codex proposal empty or error"
-        return 1
+        codex_proposal=""
+        log WARN "Grapple: Codex proposal unavailable; degrading to remaining providers"
+    else
+        ((participant_count++))
     fi
 
     gemini_proposal=$(run_agent_sync "gemini" "
@@ -13728,13 +14458,11 @@ ${principle_text:+Adhere to these principles:
 $principle_text}
 
 Output your implementation with clear reasoning. Be thorough and practical." 120 "researcher" "grapple")
-
     if [[ $? -ne 0 || -z "$gemini_proposal" ]]; then
-        echo ""
-        echo -e "${RED}❌ Gemini proposal generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Gemini proposal empty or error"
-        return 1
+        gemini_proposal=""
+        log WARN "Grapple: Gemini proposal unavailable; degrading to remaining providers"
+    else
+        ((participant_count++))
     fi
 
     sonnet_proposal=$(run_agent_sync "claude-sonnet" "
@@ -13747,13 +14475,32 @@ ${principle_text:+Adhere to these principles:
 $principle_text}
 
 Output your implementation with clear reasoning. Be thorough and practical." 120 "researcher" "grapple")
-
     if [[ $? -ne 0 || -z "$sonnet_proposal" ]]; then
+        sonnet_proposal=""
+        log WARN "Grapple: Sonnet proposal unavailable; degrading to remaining providers"
+    else
+        ((participant_count++))
+    fi
+
+    if [[ $participant_count -lt 2 ]]; then
         echo ""
-        echo -e "${RED}❌ Sonnet proposal generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Sonnet proposal empty or error"
+        echo -e "${RED}❌ Debate requires at least 2 available providers${NC}"
+        echo -e "   Available proposals: ${participant_count}"
+        log ERROR "Grapple debate failed: fewer than 2 provider proposals available"
+        octo_record_failure "debate" "grapple" "multi-provider" "provider quorum failure" \
+            "fewer than 2 provider proposals available" \
+            "Restore provider availability or proxy connectivity, then rerun /octo:debate." 1
         return 1
+    fi
+
+    if [[ -n "$codex_proposal" ]]; then
+        participants_label="Codex"
+    fi
+    if [[ -n "$gemini_proposal" ]]; then
+        participants_label="${participants_label:+$participants_label, }Gemini"
+    fi
+    if [[ -n "$sonnet_proposal" ]]; then
+        participants_label="${participants_label:+$participants_label, }Sonnet 4.5"
     fi
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -13763,22 +14510,25 @@ Output your implementation with clear reasoning. Be thorough and practical." 120
     echo -e "${CYAN}[Round 2/3] Cross-model critique...${NC}"
     echo ""
 
-    local codex_critique gemini_critique sonnet_critique
-
-    # Codex critiques Gemini + Sonnet proposals
-    codex_critique=$(run_agent_sync "codex-review" "
+    if [[ -n "$codex_proposal" ]]; then
+        local codex_targets=""
+        [[ -n "$gemini_proposal" ]] && codex_targets="${codex_targets}
+IMPLEMENTATION TO CRITIQUE (from Gemini):
+$gemini_proposal
+"
+        [[ -n "$sonnet_proposal" ]] && codex_targets="${codex_targets}
+IMPLEMENTATION TO CRITIQUE (from Sonnet 4.5):
+$sonnet_proposal
+"
+        codex_critique=$(run_agent_sync "codex-review" "
 $no_explore_constraint
 
 You are a CRITICAL REVIEWER. Your job is to find flaws in these implementations.
 
-IMPLEMENTATION 1 TO CRITIQUE (from Gemini):
-$gemini_proposal
+$codex_targets
 
-IMPLEMENTATION 2 TO CRITIQUE (from Sonnet 4.5):
-$sonnet_proposal
-
-Find at least 3 issues across both. For each:
-- SOURCE: [Gemini or Sonnet]
+Find at least 3 issues across available proposals. For each:
+- SOURCE: [model name]
 - ISSUE: [specific problem]
 - IMPACT: [why it matters]
 - FIX: [concrete solution]
@@ -13787,29 +14537,31 @@ ${principle_text:+Evaluate against these principles:
 $principle_text}
 
 Be harsh but fair. If genuinely good, explain why." 90 "code-reviewer" "grapple")
-
-    if [[ $? -ne 0 || -z "$codex_critique" ]]; then
-        echo ""
-        echo -e "${RED}❌ Codex critique generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Codex critique empty or error"
-        return 1
+        if [[ $? -ne 0 || -z "$codex_critique" ]]; then
+            codex_critique="Codex critique unavailable (provider error)."
+            log WARN "Grapple: Codex critique unavailable; continuing"
+        fi
     fi
 
-    # Gemini critiques Codex + Sonnet proposals
-    gemini_critique=$(run_agent_sync "gemini" "
+    if [[ -n "$gemini_proposal" ]]; then
+        local gemini_targets=""
+        [[ -n "$codex_proposal" ]] && gemini_targets="${gemini_targets}
+IMPLEMENTATION TO CRITIQUE (from Codex):
+$codex_proposal
+"
+        [[ -n "$sonnet_proposal" ]] && gemini_targets="${gemini_targets}
+IMPLEMENTATION TO CRITIQUE (from Sonnet 4.5):
+$sonnet_proposal
+"
+        gemini_critique=$(run_agent_sync "gemini" "
 $no_explore_constraint
 
 You are a CRITICAL REVIEWER. Your job is to find flaws in these implementations.
 
-IMPLEMENTATION 1 TO CRITIQUE (from Codex):
-$codex_proposal
+$gemini_targets
 
-IMPLEMENTATION 2 TO CRITIQUE (from Sonnet 4.5):
-$sonnet_proposal
-
-Find at least 3 issues across both. For each:
-- SOURCE: [Codex or Sonnet]
+Find at least 3 issues across available proposals. For each:
+- SOURCE: [model name]
 - ISSUE: [specific problem]
 - IMPACT: [why it matters]
 - FIX: [concrete solution]
@@ -13818,29 +14570,31 @@ ${principle_text:+Evaluate against these principles:
 $principle_text}
 
 Be harsh but fair. If genuinely good, explain why." 90 "security-auditor" "grapple")
-
-    if [[ $? -ne 0 || -z "$gemini_critique" ]]; then
-        echo ""
-        echo -e "${RED}❌ Gemini critique generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Gemini critique empty or error"
-        return 1
+        if [[ $? -ne 0 || -z "$gemini_critique" ]]; then
+            gemini_critique="Gemini critique unavailable (provider error)."
+            log WARN "Grapple: Gemini critique unavailable; continuing"
+        fi
     fi
 
-    # Sonnet critiques Codex + Gemini proposals
-    sonnet_critique=$(run_agent_sync "claude-sonnet" "
+    if [[ -n "$sonnet_proposal" ]]; then
+        local sonnet_targets=""
+        [[ -n "$codex_proposal" ]] && sonnet_targets="${sonnet_targets}
+IMPLEMENTATION TO CRITIQUE (from Codex):
+$codex_proposal
+"
+        [[ -n "$gemini_proposal" ]] && sonnet_targets="${sonnet_targets}
+IMPLEMENTATION TO CRITIQUE (from Gemini):
+$gemini_proposal
+"
+        sonnet_critique=$(run_agent_sync "claude-sonnet" "
 $no_explore_constraint
 
 You are a CRITICAL REVIEWER. Your job is to find flaws in these implementations.
 
-IMPLEMENTATION 1 TO CRITIQUE (from Codex):
-$codex_proposal
+$sonnet_targets
 
-IMPLEMENTATION 2 TO CRITIQUE (from Gemini):
-$gemini_proposal
-
-Find at least 3 issues across both. For each:
-- SOURCE: [Codex or Gemini]
+Find at least 3 issues across available proposals. For each:
+- SOURCE: [model name]
 - ISSUE: [specific problem]
 - IMPACT: [why it matters]
 - FIX: [concrete solution]
@@ -13849,13 +14603,10 @@ ${principle_text:+Evaluate against these principles:
 $principle_text}
 
 Be harsh but fair. If genuinely good, explain why." 90 "code-reviewer" "grapple")
-
-    if [[ $? -ne 0 || -z "$sonnet_critique" ]]; then
-        echo ""
-        echo -e "${RED}❌ Sonnet critique generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Sonnet critique empty or error"
-        return 1
+        if [[ $? -ne 0 || -z "$sonnet_critique" ]]; then
+            sonnet_critique="Sonnet critique unavailable (provider error)."
+            log WARN "Grapple: Sonnet critique unavailable; continuing"
+        fi
     fi
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -13868,8 +14619,9 @@ Be harsh but fair. If genuinely good, explain why." 90 "code-reviewer" "grapple"
             echo ""
 
             # Codex defends and refines
-            local codex_rebuttal
-            codex_rebuttal=$(run_agent_sync "codex" "
+            if [[ -n "$codex_proposal" ]]; then
+                local codex_rebuttal
+                codex_rebuttal=$(run_agent_sync "codex" "
 $no_explore_constraint
 
 You are DEFENDING your implementation against critiques from Gemini and Sonnet.
@@ -13889,18 +14641,20 @@ Respond to both critiques by:
 3. Refining your approach based on valid feedback
 
 Be specific, technical, and constructive. Focus on improving the solution." 120 "implementer" "grapple")
+                if [[ $? -ne 0 || -z "$codex_rebuttal" ]]; then
+                    log WARN "Grapple: Codex rebuttal unavailable (round $i); continuing"
+                else
+                    codex_proposal="${codex_proposal}
 
-            if [[ $? -ne 0 || -z "$codex_rebuttal" ]]; then
-                echo ""
-                echo -e "${RED}❌ Codex rebuttal generation failed${NC}"
-                echo -e "   Check logs: ${LOGS_DIR}/"
-                log ERROR "Grapple debate failed: Codex rebuttal empty or error (round $i)"
-                return 1
+### Rebuttal (Round $i)
+${codex_rebuttal}"
+                fi
             fi
 
             # Gemini defends and refines
-            local gemini_rebuttal
-            gemini_rebuttal=$(run_agent_sync "gemini" "
+            if [[ -n "$gemini_proposal" ]]; then
+                local gemini_rebuttal
+                gemini_rebuttal=$(run_agent_sync "gemini" "
 $no_explore_constraint
 
 You are DEFENDING your implementation against critiques from Codex and Sonnet.
@@ -13920,18 +14674,20 @@ Respond to both critiques by:
 3. Refining your approach based on valid feedback
 
 Be specific, technical, and constructive. Focus on improving the solution." 120 "researcher" "grapple")
+                if [[ $? -ne 0 || -z "$gemini_rebuttal" ]]; then
+                    log WARN "Grapple: Gemini rebuttal unavailable (round $i); continuing"
+                else
+                    gemini_proposal="${gemini_proposal}
 
-            if [[ $? -ne 0 || -z "$gemini_rebuttal" ]]; then
-                echo ""
-                echo -e "${RED}❌ Gemini rebuttal generation failed${NC}"
-                echo -e "   Check logs: ${LOGS_DIR}/"
-                log ERROR "Grapple debate failed: Gemini rebuttal empty or error (round $i)"
-                return 1
+### Rebuttal (Round $i)
+${gemini_rebuttal}"
+                fi
             fi
 
             # Sonnet defends and refines
-            local sonnet_rebuttal
-            sonnet_rebuttal=$(run_agent_sync "claude-sonnet" "
+            if [[ -n "$sonnet_proposal" ]]; then
+                local sonnet_rebuttal
+                sonnet_rebuttal=$(run_agent_sync "claude-sonnet" "
 $no_explore_constraint
 
 You are DEFENDING your implementation against critiques from Codex and Gemini.
@@ -13951,30 +14707,15 @@ Respond to both critiques by:
 3. Refining your approach based on valid feedback
 
 Be specific, technical, and constructive. Focus on improving the solution." 120 "researcher" "grapple")
-
-            if [[ $? -ne 0 || -z "$sonnet_rebuttal" ]]; then
-                echo ""
-                echo -e "${RED}❌ Sonnet rebuttal generation failed${NC}"
-                echo -e "   Check logs: ${LOGS_DIR}/"
-                log ERROR "Grapple debate failed: Sonnet rebuttal empty or error (round $i)"
-                return 1
-            fi
-
-            # Append rebuttals to proposals
-            codex_proposal="${codex_proposal}
-
-### Rebuttal (Round $i)
-${codex_rebuttal}"
-
-            gemini_proposal="${gemini_proposal}
-
-### Rebuttal (Round $i)
-${gemini_rebuttal}"
-
-            sonnet_proposal="${sonnet_proposal}
+                if [[ $? -ne 0 || -z "$sonnet_rebuttal" ]]; then
+                    log WARN "Grapple: Sonnet rebuttal unavailable (round $i); continuing"
+                else
+                    sonnet_proposal="${sonnet_proposal}
 
 ### Rebuttal (Round $i)
 ${sonnet_rebuttal}"
+                fi
+            fi
         done
     fi
 
@@ -13985,29 +14726,40 @@ ${sonnet_rebuttal}"
     echo -e "${CYAN}[Round $rounds/$rounds] Final synthesis...${NC}"
     echo ""
 
-    local synthesis
+    local debate_context=""
+    [[ -n "$codex_proposal" ]] && debate_context="${debate_context}
+CODEX PROPOSAL:
+$codex_proposal
+"
+    [[ -n "$gemini_proposal" ]] && debate_context="${debate_context}
+GEMINI PROPOSAL:
+$gemini_proposal
+"
+    [[ -n "$sonnet_proposal" ]] && debate_context="${debate_context}
+SONNET 4.5 PROPOSAL:
+$sonnet_proposal
+"
+    [[ -n "$codex_critique" ]] && debate_context="${debate_context}
+CODEX CRITIQUE:
+$codex_critique
+"
+    [[ -n "$gemini_critique" ]] && debate_context="${debate_context}
+GEMINI CRITIQUE:
+$gemini_critique
+"
+    [[ -n "$sonnet_critique" ]] && debate_context="${debate_context}
+SONNET CRITIQUE:
+$sonnet_critique
+"
+
+    local synthesis=""
+    local synthesis_provider=""
     synthesis=$(run_agent_sync "claude" "
 $no_explore_constraint
 
-You are the JUDGE resolving a $rounds-round debate between three AI models.
+You are the JUDGE resolving a $rounds-round debate among available AI models.
 
-CODEX PROPOSAL:
-$codex_proposal
-
-GEMINI PROPOSAL:
-$gemini_proposal
-
-SONNET 4.5 PROPOSAL:
-$sonnet_proposal
-
-CODEX'S CRITIQUE (of Gemini + Sonnet):
-$codex_critique
-
-GEMINI'S CRITIQUE (of Codex + Sonnet):
-$gemini_critique
-
-SONNET'S CRITIQUE (of Codex + Gemini):
-$sonnet_critique
+$debate_context
 
 TASK: Provide a comprehensive final judgment with the following sections:
 
@@ -14029,13 +14781,78 @@ TASK: Provide a comprehensive final judgment with the following sections:
 3. [Concrete action item]
 
 Be specific and actionable. Format as markdown." 150 "synthesizer" "grapple")
+    if [[ $? -eq 0 && -n "$synthesis" ]]; then
+        synthesis_provider="claude"
+    else
+        log WARN "Grapple: Claude synthesis unavailable; trying Gemini"
+        synthesis=$(run_agent_sync "gemini" "
+$no_explore_constraint
 
-    if [[ $? -ne 0 || -z "$synthesis" ]]; then
-        echo ""
-        echo -e "${RED}❌ Synthesis generation failed${NC}"
-        echo -e "   Check logs: ${LOGS_DIR}/"
-        log ERROR "Grapple debate failed: Synthesis empty or error"
-        return 1
+You are the JUDGE resolving a $rounds-round debate among available AI models.
+
+$debate_context
+
+TASK: Provide a comprehensive final judgment with the following sections:
+
+## Winner & Rationale
+[Which approach is strongest and why - specific model or hybrid]
+
+## Valid Critiques
+[List which critiques were valid and should be incorporated]
+
+## Final Recommended Implementation
+[The best solution synthesizing all perspectives]
+
+## Key Trade-offs
+[What trade-offs the user should understand]
+
+## Next Steps
+1. [Concrete action item]
+2. [Concrete action item]
+3. [Concrete action item]
+
+Be specific and actionable. Format as markdown." 150 "synthesizer" "grapple")
+        if [[ $? -eq 0 && -n "$synthesis" ]]; then
+            synthesis_provider="gemini"
+        else
+            log WARN "Grapple: Gemini synthesis unavailable; trying codex-review"
+            synthesis=$(run_agent_sync "codex-review" "
+$no_explore_constraint
+
+You are the JUDGE resolving a $rounds-round debate among available AI models.
+
+$debate_context
+
+TASK: Provide a comprehensive final judgment with sections:
+1) Winner & Rationale
+2) Valid Critiques
+3) Final Recommended Implementation
+4) Key Trade-offs
+5) Next Steps (3 items)
+" 150 "code-reviewer" "grapple")
+            if [[ $? -eq 0 && -n "$synthesis" ]]; then
+                synthesis_provider="codex-review"
+            else
+                synthesis_provider="local-fallback"
+                synthesis="## Winner & Rationale
+Hybrid recommendation from available participants (${participants_label}).
+
+## Valid Critiques
+Use available critiques above; missing critiques were due provider errors.
+
+## Final Recommended Implementation
+Combine strongest proposal elements from available providers and run focused validation before merge.
+
+## Key Trade-offs
+Reduced debate breadth due provider outages; confidence is lower than full 3-model debate.
+
+## Next Steps
+1. Re-run /octo:debate when unavailable provider recovers.
+2. Validate the selected approach with /octo:review.
+3. Execute implementation with a test-first plan."
+                log WARN "Grapple: All synthesis providers unavailable; using local fallback synthesis"
+            fi
+        fi
     fi
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -14048,34 +14865,63 @@ Be specific and actionable. Format as markdown." 150 "synthesizer" "grapple")
 **Generated:** $(date)
 **Rounds:** $rounds
 **Principles:** $principles
-**Participants:** Codex, Gemini, Sonnet 4.5
+**Participants:** $participants_label
+**Synthesis Provider:** $synthesis_provider
 
 ---
 
 ## Round 1: Proposals
 
+EOF
+    if [[ -n "$codex_proposal" ]]; then
+        cat >> "$result_file" << EOF
 ### Codex Proposal
 $codex_proposal
 
+EOF
+    fi
+    if [[ -n "$gemini_proposal" ]]; then
+        cat >> "$result_file" << EOF
 ### Gemini Proposal
 $gemini_proposal
 
+EOF
+    fi
+    if [[ -n "$sonnet_proposal" ]]; then
+        cat >> "$result_file" << EOF
 ### Sonnet 4.5 Proposal
 $sonnet_proposal
 
+EOF
+    fi
+    cat >> "$result_file" << EOF
 ---
 
 ## Round 2: Cross-Critique
 
-### Codex's Critique (of Gemini + Sonnet)
+EOF
+    if [[ -n "$codex_critique" ]]; then
+        cat >> "$result_file" << EOF
+### Codex's Critique
 $codex_critique
 
-### Gemini's Critique (of Codex + Sonnet)
+EOF
+    fi
+    if [[ -n "$gemini_critique" ]]; then
+        cat >> "$result_file" << EOF
+### Gemini's Critique
 $gemini_critique
 
-### Sonnet's Critique (of Codex + Gemini)
+EOF
+    fi
+    if [[ -n "$sonnet_critique" ]]; then
+        cat >> "$result_file" << EOF
+### Sonnet's Critique
 $sonnet_critique
 
+EOF
+    fi
+    cat >> "$result_file" << EOF
 ---
 
 ## Round $rounds: Final Synthesis & Winner
@@ -14091,13 +14937,14 @@ EOF
     echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "  ${GREEN}✓${NC} $rounds rounds completed"
-    echo -e "  ${GREEN}✓${NC} All three perspectives analyzed"
+    echo -e "  ${GREEN}✓${NC} ${participant_count} participant(s) analyzed"
     echo -e "  ${GREEN}✓${NC} Final synthesis generated"
     echo ""
     echo -e "${CYAN}📊 Debate Summary:${NC}"
     echo -e "  Topic: ${prompt:0:70}..."
-    echo -e "  Participants: ${RED}Codex${NC} vs ${YELLOW}Gemini${NC} vs ${BLUE}Sonnet 4.5${NC}"
+    echo -e "  Participants: $participants_label"
     echo -e "  Principles: $principles"
+    echo -e "  Synthesis: $synthesis_provider"
     echo ""
     echo -e "${YELLOW}💡 Next Steps:${NC}"
     echo "  1. Review the synthesis above for the recommended approach"
@@ -15283,6 +16130,8 @@ if command_writes_project_context "$COMMAND" && is_dangerous_project_root "$PROJ
     echo "ERROR: Refusing to run '$COMMAND' with PROJECT_ROOT='$PROJECT_ROOT' (plugin/cache path)."
     echo "Run from your target project root or pass an explicit directory:"
     echo "  ./scripts/orchestrate.sh --dir /path/to/target-project $COMMAND ..."
+    octo_record_failure "$COMMAND" "preflight" "none" "dangerous project root" "$PROJECT_ROOT" \
+        "Run from target project root or pass --dir /path/to/target-project." 1
     exit 1
 fi
 
@@ -15326,7 +16175,7 @@ ensure_spec_command_context() {
 
     if [[ $ready -eq 0 ]]; then
         echo ""
-        echo "⚠️  Missing project conductor context for spec-driven command '$cmd'."
+        echo "⚠️  Missing project .multipowers context for spec-driven command '$cmd'."
         if type conductor_missing_requirements &>/dev/null; then
             echo "Missing required files:"
             conductor_missing_requirements | sed 's/^/  - /'
@@ -15334,10 +16183,18 @@ ensure_spec_command_context() {
         echo "Running /octo:init setup now..."
         run_octo_init_interactive || {
             log ERROR "/octo:init failed; cannot continue spec-driven command '$cmd'"
+            octo_record_failure "$cmd" "context-guard" "none" "init failed" "interactive init failed" \
+                "Run /octo:init manually and complete required context prompts." 1
             exit 1
         }
         if type conductor_context_complete &>/dev/null; then
-            conductor_context_complete || { log ERROR "Conductor context remains incomplete after /octo:init"; exit 1; }
+            conductor_context_complete || {
+                log ERROR ".multipowers context remains incomplete after /octo:init"
+                octo_record_failure "$cmd" "context-guard" "none" "missing context" \
+                    ".multipowers required files still missing after init" \
+                    "Complete /octo:init and ensure product/product-guidelines/tech-stack/workflow/tracks exist." 1
+                exit 1
+            }
         fi
     fi
 
@@ -15480,7 +16337,7 @@ case "$COMMAND" in
     # CROSSFIRE COMMANDS (Adversarial Cross-Model Review)
     # ═══════════════════════════════════════════════════════════════════════════
     grapple)
-        # Adversarial debate: Codex vs Gemini until consensus
+        # Adversarial debate: up to 3 models, degrades to 2 on provider failures
         # Handle help flag
         if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
             usage grapple
@@ -15666,9 +16523,9 @@ case "$COMMAND" in
         echo "📄 Document Delivery"
         echo ""
         echo "Convert knowledge work outputs to professional office formats:"
-        echo "  • Recent results: ls -lht ~/.claude-octopus/results/ | head -5"
+        echo "  • Recent results: ls -lht .multipowers/temp/results/ | head -5"
         echo ""
-        ls -lht ~/.claude-octopus/results/ 2>/dev/null | head -5 || echo "  No results found yet. Run empathize/advise/synthesize first."
+        ls -lht .multipowers/temp/results/ 2>/dev/null | head -5 || echo "  No results found yet. Run empathize/advise/synthesize first."
         echo ""
         echo "To convert, just ask naturally:"
         echo "  - 'Export the latest synthesis to Word'"

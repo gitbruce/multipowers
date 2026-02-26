@@ -19,14 +19,17 @@ Open your target project directory, then run:
 
 Expected behavior:
 - uses Conductor setup protocol from `custom/config/setup.toml`
-- creates `conductor/` in your current target project directory
+- creates `.multipowers/` in your current target project directory
 - generates:
-  - `conductor/product.md`
-  - `conductor/product-guidelines.md`
-  - `conductor/tech-stack.md`
-  - `conductor/workflow.md`
-  - `conductor/code_styleguides/`
-  - `conductor/tracks.md`
+  - `.multipowers/product.md`
+  - `.multipowers/product-guidelines.md`
+  - `.multipowers/tech-stack.md`
+  - `.multipowers/workflow.md`
+  - `.multipowers/code_styleguides/`
+  - `.multipowers/tracks.md`
+  - `.multipowers/CLAUDE.md` (project working agreement)
+  - `.multipowers/FAQ.md` (auto-generated failure avoidance knowledge)
+  - `.multipowers/context/runtime.json` (runtime + pre-run hooks)
 
 ## Use Spec-Driven Commands
 
@@ -38,13 +41,16 @@ Examples:
 - `/octo:deliver <validation>`
 - `/octo:embrace <end-to-end request>`
 
-If `conductor/` context is missing, spec-driven commands auto-run `/octo:init`.
+If `.multipowers/` context is missing, spec-driven commands auto-run `/octo:init`.
 
 ## Where Outputs Go
 
-- Track plan: `conductor/tracks/<track_id>/plan.md`
-- Intent contract: `conductor/tracks/<track_id>/intent.md`
-- Track metadata: `conductor/tracks/<track_id>/metadata.json`
+- Track plan: `.multipowers/tracks/<track_id>/plan.md`
+- Intent contract: `.multipowers/tracks/<track_id>/intent.md`
+- Track metadata: `.multipowers/tracks/<track_id>/metadata.json`
+- Runtime hooks config: `.multipowers/context/runtime.json`
+- Project rules: `.multipowers/CLAUDE.md`
+- Auto FAQ: `.multipowers/FAQ.md`
 
 ## Update / Remove
 

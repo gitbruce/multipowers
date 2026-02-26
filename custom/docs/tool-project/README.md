@@ -18,9 +18,9 @@ Primary runbook:
 Keep customization isolated in `custom/*`:
 - `custom/config/`: model, persona-lane, proxy, and Conductor setup protocol config
 - `custom/commands/`: overlay command docs
-- `custom/lib/`: helper shell libraries
+- `custom/lib/`: helper shell libraries (including FAQ synthesizer)
 - `custom/scripts/`: overlay/sync scripts
-- `custom/templates/`: template assets copied from upstream Conductor
+- `custom/templates/`: target-project templates (`conductor/*`, `CLAUDE.md`, `FAQ.md`)
 
 ## Operational Commands
 
@@ -34,8 +34,9 @@ bash tests/integration/test-sync-overlay.sh
 
 1. Overlay applies cleanly.
 2. `/octo:persona list` works.
-3. `/octo:init` uses `custom/config/setup.toml` and writes into target project `conductor/`.
-4. Spec-driven outputs go under `conductor/tracks/<track_id>/`.
+3. `/octo:init` uses `custom/config/setup.toml` and writes into target project `.multipowers/`.
+4. Spec-driven outputs go under `.multipowers/tracks/<track_id>/`.
+5. Auto-learning FAQ updates `.multipowers/FAQ.md` without writing to `$HOME` or tool project paths.
 
 ## Reference Docs
 
