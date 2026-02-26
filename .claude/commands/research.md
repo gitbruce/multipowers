@@ -9,6 +9,17 @@ description: Deep research with multi-source synthesis and comprehensive analysi
 
 When the user invokes this command (e.g., `/octo:research <arguments>`):
 
+### Step 0: Enforce Conductor Context Guard
+
+- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
+  - `product.md`
+  - `product-guidelines.md`
+  - `tech-stack.md`
+  - `workflow.md`
+  - `tracks.md`
+- If any context file is missing, run `/octo:init` first.
+- Continue only after context is present.
+
 **✓ CORRECT - Use the Skill tool:**
 ```
 Skill(skill: "octo:discover", args: "<user's arguments>")
@@ -49,10 +60,3 @@ An alias for the **Discover** phase of the Double Diamond methodology:
 "I need deep research on Kubernetes security best practices"
 "Research authentication strategies for microservices"
 ```
-
-## Conductor Context Guard
-
-- **Saves to files** - Stores plan (`conductor/tracks/<track_id>/plan.md`) and intent contract (`conductor/tracks/<track_id>/intent.md`).
-- Before executing this spec-driven command, check whether required context exists under `conductor/` (`product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`).
-- If context is missing, run `/octo:init` first.
-- Continue only after context is present.

@@ -12,6 +12,17 @@ aliases:
 
 When the user invokes this command (e.g., `/octo:discover <arguments>`):
 
+### Step 0: Enforce Conductor Context Guard
+
+- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
+  - `product.md`
+  - `product-guidelines.md`
+  - `tech-stack.md`
+  - `workflow.md`
+  - `tracks.md`
+- If any context file is missing, run `/octo:init` first.
+- Continue only after context is present.
+
 **✓ CORRECT - Use the Skill tool:**
 ```
 Skill(skill: "octo:discover", args: "<user's arguments>")
@@ -132,10 +143,3 @@ Discover is phase 1 of 4 in the embrace (full) workflow:
 4. Deliver
 
 To run all 4 phases: `/octo:embrace`
-
-## Conductor Context Guard
-
-- **Saves to files** - Stores plan (`conductor/tracks/<track_id>/plan.md`) and intent contract (`conductor/tracks/<track_id>/intent.md`).
-- Before executing this spec-driven command, check whether required context exists under `conductor/` (`product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`).
-- If context is missing, run `/octo:init` first.
-- Continue only after context is present.

@@ -12,6 +12,17 @@ aliases:
 
 When the user invokes this command (e.g., `/octo:embrace <arguments>`):
 
+### Step 0: Enforce Conductor Context Guard
+
+- This is a spec-driven command; before proceeding, verify required context exists under `$PWD/.multipowers/`:
+  - `product.md`
+  - `product-guidelines.md`
+  - `tech-stack.md`
+  - `workflow.md`
+  - `tracks.md`
+- If any context file is missing, run `/octo:init` first.
+- Continue only after context is present.
+
 ### Step 1: Ask Clarifying Questions
 
 **CRITICAL: Before starting the embrace workflow, use the AskUserQuestion tool to gather context:**
@@ -200,10 +211,3 @@ If quality gates fail in semi-autonomous mode, you'll be prompted to review.
 - `/octo:define` - Run just the definition phase
 - `/octo:develop` - Run just the development phase
 - `/octo:deliver` - Run just the delivery/review phase
-
-## Conductor Context Guard
-
-- **Saves to files** - Stores plan (`conductor/tracks/<track_id>/plan.md`) and intent contract (`conductor/tracks/<track_id>/intent.md`).
-- Before executing this spec-driven command, check whether required context exists under `conductor/` (`product.md`, `product-guidelines.md`, `tech-stack.md`, `workflow.md`, `tracks.md`).
-- If context is missing, run `/octo:init` first.
-- Continue only after context is present.
