@@ -100,8 +100,8 @@ These are required references before starting any unchecked task:
 - `hooks/*.sh` (legacy hook policies)
 
 3. Existing command/skill invocation contracts:
-- `.claude/commands/*.md` (especially `init/plan/discover/define/develop/deliver/embrace/research/review/debate`)
-- `.claude/skills/flow-*.md`, `.claude/skills/skill-debate.md`, `.claude/skills/skill-code-review.md`
+- `.claude-plugin/.claude/commands/*.md` (especially `init/plan/discover/define/develop/deliver/embrace/research/review/debate`)
+- `.claude-plugin/.claude/skills/flow-*.md`, `.claude-plugin/.claude/skills/skill-debate.md`, `.claude-plugin/.claude/skills/skill-code-review.md`
 
 4. Existing tests (behavior guardrails):
 - `tests/unit/test-conductor-context-guard.sh`
@@ -141,7 +141,7 @@ Each row defines what to do with an existing shell capability.
 | `scripts/mp context` | Context read/merge for prompts | Modify into context loader/summarizer | `internal/context/loader.go`, `summarizer.go` | V-CONTEXT-001 |
 | `hooks/*.sh` | Hook governance logic | Replace with Go hook dispatcher | `internal/hooks/*`, `.claude-plugin/hooks.json` | V-HOOK-001 |
 | `hooks/*.sh` | Boundary checks | Adopt and harden | `internal/fsboundary/*`, `internal/hooks/pre_tool_use.go` | V-BOUNDARY-001 |
-| Shell markdown logic | Model-side governance in skills/commands | Replace with thin wrappers | `.claude/commands/*`, `.claude/skills/*` -> `octo ... --json` | V-THIN-001 |
+| Shell markdown logic | Model-side governance in skills/commands | Replace with thin wrappers | `.claude-plugin/.claude/commands/*`, `.claude-plugin/.claude/skills/*` -> `octo ... --json` | V-THIN-001 |
 | Legacy `~/.claude-octopus/*` references | Home-dir artifacts | Reject and remove | Target `/.multipowers/*` only | V-PATH-002 |
 | Missing in shell (new requirement) | SessionStart stable context injection (5 files + track, <=20 lines each) | New | `internal/hooks/session_start.go`, `internal/context/summarizer.go` | V-HOOK-002 |
 | Missing in shell (new requirement) | Deterministic error-code envelope | New | `internal/app/errors.go`, shared response schema | V-ERR-001 |
@@ -537,7 +537,7 @@ Decision semantics:
 
 ## Phase 6 - Command/Skill Thin Layer
 
-### Task 6.1 Convert `.claude/commands/*` to thin Go wrappers
+### Task 6.1 Convert `.claude-plugin/.claude/commands/*` to thin Go wrappers
 - [x] Task 6.1
 - Why: remove duplicated logic and reduce upstream conflict footprint.
 - What: commands only call `octo` binary and render result.
@@ -547,7 +547,7 @@ Decision semantics:
 - Evidence:
   - command invocation smoke tests pass
 
-### Task 6.2 Convert `.claude/skills/*` to thin Go wrappers
+### Task 6.2 Convert `.claude-plugin/.claude/skills/*` to thin Go wrappers
 - [x] Task 6.2
 - Why: avoid model-side divergence from enforced execution policy.
 - What: skill contracts call Go commands and parse JSON only.
@@ -563,7 +563,7 @@ Decision semantics:
 - What: only necessary wiring deltas in high-churn files.
 - How:
   1. prefer custom docs/config for behavior notes
-  2. keep `.claude/commands` edits minimal and mechanical
+  2. keep `.claude-plugin/.claude/commands` edits minimal and mechanical
 - Evidence:
   - diff review report under `custom/docs/sync/`
 

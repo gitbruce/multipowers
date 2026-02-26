@@ -2,7 +2,7 @@
 
 ## What Changed
 
-Spec-driven `/mp` commands now use project context under `conductor/` in the target project, not `.claude/session-*` files.
+Spec-driven `/mp` commands now use project context under `conductor/` in the target project, not `.claude-plugin/.claude/session-*` files.
 
 ## `/mp:init`
 

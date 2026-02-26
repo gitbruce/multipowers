@@ -4,7 +4,7 @@
 **Branch:** multipowers
 
 ## Goal
-Replace `.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, and enforce context-driven execution for all spec-driven `/mp` commands.
+Replace `.claude-plugin/.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, and enforce context-driven execution for all spec-driven `/mp` commands.
 
 ## Scope
 - Add `/mp:init` interactive setup flow (Conductor-style).
@@ -93,7 +93,7 @@ For each spec-driven run:
 ## Compatibility
 - Keep existing non-spec commands unchanged.
 - Preserve existing command names and user-facing behavior, except context storage location and auto-init flow.
-- Remove `.claude/session-*` writes from spec-driven commands.
+- Remove `.claude-plugin/.claude/session-*` writes from spec-driven commands.
 
 ## Validation Strategy
 - Unit tests for context completeness checks and spec-driven allowlist.
@@ -101,10 +101,10 @@ For each spec-driven run:
   - missing context -> auto init
   - context read before execution
   - track file creation and checkbox updates
-  - no `.claude/session-*` writes for spec-driven commands
+  - no `.claude-plugin/.claude/session-*` writes for spec-driven commands
 
 ## Open Risks
-- Upstream churn in `.claude/commands/*` may cause frequent merge conflicts.
+- Upstream churn in `.claude-plugin/.claude/commands/*` may cause frequent merge conflicts.
 - Interactive init in non-interactive environments needs fallback behavior.
 
 ## Mitigation

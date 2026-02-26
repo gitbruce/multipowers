@@ -285,7 +285,7 @@ Skills that invoke orchestrate.sh MUST use the **Validation Gate Pattern** to en
 
 ### Example: skill-deep-research.md
 
-See `.claude/skills/skill-deep-research.md` for reference implementation of the Validation Gate Pattern.
+See `.claude-plugin/.claude/skills/skill-deep-research.md` for reference implementation of the Validation Gate Pattern.
 
 All future orchestrate.sh-based skills should follow this pattern.
 

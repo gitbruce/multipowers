@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use executing-plans to implement this plan task-by-task.
 
-**Goal:** Replace `.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, with auto-init and checkbox tracking for all spec-driven `/mp` commands.
+**Goal:** Replace `.claude-plugin/.claude/session-*` spec artifacts with Conductor-style project context under `conductor/`, with auto-init and checkbox tracking for all spec-driven `/mp` commands.
 
 **Architecture:** Keep upstream-impact minimal: implement most behavior in `custom/*` (templates/libs/docs/tests), and add only thin hooks in high-churn upstream files. Use a central command-level guard in `bin/mp` for spec-driven commands. If context is missing/incomplete, auto-run interactive `/mp:init`, render templates from `custom/templates/`, then execute with mandatory conductor-context loading and `conductor/tracks/` checkbox updates.
 
@@ -20,7 +20,7 @@
 **Subtasks:**
 - [x] T0.1 Document invariant: `main` is upstream mirror only (no custom commits)
 - [x] T0.2 Enforce all customization work on `multipowers` only
-- [x] T0.3 Add conflict-budget rule: minimize edits in `.claude/*`, `.claude-plugin/*`, `bin/mp`
+- [x] T0.3 Add conflict-budget rule: minimize edits in `.claude-plugin/.claude/*`, `.claude-plugin/*`, `bin/mp`
 - [x] T0.4 Add verification command to show customization footprint is mostly `custom/*`
 
 **Verification:**
@@ -204,7 +204,7 @@
 - [x] T8.2 Unit tests for template render output paths
 - [x] T8.3 Integration: missing context auto-inits
 - [x] T8.4 Integration: spec commands read context before execution
-- [x] T8.5 Integration: no `.claude/session-*` writes remain
+- [x] T8.5 Integration: no `.claude-plugin/.claude/session-*` writes remain
 
 **Verification:**
 - [x] All new tests pass
@@ -225,13 +225,13 @@
 - [x] T9.1 Document `/mp:init` usage and prompts
 - [x] T9.2 Document spec-driven command guard behavior
 - [x] T9.3 Document conductor file structure and track workflow
-- [x] T9.4 Add migration note from `.claude/session-*` to `conductor/tracks/*`
+- [x] T9.4 Add migration note from `.claude-plugin/.claude/session-*` to `conductor/tracks/*`
 - [x] T9.5 Add branch strategy note: `main` stays upstream mirror; all custom behavior lives on `multipowers`
 - [x] T9.6 Explicitly document canonical folder names: `conductor/tracks.md` + `conductor/tracks/`
 - [x] T9.7 Document borrowed Conductor setup source map and attribution
 
 **Verification:**
-- [x] `rg -n "\.claude/session-(plan|intent)\.md" custom/docs docs` only appears in migration/deprecation notes
+- [x] `rg -n "\.claude-plugin/.claude/session-(plan|intent)\.md" custom/docs docs` only appears in migration/deprecation notes
 
 ---
 

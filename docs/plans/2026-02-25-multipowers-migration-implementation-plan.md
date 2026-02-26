@@ -551,7 +551,7 @@ git commit -m "feat(core): add thin optional hooks for multipowers overlay"
 **Files:**
 - Create: `custom/commands/persona.md`
 - Create: `scripts/mp-devx overlay`
-- Modify: `.claude/commands/persona.md`
+- Modify: `.claude-plugin/.claude/commands/persona.md`
 - Test: `tests/unit/test-command-frontmatter.sh`
 - Test: `tests/test-command-registration.sh`
 
@@ -586,7 +586,7 @@ Expected: FAIL before script exists.
 
 ```bash
 mkdir -p custom/commands
-cp .claude/commands/persona.md custom/commands/persona.md
+cp .claude-plugin/.claude/commands/persona.md custom/commands/persona.md
 
 cat > scripts/mp-devx overlay <<'SH'
 #!/usr/bin/env bash
@@ -594,8 +594,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
-mkdir -p "$ROOT_DIR/.claude/commands"
-cp "$ROOT_DIR/custom/commands/persona.md" "$ROOT_DIR/.claude/commands/persona.md"
+mkdir -p "$ROOT_DIR/.claude-plugin/.claude/commands"
+cp "$ROOT_DIR/custom/commands/persona.md" "$ROOT_DIR/.claude-plugin/.claude/commands/persona.md"
 
 python3 empty "$ROOT_DIR/custom/config/models.json" >/dev/null
 python3 empty "$ROOT_DIR/custom/config/proxy.json" >/dev/null
@@ -619,7 +619,7 @@ Expected: PASS with persona command still registered.
 **Step 5: Commit**
 
 ```bash
-git add custom/commands/persona.md scripts/mp-devx overlay .claude/commands/persona.md tests/unit/test-custom-command-sync.sh
+git add custom/commands/persona.md scripts/mp-devx overlay .claude-plugin/.claude/commands/persona.md tests/unit/test-custom-command-sync.sh
 git commit -m "feat(custom): make persona command overlay-managed"
 ```
 

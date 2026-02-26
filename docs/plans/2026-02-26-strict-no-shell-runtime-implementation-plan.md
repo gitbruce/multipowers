@@ -373,8 +373,8 @@ git commit -m "ci: remove shell runtime invocations from workflows"
 - [x] ### Task 7: Update Command/Skill Markdown Runtime Calls to Go-Only
 
 **Files:**
-- Modify: `.claude/commands/*.md` (all spec-driven + persona-related)
-- Modify: `.claude/skills/*.md` (runtime invocation examples)
+- Modify: `.claude-plugin/.claude/commands/*.md` (all spec-driven + persona-related)
+- Modify: `.claude-plugin/.claude/skills/*.md` (runtime invocation examples)
 - Modify: `docs/COMMAND-REFERENCE.md`
 - Modify: `custom/docs/**/*.md` where `.sh` is presented as runtime path
 
@@ -400,7 +400,7 @@ Expected: no docs runtime violations.
 **Step 5: Commit**
 
 ```bash
-git add .claude/commands .claude/skills docs/COMMAND-REFERENCE.md custom/docs
+git add .claude-plugin/.claude/commands .claude-plugin/.claude/skills docs/COMMAND-REFERENCE.md custom/docs
 git commit -m "docs: switch runtime guidance from shell to go commands"
 ```
 

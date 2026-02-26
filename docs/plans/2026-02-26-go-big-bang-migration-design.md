@@ -19,7 +19,7 @@ Scope: Replace shell execution core with Go, maximize Claude Code hooks, keep co
 ## 2.1 Single execution kernel
 
 - Go CLI is the only execution kernel.
-- `.claude/commands/*.md` and `.claude/skills/*.md` become thin wrappers that call `octo ... --json`.
+- `.claude-plugin/.claude/commands/*.md` and `.claude-plugin/.claude/skills/*.md` become thin wrappers that call `octo ... --json`.
 - Common constraints are removed from Markdown and enforced in Go pipeline.
 
 ## 2.2 Unified pipeline

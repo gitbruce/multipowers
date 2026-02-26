@@ -150,7 +150,7 @@ All notable changes to Claude Octopus will be documented in this file.
 
 **Sandbox Documentation** (P0):
 
-- **SAFEGUARDS.md** updated with `.claude/skills` sandbox write-block notes (v2.1.38+)
+- **SAFEGUARDS.md** updated with `.claude-plugin/.claude/skills` sandbox write-block notes (v2.1.38+)
 - Guidance on runtime artifact paths and sandbox-safe development practices
 
 ### Changed
@@ -570,10 +570,10 @@ All notable changes to Claude Octopus will be documented in this file.
 
 **Migrating from v7.22.x:**
 
-1. **Backup existing todos**: `cp .claude/todos.md .claude/todos.md.backup`
+1. **Backup existing todos**: `cp .claude-plugin/.claude/todos.md .claude-plugin/.claude/todos.md.backup`
 2. **Run migration**: `~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh`
 3. **Verify tasks**: `/tasks` command shows migrated tasks
-4. **Optional**: Set `use_native_tasks: false` in `.claude/claude-octopus.local.md` for legacy behavior
+4. **Optional**: Set `use_native_tasks: false` in `.claude-plugin/.claude/claude-octopus.local.md` for legacy behavior
 
 See MIGRATION-7.23.0.md for complete migration guide.
 
@@ -1089,7 +1089,7 @@ New state management system tracks decisions, context, and metrics across sessio
 
 **New Files:**
 - `scripts/state-manager.sh` - State persistence utilities (390 lines)
-- `.claude/state/state-manager.md` - Comprehensive documentation (280 lines)
+- `.claude-plugin/.claude/state/state-manager.md` - Comprehensive documentation (280 lines)
 - `.claude-octopus/state.json` - Persistent state file
 
 **Example State:**
@@ -1159,7 +1159,7 @@ Ensures all orchestration skills actually invoke multi-AI rather than substituti
 4. **Attribution** (REQUIRED) - Credit multi-AI providers
 
 **New Files:**
-- `.claude/references/validation-gates.md` - Standard patterns (280 lines)
+- `.claude-plugin/.claude/references/validation-gates.md` - Standard patterns (280 lines)
 
 ---
 
@@ -1231,10 +1231,10 @@ Code reviews now detect incomplete implementations:
 ```
 
 **New Files:**
-- `.claude/references/stub-detection.md` - Comprehensive patterns (280 lines)
+- `.claude-plugin/.claude/references/stub-detection.md` - Comprehensive patterns (280 lines)
 
 **Updated:**
-- `.claude/skills/skill-code-review.md` - Added stub detection step
+- `.claude-plugin/.claude/skills/skill-code-review.md` - Added stub detection step
 
 ---
 
@@ -1274,8 +1274,8 @@ New quick mode skips orchestration overhead for simple tasks:
 - 🎯 Right tool for simple tasks
 
 **New Files:**
-- `.claude/skills/skill-quick.md` - Quick mode skill (280 lines)
-- `.claude/commands/quick.md` - Quick command (30 lines)
+- `.claude-plugin/.claude/skills/skill-quick.md` - Quick mode skill (280 lines)
+- `.claude-plugin/.claude/commands/quick.md` - Quick command (30 lines)
 
 ---
 
@@ -1348,8 +1348,8 @@ octopus-extract/
 ```
 
 **New Files:**
-- `.claude/commands/extract.md` - Extract command (530 lines)
-- `.claude/skills/extract-skill.md` - Implementation guide (263 lines)
+- `.claude-plugin/.claude/commands/extract.md` - Extract command (530 lines)
+- `.claude-plugin/.claude/skills/extract-skill.md` - Implementation guide (263 lines)
 - `scripts/extract/core-extractor.sh` - CLI orchestrator (276 lines)
 - `scripts/token-extraction/` - Token extraction pipeline (25 files, ~5,000 lines)
   - types.ts, pipeline.ts, merger.ts, cli.ts
@@ -1390,22 +1390,22 @@ octopus-extract/
 
 **State Management:**
 - scripts/state-manager.sh
-- .claude/state/state-manager.md
+- .claude-plugin/.claude/state/state-manager.md
 
 **Context Capture:**
 - scripts/context-manager.sh
 
 **Quality Gates:**
-- .claude/references/validation-gates.md
-- .claude/references/stub-detection.md
+- .claude-plugin/.claude/references/validation-gates.md
+- .claude-plugin/.claude/references/stub-detection.md
 
 **Quick Mode:**
-- .claude/skills/skill-quick.md
-- .claude/commands/quick.md
+- .claude-plugin/.claude/skills/skill-quick.md
+- .claude-plugin/.claude/commands/quick.md
 
 **Design System & Product Extraction:**
-- .claude/commands/extract.md
-- .claude/skills/extract-skill.md
+- .claude-plugin/.claude/commands/extract.md
+- .claude-plugin/.claude/skills/extract-skill.md
 - scripts/extract/core-extractor.sh
 - scripts/token-extraction/ (25 files)
 - component-analyzer/ (15 files)
@@ -1610,7 +1610,7 @@ Added three safety functions to prevent race conditions and enable graceful degr
 ### 🔄 Updated
 
 - scripts/orchestrate.sh: Added all UX enhancement features
-- .claude/skills/flow-discover.md: Documented spinner verb examples
+- .claude-plugin/.claude/skills/flow-discover.md: Documented spinner verb examples
 - tests/: Added test-ux-features-v7.16.0.sh (15 tests)
 
 ### 📦 Technical Details
@@ -1992,10 +1992,10 @@ All 4 core flow skills now include v2.1.12+ metadata:
 #### Files Modified
 - `.claude-plugin/hooks.json` - Added TaskCreate/TaskUpdate matchers
 - `scripts/orchestrate.sh` - Added version detection, task management, fork context
-- `.claude/skills/flow-discover.md` - Added v2.1.12+ frontmatter
-- `.claude/skills/flow-define.md` - Added v2.1.12+ frontmatter
-- `.claude/skills/flow-develop.md` - Added v2.1.12+ frontmatter
-- `.claude/skills/flow-deliver.md` - Added v2.1.12+ frontmatter
+- `.claude-plugin/.claude/skills/flow-discover.md` - Added v2.1.12+ frontmatter
+- `.claude-plugin/.claude/skills/flow-define.md` - Added v2.1.12+ frontmatter
+- `.claude-plugin/.claude/skills/flow-develop.md` - Added v2.1.12+ frontmatter
+- `.claude-plugin/.claude/skills/flow-deliver.md` - Added v2.1.12+ frontmatter
 
 #### Code Statistics
 - **New code**: ~1,100 lines (functions, hooks, tests)
@@ -3475,7 +3475,7 @@ See `docs/MIGRATION-v7.5.md` for:
 ```
 .dependencies/claude-skills/     ← Git submodule (original by wolverin0)
   └── skills/debate.md           ← Original skill (read-only reference)
-.claude/skills/
+.claude-plugin/.claude/skills/
   └── debate-integration.md      ← Claude-octopus enhancements
 ~/.claude-octopus/debates/       ← Session-aware debate storage
 ```
@@ -3548,7 +3548,7 @@ Providers:
 **Root Cause**: Original debate.md from submodule lacked YAML frontmatter required by Claude Code
 
 **Solution**
-- Created `.claude/skills/debate.md` wrapper with proper YAML frontmatter
+- Created `.claude-plugin/.claude/skills/debate.md` wrapper with proper YAML frontmatter
 - Embeds content from `.dependencies/claude-skills/skills/debate.md`
 - Registered in `.claude-plugin/plugin.json`
 - Maintains clear attribution to wolverin0
@@ -3889,9 +3889,9 @@ Total: 11/11 test suites passing
 
 ### Documentation
 
-- Created `.claude/commands/knowledge-mode.md` - Full command documentation
-- Created `.claude/commands/km.md` - Short alias documentation
-- Created `.claude/skills/knowledge-work-mode.md` - Proactive skill for auto-detection
+- Created `.claude-plugin/.claude/commands/knowledge-mode.md` - Full command documentation
+- Created `.claude-plugin/.claude/commands/km.md` - Short alias documentation
+- Created `.claude-plugin/.claude/skills/knowledge-work-mode.md` - Proactive skill for auto-detection
 - Updated command usage examples for Claude Code native experience
 - Documented natural language interface: just say "switch to knowledge mode"
 
@@ -3910,7 +3910,7 @@ Total: 11/11 test suites passing
 
 **plansDirectory Integration**
 - Updated `writing-plans.md` skill to document `plansDirectory` setting integration
-- Plans stored in `.claude/plans/` for Claude Code discovery
+- Plans stored in `.claude-plugin/.claude/plans/` for Claude Code discovery
 - Structured plan format with context, phases, files, and validation
 
 **Setup Hook Event**
@@ -4241,7 +4241,7 @@ The three-phase approach (Documentation → Guidance → Analytics) ensures both
 
 #### Setup Command Path Resolution (Critical)
 - **Fixed `/claude-octopus:setup` command failing with "no such file or directory" error**
-- Updated `.claude/commands/setup.md` to use `${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh` instead of relative paths
+- Updated `.claude-plugin/.claude/commands/setup.md` to use `${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh` instead of relative paths
 - Works correctly when plugin installed via marketplace (versioned cache directory)
 - Applied fix to all 3 script invocations in setup command (detect-providers, verify, help)
 
@@ -4571,7 +4571,7 @@ This release includes both UX improvements (auto-configuration check) and critic
 
 ### Changed
 
-- Documentation split: CLAUDE.md (users) + .claude/DEVELOPMENT.md (developers)
+- Documentation split: CLAUDE.md (users) + .claude-plugin/.claude/DEVELOPMENT.md (developers)
 - skill.md updated with Provider-Aware Routing section
 - Test suite expanded to 146 tests (+27 multi-provider routing tests)
 

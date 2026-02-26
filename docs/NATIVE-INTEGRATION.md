@@ -36,7 +36,7 @@ claude-octopus v7.23.0+ uses a **hybrid approach** that combines:
 
 **Before v7.23.0:**
 - Used `TodoWrite` tool for task tracking
-- Tasks in `.claude/todos.md` markdown files
+- Tasks in `.claude-plugin/.claude/todos.md` markdown files
 - No native UI integration
 
 **After v7.23.0:**
@@ -51,7 +51,7 @@ See [MIGRATION-7.23.0.md](../MIGRATION-7.23.0.md) for complete migration guide.
 **Quick migration:**
 ```bash
 # Backup existing todos
-cp .claude/todos.md .claude/todos.md.backup
+cp .claude-plugin/.claude/todos.md .claude-plugin/.claude/todos.md.backup
 
 # Run migration
 ~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh

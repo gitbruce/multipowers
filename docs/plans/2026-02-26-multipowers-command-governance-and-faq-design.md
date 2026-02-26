@@ -158,7 +158,7 @@ Contract tests:
 - FAQ generation dedups and rewrites deterministically.
 
 Regression tests:
-- Ensure `.claude/commands/*` remain close to upstream except minimal required guard text.
+- Ensure `.claude-plugin/.claude/commands/*` remain close to upstream except minimal required guard text.
 - Ensure `main` branch remains upstream-syncable with minimal conflict footprint.
 
 ## 12. Documentation Structure

@@ -53,12 +53,12 @@ All phases of the native integration plan have been implemented:
 ### Core Implementation
 
 ```
-plugin/.claude/skills/
+plugin/.claude-plugin/.claude/skills/
 ├── skill-task-management-v2.md      # Native task management (replaces TodoWrite)
 ├── skill-resume-enhanced.md          # Enhanced resume with context reload
 └── flow-discover.md                  # Updated with plan mode compatibility
 
-plugin/.claude/commands/
+plugin/.claude-plugin/.claude/commands/
 └── plan.md                           # Updated with hybrid routing
 
 plugin/scripts/
@@ -114,7 +114,7 @@ analysis/
 
 **Step 1: Backup**
 ```bash
-cp .claude/todos.md .claude/todos.md.backup
+cp .claude-plugin/.claude/todos.md .claude-plugin/.claude/todos.md.backup
 ```
 
 **Step 2: Run Migration**

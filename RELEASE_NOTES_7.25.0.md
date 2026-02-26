@@ -225,8 +225,8 @@ sudo dnf install poppler-utils
 
 - `scripts/orchestrate.sh` - Core logic additions
 - `scripts/state-manager.sh` - Task metrics implementation
-- `.claude/commands/extract.md` - PDF page selection integration
-- `.claude/skills/skill-deep-research.md` - PDF handling documentation
+- `.claude-plugin/.claude/commands/extract.md` - PDF page selection integration
+- `.claude-plugin/.claude/skills/skill-deep-research.md` - PDF handling documentation
 - `package.json` - Version bump to 7.25.0
 - `CHANGELOG.md` - Complete feature documentation
 

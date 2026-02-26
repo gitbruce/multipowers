@@ -97,13 +97,13 @@
 **Files:**
 - Modify: `bin/mp`
 - Modify: `custom/lib/conductor-context.sh`
-- Modify: `.claude/commands/plan.md`
-- Modify: `.claude/commands/discover.md`
-- Modify: `.claude/commands/define.md`
-- Modify: `.claude/commands/develop.md`
-- Modify: `.claude/commands/deliver.md`
-- Modify: `.claude/commands/embrace.md`
-- Modify: `.claude/commands/research.md`
+- Modify: `.claude-plugin/.claude/commands/plan.md`
+- Modify: `.claude-plugin/.claude/commands/discover.md`
+- Modify: `.claude-plugin/.claude/commands/define.md`
+- Modify: `.claude-plugin/.claude/commands/develop.md`
+- Modify: `.claude-plugin/.claude/commands/deliver.md`
+- Modify: `.claude-plugin/.claude/commands/embrace.md`
+- Modify: `.claude-plugin/.claude/commands/research.md`
 - Test: `tests/unit/test-conductor-context-guard.sh`
 - Test: `tests/integration/test-spec-commands-auto-init.sh`
 
@@ -117,7 +117,7 @@
   - Expected: PASS.
 
 **Commit checkpoint:**
-- [x] `git add bin/mp custom/lib/conductor-context.sh .claude/commands/plan.md .claude/commands/discover.md .claude/commands/define.md .claude/commands/develop.md .claude/commands/deliver.md .claude/commands/embrace.md .claude/commands/research.md tests/unit/test-conductor-context-guard.sh tests/integration/test-spec-commands-auto-init.sh && git commit -m "fix(spec-commands): enforce unified Step-0 multipowers preflight"`
+- [x] `git add bin/mp custom/lib/conductor-context.sh .claude-plugin/.claude/commands/plan.md .claude-plugin/.claude/commands/discover.md .claude-plugin/.claude/commands/define.md .claude-plugin/.claude/commands/develop.md .claude-plugin/.claude/commands/deliver.md .claude-plugin/.claude/commands/embrace.md .claude-plugin/.claude/commands/research.md tests/unit/test-conductor-context-guard.sh tests/integration/test-spec-commands-auto-init.sh && git commit -m "fix(spec-commands): enforce unified Step-0 multipowers preflight"`
 
 ---
 
@@ -256,7 +256,7 @@ Implementation note:
 ---
 
 ## Risks & Mitigations
-- Risk: upstream drift in `.claude/commands/*`
+- Risk: upstream drift in `.claude-plugin/.claude/commands/*`
   - Mitigation: keep only minimal Step 0 delta; avoid broad rewrites.
 - Risk: FAQ growth/noise
   - Mitigation: strict dedup key + bounded entry cap + rewrite mode.

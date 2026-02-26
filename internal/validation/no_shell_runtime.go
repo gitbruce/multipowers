@@ -61,8 +61,8 @@ func ScanNoShellRuntime(projectDir string) (NoShellRuntimeResult, error) {
 
 func collectRuntimeTextFiles(projectDir string) ([]string, error) {
 	candidates := []string{
-		".claude/commands",
-		".claude/skills",
+		".claude-plugin/.claude/commands",
+		".claude-plugin/.claude/skills",
 		".claude-plugin",
 		"custom/docs/tool-project",
 		".github/workflows",

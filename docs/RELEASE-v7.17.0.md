@@ -42,7 +42,7 @@ All 5 planned phases implemented, tested, and committed:
 
 **Files Added:**
 - `scripts/mp state` (390 lines)
-- `.claude/state/state-manager.md` (280 lines)
+- `.claude-plugin/.claude/state/state-manager.md` (280 lines)
 
 **Integration:**
 - All 4 flow skills read/write state
@@ -61,7 +61,7 @@ All 5 planned phases implemented, tested, and committed:
 - Artifact validation
 
 **Files Added:**
-- `.claude/references/validation-gates.md` (280 lines)
+- `.claude-plugin/.claude/references/validation-gates.md` (280 lines)
 
 **Files Updated:**
 - 11 skills with enforcement frontmatter
@@ -106,10 +106,10 @@ All 5 planned phases implemented, tested, and committed:
 - 4-level verification framework
 
 **Files Added:**
-- `.claude/references/stub-detection.md` (280 lines)
+- `.claude-plugin/.claude/references/stub-detection.md` (280 lines)
 
 **Files Updated:**
-- `.claude/skills/skill-code-review.md` (enhanced)
+- `.claude-plugin/.claude/skills/skill-code-review.md` (enhanced)
 
 **Detection Patterns:**
 - Comment stubs (TODO, FIXME, PLACEHOLDER)
@@ -129,8 +129,8 @@ All 5 planned phases implemented, tested, and committed:
 - Right tool for ad-hoc work
 
 **Files Added:**
-- `.claude/skills/skill-quick.md` (280 lines)
-- `.claude/commands/quick.md` (30 lines)
+- `.claude-plugin/.claude/skills/skill-quick.md` (280 lines)
+- `.claude-plugin/.claude/commands/quick.md` (30 lines)
 
 **Usage:**
 ```bash
@@ -221,7 +221,7 @@ All 5 planned phases implemented, tested, and committed:
 ### New Reference Documents
 
 ```
-.claude/references/
+.claude-plugin/.claude/references/
 ├── validation-gates.md        # Enforcement patterns
 └── stub-detection.md          # Quality verification
 ```
@@ -229,7 +229,7 @@ All 5 planned phases implemented, tested, and committed:
 ### New State Management
 
 ```
-.claude/state/
+.claude-plugin/.claude/state/
 └── state-manager.md           # State documentation
 
 scripts/
@@ -368,12 +368,12 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
 ### New Documentation
 
 **References:**
-- `.claude/references/validation-gates.md` - Enforcement patterns
-- `.claude/references/stub-detection.md` - Quality verification
+- `.claude-plugin/.claude/references/validation-gates.md` - Enforcement patterns
+- `.claude-plugin/.claude/references/stub-detection.md` - Quality verification
 
 **Skills:**
-- `.claude/state/state-manager.md` - State management guide
-- `.claude/skills/skill-quick.md` - Quick mode documentation
+- `.claude-plugin/.claude/state/state-manager.md` - State management guide
+- `.claude-plugin/.claude/skills/skill-quick.md` - Quick mode documentation
 
 **Scripts:**
 - `scripts/mp state --help` - CLI help

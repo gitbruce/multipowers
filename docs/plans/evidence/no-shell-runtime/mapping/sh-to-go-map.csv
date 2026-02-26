@@ -1,6 +1,6 @@
 sh_file,go_path
-.claude/hooks/pre-commit.sh,cmd/octo/main.go
-.claude/hooks/visual-feedback.sh,cmd/octo/main.go
+.claude-plugin/.claude/hooks/pre-commit.sh,cmd/octo/main.go
+.claude-plugin/.claude/hooks/visual-feedback.sh,cmd/octo/main.go
 custom/lib/conductor-context.sh,cmd/octo/main.go
 custom/lib/faq-synthesizer.sh,cmd/octo/main.go
 custom/lib/model-routing.sh,cmd/octo/main.go

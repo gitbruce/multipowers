@@ -140,14 +140,14 @@
 ### Key Deliverables (Planned):
 
 **New Files** (4):
-- `.claude/skills/skill-validate.md` - Standalone validation skill
+- `.claude-plugin/.claude/skills/skill-validate.md` - Standalone validation skill
 - `scripts/validation/validate-extraction.sh` - Validation logic
 - `scripts/validation/validation-certificate-template.md` - Certificate format
 - Integration + E2E tests
 
 **Modified Files** (3):
 - `scripts/orchestrate.sh` - Add validate_extraction()
-- `.claude/commands/extract.md` - Document --validate flag
+- `.claude-plugin/.claude/commands/extract.md` - Document --validate flag
 - `types.ts` + `pipeline.ts` - Validation integration
 
 ---

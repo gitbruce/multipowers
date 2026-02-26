@@ -72,7 +72,7 @@ make test-plugin-name
 Runs: `tests/validate-plugin-name.sh`
 
 #### 2. Pre-commit Hook
-File: `.claude/hooks/pre-commit.sh`
+File: `.claude-plugin/.claude/hooks/pre-commit.sh`
 
 Automatically validates plugin name before every commit.
 
@@ -92,8 +92,8 @@ Files:
 **Don't.** But if you have no choice:
 
 1. **Update all command references** (100+ files):
-   - `.claude/commands/*.md` - Command files
-   - `.claude/skills/*.md` - Skill files
+   - `.claude-plugin/.claude/commands/*.md` - Command files
+   - `.claude-plugin/.claude/skills/*.md` - Skill files
    - `README.md` - Documentation
    - `CLAUDE.md` - System instructions
    - All example code
@@ -119,16 +119,16 @@ Files:
 
 ## 🛡️ Sandbox Write Restrictions (v2.1.38+)
 
-**Status:** ⚠️ **AWARENESS REQUIRED** - Claude Code blocks writes to `.claude/skills` in sandbox mode
+**Status:** ⚠️ **AWARENESS REQUIRED** - Claude Code blocks writes to `.claude-plugin/.claude/skills` in sandbox mode
 
 ### What Changed
 
-As of Claude Code v2.1.38, sandbox mode explicitly blocks writes to the `.claude/skills` directory. This is a security hardening measure to prevent untrusted code from modifying skill definitions.
+As of Claude Code v2.1.38, sandbox mode explicitly blocks writes to the `.claude-plugin/.claude/skills` directory. This is a security hardening measure to prevent untrusted code from modifying skill definitions.
 
 ### Impact on Claude Octopus
 
 - **Installation:** The `install.sh` script and plugin manager handle skill installation outside sandbox mode, so normal installation is unaffected.
-- **Dynamic skill generation:** Any workflow or hook that attempts to create or modify files in `.claude/skills` at runtime will fail silently in sandboxed environments.
+- **Dynamic skill generation:** Any workflow or hook that attempts to create or modify files in `.claude-plugin/.claude/skills` at runtime will fail silently in sandboxed environments.
 - **Development:** When developing new skills locally, ensure you're not running in sandbox mode (`/sandbox` to check).
 
 ### What to Do
@@ -252,7 +252,7 @@ If plugin name gets changed accidentally:
 ## 📚 References
 
 - **Plugin Name Lock:** `.claude-plugin/PLUGIN_NAME_LOCK.md`
-- **Development Guide:** `.claude/DEVELOPMENT.md`
+- **Development Guide:** `.claude-plugin/.claude/DEVELOPMENT.md`
 - **Test Suite:** `tests/README.md`
 - **System Instructions:** `CLAUDE.md`
 

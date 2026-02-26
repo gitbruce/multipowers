@@ -17,8 +17,8 @@
 
 ## Command and Skill Surface
 
-- `.claude/commands/*.md`: `/mp:*` command entrypoints.
-- `.claude/skills/*.md`: workflow and discipline skills used by commands.
+- `.claude-plugin/.claude/commands/*.md`: `/mp:*` command entrypoints.
+- `.claude-plugin/.claude/skills/*.md`: workflow and discipline skills used by commands.
 - `workflows/embrace.yaml`: structured workflow graph definition.
 - `workflows/schema.yaml`: workflow schema/validation reference.
 

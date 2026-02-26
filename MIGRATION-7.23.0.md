@@ -30,7 +30,7 @@ claude-octopus v7.23.0 migrates from the legacy `TodoWrite` tool to native Claud
 ## Who Needs to Migrate?
 
 **You need to migrate if you:**
-- Have existing `.claude/todos.md` or similar markdown todo files
+- Have existing `.claude-plugin/.claude/todos.md` or similar markdown todo files
 - Use `skill-task-management` for task tracking
 - Have workflows that rely on TodoWrite
 
@@ -48,7 +48,7 @@ claude-octopus v7.23.0 migrates from the legacy `TodoWrite` tool to native Claud
 **Step 1: Backup your todos**
 
 ```bash
-cp .claude/todos.md .claude/todos.md.backup
+cp .claude-plugin/.claude/todos.md .claude-plugin/.claude/todos.md.backup
 ```
 
 **Step 2: Run migration script**
@@ -75,7 +75,7 @@ For each todo item in your markdown files:
 
 **Before (v7.22.x):**
 ```markdown
-<!-- .claude/todos.md -->
+<!-- .claude-plugin/.claude/todos.md -->
 - [ ] Implement user authentication
 - [x] Set up database
 - [ ] Create API endpoints
@@ -110,7 +110,7 @@ TaskCreate({
 
 ### Keep Using TodoWrite (Not Recommended)
 
-If you prefer the old system, create `.claude/claude-octopus.local.md`:
+If you prefer the old system, create `.claude-plugin/.claude/claude-octopus.local.md`:
 
 ```yaml
 ---
@@ -259,13 +259,13 @@ cat ~/.claude/archived-todos/migration-*.jsonl
 **Solution:**
 ```bash
 # Restore from backup
-cp .claude/todos.md.backup .claude/todos.md
+cp .claude-plugin/.claude/todos.md.backup .claude-plugin/.claude/todos.md
 
 # Or from archive
-cp ~/.claude/archived-todos/todos.md.*.bak .claude/todos.md
+cp ~/.claude/archived-todos/todos.md.*.bak .claude-plugin/.claude/todos.md
 
 # Enable backward compatibility
-echo "---\nuse_native_tasks: false\n---" > .claude/claude-octopus.local.md
+echo "---\nuse_native_tasks: false\n---" > .claude-plugin/.claude/claude-octopus.local.md
 ```
 
 ### Issue: "Task migration created duplicates"
@@ -278,7 +278,7 @@ echo "---\nuse_native_tasks: false\n---" > .claude/claude-octopus.local.md
 /tasks clear
 
 # Re-run migration from backup
-cp .claude/todos.md.backup .claude/todos.md
+cp .claude-plugin/.claude/todos.md.backup .claude-plugin/.claude/todos.md
 ~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
 ```
 
