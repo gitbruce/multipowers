@@ -377,7 +377,7 @@ All four phases run sequentially. Each phase uses the output of the previous pha
 |----------|-----|
 | **Use one provider** | Only install Codex OR Gemini (not both) |
 | **Skip unnecessary phases** | Use `/mp:develop` instead of `/mp:embrace` for simple tasks |
-| **Use Claude-only** | For simple tasks, don't use "octo" prefix - just ask directly |
+| **Use Claude-only** | For simple tasks, don't use "mp" prefix - just ask directly |
 
 ---
 

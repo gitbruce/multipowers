@@ -11,13 +11,20 @@
     {
       "name": "mp",
       "source": "./.claude-plugin",
-      "description": "v9.1.6 - single-source command docs under .claude-plugin/.claude and reduced custom overlay coupling.",
-      "version": "9.1.6",
+      "description": "v9.1.7 - explicit command/skill/hook paths for .claude-plugin single-source layout.",
+      "version": "9.1.7",
       "author": {
         "name": "nyldn"
       },
       "repository": "https://github.com/nyldn/claude-octopus",
       "license": "MIT",
+      "commands": [
+        "./.claude/commands"
+      ],
+      "skills": [
+        "./.claude/skills"
+      ],
+      "hooks": "./hooks.json",
       "keywords": [
         "multi-agent",
         "orchestration",

@@ -11,12 +11,12 @@ When the user invokes this command (e.g., `/mp:docs <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```
-Skill(skill: "octo:docs", args: "<user's arguments>")
+Skill(skill: "mp:docs", args: "<user's arguments>")
 ```
 
 **✗ INCORRECT - Do NOT use Task tool:**
 ```
-Task(subagent_type: "octo:docs", ...)  ❌ Wrong! This is a skill, not an agent type
+Task(subagent_type: "mp:docs", ...)  ❌ Wrong! This is a skill, not an agent type
 ```
 
 **Why:** This command loads the `skill-doc-delivery` skill. Skills use the `Skill` tool, not `Task`.

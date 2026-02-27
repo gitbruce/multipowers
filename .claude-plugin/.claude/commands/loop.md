@@ -11,12 +11,12 @@ When the user invokes this command (e.g., `/mp:loop <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```
-Skill(skill: "octo:loop", args: "<user's arguments>")
+Skill(skill: "mp:loop", args: "<user's arguments>")
 ```
 
 **✗ INCORRECT - Do NOT use Task tool:**
 ```
-Task(subagent_type: "octo:loop", ...)  ❌ Wrong! This is a skill, not an agent type
+Task(subagent_type: "mp:loop", ...)  ❌ Wrong! This is a skill, not an agent type
 ```
 
 **Why:** This command loads the `skill-iterative-loop` skill. Skills use the `Skill` tool, not `Task`.

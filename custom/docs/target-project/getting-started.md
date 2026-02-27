@@ -3,7 +3,7 @@
 ## Install Plugin (User Scope)
 
 ```text
-/plugin marketplace add https://github.com/gitbruce/claude-octopus
+/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json
 /plugin install mp@multipowers-plugins --scope user
 ```
 

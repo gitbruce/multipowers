@@ -11,7 +11,7 @@
 
 - `.claude-plugin/bin/mp`: central runtime command engine.
 - `scripts/mp`: developer wrapper that delegates to `.claude-plugin/bin/mp`.
-- `cmd/octo-devx`: maintainer/CI helper entrypoint.
+- `cmd/mp-devx`: maintainer/CI helper entrypoint.
 - `internal/providers/*`: provider/model routing logic.
 - `internal/tracks/*`: workflow state persistence and track status.
 - `internal/hooks/*`: lifecycle and governance hooks.

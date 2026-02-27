@@ -11,12 +11,12 @@ When the user invokes this command (e.g., `/mp:ink <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```
-Skill(skill: "octo:ink", args: "<user's arguments>")
+Skill(skill: "mp:ink", args: "<user's arguments>")
 ```
 
 **✗ INCORRECT - Do NOT use Task tool:**
 ```
-Task(subagent_type: "octo:ink", ...)  ❌ Wrong! This is a skill, not an agent type
+Task(subagent_type: "mp:ink", ...)  ❌ Wrong! This is a skill, not an agent type
 ```
 
 **Why:** This command loads the `flow-ink` skill. Skills use the `Skill` tool, not `Task`.

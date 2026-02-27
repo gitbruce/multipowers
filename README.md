@@ -23,8 +23,8 @@
 Inside Claude Code, run:
 
 ```
-/plugin marketplace add https://github.com/nyldn/claude-octopus
-/plugin install claude-octopus@multipowers-plugins
+/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json
+/plugin install mp@multipowers-plugins --scope user
 ```
 
 Then configure your AI providers:
@@ -369,10 +369,10 @@ Skills are the engine behind commands and personas. They activate automatically 
 
 ## Project Lifecycle
 
-Track state across sessions with the `.octo/` directory:
+Track state across sessions with the `.claude-octopus/` directory:
 
 ```
-.octo/
+.claude-octopus/
 ├── PROJECT.md      # Vision and requirements
 ├── ROADMAP.md      # Phase breakdown
 ├── STATE.md        # Current position and history
@@ -448,7 +448,7 @@ Works without external providers too - you still get 29 personas, all workflows,
 No. One external provider (Codex or Gemini) plus the built-in Claude gives you multi-AI features. Both external providers gives maximum diversity. No external providers still gives you personas, workflows, and skills.
 
 **Will this break my existing Claude Code setup?**
-No. Claude Octopus only activates with the `octo` prefix or `/mp:*` commands. Results are stored separately in `~/.claude-octopus/`. Uninstalls cleanly with no residual configuration changes.
+No. Claude Octopus only activates with the `mp` prefix or `/mp:*` commands. Results are stored separately in `~/.claude-octopus/`. Uninstalls cleanly with no residual configuration changes.
 
 **Can I use it without external AIs?**
 Yes. You get all 29 personas, structured workflows, context intelligence, task management, and every skill. Multi-AI features (parallel analysis, debate, consensus) won't activate without external providers.
@@ -459,8 +459,8 @@ The workflow continues with available providers. If Codex fails, Gemini and Clau
 **What's the difference between `/mp:quick` and full workflows?**
 `/mp:quick` skips the structured phases and quality gates - it's a fast path for ad-hoc tasks that don't need the full Double Diamond treatment. Use it for simple tasks; use `/mp:embrace` for complex features.
 
-**Can I share `.octo/` state across a team?**
-Yes. The `.octo/` directory is designed to be committed to your repository. Team members can use `/mp:resume` to pick up where others left off. ISSUES.md and LESSONS.md provide cross-session continuity.
+**Can I share `.claude-octopus/` state across a team?**
+Yes. The `.claude-octopus/` directory is designed to be committed to your repository. Team members can use `/mp:resume` to pick up where others left off. ISSUES.md and LESSONS.md provide cross-session continuity.
 
 **Does this work offline?**
 Partially. Claude (via Claude Code) works with your subscription. External providers (Codex, Gemini) require internet access. All personas and workflow logic run locally.
@@ -472,7 +472,7 @@ Visual indicators show active providers in real-time. For deeper debugging, chec
 Run `/plugin` > Installed > update, or reinstall:
 ```
 /plugin uninstall claude-octopus@multipowers-plugins
-/plugin install claude-octopus@multipowers-plugins
+/plugin install mp@multipowers-plugins --scope user
 ```
 
 ---

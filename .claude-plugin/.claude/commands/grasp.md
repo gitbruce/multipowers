@@ -11,12 +11,12 @@ When the user invokes this command (e.g., `/mp:grasp <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```
-Skill(skill: "octo:grasp", args: "<user's arguments>")
+Skill(skill: "mp:grasp", args: "<user's arguments>")
 ```
 
 **✗ INCORRECT - Do NOT use Task tool:**
 ```
-Task(subagent_type: "octo:grasp", ...)  ❌ Wrong! This is a skill, not an agent type
+Task(subagent_type: "mp:grasp", ...)  ❌ Wrong! This is a skill, not an agent type
 ```
 
 **Why:** This command loads the `flow-grasp` skill. Skills use the `Skill` tool, not `Task`.

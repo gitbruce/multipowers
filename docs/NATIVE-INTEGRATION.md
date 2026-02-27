@@ -485,7 +485,7 @@ Each phase includes validation:
 
 ### Issue: "State not persisting"
 
-**Cause:** octo state not being called
+**Cause:** mp state not being called
 
 **Solution:**
 ```bash

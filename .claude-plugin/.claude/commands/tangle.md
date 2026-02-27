@@ -11,12 +11,12 @@ When the user invokes this command (e.g., `/mp:tangle <arguments>`):
 
 **✓ CORRECT - Use the Skill tool:**
 ```
-Skill(skill: "octo:tangle", args: "<user's arguments>")
+Skill(skill: "mp:tangle", args: "<user's arguments>")
 ```
 
 **✗ INCORRECT - Do NOT use Task tool:**
 ```
-Task(subagent_type: "octo:tangle", ...)  ❌ Wrong! This is a skill, not an agent type
+Task(subagent_type: "mp:tangle", ...)  ❌ Wrong! This is a skill, not an agent type
 ```
 
 **Why:** This command loads the `flow-tangle` skill. Skills use the `Skill` tool, not `Task`.

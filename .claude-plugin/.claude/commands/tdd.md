@@ -61,12 +61,12 @@ AskUserQuestion({
 
 **✓ CORRECT - Use the Skill tool:**
 ```
-Skill(skill: "octo:tdd", args: "<user's arguments + context>")
+Skill(skill: "mp:tdd", args: "<user's arguments + context>")
 ```
 
 **✗ INCORRECT - Do NOT use Task tool:**
 ```
-Task(subagent_type: "octo:tdd", ...)  ❌ Wrong! This is a skill, not an agent type
+Task(subagent_type: "mp:tdd", ...)  ❌ Wrong! This is a skill, not an agent type
 ```
 
 **Why:** This command loads the `skill-tdd` skill. Skills use the `Skill` tool, not `Task`.

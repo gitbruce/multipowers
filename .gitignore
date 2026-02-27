@@ -108,3 +108,7 @@ coverage-report.html
 
 # Build artifacts
 /bin/
+
+# Multipowers local runtime artifacts
+.multipowers/temp/
+.multipowers/tracks/

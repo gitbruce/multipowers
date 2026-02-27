@@ -1,6 +1,6 @@
 ---
 command: init
-description: Thin wrapper that delegates to Go runtime (octo)
+description: Thin wrapper that delegates to Go runtime (mp)
 ---
 
 # /mp:init

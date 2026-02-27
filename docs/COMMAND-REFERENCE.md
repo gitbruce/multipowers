@@ -78,7 +78,7 @@ Restore context from previous session.
 **Usage:** `/mp:resume`
 
 **Behavior:**
-1. Reads `.octo/STATE.md` for current position
+1. Reads `.claude-octopus/state.json` for current position
 2. Loads context using adaptive tier
 3. Shows restoration summary
 4. Suggests next action
@@ -290,7 +290,7 @@ Delivery phase - Validation and quality assurance.
 **Natural language triggers:**
 - `mp review X`
 - `mp validate Y`
-- `octo audit Z`
+- `mp validate Z`
 
 ### `/mp:embrace`
 
@@ -460,7 +460,7 @@ Providers:
 
 ## Natural Language Triggers
 
-Instead of slash commands, you can use natural language with the "octo" prefix:
+Instead of slash commands, you can use natural language with the "mp" prefix:
 
 | You Say | Equivalent Command |
 |---------|--------------------|
@@ -469,7 +469,7 @@ Instead of slash commands, you can use natural language with the "octo" prefix:
 | `mp review my code` | `/mp:deliver my code` |
 | `mp debate X vs Y` | `/mp:debate X vs Y` |
 
-**Why "octo"?** Common words like "research" may conflict with Claude's base behaviors. The "octo" prefix ensures reliable activation.
+**Why "mp"?** Common words like "research" may conflict with Claude's base behaviors. The "mp" prefix ensures reliable activation.
 
 📖 See [Triggers Guide](./TRIGGERS.md) for the complete list.
 

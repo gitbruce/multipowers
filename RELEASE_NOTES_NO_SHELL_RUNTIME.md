@@ -23,4 +23,4 @@ This release migrates runtime execution to Go-only entrypoints.
 ## Notes
 
 - If older docs mention shell paths, treat them as historical references only.
-- Runtime and CI should use `.claude-plugin/bin/mp` and `go run ./cmd/octo-devx`.
+- Runtime and CI should use `.claude-plugin/bin/mp` and `go run ./cmd/mp-devx`.

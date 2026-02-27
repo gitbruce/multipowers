@@ -12,4 +12,4 @@ Runtime policy:
 - No shell runtime dependencies.
 - Execution entrypoints are Go binaries:
   - `.claude-plugin/bin/mp`
-  - `go run ./cmd/octo-devx`
+  - `go run ./cmd/mp-devx`

@@ -2,9 +2,9 @@
 
 This guide explains exactly what natural language phrases trigger external CLI execution versus Claude subagents.
 
-## Reliable Activation: Use "octo" Prefix
+## Reliable Activation: Use "mp" Prefix
 
-**Common words like "research" or "build" may conflict with Claude's base behaviors.** For reliable multi-AI workflow activation, use the "octo" prefix:
+**Common words like "research" or "build" may conflict with Claude's base behaviors.** For reliable multi-AI workflow activation, use the "mp" prefix:
 
 | Reliable Trigger | Workflow | Indicator |
 |------------------|----------|-----------|
@@ -32,7 +32,7 @@ This guide explains exactly what natural language phrases trigger external CLI e
 | "read file.ts" | Read tool | Claude only | (none) |
 | "what does this do?" | Analysis | Claude only | (none) |
 
-**Note:** Bare triggers like "research X" may work but can conflict with Claude's base behaviors. Use "octo" prefix for guaranteed activation.
+**Note:** Bare triggers like "research X" may work but can conflict with Claude's base behaviors. Use "mp" prefix for guaranteed activation.
 
 ---
 
@@ -584,7 +584,7 @@ If you want to ensure you're **not** using external CLIs (to save costs):
 | read, show, explain | (none) | No | Included |
 | git, bash commands | (none) | No | Included |
 
-**Pro tip:** Always use `octo` prefix for guaranteed workflow activation. Bare triggers like "research X" may work but can conflict with Claude's base behaviors.
+**Pro tip:** Always use `mp` prefix for guaranteed workflow activation. Bare triggers like "research X" may work but can conflict with Claude's base behaviors.
 
 ---
 

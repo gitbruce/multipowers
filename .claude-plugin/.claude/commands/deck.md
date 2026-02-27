@@ -11,7 +11,7 @@ When the user invokes this command (e.g., `/mp:deck <arguments>`):
 
 **Use the Skill tool:**
 ```
-Skill(skill: "octo:deck", args: "<user's arguments>")
+Skill(skill: "mp:deck", args: "<user's arguments>")
 ```
 
 **Do NOT use Task tool** — this is a skill, not an agent type.
