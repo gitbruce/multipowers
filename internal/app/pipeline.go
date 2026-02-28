@@ -11,14 +11,13 @@ type ExecFunc func() api.Response
 func RunSpecPipeline(projectDir string, autoInit bool, tags []string, execFn ExecFunc) api.Response {
 	missing := context.Missing(projectDir)
 	if len(missing) > 0 {
-		if !autoInit {
-			return api.Response{Status: "blocked", Action: "run_init", ErrorCode: ErrCtxMissing, Missing: missing}
-		}
-		if err := context.RunInit(projectDir); err != nil {
-			return api.Response{Status: "error", ErrorCode: ErrInitFailed, Message: err.Error(), Remediation: "Run /mp:init interactively."}
-		}
-		if missing = context.Missing(projectDir); len(missing) > 0 {
-			return api.Response{Status: "error", ErrorCode: ErrCtxMissing, Missing: missing}
+		_ = autoInit // kept for CLI compatibility, but no silent init is allowed.
+		return api.Response{
+			Status:      "blocked",
+			Action:      "run_init",
+			ErrorCode:   ErrCtxMissing,
+			Missing:     missing,
+			Remediation: "Run /mp:init wizard first; context files are never generated silently.",
 		}
 	}
 	cfg, present, err := runtime.Load(projectDir)

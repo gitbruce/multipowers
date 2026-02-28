@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "principles": [
+    "Plan is source of truth",
+    "Tech-stack changes must be explicit",
+    "Prefer test-first for new behavior",
+    "Non-interactive and CI-safe commands only",
+    "Security and privacy impact must be documented"
+  ],
+  "workflow": [
+    "Discover: clarify problem, constraints, and options.",
+    "Define: lock scope, acceptance criteria, and risks.",
+    "Develop: implement incrementally with tests and checks.",
+    "Deliver: validate quality/security and publish outcomes."
+  ],
+  "base_quality_gates": [
+    "format",
+    "lint",
+    "tests",
+    "build/type-check"
+  ],
+  "profiles": {
+    "go": {
+      "runtime": "Go",
+      "framework": "Standard library or selected Go framework",
+      "database": "TBD",
+      "deployment": "Container or binary service",
+      "quality_gates": [
+        "go fmt ./...",
+        "go test ./...",
+        "go vet ./..."
+      ]
+    },
+    "node": {
+      "runtime": "Node.js",
+      "framework": "TBD",
+      "database": "TBD",
+      "deployment": "Container or managed platform",
+      "quality_gates": [
+        "npm run lint",
+        "npm test -- --ci",
+        "npm run build"
+      ]
+    },
+    "python": {
+      "runtime": "Python",
+      "framework": "TBD",
+      "database": "TBD",
+      "deployment": "Container or managed platform",
+      "quality_gates": [
+        "ruff check .",
+        "pytest",
+        "python -m build"
+      ]
+    }
+  }
+}

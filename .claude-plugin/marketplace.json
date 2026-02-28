@@ -11,8 +11,8 @@
     {
       "name": "mp",
       "source": "./.claude-plugin",
-      "description": "v9.1.7 - explicit command/skill/hook paths for .claude-plugin single-source layout.",
-      "version": "9.1.7",
+      "description": "v9.1.9 - wizard contract + hook-driven model routing from custom/config/models.json.",
+      "version": "9.1.9",
       "author": {
         "name": "nyldn"
       },

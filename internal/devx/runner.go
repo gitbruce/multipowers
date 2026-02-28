@@ -98,7 +98,7 @@ func (r Runner) BenchmarkPreflightP95(root string, iterations int) (time.Duratio
 	if out, err := exec.Command("go", "build", "-o", bin, "./cmd/mp").CombinedOutput(); err != nil {
 		return 0, fmt.Errorf("build failed: %v: %s", err, string(out))
 	}
-	if out, err := exec.Command(bin, "init", "--dir", tmp, "--json").CombinedOutput(); err != nil {
+	if out, err := exec.Command(bin, "init", "--dir", tmp, "--prompt", "benchmark-seed", "--json").CombinedOutput(); err != nil {
 		return 0, fmt.Errorf("init failed: %v: %s", err, string(out))
 	}
 	durations := make([]int64, 0, iterations)

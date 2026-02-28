@@ -15,18 +15,21 @@ func TestUserPromptSubmitBlocksMissingContext(t *testing.T) {
 	if r.Decision != "block" {
 		t.Fatalf("expected block, got %+v", r)
 	}
-	if err := ctxpkg.RunInit(d); err != nil {
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
 		t.Fatal(err)
 	}
 	r = Handle(d, api.HookEvent{Event: "UserPromptSubmit", ToolInput: map[string]any{"prompt": "/mp:develop x"}})
 	if r.Decision != "allow" {
 		t.Fatalf("expected allow after init, got %+v", r)
 	}
+	if _, ok := r.Metadata["model_routing"]; !ok {
+		t.Fatalf("expected model_routing metadata, got %+v", r)
+	}
 }
 
 func TestPostToolUseWritesFaqAndTrack(t *testing.T) {
 	d := t.TempDir()
-	if err := ctxpkg.RunInit(d); err != nil {
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
 		t.Fatal(err)
 	}
 	r := Handle(d, api.HookEvent{Event: "PostToolUse", ToolName: "Bash"})

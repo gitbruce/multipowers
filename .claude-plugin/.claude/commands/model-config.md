@@ -16,21 +16,22 @@ Configure which AI models are used by Claude Octopus workflows. This allows you 
 - Align model choices with the project routing policy
 - Control cost/performance tradeoffs per project
 
-## Environment Constraints
+## Runtime Source Of Truth
 
-In this environment:
-- Codex available model: `gpt-5.3-codex` only
-- Gemini available model: `gemini-3-pro-preview`
-- Claude routing uses Sonnet/Opus lanes and is mapped by your Claude Code defaults
+Model routing is resolved by Go runtime from configuration, not hardcoded markdown:
+- Primary mapping file: `custom/config/models.json`
+- Plugin-distributed fallback: `.claude-plugin/custom/config/models.json`
+- Optional project override: `.multipowers/context/models.json`
+- Hook metadata exposes selected lane/provider/model for `/mp:*` prompts
 
 ## Principles-Aligned Policy
 
 Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.yaml`, and `.claude-plugin/bin/mp`):
 
-- Planning, architecture, and important decisions -> Codex (`gpt-5.3-codex`)
-- Heavy coding/implementation -> Claude Opus (`claude-opus`; mapped by your Claude Code env, e.g. GLM-5)
-- Documentation and test-case authoring -> Claude Sonnet (`claude`; mapped by your Claude Code env, e.g. GLM-4.7)
-- External-world research -> Gemini (`gemini-3-pro-preview`)
+- Planning, architecture, and important decisions -> `architecture_review_decision` lane
+- Heavy coding/implementation -> `heavy_coding` lane
+- Documentation and test-case authoring -> `docs_and_tests` lane
+- External-world research -> `external_search_business` lane
 - Quality checks:
   - Heavy/high-token -> Claude Opus
   - Light/lower-token -> Codex

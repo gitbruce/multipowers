@@ -1,6 +1,6 @@
 {
   "name": "mp",
-  "version": "9.1.7",
+  "version": "9.1.9",
   "description": "Strict no-shell runtime: Go-only execution engine with .multipowers boundary enforcement and shell-free CI/runtime paths.",
   "author": {
     "name": "nyldn"

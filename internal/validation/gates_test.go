@@ -14,7 +14,7 @@ func TestEnsureTargetWorkspace(t *testing.T) {
 	if res.Valid {
 		t.Fatal("expected invalid without workspace")
 	}
-	if err := ctxpkg.RunInit(d); err != nil {
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"r","framework":"f","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
 		t.Fatal(err)
 	}
 	res = EnsureTargetWorkspace(d)

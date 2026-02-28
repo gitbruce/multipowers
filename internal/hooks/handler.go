@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
+	"github.com/gitbruce/claude-octopus/internal/modelroute"
 	"github.com/gitbruce/claude-octopus/pkg/api"
 )
 
@@ -31,6 +32,16 @@ func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 	case "UserPromptSubmit":
 		if isSpecPrompt(evt) && !ctxpkg.Complete(projectDir) {
 			return api.HookResult{Decision: "block", Reason: "missing required .multipowers context", Remediation: "run /mp:init first"}
+		}
+		if isSpecPrompt(evt) {
+			raw, _ := evt.ToolInput["prompt"].(string)
+			r := modelroute.ResolveForPrompt(projectDir, raw)
+			return api.HookResult{
+				Decision: "allow",
+				Metadata: map[string]any{
+					"model_routing": r,
+				},
+			}
 		}
 		return api.HookResult{Decision: "allow"}
 	case "PreToolUse":

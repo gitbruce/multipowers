@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"github.com/gitbruce/claude-octopus/internal/context"
+	"github.com/gitbruce/claude-octopus/internal/modelroute"
 )
 
 func SessionStartData(projectDir string) map[string]any {
@@ -10,6 +11,7 @@ func SessionStartData(projectDir string) map[string]any {
 	for _, f := range files {
 		out[f] = context.SummarizeNLines(context.ReadFile(projectDir, f), 20)
 	}
+	out["model_routing_defaults"] = modelroute.Load(projectDir)
 	out["track_status"] = "unknown"
 	return out
 }

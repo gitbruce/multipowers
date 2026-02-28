@@ -19,7 +19,7 @@ import (
 
 func Run(args []string) int {
 	if len(args) == 0 {
-		fmt.Println("usage: octo <command> [--dir DIR] [--prompt TEXT] [--json]")
+		fmt.Println("usage: mp <command> [--dir DIR] [--prompt TEXT] [--json]")
 		return 2
 	}
 	cmd := args[0]
@@ -31,13 +31,17 @@ func Run(args []string) int {
 	}
 	fs := flag.NewFlagSet(cmd, flag.ContinueOnError)
 	dir := fs.String("dir", ".", "project dir")
-	prompt := fs.String("prompt", strings.Join(rest, " "), "prompt")
+	prompt := fs.String("prompt", "", "prompt")
 	autoInit := fs.Bool("auto-init", true, "auto init")
 	asJSON := fs.Bool("json", false, "json output")
 	strictNoShell := fs.Bool("strict-no-shell", false, "validate no shell runtime references")
 	event := fs.String("event", "", "hook event")
 	if err := fs.Parse(rest); err != nil {
 		return 2
+	}
+	effectivePrompt := *prompt
+	if strings.TrimSpace(effectivePrompt) == "" {
+		effectivePrompt = strings.Join(fs.Args(), " ")
 	}
 	absDir, _ := filepath.Abs(*dir)
 
@@ -62,7 +66,7 @@ func Run(args []string) int {
 			if st.Error != "" {
 				return api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: st.Error}
 			}
-			data := fn(*prompt)
+			data := fn(effectivePrompt)
 			data["provider_strategy"] = st
 			return api.Response{Status: "ok", Data: data}
 		})
@@ -71,8 +75,46 @@ func Run(args []string) int {
 
 	switch cmd {
 	case "init":
-		err := ctxpkg.RunInit(absDir)
+		if strings.TrimSpace(effectivePrompt) == "" {
+			return respond(api.Response{
+				Status:      "blocked",
+				Action:      "ask_user_questions",
+				ErrorCode:   app.ErrInvalidArgument,
+				Message:     "wizard input required",
+				Remediation: "Collect init answers first, then call mp init with --prompt JSON.",
+				Data: map[string]any{
+					"wizard_contract": ctxpkg.BuildWizardContract(absDir),
+				},
+			})
+		}
+		err := ctxpkg.RunInitWithPrompt(absDir, effectivePrompt)
 		if err != nil {
+			if vErr, ok := err.(*ctxpkg.InitValidationError); ok {
+				return respond(api.Response{
+					Status:      "blocked",
+					Action:      "ask_user_questions",
+					ErrorCode:   app.ErrInvalidArgument,
+					Message:     vErr.Message,
+					Remediation: "Ask follow-up questions for missing fields and retry /mp:init with updated answers JSON.",
+					Missing:     vErr.Missing,
+					Data: map[string]any{
+						"wizard_contract": ctxpkg.BuildWizardContract(absDir),
+					},
+				})
+			}
+			if qErr, ok := err.(*ctxpkg.InitQualityError); ok {
+				return respond(api.Response{
+					Status:      "blocked",
+					Action:      "ask_user_questions",
+					ErrorCode:   app.ErrInvalidArgument,
+					Message:     qErr.Message,
+					Remediation: "Refine answers and regenerate context until quality gaps are resolved.",
+					Data: map[string]any{
+						"quality_gaps":    qErr.Gaps,
+						"wizard_contract": ctxpkg.BuildWizardContract(absDir),
+					},
+				})
+			}
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInitFailed, Message: err.Error()})
 		}
 		return respond(api.Response{Status: "ok", Message: "initialized"})
@@ -117,7 +159,7 @@ func Run(args []string) int {
 		return exec("embrace", workflows.Embrace)
 	case "debate":
 		r := app.RunSpecPipeline(absDir, *autoInit, []string{"debate", "all"}, func() api.Response {
-			data, ok := workflows.Debate(*prompt)
+			data, ok := workflows.Debate(effectivePrompt)
 			if !ok {
 				return api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: "provider quorum below 2"}
 			}
@@ -125,13 +167,13 @@ func Run(args []string) int {
 		})
 		return respond(r)
 	case "persona":
-		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), *prompt)
+		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), effectivePrompt)
 		if err != nil {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
 		}
 		return respond(api.Response{Status: "ok", Data: data})
 	case "hook":
-		e := api.HookEvent{Event: *event, CWD: absDir, ToolInput: map[string]any{"prompt": *prompt}}
+		e := api.HookEvent{Event: *event, CWD: absDir, ToolInput: map[string]any{"prompt": effectivePrompt}}
 		hr := hooks.Handle(absDir, e)
 		if *asJSON {
 			_ = json.NewEncoder(os.Stdout).Encode(hr)

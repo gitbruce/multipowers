@@ -11,7 +11,7 @@ func TestMissingAndComplete(t *testing.T) {
 	if Complete(d) {
 		t.Fatal("should be incomplete")
 	}
-	if err := RunInit(d); err != nil {
+	if err := RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"r","framework":"f","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
 		t.Fatal(err)
 	}
 	if !Complete(d) {
