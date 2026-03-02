@@ -1,126 +1,262 @@
-# skill-tdd
+---
+name: skill-tdd
+aliases:
+  - tdd
+  - test-driven-development
+description: "TDD discipline: write failing test first, then minimal code"
+trigger: |
+  Use when implementing any feature, bugfix, or behavior change.
+  Auto-invoke when user says "implement X", "add feature Y", "fix bug Z".
+  DO NOT use for: throwaway prototypes, config files, documentation.
+---
 
-Test-Driven Development skill with red-green-refactor discipline.
+# Test-Driven Development (TDD)
 
-## Overview
+## The Iron Law
 
-This skill provides TDD workflow guidance using atomic mp commands to
-enforce test-first development with quality gates.
-
-## TDD Cycle
-
-### Red Phase: Write Failing Test
-
-**Goal:** Write a test that fails because the feature doesn't exist.
-
-**Action:** Validate TDD environment first
-```bash
-mp validate --type tdd-env --dir . --json
+```
+NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 ```
 
-**Branch:**
-- If `status=ok`: Proceed to write failing test
-- If `status=error`: Check `data.details` for missing requirements
+**Violating the letter of this rule is violating the spirit of this rule.**
 
-**Write Test:**
-- Write a minimal test that captures the requirement
-- The test should fail for the right reason (feature not implemented)
+Write code before the test? **Delete it. Start over.**
 
-**Verify Red:**
-```bash
-mp test run --dir . --json
+- Don't keep it as "reference"
+- Don't "adapt" it while writing tests
+- Don't look at it
+- Delete means delete
+
+## Red-Green-Refactor Cycle
+
+```
+   ┌─────────┐
+   │   RED   │ ← Write ONE failing test
+   └────┬────┘
+        ↓
+   ┌─────────┐
+   │  VERIFY │ ← Watch it FAIL (mandatory)
+   └────┬────┘
+        ↓
+   ┌─────────┐
+   │  GREEN  │ ← Write MINIMAL code to pass
+   └────┬────┘
+        ↓
+   ┌─────────┐
+   │  VERIFY │ ← Watch it PASS (mandatory)
+   └────┬────┘
+        ↓
+   ┌─────────┐
+   │REFACTOR │ ← Clean up (stay green)
+   └────┬────┘
+        ↓
+     [REPEAT]
 ```
 
-**Expected:** `data.status=failed` with the new test in `data.failed_tests`
+## Phase 1: RED - Write Failing Test
 
-### Green Phase: Make Test Pass
+Write ONE minimal test showing what should happen.
 
-**Goal:** Write minimal code to make the test pass.
+**Good Test:**
+```typescript
+test('retries failed operations 3 times', async () => {
+  let attempts = 0;
+  const operation = () => {
+    attempts++;
+    if (attempts < 3) throw new Error('fail');
+    return 'success';
+  };
 
-**Action:** Implement the feature
-- Write the simplest code that makes the test pass
-- Don't worry about perfection - just make it work
-- Avoid over-engineering
+  const result = await retryOperation(operation);
 
-**Verify Green:**
-```bash
-mp test run --dir . --json
+  expect(result).toBe('success');
+  expect(attempts).toBe(3);
+});
+```
+- Clear name describing behavior
+- Tests real code, not mocks
+- One thing only
+
+**Bad Test:**
+```typescript
+test('retry works', async () => {  // Vague name
+  const mock = jest.fn()           // Tests mock, not code
+    .mockRejectedValueOnce(new Error())
+    .mockResolvedValueOnce('success');
+  // ...
+});
 ```
 
-**Expected:** `data.status=passed` with all tests passing
+## Phase 2: VERIFY RED - Watch It Fail
 
-### Refactor Phase: Improve Code Quality
+**MANDATORY. Never skip.**
 
-**Goal:** Clean up the code while keeping tests green.
+```bash
+npm test path/to/test.test.ts
+```
 
-**Action:** Refactor implementation
+Confirm:
+- Test **fails** (not errors)
+- Failure message is what you expected
+- Fails because feature is **missing** (not typos)
+
+| Outcome | Action |
+|---------|--------|
+| Test passes | You're testing existing behavior. Fix the test. |
+| Test errors | Fix error, re-run until it fails correctly. |
+| Test fails correctly | Proceed to GREEN. |
+
+## Phase 3: GREEN - Minimal Code
+
+Write the **simplest** code to pass the test. Nothing more.
+
+**Good:**
+```typescript
+async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
+  for (let i = 0; i < 3; i++) {
+    try { return await fn(); }
+    catch (e) { if (i === 2) throw e; }
+  }
+  throw new Error('unreachable');
+}
+```
+
+**Bad (YAGNI violation):**
+```typescript
+async function retryOperation<T>(
+  fn: () => Promise<T>,
+  options?: {
+    maxRetries?: number;           // Not needed yet
+    backoff?: 'linear' | 'expo';   // Not needed yet
+    onRetry?: (n: number) => void; // Not needed yet
+  }
+): Promise<T> { /* ... */ }
+```
+
+## Phase 4: VERIFY GREEN - Watch It Pass
+
+**MANDATORY.**
+
+```bash
+npm test path/to/test.test.ts
+```
+
+Confirm:
+- Test passes
+- **All other tests** still pass
+- Output is clean (no errors, warnings)
+
+| Outcome | Action |
+|---------|--------|
+| Test fails | Fix the code, not the test. |
+| Other tests fail | Fix them now. |
+| All pass | Proceed to REFACTOR. |
+
+## Phase 5: REFACTOR - Clean Up
+
+**Only after GREEN:**
 - Remove duplication
-- Improve naming
-- Simplify logic
-- Add documentation
+- Improve names
+- Extract helpers
 
-**Verify Still Green:**
-```bash
-mp test run --dir . --json
+**Keep tests green throughout. Don't add new behavior.**
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| "Too simple to test" | Simple code breaks. Test takes 30 seconds. |
+| "I'll test after" | Tests passing immediately prove nothing. |
+| "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
+| "Deleting X hours is wasteful" | Sunk cost fallacy. Unverified code is debt. |
+| "Need to explore first" | Fine. Throw away exploration, start with TDD. |
+| "TDD will slow me down" | TDD is faster than debugging. |
+
+## Red Flags - STOP and Start Over
+
+If you catch yourself:
+- Writing code before test
+- Test passes immediately (didn't watch it fail)
+- Rationalizing "just this once"
+- "I already manually tested it"
+- "Keep as reference" or "adapt existing code"
+- "This is different because..."
+
+**ALL of these mean: Delete code. Start over with TDD.**
+
+## Bug Fix Example
+
+**Bug:** Empty email accepted
+
+**RED:**
+```typescript
+test('rejects empty email', async () => {
+  const result = await submitForm({ email: '' });
+  expect(result.error).toBe('Email required');
+});
 ```
 
-**Expected:** `data.status=passed` - tests remain green after refactoring
-
-### Coverage Check
-
-**Goal:** Ensure adequate test coverage.
-
-**Action:** Run coverage check
+**VERIFY RED:**
 ```bash
-mp coverage check --dir . --json
+$ npm test
+FAIL: expected 'Email required', got undefined
 ```
 
-**Branch:**
-- If `data.coverage_pct` meets threshold: Cycle complete
-- If coverage low: Add more tests before proceeding
-
-## State Tracking
-
-Track TDD progress in state:
-```bash
-mp state update --data '{"tdd_cycle":"red","current_feature":"<feature>"}' --dir . --json
+**GREEN:**
+```typescript
+function submitForm(data: FormData) {
+  if (!data.email?.trim()) {
+    return { error: 'Email required' };
+  }
+  // ...
+}
 ```
 
-Update as you progress:
+**VERIFY GREEN:**
 ```bash
-mp state update --data '{"tdd_cycle":"green","current_feature":"<feature>"}' --dir . --json
-mp state update --data '{"tdd_cycle":"refactor","current_feature":"<feature>"}' --dir . --json
+$ npm test
+PASS
 ```
 
-## Response Contract
+## Verification Checklist
 
-All mp commands return a JSON response with:
-- `status`: "ok" | "error" | "blocked"
-- `action`: Recommended next action
-- `message`: Human-readable status
-- `error_code`: Error identifier if applicable
-- `data`: Structured response data
-- `remediation`: Suggested fix if blocked
+Before marking work complete:
 
-## Error Handling
+- [ ] Every new function/method has a test
+- [ ] Watched each test fail before implementing
+- [ ] Each test failed for expected reason
+- [ ] Wrote minimal code to pass each test
+- [ ] All tests pass
+- [ ] Output clean (no errors, warnings)
 
-| Condition | Action |
-|-----------|--------|
-| TDD environment invalid | Set up test framework first |
-| Test passes unexpectedly | Ensure testing the right thing |
-| Multiple tests fail | Fix one at a time |
-| Refactor breaks tests | Revert and refactor more carefully |
+**Can't check all boxes? You skipped TDD. Start over.**
 
-## Example Usage
+## Integration with Claude Octopus
 
-User: "/mp:tdd implement user registration"
+When using octopus workflows:
 
-1. Validate TDD environment
-2. Write failing test for user registration
-3. Verify test fails (red)
-4. Implement minimal registration logic
-5. Verify test passes (green)
-6. Refactor for code quality
-7. Verify tests still pass
-8. Check coverage
-9. Repeat for next feature
+| Workflow | TDD Integration |
+|----------|-----------------|
+| `probe` (research) | Research testing patterns for the domain |
+| `grasp` (define) | Define test requirements in spec |
+| `tangle` (develop) | **Enforce TDD for each implementation task** |
+| `ink` (deliver) | Verify all tests pass before delivery |
+| `squeeze` (security) | Red team tests security controls |
+
+## When Stuck
+
+| Problem | Solution |
+|---------|----------|
+| Don't know how to test | Write the API you wish existed. Assert first. |
+| Test too complicated | Design too complicated. Simplify interface. |
+| Must mock everything | Code too coupled. Use dependency injection. |
+| Test setup huge | Extract helpers. Still complex? Simplify design. |
+
+## The Bottom Line
+
+```
+Production code exists → Test exists that failed first
+Otherwise → Not TDD
+```
+
+No exceptions without explicit user permission.
