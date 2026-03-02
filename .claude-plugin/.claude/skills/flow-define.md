@@ -1,101 +1,227 @@
+---
+name: flow-define
+aliases:
+  - define
+  - define-workflow
+  - grasp
+description: Multi-AI requirements scoping (Double Diamond Define phase)
+agent: Plan
+context: fork
+task_management: true
+execution_mode: enforced
+validation_gates:
+  - mp_command_executed
+  - synthesis_complete
+trigger: |
+  AUTOMATICALLY ACTIVATE when user requests clarification or scoping:
+  - "define the requirements for X"
+  - "clarify the scope of Y"
+  - "what exactly does X need to do"
+  - "scope out the Z feature"
+---
+
 # flow-define
 
-Define phase for requirements clarification and scope definition.
+Multi-AI requirements scoping using the Double Diamond Define phase.
+Builds consensus on scope, constraints, and success criteria.
 
-## Overview
+## Pre-Definition: Phase Dependency Check
 
-This skill orchestrates the definition phase, using atomic mp commands to
-clarify requirements, establish scope, and create structured specifications.
+Before starting definition, check if discover phase is complete:
 
-## Workflow Stages
-
-### Stage 1: Load Discovery Context
-
-**Goal:** Retrieve previous discovery phase results.
-
-**Action:** Check current state
 ```bash
-mp state get --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state get --key "phase" --dir "$PWD" --json
 ```
 
 **Branch:**
-- If `data.state.phase=discover` and `data.state.status=complete`: Proceed to Stage 2
-- If no discovery context: Optionally run discovery first or proceed with user input
-- Use `data.state.findings` to inform definition
+- If `data.phase=discover` and `data.status=complete`: Proceed with full context
+- If discover not complete: Warn user but allow proceeding
+- Use `data.findings` to inform definition decisions
 
-### Stage 2: Validate Workspace
+---
 
-**Goal:** Ensure workspace is ready for definition work.
+## EXECUTION CONTRACT (MANDATORY - CANNOT SKIP)
 
-**Action:** Run workspace validation
+This workflow MUST execute all steps in order. Skipping steps is PROHIBITED.
+
+### STEP 1: Validate Workspace (MANDATORY)
+
+Execute workspace validation:
+
 ```bash
-mp validate --type workspace --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" validate --type workspace --dir "$PWD" --json
 ```
 
-**Branch:**
-- If `status=ok`: Proceed to Stage 3
-- If `status=error`: Check `message` for reason
+**Parse JSON response:**
+- If `status=ok`: Proceed to STEP 2
+- If `status=error`: Guide user to `/mp:init` to initialize workspace
+- Check `remediation` field for specific guidance
 
-### Stage 3: Route Providers
+---
 
-**Goal:** Determine which AI providers to use for definition.
+### STEP 2: Route Providers (MANDATORY)
 
-**Action:** Run provider routing
+Determine which AI providers participate in definition:
+
 ```bash
-mp route --intent define --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" route --intent define --dir "$PWD" --json
 ```
 
-**Branch:**
-- Review `data.selected_providers` and `data.reason`
-- Definition typically uses single-provider mode for consistency
+**Display visual indicators immediately after routing:**
 
-### Stage 4: Execute Definition
+```
+🐙 **CLAUDE OCTOPUS ACTIVATED** - Multi-provider definition mode
+🎯 Define Phase: [Brief description of what is being defined]
 
-**Goal:** Create structured requirements and scope.
-
-**Action:** Based on routing results:
-- Use `data.selected_providers` to coordinate definition work
-- Generate structured specification document
-- Define acceptance criteria and constraints
-
-**State Tracking:**
-```bash
-mp state update --data '{"phase":"define","stage":"executing"}' --dir . --json
+Providers:
+🔴 Codex CLI: Technical requirements analysis
+🟡 Gemini CLI: Business context and constraints
+🔵 Claude: Consensus building and synthesis
 ```
 
-### Stage 5: Persist Definition
+---
 
-**Goal:** Save definition results for development phase.
+### STEP 3: Update State (MANDATORY)
 
-**Action:** Update state with definition results
+Mark definition phase as executing:
+
 ```bash
-mp state update --data '{"phase":"define","status":"complete","spec":"<path>"}' --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state update --data '{"phase":"define","stage":"executing"}' --dir "$PWD" --json
 ```
 
-## Response Contract
+---
 
-All mp commands return a JSON response with:
-- `status`: "ok" | "error" | "blocked"
-- `action`: Recommended next action
-- `message`: Human-readable status
-- `error_code`: Error identifier if applicable
-- `data`: Structured response data
-- `remediation`: Suggested fix if blocked
+### STEP 4: Execute Definition (MANDATORY - Consensus Building)
+
+Gather perspectives from selected providers and build consensus:
+
+**4a. Gather Multi-AI Perspectives:**
+
+🔴 **Codex Analysis:**
+- Technical requirements and constraints
+- Implementation complexity assessment
+- Technology-specific considerations
+- Integration points and dependencies
+
+🟡 **Gemini Analysis:**
+- Business context and stakeholder needs
+- Market constraints and opportunities
+- User experience implications
+- Risk factors and mitigation strategies
+
+**4b. Build Consensus On:**
+
+| Aspect | Questions to Answer |
+|--------|---------------------|
+| Scope Boundaries | What is IN scope? What is OUT of scope? |
+| Success Criteria | How do we measure completion? |
+| Constraints | What limitations must we work within? |
+| Trade-offs | What compromises are acceptable? |
+| Priority Ordering | What must be done first? |
+
+**4c. Document Decisions:**
+- Record each decision with rationale
+- Note any disagreements and resolution approach
+- Capture assumptions made during definition
+
+---
+
+### STEP 5: Persist Definition (MANDATORY)
+
+Save definition results to state:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state update --data '{"phase":"define","status":"complete","scope":"<scope_summary>","decisions":"<key_decisions>","criteria":"<success_criteria>"}' --dir "$PWD" --json
+```
+
+**Required fields in data:**
+- `scope`: Brief scope summary
+- `decisions`: Key decisions made
+- `criteria`: Success criteria defined
+
+---
+
+### STEP 6: Present Results
+
+Output the definition summary:
+
+```
+## Definition Complete
+
+### Scope Summary
+[Concise description of defined scope]
+
+### Key Requirements
+1. [Requirement 1]
+2. [Requirement 2]
+3. [Requirement 3]
+
+### Success Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [Criterion 3]
+
+### Constraints
+- [Constraint 1]
+- [Constraint 2]
+
+### Next Steps
+Proceed to **Develop phase** with: `/mp:develop` or `octo build`
+```
+
+---
 
 ## Error Handling
 
 | Condition | Action |
 |-----------|--------|
-| No discovery context | Ask user to proceed without or run discovery |
-| Workspace invalid | Guide user to `/mp:init` |
-| State update fails | Retry with simpler data |
+| Workspace invalid | Guide user to `/mp:init` to initialize |
+| No providers available | Check `mp status` for provider health |
+| Discover not complete | Warn user, offer to proceed or run discover first |
+| Consensus fails | Document disagreements, escalate to user for decision |
+| State update fails | Retry with simplified data structure |
+| Validation blocked | Check `remediation` field, follow guidance |
+
+---
+
+## Response Contract
+
+All mp commands return JSON with:
+
+| Field | Description |
+|-------|-------------|
+| `status` | "ok" \| "error" \| "blocked" |
+| `action` | Recommended next action |
+| `message` | Human-readable status |
+| `error_code` | Error identifier if applicable |
+| `data` | Structured response data |
+| `remediation` | Suggested fix if blocked |
+
+---
+
+## Phase Transitions
+
+| Direction | Trigger |
+|-----------|---------|
+| **From Discover** | Research complete, ready to define scope |
+| **To Develop** | Requirements defined, ready to implement |
+
+**Transition command to Develop:**
+```
+/mp:develop
+```
+
+---
 
 ## Example Usage
 
-User: "/mp:define authentication system requirements"
+**User:** "/mp:define authentication system requirements"
 
-1. Load any existing discovery context
+**Execution:**
+1. Load discovery context (if exists)
 2. Validate workspace readiness
-3. Route to appropriate provider
-4. Generate structured requirements
-5. Save definition results to state
+3. Route to appropriate providers
+4. Gather technical and business perspectives
+5. Build consensus on scope and criteria
+6. Persist definition to state
+7. Present summary and next steps
