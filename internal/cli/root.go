@@ -269,21 +269,24 @@ func Run(args []string) int {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--intent is required"})
 		}
 		// Route to appropriate provider based on intent
-		available := providers.AvailableProviders()
-		st := providers.Degrade(*intent, available)
-		if st.Error != "" {
-			return respond(api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: st.Error})
+		result := providers.RouteIntent(*intent, *providerPolicy)
+		if result.Error != "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: result.Error})
 		}
 		return respond(api.Response{
-			Status: "ok",
+			Status:  "ok",
+			Message: result.Reason,
 			Data: map[string]any{
-				"intent":              *intent,
-				"provider_policy":     *providerPolicy,
-				"mode":                st.Mode,
-				"available_providers": st.Available,
-				"selected_providers":  st.Selected,
-				"minimum_for_success": st.MinimumForSuccess,
-				"warnings":            st.Warnings,
+				"intent":               result.Intent,
+				"provider_policy":      result.ProviderPolicy,
+				"mode":                 result.Mode,
+				"available_providers":  result.AvailableProviders,
+				"selected_providers":   result.SelectedProviders,
+				"minimum_for_success":  result.MinimumForSuccess,
+				"warnings":             result.Warnings,
+				"reason":               result.Reason,
+				"fallback_enabled":     result.FallbackEnabled,
+				"single_provider_mode": result.SingleProviderMode,
 			},
 		})
 	case "test":
