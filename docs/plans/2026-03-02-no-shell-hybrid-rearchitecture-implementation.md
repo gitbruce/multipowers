@@ -36,7 +36,7 @@
 | T06 | Route Atomic Command | DONE | Claude | 2026-03-02 |
 | T07 | Hook Contract Normalization | DONE | Claude | 2026-03-02 |
 | T08 | De-stub Status Command | DONE | Claude | 2026-03-02 |
-| T09 | Rehydrate Markdown Skills | TODO | - | - |
+| T09 | Rehydrate Markdown Skills | DONE | Claude | 2026-03-02 |
 | T10 | Legacy Command Facades | TODO | - | - |
 | T11 | Documentation Alignment | TODO | - | - |
 | T12 | End-to-End Verification | TODO | - | - |
