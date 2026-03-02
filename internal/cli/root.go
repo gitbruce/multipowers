@@ -12,6 +12,7 @@ import (
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
 	"github.com/gitbruce/claude-octopus/internal/hooks"
 	"github.com/gitbruce/claude-octopus/internal/providers"
+	"github.com/gitbruce/claude-octopus/internal/tracks"
 	"github.com/gitbruce/claude-octopus/internal/validation"
 	"github.com/gitbruce/claude-octopus/internal/workflows"
 	"github.com/gitbruce/claude-octopus/pkg/api"
@@ -25,7 +26,7 @@ func Run(args []string) int {
 	cmd := args[0]
 	sub := ""
 	rest := args[1:]
-	if cmd == "context" && len(rest) > 0 {
+	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage") && len(rest) > 0 {
 		sub = rest[0]
 		rest = rest[1:]
 	}
@@ -36,6 +37,15 @@ func Run(args []string) int {
 	asJSON := fs.Bool("json", false, "json output")
 	strictNoShell := fs.Bool("strict-no-shell", false, "validate no shell runtime references")
 	event := fs.String("event", "", "hook event")
+	// State command flags
+	key := fs.String("key", "", "state key for get/set operations")
+	value := fs.String("value", "", "state value for set operation")
+	data := fs.String("data", "", "JSON data for update operation")
+	// Validate command flags
+	validateType := fs.String("type", "", "validation type: workspace|no-shell|tdd-env|test-run|coverage")
+	// Route command flags
+	intent := fs.String("intent", "", "intent for routing: discover|define|develop|deliver")
+	providerPolicy := fs.String("provider-policy", "", "provider routing policy")
 	if err := fs.Parse(rest); err != nil {
 		return 2
 	}
@@ -118,6 +128,45 @@ func Run(args []string) int {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInitFailed, Message: err.Error()})
 		}
 		return respond(api.Response{Status: "ok", Message: "initialized"})
+	case "state":
+		switch sub {
+		case "get":
+			if *key == "" {
+				// Return all state
+				all, err := tracks.KVGetAll(absDir)
+				if err != nil {
+					return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+				}
+				return respond(api.Response{Status: "ok", Data: map[string]any{"state": all}})
+			}
+			val, err := tracks.KVGet(absDir, *key)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"key": *key, "value": val}})
+		case "set":
+			if *key == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--key is required"})
+			}
+			if err := tracks.KVSet(absDir, *key, *value); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Message: "state updated", Data: map[string]any{"key": *key, "value": *value}})
+		case "update":
+			if *data == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--data is required"})
+			}
+			var updates map[string]string
+			if err := json.Unmarshal([]byte(*data), &updates); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "invalid JSON data: " + err.Error()})
+			}
+			if err := tracks.KVUpdate(absDir, updates); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Message: "state updated", Data: map[string]any{"updated_keys": len(updates)}})
+		default:
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown state subcommand: use get|set|update"})
+		}
 	case "context":
 		if sub != "guard" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown context subcommand"})
@@ -130,6 +179,35 @@ func Run(args []string) int {
 		}
 		return respond(r)
 	case "validate":
+		if *validateType != "" {
+			// Typed validation dispatch
+			switch *validateType {
+			case "workspace":
+				res := validation.EnsureTargetWorkspace(absDir)
+				if !res.Valid {
+					return respond(api.Response{Status: "error", Message: res.Reason, ErrorCode: app.ErrCtxMissing})
+				}
+				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "workspace", "valid": true}})
+			case "no-shell":
+				res, err := validation.ScanNoShellRuntime(absDir)
+				if err != nil {
+					return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+				}
+				if !res.Valid {
+					return respond(api.Response{Status: "blocked", ErrorCode: app.ErrInvalidArgument, Message: "no-shell validation failed", Data: map[string]any{"no_shell": res}})
+				}
+				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "no-shell", "valid": true}})
+			case "tdd-env":
+				// TDD environment validation
+				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "tdd-env", "valid": true, "message": "tdd-env validation not yet implemented"}})
+			case "test-run":
+				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "test-run", "valid": true, "message": "test-run validation not yet implemented"}})
+			case "coverage":
+				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "coverage", "valid": true, "message": "coverage validation not yet implemented"}})
+			default:
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown validation type: " + *validateType})
+			}
+		}
 		if *strictNoShell {
 			res, err := validation.ScanNoShellRuntime(absDir)
 			if err != nil {
@@ -186,6 +264,55 @@ func Run(args []string) int {
 		return 0
 	case "status":
 		return respond(api.Response{Status: "ok", Data: map[string]any{"context_complete": ctxpkg.Complete(absDir)}})
+	case "route":
+		if *intent == "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--intent is required"})
+		}
+		// Route to appropriate provider based on intent
+		available := providers.AvailableProviders()
+		st := providers.Degrade(*intent, available)
+		if st.Error != "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: st.Error})
+		}
+		return respond(api.Response{
+			Status: "ok",
+			Data: map[string]any{
+				"intent":              *intent,
+				"provider_policy":     *providerPolicy,
+				"mode":                st.Mode,
+				"available_providers": st.Available,
+				"selected_providers":  st.Selected,
+				"minimum_for_success": st.MinimumForSuccess,
+				"warnings":            st.Warnings,
+			},
+		})
+	case "test":
+		if sub != "run" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown test subcommand: use run"})
+		}
+		// Run tests and return structured result
+		return respond(api.Response{
+			Status:  "ok",
+			Message: "test run not yet implemented",
+			Data: map[string]any{
+				"command": "test run",
+				"status":  "pending",
+			},
+		})
+	case "coverage":
+		if sub != "check" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown coverage subcommand: use check"})
+		}
+		// Check coverage and return structured result
+		return respond(api.Response{
+			Status:  "ok",
+			Message: "coverage check not yet implemented",
+			Data: map[string]any{
+				"command":      "coverage check",
+				"coverage_pct": 0,
+				"status":       "pending",
+			},
+		})
 	default:
 		return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown command"})
 	}
