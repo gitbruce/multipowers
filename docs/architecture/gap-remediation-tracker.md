@@ -14,7 +14,7 @@ High-risk command and skill gaps requiring explicit closure paths.
 | gap_id | item | risk_reason | target_symbol/contract | test_reference | closure_condition | status |
 |--------|------|-------------|------------------------|----------------|-------------------|--------|
 | CMD-001 | extract-skill | Core workflow misroutes to `mp status` instead of extract | `internal/cli/extract.go:ExtractSkill` | `internal/cli/extract_test.go` | `mp extract` command exists with test coverage ≥80% | pending |
-| CMD-002 | octo -> mp | Root intent routing logic reduced in go | `internal/cli/root.go:RouteIntent` | `internal/cli/root_test.go` | `mp route --intent` returns valid routing for all registered intents | pending |
+| CMD-002 | octo -> mp | Root intent routing logic reduced in go | `internal/providers/router_intent.go:RouteIntent` | `internal/providers/router_intent_test.go` | `mp route --intent` returns valid routing for all registered intents | pending |
 | CMD-003 | claw | External system integration not in current scope | `internal/external/claw/adapter.go` (planned) | `internal/external/claw/adapter_test.go` (planned) | Product requirement explicitly requests claw integration | deferred |
 | CMD-004 | doctor | Diagnostic capability replaced by sys-configure | N/A (replaced) | `internal/cli/sys_configure_test.go` | N/A - excluded with reason | closed |
 | CMD-005 | schedule/scheduler | Scheduler domain contract undefined | `internal/scheduler/scheduler.go` (planned) | `internal/scheduler/scheduler_test.go` (planned) | Scheduler domain contract defined in `.multipowers/product.md` | deferred |
@@ -55,8 +55,43 @@ High-impact configuration and documentation gaps.
 
 | gap_id | item | target_symbol_or_contract | evidence_upgrade_path | owner_domain | status |
 |--------|------|---------------------------|----------------------|--------------|--------|
+| OTH-001 | mcp-server/* | `internal/providers/*` (DetectAll/RouteIntent) | `E0 -> E1: Create adapter interface in internal/providers/mcp_adapter.go` | providers | deferred |
+| OTH-002 | openclaw/* | N/A | N/A | external | closed |
+| OTH-003 | tests/benchmark/* + tests/live/README.md | `internal/workflows/*_test.go` | `E0 -> E2: Add TestBenchmarkRunner, TestLiveTestHarness` | workflows | pending |
+| OTH-004 | .claude/settings.json | `.claude-plugin/.claude/settings.json` | `E0 -> E1: Copy file with path migration` | context | pending |
+| OTH-005 | .claude-plugin/settings.json | `.claude-plugin/custom/config/setup.toml` | `E0 -> E2: Document field mapping, add conversion test` | config | pending |
+| OTH-006 | .mcp.json | `.dependencies/claude-skills` | `E0 -> E1: Document new dependency model` | deps | pending |
+| OTH-007 | docs/SCHEDULER.md | `docs/architecture/script-differences.md` | `E0 -> E1: Add scheduler section to script-differences.md` | docs | pending |
+| OTH-008 | agents/personas/openclaw-admin.md | `.claude-plugin/.claude/commands/persona.md` | `E0 -> E1: If persona needed, add to persona lanes config` | personas | deferred |
 
-*To be populated from Task 13 analysis.*
+**Source:** `docs/architecture/other-differences.md` § 关键缺口决策与契约索引
+
+## E0 Upgrade Queue
+
+Gaps currently at E0 (documentation-only) requiring evidence upgrade.
+
+| gap_id | current_evidence | target_evidence | owner | next_action | due |
+|--------|------------------|-----------------|-------|-------------|-----|
+| CMD-001 | E0 (doc-only) | E2 (test exists) | cli-team | Create `internal/cli/extract.go` with `ExtractSkill` func + tests | TBD |
+| CMD-002 | E0 (doc-only) | E2 (test exists) | providers-team | Add intent routing to `internal/providers/router_intent.go` + tests | TBD |
+| CMD-006 | E0 (doc-only) | E2 (test exists) | governance-team | Create `internal/governance/sentinel.go` + tests | TBD |
+| CMD-008 | E0 (doc-only) | E2 (test exists) | cli-team | Create `internal/cli/parallel.go` wrapper + tests | TBD |
+| CMD-009 | E0 (doc-only) | E2 (test exists) | cli-team | Create `internal/cli/spec.go` wrapper + tests | TBD |
+| SCR-002 | E0 (doc-only) | E2 (test exists) | extract-team | Create `internal/extract/core.go` + tests | TBD |
+| SCR-003 | E0 (doc-only) | E2 (test exists) | cli-team | Create `internal/cli/smoke_test.go` with all smoke tests | TBD |
+| SCR-005 | E0 (doc-only) | E2 (test exists) | workflows-team | Create `internal/workflows/benchmark_test.go` | TBD |
+| SCR-006 | E0 (doc-only) | E2 (test exists) | workflows-team | Create `internal/workflows/integration_test.go` | TBD |
+| SCR-007 | E0 (doc-only) | E2 (test exists) | devx-team | Create `internal/devx/helpers_test.go` | TBD |
+| SCR-008 | E0 (doc-only) | E2 (test exists) | metrics-team | Create `internal/metrics/tracker.go` + tests | TBD |
+| SCR-009 | E0 (doc-only) | E2 (test exists) | permissions-team | Create `internal/permissions/manager.go` + tests | TBD |
+| SCR-010 | E0 (doc-only) | E2 (test exists) | teams-team | Create `internal/teams/bridge.go` + tests | TBD |
+| SCR-011 | E0 (doc-only) | E2 (test exists) | workflows-team | Create `internal/workflows/async.go` + tests | TBD |
+| SCR-012 | E0 (doc-only) | E2 (test exists) | regression-team | Create `internal/*/regression_test.go` files | TBD |
+| OTH-003 | E0 (doc-only) | E2 (test exists) | workflows-team | Add benchmark/live tests to workflows | TBD |
+| OTH-004 | E0 (doc-only) | E1 (symbol exists) | context-team | Copy settings.json with path migration | TBD |
+| OTH-005 | E0 (doc-only) | E2 (test exists) | config-team | Document JSON->TOML mapping, add conversion test | TBD |
+| OTH-006 | E0 (doc-only) | E1 (symbol exists) | deps-team | Document new dependency model | TBD |
+| OTH-007 | E0 (doc-only) | E1 (symbol exists) | docs-team | Add scheduler section to script-differences.md | TBD |
 
 ---
 
