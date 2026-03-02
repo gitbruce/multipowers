@@ -25,13 +25,28 @@ func isSpecPrompt(evt api.HookEvent) bool {
 		strings.HasPrefix(raw, "/mp:debate")
 }
 
+func missingContextGuidance(rawPrompt string, missing []string) api.HookResult {
+	return api.HookResult{
+		Decision:    "block",
+		Reason:      "missing required .multipowers context",
+		Remediation: "run /mp:init to complete guided setup, then retry the original /mp command",
+		Metadata: map[string]any{
+			"action_required":     "run_init",
+			"recommended_command": "/mp:init",
+			"resume_command":      rawPrompt,
+			"missing_files":       strings.Join(missing, ","),
+		},
+	}
+}
+
 func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 	switch evt.Event {
 	case "SessionStart":
 		return api.HookResult{Decision: "allow", Metadata: SessionStartData(projectDir)}
 	case "UserPromptSubmit":
 		if isSpecPrompt(evt) && !ctxpkg.Complete(projectDir) {
-			return api.HookResult{Decision: "block", Reason: "missing required .multipowers context", Remediation: "run /mp:init first"}
+			raw, _ := evt.ToolInput["prompt"].(string)
+			return missingContextGuidance(raw, ctxpkg.Missing(projectDir))
 		}
 		if isSpecPrompt(evt) {
 			raw, _ := evt.ToolInput["prompt"].(string)
