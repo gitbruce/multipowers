@@ -253,8 +253,22 @@ func Run(args []string) int {
 	case "hook":
 		e := api.HookEvent{Event: *event, CWD: absDir, ToolInput: map[string]any{"prompt": effectivePrompt}}
 		hr := hooks.Handle(absDir, e)
+		// Convert HookResult to normalized Response contract
+		status := "ok"
+		action := "continue"
+		if hr.Decision == "block" {
+			status = "blocked"
+			action = "ask_user_questions"
+		}
+		resp := api.Response{
+			Status:      status,
+			Action:      action,
+			Message:     hr.Reason,
+			Remediation: hr.Remediation,
+			Data:        hr.Metadata,
+		}
 		if *asJSON {
-			_ = json.NewEncoder(os.Stdout).Encode(hr)
+			_ = json.NewEncoder(os.Stdout).Encode(resp)
 		} else {
 			fmt.Println(hr.Decision)
 		}

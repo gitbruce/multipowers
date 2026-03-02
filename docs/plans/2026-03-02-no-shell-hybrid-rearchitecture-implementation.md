@@ -34,7 +34,7 @@
 | T04 | Typed Validation | DONE | Claude | 2026-03-02 |
 | T05 | Test/Coverage Atomic Commands | DONE | Claude | 2026-03-02 |
 | T06 | Route Atomic Command | DONE | Claude | 2026-03-02 |
-| T07 | Hook Contract Normalization | TODO | - | - |
+| T07 | Hook Contract Normalization | DONE | Claude | 2026-03-02 |
 | T08 | De-stub Status Command | TODO | - | - |
 | T09 | Rehydrate Markdown Skills | TODO | - | - |
 | T10 | Legacy Command Facades | TODO | - | - |
