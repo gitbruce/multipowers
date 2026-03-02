@@ -9,8 +9,11 @@ if ! command -v go >/dev/null 2>&1; then
 fi
 
 mkdir -p "${ROOT_DIR}/.claude-plugin/bin"
-go build -o "${ROOT_DIR}/.claude-plugin/bin/mp" "${ROOT_DIR}/cmd/mp"
-go build -o "${ROOT_DIR}/.claude-plugin/bin/mp-devx" "${ROOT_DIR}/cmd/mp-devx"
+(
+  cd "${ROOT_DIR}"
+  go build -o "${ROOT_DIR}/.claude-plugin/bin/mp" ./cmd/mp
+  go build -o "${ROOT_DIR}/.claude-plugin/bin/mp-devx" ./cmd/mp-devx
+)
 
 echo "Built: ${ROOT_DIR}/.claude-plugin/bin/mp"
 echo "Built: ${ROOT_DIR}/.claude-plugin/bin/mp-devx"
