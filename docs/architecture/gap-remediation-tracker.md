@@ -29,10 +29,25 @@ High-risk command and skill gaps requiring explicit closure paths.
 
 Unresolved script rows grouped by domain/pattern.
 
-| gap_id | pattern | default_decision | decision_reason | closure_path | status |
-|--------|---------|------------------|-----------------|--------------|--------|
+| gap_id | pattern | count | default_decision | decision_reason | closure_path | status |
+|--------|---------|-------|------------------|-----------------|--------------|--------|
+| SCR-001 | `scripts/scheduler/*.sh` | 6 | `DEFER_WITH_CONDITION` | Scheduler domain contract undefined | `internal/scheduler/*_test.go` | deferred |
+| SCR-002 | `scripts/extract/*.sh` | 1 | `MIGRATE_TO_GO` | Core extraction workflow | `internal/extract/core_test.go` | pending |
+| SCR-003 | `tests/smoke/*.sh` | 7 | `MIGRATE_TO_GO` | CLI surface validation | `internal/cli/smoke_test.go` | pending |
+| SCR-004 | `tests/live/*.sh` | 3 | `DEFER_WITH_CONDITION` | External service dependency | `internal/workflows/live_test.go` | deferred |
+| SCR-005 | `tests/benchmark/*.sh` | 2 | `MIGRATE_TO_GO` | Performance regression guard | `internal/workflows/benchmark_test.go` | pending |
+| SCR-006 | `tests/integration/*.sh` | 6 | `MIGRATE_TO_GO` | Plugin lifecycle tests | `internal/workflows/integration_test.go` | pending |
+| SCR-007 | `tests/helpers/*.sh` | 4 | `MIGRATE_TO_GO` | Test infrastructure | `internal/devx/helpers_test.go` | pending |
+| SCR-008 | `scripts/metrics-tracker.sh` | 1 | `MIGRATE_TO_GO` | Cost observability | `internal/metrics/tracker_test.go` | pending |
+| SCR-009 | `scripts/permissions-manager.sh` | 1 | `MIGRATE_TO_GO` | Consent governance | `internal/permissions/manager_test.go` | pending |
+| SCR-010 | `scripts/agent-teams-bridge.sh` | 1 | `MIGRATE_TO_GO` | Team coordination | `internal/teams/bridge_test.go` | pending |
+| SCR-011 | `scripts/async-tmux-features.sh` | 1 | `MIGRATE_TO_GO` | Async execution | `internal/workflows/async_test.go` | pending |
+| SCR-012 | `tests/test-*.sh` (regression) | 21 | `MIGRATE_TO_GO` | Feature parity tests | `internal/*/regression_test.go` | pending |
+| SCR-013 | `tests/unit/test-cron-parser.sh` | 1 | `MIGRATE_TO_GO` | Scheduler dependency | `internal/scheduler/cron_test.go` | pending |
 
-*To be populated from Task 11 analysis.*
+**Summary:** 48 `MIGRATE_TO_GO` + 10 `DEFER_WITH_CONDITION` = 58 total missing script gaps
+
+**Source:** `docs/architecture/script-differences.md` § Missing Decision Classification Matrix
 
 ## Other-Differences Partial/Missing Contracts
 

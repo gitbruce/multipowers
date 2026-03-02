@@ -360,9 +360,34 @@
 | `Stop` | `hooks/task-completed-transition.sh` | `internal/hooks/stop.go` | `E1` | `MIGRATE_TO_GO` | 会话停止阶段的收口与状态落盘 |
 | `SubagentStop` | `hooks/teammate-idle-dispatch.sh` + `hooks/task-dependency-validator.sh` | `internal/hooks/stop.go` + `internal/hooks/handler.go` | `E0` | `MIGRATE_TO_GO` | 子代理生命周期与依赖转移收口 |
 
+## Missing Decision Classification Matrix
+
+The following matrix provides default decision classification for all `missing` scripts grouped by domain pattern.
+
+| source_pattern | count | default_decision | decision_reason | closure_path | exception_rules |
+|----------------|-------|------------------|-----------------|--------------|-----------------|
+| `scripts/scheduler/*.sh` | 6 | `DEFER_WITH_CONDITION` | Scheduler domain contract undefined in `.multipowers/product.md` | `internal/scheduler/*_test.go` after domain contract defined | None |
+| `scripts/extract/*.sh` | 1 | `MIGRATE_TO_GO` | Core extraction workflow required | `internal/extract/core.go` + `internal/extract/core_test.go` | None |
+| `tests/smoke/*.sh` | 7 | `MIGRATE_TO_GO` | Critical validation tests for CLI surface | `internal/cli/smoke_test.go` | None |
+| `tests/live/*.sh` | 3 | `DEFER_WITH_CONDITION` | Live tests require external service availability | `internal/workflows/live_test.go` | Enable when test environment ready |
+| `tests/benchmark/*.sh` | 2 | `MIGRATE_TO_GO` | Performance regression guard | `internal/workflows/benchmark_test.go` | None |
+| `tests/integration/*.sh` | 6 | `MIGRATE_TO_GO` | Integration tests for plugin lifecycle | `internal/workflows/integration_test.go` | None |
+| `tests/helpers/*.sh` | 4 | `MIGRATE_TO_GO` | Test infrastructure utilities | `internal/devx/helpers_test.go` | None |
+| `scripts/metrics-tracker.sh` | 1 | `MIGRATE_TO_GO` | Cost tracking is core observability | `internal/metrics/tracker.go` + `internal/metrics/tracker_test.go` | None |
+| `scripts/permissions-manager.sh` | 1 | `MIGRATE_TO_GO` | Consent management is governance capability | `internal/permissions/manager.go` + `internal/permissions/manager_test.go` | None |
+| `scripts/agent-teams-bridge.sh` | 1 | `MIGRATE_TO_GO` | Team coordination required for subagent workflows | `internal/teams/bridge.go` + `internal/teams/bridge_test.go` | None |
+| `scripts/async-tmux-features.sh` | 1 | `MIGRATE_TO_GO` | Async execution is core workflow feature | `internal/workflows/async.go` + `internal/workflows/async_test.go` | None |
+| `tests/test-*.sh` (regression) | 21 | `MIGRATE_TO_GO` | Feature regression tests ensure parity | `internal/cli/regression_test.go` + `internal/workflows/regression_test.go` | None |
+| `tests/unit/test-cron-parser.sh` | 1 | `MIGRATE_TO_GO` | Scheduler dependency requires cron parsing | `internal/scheduler/cron_test.go` | None |
+
+**Summary:**
+- `MIGRATE_TO_GO`: 48 scripts (scheduler-independent tests, core features)
+- `DEFER_WITH_CONDITION`: 10 scripts (scheduler domain, live tests)
+- `EXCLUDE_WITH_REASON`: 0 scripts (all missing items have migration path)
+
 ## 整改优先级
 
-1. `P0`：先对 `missing=50` 完成逐项 `decision` 分类（`MIGRATE_TO_GO` / `EXCLUDE_WITH_REASON` / `DEFER_WITH_CONDITION`），不再默认要求“全部迁移”。
+1. `P0`：先对 `missing=50` 完成逐项 `decision` 分类（`MIGRATE_TO_GO` / `EXCLUDE_WITH_REASON` / `DEFER_WITH_CONDITION`），不再默认要求”全部迁移”。
 2. `P0`：对 `internal/hooks/handler.go`、`internal/providers/router_intent.go`、`internal/workflows/*_test.go` 的 `partial` 项补行为断言与回归测试。
 3. `P1`：将所有 `MIGRATE_TO_GO + TODO` 项转为可验证的 `*_test.go` 对应测试，并记录通过证据。
 4. `P1`：维持 `COPY_FROM_MAIN` 项只读同步策略，避免 main/go wrapper 漂移。
