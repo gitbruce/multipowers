@@ -2,7 +2,7 @@
 
 日期：2026-03-02  
 比较分支：`main` vs `go`  
-基线提交：`main=f6a815a326ec`，`go=8835e073834f`
+基线提交：`main=f6a815a326ec`，`go=5484dd8`
 
 ## 关键说明
 
@@ -20,8 +20,8 @@
 
 用户关注样例已验证：
 - `.claude/skills/extract-skill.md`（main 231 行完整指南）
-- `.claude-plugin/.claude/skills/extract-skill.md`（go 9 行薄包装）
-- 该映射应为 `partial`，不应标记为 `equivalent`。
+- `.claude-plugin/.claude/skills/extract-skill.md`（go 231 行，按 main 恢复并完成 `/octo:` -> `/mp:` 前缀迁移）
+- 该映射当前应判定为 `equivalent`。
 
 ## 结果概览
 
@@ -31,11 +31,11 @@
 
 内容级状态统计（全映射，含 only 行）：
 - commands: `equivalent=32`, `partial=10`, `missing=5`, `intentional-diff=2`
-- skills: `partial=46`, `missing=2`, `intentional-diff=1`
+- skills: `equivalent=46`, `missing=2`, `intentional-diff=1`
 
 结论：
 - command 层为“部分等价 + 明显缺口”；
-- skill 层为“全面运行时重写（同名但几乎均非等价文本/流程）”；
+- skill 层同名文件已恢复到“前缀/路径迁移后的文本等价”，剩余缺口集中在 main-only 两项；
 - 总体判定：`commands/skills = partial parity`。
 
 ## Evidence Legend
@@ -62,22 +62,13 @@
 
 ## 内容差异样例（Skills）
 
-| skill | main lines | go lines | add | del | wrapper | why partial |
-|---|---:|---:|---:|---:|---:|---|
-| skill-parallel-agents | 778 | 9 | 4 | 773 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| flow-deliver | 809 | 153 | 71 | 727 | 0 | substantial textual delta with retained same-name skill |
-| flow-discover | 786 | 152 | 67 | 701 | 0 | substantial textual delta with retained same-name skill |
-| skill-task-management-v2 | 683 | 9 | 4 | 678 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| skill-debate-integration | 663 | 9 | 4 | 658 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| flow-define | 748 | 227 | 122 | 643 | 0 | substantial textual delta with retained same-name skill |
-| flow-develop | 723 | 169 | 80 | 634 | 0 | substantial textual delta with retained same-name skill |
-| skill-debate | 597 | 9 | 4 | 592 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| skill-content-pipeline | 588 | 9 | 5 | 584 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| skill-audit | 572 | 9 | 5 | 568 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| flow-parallel | 643 | 245 | 139 | 537 | 0 | substantial textual delta with retained same-name skill |
-| skill-validate | 586 | 141 | 91 | 536 | 0 | substantial textual delta with retained same-name skill |
-| skill-meta-prompt | 518 | 9 | 5 | 514 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
-| skill-resume-enhanced | 494 | 9 | 4 | 489 | 1 | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance |
+当前 shared 的 46 个同名 skills 已完成文本等价恢复（主要差异为 `/octo:` -> `/mp:` 与路径前缀迁移），本轮无新的 `partial` 样例。
+
+| skill | main lines | go lines | status | evidence |
+|---|---:|---:|---|---|
+| extract-skill | 231 | 231 | `equivalent` | main 内容恢复 + 前缀迁移 |
+| skill-parallel-agents | 778 | 778 | `equivalent` | main 内容恢复 + 前缀迁移 |
+| flow-deliver | 809 | 809 | `equivalent` | main 内容恢复 + 前缀迁移 |
 
 ## 全量映射：Commands（main -> go）
 
@@ -137,52 +128,52 @@
 
 | main name | main file | go target | status | evidence | remediation |
 |---|---|---|---|---|---|
-| extract-skill | `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `partial` | main is full reverse-engineering guide; go is thin wrapper calling mp status | map extract workflow to concrete mp subcommand/runtime path, not status stub |
-| flow-define | `.claude/skills/flow-define.md` | `.claude-plugin/.claude/skills/flow-define.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| flow-deliver | `.claude/skills/flow-deliver.md` | `.claude-plugin/.claude/skills/flow-deliver.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| flow-develop | `.claude/skills/flow-develop.md` | `.claude-plugin/.claude/skills/flow-develop.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| flow-discover | `.claude/skills/flow-discover.md` | `.claude-plugin/.claude/skills/flow-discover.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| flow-parallel | `.claude/skills/flow-parallel.md` | `.claude-plugin/.claude/skills/flow-parallel.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| flow-spec | `.claude/skills/flow-spec.md` | `.claude-plugin/.claude/skills/flow-spec.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| skill-adversarial-security | `.claude/skills/skill-adversarial-security.md` | `.claude-plugin/.claude/skills/skill-adversarial-security.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-architecture | `.claude/skills/skill-architecture.md` | `.claude-plugin/.claude/skills/skill-architecture.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-audit | `.claude/skills/skill-audit.md` | `.claude-plugin/.claude/skills/skill-audit.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-code-review | `.claude/skills/skill-code-review.md` | `.claude-plugin/.claude/skills/skill-code-review.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-content-pipeline | `.claude/skills/skill-content-pipeline.md` | `.claude-plugin/.claude/skills/skill-content-pipeline.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-context-detection | `.claude/skills/skill-context-detection.md` | `.claude-plugin/.claude/skills/skill-context-detection.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-debate | `.claude/skills/skill-debate.md` | `.claude-plugin/.claude/skills/skill-debate.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-debate-integration | `.claude/skills/skill-debate-integration.md` | `.claude-plugin/.claude/skills/skill-debate-integration.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-debug | `.claude/skills/skill-debug.md` | `.claude-plugin/.claude/skills/skill-debug.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-decision-support | `.claude/skills/skill-decision-support.md` | `.claude-plugin/.claude/skills/skill-decision-support.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-deck | `.claude/skills/skill-deck.md` | `.claude-plugin/.claude/skills/skill-deck.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-deep-research | `.claude/skills/skill-deep-research.md` | `.claude-plugin/.claude/skills/skill-deep-research.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| skill-doc-delivery | `.claude/skills/skill-doc-delivery.md` | `.claude-plugin/.claude/skills/skill-doc-delivery.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-finish-branch | `.claude/skills/skill-finish-branch.md` | `.claude-plugin/.claude/skills/skill-finish-branch.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-intent-contract | `.claude/skills/skill-intent-contract.md` | `.claude-plugin/.claude/skills/skill-intent-contract.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-issues | `.claude/skills/skill-issues.md` | `.claude-plugin/.claude/skills/skill-issues.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-iterative-loop | `.claude/skills/skill-iterative-loop.md` | `.claude-plugin/.claude/skills/skill-iterative-loop.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-knowledge-work | `.claude/skills/skill-knowledge-work.md` | `.claude-plugin/.claude/skills/skill-knowledge-work.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-meta-prompt | `.claude/skills/skill-meta-prompt.md` | `.claude-plugin/.claude/skills/skill-meta-prompt.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-parallel-agents | `.claude/skills/skill-parallel-agents.md` | `.claude-plugin/.claude/skills/skill-parallel-agents.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-prd | `.claude/skills/skill-prd.md` | `.claude-plugin/.claude/skills/skill-prd.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-quick | `.claude/skills/skill-quick.md` | `.claude-plugin/.claude/skills/skill-quick.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-quick-review | `.claude/skills/skill-quick-review.md` | `.claude-plugin/.claude/skills/skill-quick-review.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-resume | `.claude/skills/skill-resume.md` | `.claude-plugin/.claude/skills/skill-resume.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-resume-enhanced | `.claude/skills/skill-resume-enhanced.md` | `.claude-plugin/.claude/skills/skill-resume-enhanced.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-rollback | `.claude/skills/skill-rollback.md` | `.claude-plugin/.claude/skills/skill-rollback.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-security-audit | `.claude/skills/skill-security-audit.md` | `.claude-plugin/.claude/skills/skill-security-audit.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-security-framing | `.claude/skills/skill-security-framing.md` | `.claude-plugin/.claude/skills/skill-security-framing.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-ship | `.claude/skills/skill-ship.md` | `.claude-plugin/.claude/skills/skill-ship.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-status | `.claude/skills/skill-status.md` | `.claude-plugin/.claude/skills/skill-status.md` | `partial` | go skill re-authored as runtime health contract, not main dashboard flow text | document feature-level equivalence and missing dashboard steps |
-| skill-task-management | `.claude/skills/skill-task-management.md` | `.claude-plugin/.claude/skills/skill-task-management.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-task-management-v2 | `.claude/skills/skill-task-management-v2.md` | `.claude-plugin/.claude/skills/skill-task-management-v2.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-tdd | `.claude/skills/skill-tdd.md` | `.claude-plugin/.claude/skills/skill-tdd.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| skill-thought-partner | `.claude/skills/skill-thought-partner.md` | `.claude-plugin/.claude/skills/skill-thought-partner.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-validate | `.claude/skills/skill-validate.md` | `.claude-plugin/.claude/skills/skill-validate.md` | `partial` | substantial textual delta with retained same-name skill | verify runtime contracts for this skill |
-| skill-verify | `.claude/skills/skill-verify.md` | `.claude-plugin/.claude/skills/skill-verify.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-visual-feedback | `.claude/skills/skill-visual-feedback.md` | `.claude-plugin/.claude/skills/skill-visual-feedback.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| skill-writing-plans | `.claude/skills/skill-writing-plans.md` | `.claude-plugin/.claude/skills/skill-writing-plans.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
-| sys-configure | `.claude/skills/sys-configure.md` | `.claude-plugin/.claude/skills/sys-configure.md` | `partial` | go skill is thin wrapper to mp runtime; main skill contains detailed procedural guidance | trace wrapper to concrete runtime methods/tests and maintain behavior parity evidence |
+| extract-skill | `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| flow-define | `.claude/skills/flow-define.md` | `.claude-plugin/.claude/skills/flow-define.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| flow-deliver | `.claude/skills/flow-deliver.md` | `.claude-plugin/.claude/skills/flow-deliver.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| flow-develop | `.claude/skills/flow-develop.md` | `.claude-plugin/.claude/skills/flow-develop.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| flow-discover | `.claude/skills/flow-discover.md` | `.claude-plugin/.claude/skills/flow-discover.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| flow-parallel | `.claude/skills/flow-parallel.md` | `.claude-plugin/.claude/skills/flow-parallel.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| flow-spec | `.claude/skills/flow-spec.md` | `.claude-plugin/.claude/skills/flow-spec.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-adversarial-security | `.claude/skills/skill-adversarial-security.md` | `.claude-plugin/.claude/skills/skill-adversarial-security.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-architecture | `.claude/skills/skill-architecture.md` | `.claude-plugin/.claude/skills/skill-architecture.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-audit | `.claude/skills/skill-audit.md` | `.claude-plugin/.claude/skills/skill-audit.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-code-review | `.claude/skills/skill-code-review.md` | `.claude-plugin/.claude/skills/skill-code-review.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-content-pipeline | `.claude/skills/skill-content-pipeline.md` | `.claude-plugin/.claude/skills/skill-content-pipeline.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-context-detection | `.claude/skills/skill-context-detection.md` | `.claude-plugin/.claude/skills/skill-context-detection.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-debate | `.claude/skills/skill-debate.md` | `.claude-plugin/.claude/skills/skill-debate.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-debate-integration | `.claude/skills/skill-debate-integration.md` | `.claude-plugin/.claude/skills/skill-debate-integration.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-debug | `.claude/skills/skill-debug.md` | `.claude-plugin/.claude/skills/skill-debug.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-decision-support | `.claude/skills/skill-decision-support.md` | `.claude-plugin/.claude/skills/skill-decision-support.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-deck | `.claude/skills/skill-deck.md` | `.claude-plugin/.claude/skills/skill-deck.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-deep-research | `.claude/skills/skill-deep-research.md` | `.claude-plugin/.claude/skills/skill-deep-research.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-doc-delivery | `.claude/skills/skill-doc-delivery.md` | `.claude-plugin/.claude/skills/skill-doc-delivery.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-finish-branch | `.claude/skills/skill-finish-branch.md` | `.claude-plugin/.claude/skills/skill-finish-branch.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-intent-contract | `.claude/skills/skill-intent-contract.md` | `.claude-plugin/.claude/skills/skill-intent-contract.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-issues | `.claude/skills/skill-issues.md` | `.claude-plugin/.claude/skills/skill-issues.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-iterative-loop | `.claude/skills/skill-iterative-loop.md` | `.claude-plugin/.claude/skills/skill-iterative-loop.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-knowledge-work | `.claude/skills/skill-knowledge-work.md` | `.claude-plugin/.claude/skills/skill-knowledge-work.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-meta-prompt | `.claude/skills/skill-meta-prompt.md` | `.claude-plugin/.claude/skills/skill-meta-prompt.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-parallel-agents | `.claude/skills/skill-parallel-agents.md` | `.claude-plugin/.claude/skills/skill-parallel-agents.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-prd | `.claude/skills/skill-prd.md` | `.claude-plugin/.claude/skills/skill-prd.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-quick | `.claude/skills/skill-quick.md` | `.claude-plugin/.claude/skills/skill-quick.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-quick-review | `.claude/skills/skill-quick-review.md` | `.claude-plugin/.claude/skills/skill-quick-review.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-resume | `.claude/skills/skill-resume.md` | `.claude-plugin/.claude/skills/skill-resume.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-resume-enhanced | `.claude/skills/skill-resume-enhanced.md` | `.claude-plugin/.claude/skills/skill-resume-enhanced.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-rollback | `.claude/skills/skill-rollback.md` | `.claude-plugin/.claude/skills/skill-rollback.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-security-audit | `.claude/skills/skill-security-audit.md` | `.claude-plugin/.claude/skills/skill-security-audit.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-security-framing | `.claude/skills/skill-security-framing.md` | `.claude-plugin/.claude/skills/skill-security-framing.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-ship | `.claude/skills/skill-ship.md` | `.claude-plugin/.claude/skills/skill-ship.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-status | `.claude/skills/skill-status.md` | `.claude-plugin/.claude/skills/skill-status.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-task-management | `.claude/skills/skill-task-management.md` | `.claude-plugin/.claude/skills/skill-task-management.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-task-management-v2 | `.claude/skills/skill-task-management-v2.md` | `.claude-plugin/.claude/skills/skill-task-management-v2.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-tdd | `.claude/skills/skill-tdd.md` | `.claude-plugin/.claude/skills/skill-tdd.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-thought-partner | `.claude/skills/skill-thought-partner.md` | `.claude-plugin/.claude/skills/skill-thought-partner.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-validate | `.claude/skills/skill-validate.md` | `.claude-plugin/.claude/skills/skill-validate.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-verify | `.claude/skills/skill-verify.md` | `.claude-plugin/.claude/skills/skill-verify.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-visual-feedback | `.claude/skills/skill-visual-feedback.md` | `.claude-plugin/.claude/skills/skill-visual-feedback.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| skill-writing-plans | `.claude/skills/skill-writing-plans.md` | `.claude-plugin/.claude/skills/skill-writing-plans.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
+| sys-configure | `.claude/skills/sys-configure.md` | `.claude-plugin/.claude/skills/sys-configure.md` | `equivalent` | prefix/path migration with equivalent behavior surface | none |
 | skill-claw | `.claude/skills/skill-claw.md` | `N/A` | `missing` | main skill has no same-name go counterpart | port skill or declare deprecation |
 | skill-doctor | `.claude/skills/skill-doctor.md` | `N/A` | `missing` | main skill has no same-name go counterpart | port skill or declare deprecation |
 | (go-only) skill-persona | `N/A` | `.claude-plugin/.claude/skills/skill-persona.md` | `intentional-diff` | go-only additive skill | none |
@@ -191,7 +182,7 @@
 
 | source | target | target symbol/contract | test_reference | evidence level | decision | decision reason | closure_condition |
 |---|---|---|---|---|---|---|---|
-| `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `internal/cli/extract.go:ExtractSkill` | `internal/cli/extract_test.go` | `E0` | `MIGRATE_TO_GO` | 属于核心提取工作流；需修正错路由（不应仅落到 `mp status`） | `mp extract` command exists with test coverage ≥80% |
+| `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | N/A | `E2` | `COPY_FROM_MAIN` | 已按 main 全量恢复，并完成 `/octo:` -> `/mp:` 迁移 | DONE |
 | `.claude/commands/octo.md` | `.claude-plugin/.claude/commands/mp.md` | `internal/providers/router_intent.go:RouteIntent` | `internal/providers/router_intent_test.go` | `E0` | `MIGRATE_TO_GO` | 根命令是调用入口，需要补齐意图路由语义承接 | `mp route --intent` returns valid routing for all registered intents |
 | `.claude/commands/claw.md` | `N/A` | `internal/external/claw/adapter.go` (planned) | `internal/external/claw/adapter_test.go` (planned) | `E0` | `DEFER_WITH_CONDITION` | 非当前 no-shell 核心路径，待 `claw` 产品需求确认后再迁移或退役 | Product requirement explicitly requests claw integration |
 | `.claude/commands/doctor.md` | `N/A` | `internal/cli/doctor.go` (replaced by sys-configure) | `internal/cli/sys_configure_test.go` | `E0` | `EXCLUDE_WITH_REASON` | 诊断能力已由 `sys-configure` 技能承接，不再独立迁移 | N/A (excluded) |
@@ -203,13 +194,12 @@
 
 ## 重点整改
 
-1. `P0`：修正薄包装错路由。`extract-skill` 当前包装到 `mp status`，应映射到真正 extract 运行时入口。  
-2. `P0`：对 main-only command 能力缺口（`claw/doctor/schedule/scheduler/sentinel`）完成 `decision` 分类，不再默认“全部迁移”。  
-3. `P1`：为 `octo -> mp` 补齐意图路由能力（当前为弱化版根命令）。  
-4. `P1`：对所有 `partial` skills 增加“运行时方法/测试用例”证据链接，避免文档层面等价误判。
+1. `P0`：对 main-only command 能力缺口（`claw/doctor/schedule/scheduler/sentinel`）完成 `decision` 分类，不再默认“全部迁移”。  
+2. `P1`：为 `octo -> mp` 补齐意图路由能力（当前为弱化版根命令）。  
+3. `P1`：为 command 层 `partial` 项补充“运行时方法/测试用例”证据链接，避免文档层面等价误判。
 
 ## Parity 结论
 
 - “同名=等价”的旧判定在当前 go 代码上不成立。  
 - main 到 go 的有效映射应以**语义承接 + 内容证据**为准。  
-- 当前状态：`commands/skills` 仅达 `partial parity`。
+- 当前状态：skills 已接近等价，整体瓶颈仍在 command 层 `partial/missing`，故 `commands/skills` 仍为 `partial parity`。
