@@ -38,7 +38,7 @@
 | T08 | De-stub Status Command | DONE | Claude | 2026-03-02 |
 | T09 | Rehydrate Markdown Skills | DONE | Claude | 2026-03-02 |
 | T10 | Legacy Command Facades | DONE | Claude | 2026-03-02 |
-| T11 | Documentation Alignment | TODO | - | - |
+| T11 | Documentation Alignment | DONE | Claude | 2026-03-02 |
 | T12 | End-to-End Verification | TODO | - | - |
 | T13 | Final Review Gate | TODO | - | - |
 
