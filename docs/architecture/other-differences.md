@@ -71,11 +71,16 @@ go-only（177）状态统计：
 
 ## 关键缺口决策与契约索引
 
-| 域 | source scope | target file/domain | target symbol/contract | evidence level | decision | decision reason |
-|---|---|---|---|---|---|---|
-| `mcp-server` | `mcp-server/*` | `internal/providers/*` | provider orchestration contract（`DetectAll` / `RouteIntent` / provider registry） | `E0` | `DEFER_WITH_CONDITION` | 当前产品以 Go providers 语义承接；若恢复独立 server 边界再拆分子模块 |
-| `openclaw` | `openclaw/*` | `N/A` | `N/A` | `E0` | `EXCLUDE_WITH_REASON` | 当前产品范围不包含 openclaw TS 子项目逐文件迁移；后续如恢复产品线再单独立项 |
-| `legacy benchmark/live assets` | `tests/benchmark/*` + `tests/live/README.md` | `internal/workflows/*_test.go` + `docs/multipowers/README.md` | regression/benchmark/live test contract | `E0` | `MIGRATE_TO_GO` | 属于行为验证资产，需在 go 测试体系保持可追踪承接 |
+| 域 | source scope | target file/domain | target symbol/contract | evidence level | decision | decision reason | evidence_upgrade_path | owner_domain |
+|---|---|---|---|---|---|---|---|---|
+| `mcp-server` | `mcp-server/*` | `internal/providers/*` | provider orchestration contract（`DetectAll` / `RouteIntent` / provider registry） | `E0` | `DEFER_WITH_CONDITION` | 当前产品以 Go providers 语义承接；若恢复独立 server 边界再拆分子模块 | `E0 -> E1: Create adapter interface in internal/providers/mcp_adapter.go` | providers |
+| `openclaw` | `openclaw/*` | `N/A` | `N/A` | `E0` | `EXCLUDE_WITH_REASON` | 当前产品范围不包含 openclaw TS 子项目逐文件迁移；后续如恢复产品线再单独立项 | N/A | external |
+| `legacy benchmark/live assets` | `tests/benchmark/*` + `tests/live/README.md` | `internal/workflows/*_test.go` + `docs/multipowers/README.md` | regression/benchmark/live test contract | `E0` | `MIGRATE_TO_GO` | 属于行为验证资产，需在 go 测试体系保持可追踪承接 | `E0 -> E2: Add TestBenchmarkRunner, TestLiveTestHarness in internal/workflows/*_test.go` | workflows |
+| `.claude/settings.json` | `.claude/settings.json` | `.claude-plugin/.claude/settings.json` | Claude workspace settings | `E0` | `COPY_FROM_MAIN` | Claude 工作区配置需要保留 | `E0 -> E1: Copy file with path migration` | context |
+| `.claude-plugin/settings.json` | `.claude-plugin/settings.json` | `.claude-plugin/custom/config/setup.toml` | plugin configuration | `E0` | `MIGRATE_TO_GO` | JSON -> TOML 配置模型转换 | `E0 -> E2: Document field mapping, add conversion test` | config |
+| `.mcp.json` | `.mcp.json` | `.dependencies/claude-skills` | MCP dependency entry | `E0` | `MIGRATE_TO_GO` | MCP 入口形式变化 | `E0 -> E1: Document new dependency model` | deps |
+| `docs/SCHEDULER.md` | `docs/SCHEDULER.md` | `docs/architecture/script-differences.md` | scheduler documentation | `E0` | `MIGRATE_TO_GO` | 调度能力转入脚本迁移文档 | `E0 -> E1: Add scheduler section to script-differences.md` | docs |
+| `agents/personas/openclaw-admin.md` | `agents/personas/openclaw-admin.md` | `.claude-plugin/.claude/commands/persona.md` | persona configuration | `E0` | `DEFER_WITH_CONDITION` | 具体人格文档未逐文件保留 | `E0 -> E1: If persona needed, add to persona lanes config` | personas |
 
 ## main-only 文件映射（按域全量）
 
