@@ -277,7 +277,23 @@ func Run(args []string) int {
 		}
 		return 0
 	case "status":
-		return respond(api.Response{Status: "ok", Data: map[string]any{"context_complete": ctxpkg.Complete(absDir)}})
+		status := GetRuntimeStatus(absDir)
+		return respond(api.Response{
+			Status:  status.Status,
+			Message: status.Status,
+			Data: map[string]any{
+				"ready":               status.Ready,
+				"context_complete":    status.ContextComplete,
+				"context_missing":     status.ContextMissing,
+				"context_path":        status.ContextPath,
+				"providers_available": status.ProvidersAvailable,
+				"providers_count":     status.ProvidersCount,
+				"validation_status":   status.ValidationStatus,
+				"last_validation":     status.LastValidation,
+				"hook_ready":          status.HookReady,
+				"hook_events":         status.HookEvents,
+			},
+		})
 	case "route":
 		if *intent == "" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--intent is required"})
