@@ -19,5 +19,11 @@
 - Validate before completion claims; include concrete command evidence.
 - Keep mapping rows explicit: strategy, target path, target symbol, status.
 
+## Upstream Sync Policy
+- `main` is read-only in local workflow: no feature commits, no direct edits, no migration work.
+- Periodically sync upstream into `main` to keep baseline current (for example before each major planning/implementation wave).
+- Use `main` only as canonical upstream baseline reference; active development happens on `go`.
+- If upstream changes are needed locally, flow is: sync upstream -> refresh baseline docs/mapping on `go` -> commit/push `go`.
+
 ## Workflow
 Discover -> Define -> Develop -> Deliver, with contract-first verification and parity checks at delivery time.
