@@ -32,7 +32,7 @@
 | T02 | Atomic CLI Contract Tests | DONE | Claude | 2026-03-02 |
 | T03 | State Atomic Commands | DONE | Claude | 2026-03-02 |
 | T04 | Typed Validation | DONE | Claude | 2026-03-02 |
-| T05 | Test/Coverage Atomic Commands | TODO | - | - |
+| T05 | Test/Coverage Atomic Commands | DONE | Claude | 2026-03-02 |
 | T06 | Route Atomic Command | TODO | - | - |
 | T07 | Hook Contract Normalization | TODO | - | - |
 | T08 | De-stub Status Command | TODO | - | - |

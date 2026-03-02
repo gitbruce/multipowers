@@ -291,12 +291,25 @@ func Run(args []string) int {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown test subcommand: use run"})
 		}
 		// Run tests and return structured result
+		result := workflows.TestRun(absDir)
+		status := "ok"
+		if result.Status == "failed" {
+			status = "blocked"
+		} else if result.Status == "error" {
+			status = "error"
+		}
 		return respond(api.Response{
-			Status:  "ok",
-			Message: "test run not yet implemented",
+			Status:    status,
+			Message:   result.Status,
+			ErrorCode: result.Error,
 			Data: map[string]any{
-				"command": "test run",
-				"status":  "pending",
+				"command":      result.Command,
+				"status":       result.Status,
+				"passed":       result.Passed,
+				"failed":       result.Failed,
+				"skipped":      result.Skipped,
+				"total":        result.Total,
+				"failed_tests": result.FailedTests,
 			},
 		})
 	case "coverage":
@@ -304,13 +317,21 @@ func Run(args []string) int {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown coverage subcommand: use check"})
 		}
 		// Check coverage and return structured result
+		result := workflows.CoverageCheck(absDir, 0)
+		status := "ok"
+		if result.Status == "failed" {
+			status = "blocked"
+		} else if result.Status == "error" {
+			status = "error"
+		}
 		return respond(api.Response{
-			Status:  "ok",
-			Message: "coverage check not yet implemented",
+			Status:    status,
+			Message:   result.Status,
+			ErrorCode: result.Error,
 			Data: map[string]any{
-				"command":      "coverage check",
-				"coverage_pct": 0,
-				"status":       "pending",
+				"command":      result.Command,
+				"coverage_pct": result.CoveragePct,
+				"packages":     result.Packages,
 			},
 		})
 	default:
