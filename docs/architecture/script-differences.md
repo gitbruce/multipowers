@@ -351,14 +351,22 @@
 
 ## Hook Lifecycle Alignment Index
 
-| lifecycle_event | legacy_script_source | go_target_symbol | evidence_level | decision | note |
-|---|---|---|---|---|---|
-| `SessionStart` | `hooks/session-sync.sh` | `internal/hooks/session_start.go` + `internal/tracks/state.go` | `E1` | `MIGRATE_TO_GO` | 初始化与状态同步属于运行时控制面 |
-| `UserPromptSubmit` | `scripts/context-manager.sh` + `hooks/architecture-gate.sh` | `internal/context/checker.go` + `internal/hooks/handler.go` | `E0` | `MIGRATE_TO_GO` | 提示词提交前需做上下文契约与门禁检查 |
-| `PreToolUse` | `hooks/security-gate.sh` + `hooks/provider-routing-validator.sh` | `internal/hooks/pre_tool_use.go` + `internal/providers/router_intent.go` | `E1` | `MIGRATE_TO_GO` | 高成本工具调用前的策略校验 |
-| `PostToolUse` | `hooks/quality-gate.sh` + `hooks/task-completion-checkpoint.sh` | `internal/hooks/post_tool_use.go` + `internal/hooks/handler.go` | `E1` | `MIGRATE_TO_GO` | 工具调用后质量门禁与任务检查点 |
-| `Stop` | `hooks/task-completed-transition.sh` | `internal/hooks/stop.go` | `E1` | `MIGRATE_TO_GO` | 会话停止阶段的收口与状态落盘 |
-| `SubagentStop` | `hooks/teammate-idle-dispatch.sh` + `hooks/task-dependency-validator.sh` | `internal/hooks/stop.go` + `internal/hooks/handler.go` | `E0` | `MIGRATE_TO_GO` | 子代理生命周期与依赖转移收口 |
+| lifecycle_event | legacy_script_source | go_target_symbol | response_contract_fields | test_reference | evidence_level | decision | note |
+|---|---|---|---|---|---|---|---|
+| `SessionStart` | `hooks/session-sync.sh` | `internal/hooks/session_start.go` + `internal/tracks/state.go` | `status`, `action`, `message`, `data.session_id` | `internal/hooks/handler_test.go:TestSessionStart` | `E1` | `MIGRATE_TO_GO` | 初始化与状态同步属于运行时控制面 |
+| `UserPromptSubmit` | `scripts/context-manager.sh` + `hooks/architecture-gate.sh` | `internal/context/checker.go` + `internal/hooks/handler.go` | `status`, `action`, `error_code`, `message`, `remediation` | `internal/hooks/handler_test.go:TestUserPromptSubmit` | `E0` | `MIGRATE_TO_GO` | 提示词提交前需做上下文契约与门禁检查 |
+| `PreToolUse` | `hooks/security-gate.sh` + `hooks/provider-routing-validator.sh` | `internal/hooks/pre_tool_use.go` + `internal/providers/router_intent.go` | `status`, `action`, `error_code`, `message`, `data.tool_name`, `remediation` | `internal/hooks/pre_tool_use_test.go:TestPreToolUse` | `E1` | `MIGRATE_TO_GO` | 高成本工具调用前的策略校验 |
+| `PostToolUse` | `hooks/quality-gate.sh` + `hooks/task-completion-checkpoint.sh` | `internal/hooks/post_tool_use.go` + `internal/hooks/handler.go` | `status`, `action`, `error_code`, `message`, `data.result_quality` | `internal/hooks/post_tool_use_test.go:TestPostToolUse` | `E1` | `MIGRATE_TO_GO` | 工具调用后质量门禁与任务检查点 |
+| `Stop` | `hooks/task-completed-transition.sh` | `internal/hooks/stop.go` | `status`, `action`, `message`, `data.pending_tasks`, `data.completed_tasks` | `internal/hooks/stop_test.go:TestStop` | `E1` | `MIGRATE_TO_GO` | 会话停止阶段的收口与状态落盘 |
+| `SubagentStop` | `hooks/teammate-idle-dispatch.sh` + `hooks/task-dependency-validator.sh` | `internal/hooks/stop.go` + `internal/hooks/handler.go` | `status`, `action`, `message`, `data.subagent_id`, `data.idle_reason` | `internal/hooks/stop_test.go:TestSubagentStop` | `E0` | `MIGRATE_TO_GO` | 子代理生命周期与依赖转移收口 |
+
+**Response Contract Field Definitions:**
+- `status`: `"ok"` | `"blocked"` | `"error"` - Hook execution outcome
+- `action`: `"continue"` | `"block"` | `"remediate"` - Recommended next step
+- `error_code`: `string` (optional) - Machine-readable error identifier
+- `message`: `string` - Human-readable explanation
+- `data`: `object` - Event-specific payload (session_id, tool_name, etc.)
+- `remediation`: `string` (optional) - Suggested fix when blocked
 
 ## Missing Decision Classification Matrix
 
