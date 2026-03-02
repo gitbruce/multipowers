@@ -1,145 +1,169 @@
-# flow-develop
+---
+name: flow-develop
+aliases:
+  - develop
+  - develop-workflow
+  - tangle
+description: Multi-AI implementation (Double Diamond Develop phase)
+agent: general-purpose
+context: fork
+task_management: true
+execution_mode: enforced
+validation_gates:
+  - mp_command_executed
+  - quality_gates_passed
+trigger: |
+  AUTOMATICALLY ACTIVATE when user requests building or implementation:
+  - "build X" or "implement Y" or "create Z"
+  - "develop a feature for X"
+  - "generate implementation for X"
+---
 
-Develop phase for implementation with quality gates.
+# Flow Develop - Double Diamond Develop Phase
 
-## Overview
+Multi-provider implementation workflow with TDD discipline and quality gates.
 
-This skill orchestrates the development phase, using atomic mp commands to
-implement solutions with TDD discipline and quality gates.
+## Pre-Development: Phase Dependency Check
 
-## Workflow Stages
+Before starting development:
+1. Check if define phase is complete via `mp state get`
+2. If not complete, warn user but allow proceeding
 
-### Stage 1: Load Definition Context
-
-**Goal:** Retrieve previous definition phase results.
-
-**Action:** Check current state
 ```bash
-mp state get --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state get --key "phase" --dir "$PWD" --json
 ```
 
-**Branch:**
-- If `data.state.phase=define` and `data.state.status=complete`: Proceed to Stage 2
-- If no definition context: Guide user to run `/mp:define` first
-- Use `data.state.spec` to guide implementation
+**Branch logic:**
+- If `data.phase=define` and `data.status=complete`: Proceed with development
+- If define not complete: Warn user, offer to proceed or run `/mp:define` first
 
-### Stage 2: Validate TDD Environment
+---
 
-**Goal:** Ensure TDD environment is ready.
+## EXECUTION CONTRACT (MANDATORY - CANNOT SKIP)
 
-**Action:** Run TDD environment validation
+You MUST execute these steps in order. Skipping steps is PROHIBITED.
+
+### STEP 1: Validate Workspace (MANDATORY)
+
+**Goal:** Ensure workspace is ready for development.
+
 ```bash
-mp validate --type tdd-env --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" validate --type workspace --dir "$PWD" --json
 ```
 
-**Branch:**
-- If `status=ok`: Proceed to Stage 3
-- If `status=error`: Check `data.details` for missing requirements
+**Response handling:**
+- If `status=ok`: Proceed to STEP 2
+- If `status=error`: Check `data.details`, guide user to fix issues
+- If `status=blocked`: Follow `remediation` guidance
 
-### Stage 3: Route Providers
+---
+
+### STEP 2: Route Providers (MANDATORY)
 
 **Goal:** Determine which AI providers to use for development.
 
-**Action:** Run provider routing
 ```bash
-mp route --intent develop --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" route --intent develop --dir "$PWD" --json
 ```
 
-**Branch:**
+**Display visual indicators:**
+```
+🐙 **CLAUDE OCTOPUS ACTIVATED** - Multi-provider implementation mode
+🛠️ Develop Phase: [Brief description of what's being built]
+
+Providers:
+🔴 Codex CLI: Code generation and patterns
+🟡 Gemini CLI: Alternative approaches
+🔵 Claude: Integration and quality gates
+```
+
+**Response handling:**
 - Review `data.selected_providers` and `data.reason`
-- Development typically uses single-provider mode for code consistency
+- Development typically uses coordinated multi-provider mode
 
-### Stage 4: Run Tests (Red Phase)
+---
 
-**Goal:** Verify test status before implementation.
+### STEP 3: Update State (MANDATORY)
 
-**Action:** Run test suite
+**Goal:** Record development phase start.
+
 ```bash
-mp test run --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state update --data '{"phase":"develop","stage":"executing"}' --dir "$PWD" --json
 ```
 
-**Branch:**
-- If `data.status=failed`: Good - tests are red, proceed to implement
-- If `data.status=passed`: Tests exist - ensure testing the right thing
-- Review `data.failed_tests` for expected failures
+---
 
-### Stage 5: Execute Development
+### STEP 4: Execute Development (MANDATORY - Quality Gates)
 
-**Goal:** Implement solution to make tests pass.
-
-**Action:** Based on routing results:
-- Use `data.selected_providers` to coordinate implementation
+**4a. Implementation:**
+- Use selected providers for code generation
+- Follow TDD principles (red-green-refactor)
+- Apply patterns from discovery/definition phases
 - Write minimal code to pass tests
-- Follow coding standards and patterns
 
-**State Tracking:**
+**4b. Quality Gates:**
+
 ```bash
-mp state update --data '{"phase":"develop","stage":"implementing"}' --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" test run --dir "$PWD" --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" coverage check --dir "$PWD" --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" validate --type no-shell --dir "$PWD" --json
 ```
 
-### Stage 6: Run Tests (Green Phase)
+**4c. Integration:**
+- Merge perspectives from all providers
+- Resolve conflicts between generated code
+- Ensure consistency with project patterns
 
-**Goal:** Verify implementation passes tests.
+---
 
-**Action:** Run test suite
-```bash
-mp test run --dir . --json
-```
-
-**Branch:**
-- If `data.status=passed`: Proceed to coverage check
-- If `data.status=failed`: Review failures and iterate
-
-### Stage 7: Check Coverage
-
-**Goal:** Ensure adequate test coverage.
-
-**Action:** Run coverage check
-```bash
-mp coverage check --dir . --json
-```
-
-**Branch:**
-- If `data.coverage_pct` meets threshold: Proceed to persist
-- If coverage low: Add more tests and iterate
-
-### Stage 8: Persist Development
+### STEP 5: Persist Development (MANDATORY)
 
 **Goal:** Save development results for delivery phase.
 
-**Action:** Update state with development results
 ```bash
-mp state update --data '{"phase":"develop","status":"complete","tests_passed":true,"coverage":"<pct>"}' --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state update --data '{"phase":"develop","status":"complete","files_modified":"<list>","tests_passed":"<count>"}' --dir "$PWD" --json
 ```
 
-## Response Contract
+---
 
-All mp commands return a JSON response with:
-- `status`: "ok" | "error" | "blocked"
-- `action`: Recommended next action
-- `message`: Human-readable status
-- `error_code`: Error identifier if applicable
-- `data`: Structured response data
-- `remediation`: Suggested fix if blocked
+### STEP 6: Present Results
+
+**Output format:**
+
+```
+🛠️ **Development Complete**
+
+**Implementation Summary:**
+- [Brief description of what was built]
+
+**Files Modified:**
+- [List of files created/modified]
+
+**Quality Gates:**
+- Tests: [X] passed / [Y] total
+- Coverage: [Z]%
+- No-shell validation: [passed/failed]
+
+**Next Steps:**
+- Run `/mp:deliver` to validate and document
+```
+
+---
 
 ## Error Handling
 
 | Condition | Action |
 |-----------|--------|
-| No definition context | Guide user to `/mp:define` |
-| TDD environment invalid | Check test framework setup |
-| Tests fail unexpectedly | Debug and fix implementation |
-| Coverage too low | Add additional tests |
+| Workspace invalid | Guide to `/mp:init` to initialize |
+| Define not complete | Warn user, offer to proceed or run define |
+| Tests failing | Block progression, fix before proceeding |
+| Coverage too low | Block progression, add more tests |
+| No-shell validation failed | Remove shell script references |
+| No providers available | Check `mp status` for provider health |
 
-## Example Usage
+---
 
-User: "/mp:develop authentication system"
+## Phase Transitions
 
-1. Load definition specification
-2. Validate TDD environment
-3. Route to appropriate provider
-4. Run tests (verify red)
-5. Implement solution
-6. Run tests (verify green)
-7. Check coverage
-8. Save development results
+- **From:** Define (requirements and scope defined)
+- **To:** Deliver (implementation complete, ready for validation)
