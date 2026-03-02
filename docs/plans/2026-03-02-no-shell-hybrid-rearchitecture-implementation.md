@@ -29,7 +29,7 @@
 | Task ID | Name | Status | Owner | Last Update |
 |---|---|---|---|---|
 | T01 | Baseline Snapshot | DONE | Claude | 2026-03-02 |
-| T02 | Atomic CLI Contract Tests | TODO | - | - |
+| T02 | Atomic CLI Contract Tests | DONE | Claude | 2026-03-02 |
 | T03 | State Atomic Commands | TODO | - | - |
 | T04 | Typed Validation | TODO | - | - |
 | T05 | Test/Coverage Atomic Commands | TODO | - | - |
