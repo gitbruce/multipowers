@@ -2,7 +2,7 @@
 
 日期：2026-03-02  
 比较分支：`main` vs `go`  
-基线提交：`main=f6a815a326ec`，`go=d01e74d99977`
+基线提交：`main=f6a815a326ec`，`go=8835e073834f`
 
 ## 判定口径
 
@@ -34,6 +34,12 @@
 - `partial=71`
 - `missing=50`
 - `intentional-diff=2`
+
+## 最新代码复检（go=8835e073834f）
+
+- 已基于最新 `go` 分支重新回放主脚本映射：`tmp/recheck/scripts-refresh.tsv`（main 135 行全覆盖）。
+- 覆盖校验结果：`main` 脚本 `missing=0`、`extra=0`（即文档与主分支脚本树一一对应）。
+- `MIGRATE_TO_GO` 目标文件存在性：`target_exists=71`，`target_missing=50`，与当前状态统计 `partial=71`、`missing=50` 一致。
 
 ## 历史文档校正
 
