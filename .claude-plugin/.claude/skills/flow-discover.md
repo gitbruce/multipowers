@@ -1,91 +1,152 @@
-# flow-discover
+---
+name: flow-discover
+aliases:
+  - discover
+  - discover-workflow
+  - probe
+  - research
+description: Multi-AI research using Codex and Gemini CLIs (Double Diamond Discover phase)
+agent: Explore
+context: fork
+task_management: true
+execution_mode: enforced
+pre_execution_contract:
+  - visual_indicators_displayed
+validation_gates:
+  - mp_command_executed
+  - synthesis_complete
+trigger: |
+  AUTOMATICALLY ACTIVATE when user requests research or exploration:
+  - "research X" or "explore Y" or "investigate Z"
+  - "what are the options for X"
+  - Comparative analysis ("compare X vs Y")
+---
 
-Discover phase for research and exploration using multi-AI perspectives.
+## EXECUTION CONTRACT (MANDATORY - CANNOT SKIP)
 
-## Overview
+### STEP 1: Validate Workspace (MANDATORY)
 
-This skill orchestrates the discovery phase of the workflow, using atomic mp commands
-to gather information and structure findings. It leverages multiple AI providers for
-broad exploration and synthesis.
-
-## Workflow Stages
-
-### Stage 1: Validate Workspace
-
-**Goal:** Ensure the workspace is ready for discovery work.
-
-**Action:** Run workspace validation
+**Execute via Bash:**
 ```bash
-mp validate --type workspace --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" validate --type workspace --dir "$PWD" --json
 ```
 
-**Branch:**
-- If `status=ok`: Proceed to Stage 2
-- If `status=error`: Check `message` for reason, guide user to run `/mp:init` if context missing
-- If `status=blocked`: Review `data.missing` and collect required context
+**Parse JSON response:**
+- If `status=ok`: Proceed to STEP 2
+- If `status=error`: Check `message`, guide user to `/mp:init`
+- If `status=blocked`: Review `data.missing`, collect required context
 
-### Stage 2: Route Providers
+**DO NOT PROCEED until workspace validated.**
 
-**Goal:** Determine which AI providers to use for discovery.
+---
 
-**Action:** Run provider routing
+### STEP 2: Route Providers (MANDATORY)
+
+**Execute via Bash:**
 ```bash
-mp route --intent discover --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" route --intent discover --dir "$PWD" --json
 ```
 
-**Branch:**
-- If `status=ok`: Review `data.selected_providers` and `data.reason`
-- If `status=error`: Check `message` - may need to configure providers
-- Use `data.available_providers` to understand what's available
+**Parse JSON response:**
+- `data.selected_providers`: List of providers to use
+- `data.available_providers`: All available providers
+- `data.reason`: Why these providers selected
 
-### Stage 3: Execute Discovery
+**Display visual indicators:**
+```
+🐙 **CLAUDE OCTOPUS ACTIVATED** - Multi-provider research mode
+🔍 Discover Phase: [Brief description]
 
-**Goal:** Perform multi-perspective research and exploration.
-
-**Action:** Based on routing results, coordinate discovery across providers:
-- Use `data.selected_providers` to determine which AIs to query
-- Synthesize findings from multiple perspectives
-- Structure results in a coherent format
-
-**State Tracking:**
-```bash
-mp state update --data '{"phase":"discover","stage":"executing"}' --dir . --json
+Providers:
+🔴 Codex CLI: [from data.available_providers]
+🟡 Gemini CLI: [from data.available_providers]
+🔵 Claude: Available ✓ (Strategic synthesis)
 ```
 
-### Stage 4: Persist Findings
+**DO NOT PROCEED until banner displayed.**
 
-**Goal:** Save discovery results for downstream phases.
+---
 
-**Action:** Update state with discovery results
+### STEP 3: Update State (MANDATORY)
+
+**Execute via Bash:**
 ```bash
-mp state update --data '{"phase":"discover","status":"complete","findings":"<summary>"}' --dir . --json
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state update --data '{"phase":"discover","stage":"executing","started_at":"<timestamp>"}' --dir "$PWD" --json
 ```
 
-## Response Contract
+**Verify `status=ok` before proceeding.**
 
-All mp commands return a JSON response with:
-- `status`: "ok" | "error" | "blocked"
-- `action`: Recommended next action
-- `message`: Human-readable status
-- `error_code`: Error identifier if applicable
-- `data`: Structured response data
-- `remediation`: Suggested fix if blocked
+---
+
+### STEP 4: Execute Discovery (MANDATORY - Multi-Provider Research)
+
+Based on routing results, perform multi-perspective research:
+
+1. **Use selected providers** from STEP 2
+2. **Synthesize findings** from multiple perspectives
+3. **Structure results** in coherent format
+
+**For each selected provider (Codex/Gemini):**
+- Call provider CLI with research question
+- Capture response
+- Include in synthesis
+
+**Your role (Claude):**
+- Strategic synthesis
+- Pattern identification
+- Recommendation formulation
+
+---
+
+### STEP 5: Persist Findings (MANDATORY)
+
+**Execute via Bash:**
+```bash
+"${CLAUDE_PLUGIN_ROOT}/bin/mp" state update --data '{"phase":"discover","status":"complete","findings":"<summary>","completed_at":"<timestamp>"}' --dir "$PWD" --json
+```
+
+---
+
+### STEP 6: Present Results
+
+Format findings based on context:
+
+**For Dev Context:**
+- Technical research summary
+- Recommended implementation approach
+- Library/tool comparison
+- Next steps
+
+**For Knowledge Context:**
+- Strategic research summary
+- Business rationale
+- Framework analysis
+- Next steps
+
+**Include attribution:**
+```
+---
+*Multi-AI Research powered by Claude Octopus*
+*Full state: mp state get --dir $PWD*
+```
+
+---
 
 ## Error Handling
 
 | Condition | Action |
 |-----------|--------|
 | Workspace invalid | Guide user to `/mp:init` |
-| No providers available | Check provider configuration |
-| Provider routing fails | Fall back to single-provider mode |
+| No providers available | Check `mp status` for provider config |
 | State update fails | Retry with simpler data |
+| All providers fail | Report error, do not substitute with direct research |
 
-## Example Usage
+## Context Detection
 
-User: "/mp:discover OAuth authentication patterns"
+**Dev Context Indicators:**
+- Technical terms: "API", "endpoint", "database", "implementation"
+- Project has `package.json`, `Cargo.toml`, etc.
 
-1. Validate workspace readiness
-2. Route to available providers (e.g., claude, codex, gemini)
-3. Execute parallel research queries
-4. Synthesize findings into structured output
-5. Update state with discovery completion
+**Knowledge Context Indicators:**
+- Business terms: "market", "ROI", "stakeholders", "strategy"
+- Research terms: "literature", "synthesis", "academic"
