@@ -15,6 +15,24 @@
 - `missing`：go 侧目标文件尚未落地或不可定位。
 - `intentional-diff`：go 分支新增脚本（main 无对应）。
 
+迁移决策说明（产品约束优先）：
+- 本文档不要求把 `main` 所有脚本逐文件迁移为 Go 实现。
+- 本文档现有 `处理策略` 列即 `decision` 字段，使用：`MIGRATE_TO_GO`、`COPY_FROM_MAIN`、`KEEP_IN_GO`。
+- 对仍为 `missing` 且非当前产品范围必需能力，可采用 `EXCLUDE_WITH_REASON` 或 `DEFER_WITH_CONDITION`（通过补充整改与专项索引显式记录）。
+- `COPY_FROM_MAIN` 均采用 `read-only-from-main` 同步策略。
+
+## Evidence Legend
+
+- `E0`：doc-only plan（仅文档规划）
+- `E1`：symbol exists（目标符号已存在）
+- `E2`：test exists（已有对应测试）
+- `E3`：verified output recorded（有验证输出记录）
+
+当前大表默认证据级别口径：
+- `equivalent` + `DONE`：至少 `E1`（推荐补到 `E2/E3`）。
+- `partial` + `TODO`：至少 `E0`。
+- `missing`：`E0` 且必须补充 `decision` 与触发条件/原因。
+
 ## 数据基线
 
 | 指标 | 数量 |
@@ -331,9 +349,20 @@
 | `scripts/build.sh` | **可不覆盖** | `intentional-diff` | go 分支构建 wrapper，main 无此文件 | `KEEP_IN_GO` | `scripts/build.sh` | `N/A` | `N/A` | 保留为 go 分支附加能力，无需回迁 main |
 
 
+## Hook Lifecycle Alignment Index
+
+| lifecycle_event | legacy_script_source | go_target_symbol | evidence_level | decision | note |
+|---|---|---|---|---|---|
+| `SessionStart` | `hooks/session-sync.sh` | `internal/hooks/session_start.go` + `internal/tracks/state.go` | `E1` | `MIGRATE_TO_GO` | 初始化与状态同步属于运行时控制面 |
+| `UserPromptSubmit` | `scripts/context-manager.sh` + `hooks/architecture-gate.sh` | `internal/context/checker.go` + `internal/hooks/handler.go` | `E0` | `MIGRATE_TO_GO` | 提示词提交前需做上下文契约与门禁检查 |
+| `PreToolUse` | `hooks/security-gate.sh` + `hooks/provider-routing-validator.sh` | `internal/hooks/pre_tool_use.go` + `internal/providers/router_intent.go` | `E1` | `MIGRATE_TO_GO` | 高成本工具调用前的策略校验 |
+| `PostToolUse` | `hooks/quality-gate.sh` + `hooks/task-completion-checkpoint.sh` | `internal/hooks/post_tool_use.go` + `internal/hooks/handler.go` | `E1` | `MIGRATE_TO_GO` | 工具调用后质量门禁与任务检查点 |
+| `Stop` | `hooks/task-completed-transition.sh` | `internal/hooks/stop.go` | `E1` | `MIGRATE_TO_GO` | 会话停止阶段的收口与状态落盘 |
+| `SubagentStop` | `hooks/teammate-idle-dispatch.sh` + `hooks/task-dependency-validator.sh` | `internal/hooks/stop.go` + `internal/hooks/handler.go` | `E0` | `MIGRATE_TO_GO` | 子代理生命周期与依赖转移收口 |
+
 ## 整改优先级
 
-1. `P0`：优先清零 `missing=50`（目标文件尚不存在）。
+1. `P0`：先对 `missing=50` 完成逐项 `decision` 分类（`MIGRATE_TO_GO` / `EXCLUDE_WITH_REASON` / `DEFER_WITH_CONDITION`），不再默认要求“全部迁移”。
 2. `P0`：对 `internal/hooks/handler.go`、`internal/providers/router_intent.go`、`internal/workflows/*_test.go` 的 `partial` 项补行为断言与回归测试。
 3. `P1`：将所有 `MIGRATE_TO_GO + TODO` 项转为可验证的 `*_test.go` 对应测试，并记录通过证据。
 4. `P1`：维持 `COPY_FROM_MAIN` 项只读同步策略，避免 main/go wrapper 漂移。

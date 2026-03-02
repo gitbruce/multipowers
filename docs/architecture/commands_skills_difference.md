@@ -12,6 +12,12 @@
 - main 存在而 go 无对等入口：判 `missing`。
 - go 新增能力：判 `intentional-diff`。
 
+迁移策略说明（产品约束优先）：
+- 本文档不要求把 `main` 的每个 command/skill 逐文件迁移到 `go`。
+- `partial/missing` 行必须按 `.multipowers/product-guidelines.md` 与 `.multipowers/product.md` 做 `decision` 决策，而非默认强制迁移。
+- 统一 `decision` 取值：`MIGRATE_TO_GO`、`COPY_FROM_MAIN`、`EXCLUDE_WITH_REASON`、`DEFER_WITH_CONDITION`。
+- 映射口径保持 `source file -> target file -> target symbol/contract`。
+
 用户关注样例已验证：
 - `.claude/skills/extract-skill.md`（main 231 行完整指南）
 - `.claude-plugin/.claude/skills/extract-skill.md`（go 9 行薄包装）
@@ -31,6 +37,17 @@
 - command 层为“部分等价 + 明显缺口”；
 - skill 层为“全面运行时重写（同名但几乎均非等价文本/流程）”；
 - 总体判定：`commands/skills = partial parity`。
+
+## Evidence Legend
+
+- `E0`：doc-only plan（仅文档规划）
+- `E1`：symbol exists（目标符号已存在）
+- `E2`：test exists（已有对应测试）
+- `E3`：verified output recorded（有验证输出记录）
+
+规则：
+- 所有 `partial/missing` 行至少达到 `E0`。
+- 若 claim 语义承接成立，建议至少达到 `E1`，关键路径建议达到 `E2`。
 
 ## 内容差异样例（Commands）
 
@@ -170,10 +187,22 @@
 | skill-doctor | `.claude/skills/skill-doctor.md` | `N/A` | `missing` | main skill has no same-name go counterpart | port skill or declare deprecation |
 | (go-only) skill-persona | `N/A` | `.claude-plugin/.claude/skills/skill-persona.md` | `intentional-diff` | go-only additive skill | none |
 
+## 决策与证据索引（高风险项）
+
+| source | target | target symbol/contract | evidence level | decision | decision reason |
+|---|---|---|---|---|---|
+| `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `mp extract` runtime path（当前文档为薄包装） | `E0` | `MIGRATE_TO_GO` | 属于核心提取工作流；需修正错路由（不应仅落到 `mp status`） |
+| `.claude/commands/octo.md` | `.claude-plugin/.claude/commands/mp.md` | root intent routing contract | `E0` | `MIGRATE_TO_GO` | 根命令是调用入口，需要补齐意图路由语义承接 |
+| `.claude/commands/claw.md` | `N/A` | command-level compatibility contract | `E0` | `DEFER_WITH_CONDITION` | 非当前 no-shell 核心路径，待 `claw` 产品需求确认后再迁移或退役 |
+| `.claude/commands/doctor.md` | `N/A` | command-level compatibility contract | `E0` | `DEFER_WITH_CONDITION` | 依赖后续运维/诊断范围定义，暂不强制迁移 |
+| `.claude/commands/schedule.md` + `.claude/commands/scheduler.md` | `N/A` | scheduler runtime ownership | `E0` | `DEFER_WITH_CONDITION` | 需先明确 scheduler 在 go runtime 的目标域与入口契约 |
+| `.claude/commands/sentinel.md` | `N/A` | security gate contract | `E0` | `MIGRATE_TO_GO` | 属于安全与治理能力，需保留可验证门禁能力 |
+| `.claude/skills/skill-claw.md` + `.claude/skills/skill-doctor.md` | `N/A` | skill compatibility policy | `E0` | `EXCLUDE_WITH_REASON` | 当前产品范围未要求恢复这两个技能；保留显式退役说明即可 |
+
 ## 重点整改
 
 1. `P0`：修正薄包装错路由。`extract-skill` 当前包装到 `mp status`，应映射到真正 extract 运行时入口。  
-2. `P0`：补齐 main-only command 能力缺口（`claw/doctor/schedule/scheduler/sentinel`）或明确退役声明。  
+2. `P0`：对 main-only command 能力缺口（`claw/doctor/schedule/scheduler/sentinel`）完成 `decision` 分类，不再默认“全部迁移”。  
 3. `P1`：为 `octo -> mp` 补齐意图路由能力（当前为弱化版根命令）。  
 4. `P1`：对所有 `partial` skills 增加“运行时方法/测试用例”证据链接，避免文档层面等价误判。
 

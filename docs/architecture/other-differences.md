@@ -2,13 +2,14 @@
 
 日期：2026-03-02  
 比较分支：`main` vs `go`  
-基线提交：`main=f6a815a326ec`，`go=d01e74d99977`
+基线提交：`main=f6a815a326ec`，`go=8835e073834f`
 
 ## 范围与口径
 
 本文件覆盖所有 **非 command/skill/script** 文件：
 - 排除：`*.sh`、`.claude/commands/*.md`、`.claude/skills/*.md`、`.claude-plugin/.claude/commands/*.md`、`.claude-plugin/.claude/skills/*.md`
 - 纳入：`go/ts/js/json/toml/yaml/md` 等其他类型文件
+- 本文件不替代 `commands_skills_difference.md` 与 `script-differences.md`，只补充其余类型文件差异。
 
 状态定义：
 - `equivalent`：语义等价，存在明确文件映射。
@@ -17,6 +18,23 @@
 - `intentional-diff`：有意的分支差异（新增或不迁移）。
 
 规则：先语义一对一，再补文件一对一；所有 `partial/missing` 给出整改。
+
+迁移决策说明（产品约束优先）：
+- 不要求把 `main` 的每个文件机械迁移到 `go`。
+- `partial/missing` 必须有显式 `decision`：`MIGRATE_TO_GO`、`COPY_FROM_MAIN`、`EXCLUDE_WITH_REASON`、`DEFER_WITH_CONDITION`。
+- 决策依据以 `.multipowers/product-guidelines.md` 与 `.multipowers/product.md` 为准（尤其 invocation/hook/contract 核心路径）。
+- 映射口径保持 `source file -> target file/domain -> target symbol/contract`。
+
+## Evidence Legend
+
+- `E0`：doc-only plan（仅文档规划）
+- `E1`：symbol exists（目标符号已存在）
+- `E2`：test exists（已有对应测试）
+- `E3`：verified output recorded（有验证输出记录）
+
+规则：
+- 所有 `partial/missing` 至少标注 `E0`。
+- 关键路径迁移项建议达到 `E1/E2`。
 
 ## 数据基线
 
@@ -46,10 +64,18 @@ go-only（177）状态统计：
 | Claude 工作区文档 | `.claude/*` | `.claude-plugin/.claude/*` | equivalent | 发生路径重构但语义一致 | 无 |
 | 插件配置 | `.claude-plugin/settings.json` | `.claude-plugin/custom/config/setup.toml` | partial | 配置模型转换，未见字段级映射文档 | 补充 JSON->TOML 字段映射与转换步骤 |
 | MCP 配置入口 | `.mcp.json` | `.dependencies/claude-skills` + go 配置体系 | partial | 入口形式变化，缺显式迁移说明 | 补充 mcp 入口兼容与迁移文档 |
-| MCP Server 子项目 | `mcp-server/*` (TS) | `internal/providers/*`（语义承接） | missing | 无逐文件等价，子项目形态消失 | 决策退役或新增 Go 子模块/桥接层 |
-| OpenClaw 子项目 | `openclaw/*` (TS) | 无明确域 | missing | go 分支无逐文件对应 | 决策迁移或在架构范围中显式排除 |
+| MCP Server 子项目 | `mcp-server/*` (TS) | `internal/providers/*`（语义承接） | missing | 无逐文件等价，子项目形态消失 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块/桥接层` |
+| OpenClaw 子项目 | `openclaw/*` (TS) | 无明确域 | missing | go 分支无逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
 | Legacy benchmark/live 资产 | `tests/benchmark/*`, `tests/live/README.md` | `internal/workflows/*_test.go` + 新文档 | partial | 测试体系迁移但未保留逐文件资产 | 建立旧资产到 go 测试用例的对照表 |
 | Go runtime + custom layer | 无 | `cmd/`, `internal/`, `pkg/`, `custom/`, `.multipowers/` | intentional-diff | no-shell runtime 重构新增域 | 无 |
+
+## 关键缺口决策与契约索引
+
+| 域 | source scope | target file/domain | target symbol/contract | evidence level | decision | decision reason |
+|---|---|---|---|---|---|---|
+| `mcp-server` | `mcp-server/*` | `internal/providers/*` | provider orchestration contract（`DetectAll` / `RouteIntent` / provider registry） | `E0` | `DEFER_WITH_CONDITION` | 当前产品以 Go providers 语义承接；若恢复独立 server 边界再拆分子模块 |
+| `openclaw` | `openclaw/*` | `N/A` | `N/A` | `E0` | `EXCLUDE_WITH_REASON` | 当前产品范围不包含 openclaw TS 子项目逐文件迁移；后续如恢复产品线再单独立项 |
+| `legacy benchmark/live assets` | `tests/benchmark/*` + `tests/live/README.md` | `internal/workflows/*_test.go` + `docs/multipowers/README.md` | regression/benchmark/live test contract | `E0` | `MIGRATE_TO_GO` | 属于行为验证资产，需在 go 测试体系保持可追踪承接 |
 
 ## main-only 文件映射（按域全量）
 
@@ -88,33 +114,33 @@ go-only（177）状态统计：
 
 | main 文件 | 状态 | go 对应文件/域 | 说明 | 整改 |
 |---|---|---|---|---|
-| `mcp-server/dist/index.d.ts` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
-| `mcp-server/dist/index.js` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
-| `mcp-server/dist/index.js.map` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
-| `mcp-server/package.json` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
-| `mcp-server/src/index.ts` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
-| `mcp-server/src/schema/skill-schema.json` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
-| `mcp-server/tsconfig.json` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | 确认该子项目是否退役；若保留需新增 Go 子模块或桥接层 |
+| `mcp-server/dist/index.d.ts` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
+| `mcp-server/dist/index.js` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
+| `mcp-server/dist/index.js.map` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
+| `mcp-server/package.json` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
+| `mcp-server/src/index.ts` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
+| `mcp-server/src/schema/skill-schema.json` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
+| `mcp-server/tsconfig.json` | `missing` | `internal/providers/*` | 独立 mcp-server TS 子项目在 go 分支无逐文件等价 | `decision=DEFER_WITH_CONDITION`；`reason=当前产品以 providers 语义承接为主`；`condition=若恢复独立 server 边界则新增 Go 子模块或桥接层` |
 
 ### OpenClaw 子项目（TS）
 
 | main 文件 | 状态 | go 对应文件/域 | 说明 | 整改 |
 |---|---|---|---|---|
-| `openclaw/dist/index.d.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/index.js` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/index.js.map` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/skill-loader.d.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/skill-loader.js` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/skill-loader.js.map` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/tools/index.d.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/tools/index.js` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/dist/tools/index.js.map` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/openclaw.plugin.json` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/package.json` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/src/index.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/src/skill-loader.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/src/tools/index.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
-| `openclaw/tsconfig.json` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | 确定是否迁移 openclaw 体系；否则在架构文档声明范围外 |
+| `openclaw/dist/index.d.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/index.js` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/index.js.map` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/skill-loader.d.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/skill-loader.js` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/skill-loader.js.map` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/tools/index.d.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/tools/index.js` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/dist/tools/index.js.map` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/openclaw.plugin.json` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/package.json` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/src/index.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/src/skill-loader.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/src/tools/index.ts` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
+| `openclaw/tsconfig.json` | `missing` | `N/A` | openclaw 子项目在 go 分支未保留逐文件对应 | `decision=EXCLUDE_WITH_REASON`；`reason=当前产品范围不包含 openclaw TS 子项目逐文件迁移`；`condition=若恢复 openclaw 产品线再单独立项` |
 
 ### Legacy 测试资产
 
