@@ -1,0 +1,17 @@
+# Tracks
+
+## Active
+- [ ] T001 Hybrid Runtime Contract Stabilization
+  - Objective: Keep atomic command and normalized response contract stable across runtime and skills.
+  - Status: planned
+- [ ] T002 v8.31.1 Script Mapping Governance
+  - Objective: Maintain full source-to-target mapping quality in `docs/architecture/script-differences.md`.
+  - Status: planned
+- [ ] T003 Branch Governance and Upstream Sync
+  - Objective: Enforce policy to keep `main` untouched and continuously sync with upstream before major changes.
+  - Status: planned
+
+## Template
+- [ ] Txxx <track name>
+  - Objective: <what outcome this track delivers>
+  - Status: planned|in_progress|blocked|done
