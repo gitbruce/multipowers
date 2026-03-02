@@ -189,15 +189,17 @@
 
 ## 决策与证据索引（高风险项）
 
-| source | target | target symbol/contract | evidence level | decision | decision reason |
-|---|---|---|---|---|---|
-| `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `mp extract` runtime path（当前文档为薄包装） | `E0` | `MIGRATE_TO_GO` | 属于核心提取工作流；需修正错路由（不应仅落到 `mp status`） |
-| `.claude/commands/octo.md` | `.claude-plugin/.claude/commands/mp.md` | root intent routing contract | `E0` | `MIGRATE_TO_GO` | 根命令是调用入口，需要补齐意图路由语义承接 |
-| `.claude/commands/claw.md` | `N/A` | command-level compatibility contract | `E0` | `DEFER_WITH_CONDITION` | 非当前 no-shell 核心路径，待 `claw` 产品需求确认后再迁移或退役 |
-| `.claude/commands/doctor.md` | `N/A` | command-level compatibility contract | `E0` | `DEFER_WITH_CONDITION` | 依赖后续运维/诊断范围定义，暂不强制迁移 |
-| `.claude/commands/schedule.md` + `.claude/commands/scheduler.md` | `N/A` | scheduler runtime ownership | `E0` | `DEFER_WITH_CONDITION` | 需先明确 scheduler 在 go runtime 的目标域与入口契约 |
-| `.claude/commands/sentinel.md` | `N/A` | security gate contract | `E0` | `MIGRATE_TO_GO` | 属于安全与治理能力，需保留可验证门禁能力 |
-| `.claude/skills/skill-claw.md` + `.claude/skills/skill-doctor.md` | `N/A` | skill compatibility policy | `E0` | `EXCLUDE_WITH_REASON` | 当前产品范围未要求恢复这两个技能；保留显式退役说明即可 |
+| source | target | target symbol/contract | test_reference | evidence level | decision | decision reason | closure_condition |
+|---|---|---|---|---|---|---|---|
+| `.claude/skills/extract-skill.md` | `.claude-plugin/.claude/skills/extract-skill.md` | `internal/cli/extract.go:ExtractSkill` | `internal/cli/extract_test.go` | `E0` | `MIGRATE_TO_GO` | 属于核心提取工作流；需修正错路由（不应仅落到 `mp status`） | `mp extract` command exists with test coverage ≥80% |
+| `.claude/commands/octo.md` | `.claude-plugin/.claude/commands/mp.md` | `internal/cli/root.go:RouteIntent` | `internal/cli/root_test.go` | `E0` | `MIGRATE_TO_GO` | 根命令是调用入口，需要补齐意图路由语义承接 | `mp route --intent` returns valid routing for all registered intents |
+| `.claude/commands/claw.md` | `N/A` | `internal/external/claw/adapter.go` (planned) | `internal/external/claw/adapter_test.go` (planned) | `E0` | `DEFER_WITH_CONDITION` | 非当前 no-shell 核心路径，待 `claw` 产品需求确认后再迁移或退役 | Product requirement explicitly requests claw integration |
+| `.claude/commands/doctor.md` | `N/A` | `internal/cli/doctor.go` (replaced by sys-configure) | `internal/cli/sys_configure_test.go` | `E0` | `EXCLUDE_WITH_REASON` | 诊断能力已由 `sys-configure` 技能承接，不再独立迁移 | N/A (excluded) |
+| `.claude/commands/schedule.md` + `.claude/commands/scheduler.md` | `N/A` | `internal/scheduler/scheduler.go` (planned) | `internal/scheduler/scheduler_test.go` (planned) | `E0` | `DEFER_WITH_CONDITION` | 需先明确 scheduler 在 go runtime 的目标域与入口契约 | Scheduler domain contract defined in `.multipowers/product.md` |
+| `.claude/commands/sentinel.md` | `N/A` | `internal/governance/sentinel.go` (planned) | `internal/governance/sentinel_test.go` (planned) | `E0` | `MIGRATE_TO_GO` | 属于安全与治理能力，需保留可验证门禁能力 | Sentinel gate blocks invalid states with test coverage |
+| `.claude/skills/skill-claw.md` + `.claude/skills/skill-doctor.md` | `N/A` | N/A | N/A | `E0` | `EXCLUDE_WITH_REASON` | 当前产品范围未要求恢复这两个技能；保留显式退役说明即可 | N/A (excluded) |
+| `.claude/commands/parallel.md` | `.claude-plugin/.claude/skills/flow-parallel.md` | `internal/cli/parallel.go` (add command wrapper) | `internal/cli/parallel_test.go` | `E0` | `MIGRATE_TO_GO` | `/mp:parallel` command wrapper needed for skill invocation | `/mp:parallel` command invokes flow-parallel skill |
+| `.claude/commands/spec.md` | `.claude-plugin/.claude/skills/flow-spec.md` | `internal/cli/spec.go` (add command wrapper) | `internal/cli/spec_test.go` | `E0` | `MIGRATE_TO_GO` | `/mp:spec` command wrapper needed for skill invocation | `/mp:spec` command invokes flow-spec skill |
 
 ## 重点整改
 

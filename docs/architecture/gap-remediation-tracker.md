@@ -13,8 +13,17 @@ High-risk command and skill gaps requiring explicit closure paths.
 
 | gap_id | item | risk_reason | target_symbol/contract | test_reference | closure_condition | status |
 |--------|------|-------------|------------------------|----------------|-------------------|--------|
+| CMD-001 | extract-skill | Core workflow misroutes to `mp status` instead of extract | `internal/cli/extract.go:ExtractSkill` | `internal/cli/extract_test.go` | `mp extract` command exists with test coverage ≥80% | pending |
+| CMD-002 | octo -> mp | Root intent routing logic reduced in go | `internal/cli/root.go:RouteIntent` | `internal/cli/root_test.go` | `mp route --intent` returns valid routing for all registered intents | pending |
+| CMD-003 | claw | External system integration not in current scope | `internal/external/claw/adapter.go` (planned) | `internal/external/claw/adapter_test.go` (planned) | Product requirement explicitly requests claw integration | deferred |
+| CMD-004 | doctor | Diagnostic capability replaced by sys-configure | N/A (replaced) | `internal/cli/sys_configure_test.go` | N/A - excluded with reason | closed |
+| CMD-005 | schedule/scheduler | Scheduler domain contract undefined | `internal/scheduler/scheduler.go` (planned) | `internal/scheduler/scheduler_test.go` (planned) | Scheduler domain contract defined in `.multipowers/product.md` | deferred |
+| CMD-006 | sentinel | Security gate capability required | `internal/governance/sentinel.go` (planned) | `internal/governance/sentinel_test.go` (planned) | Sentinel gate blocks invalid states with test coverage | pending |
+| CMD-007 | skill-claw/skill-doctor | Product scope excludes these skills | N/A | N/A | N/A - excluded with reason | closed |
+| CMD-008 | parallel command | Command wrapper missing for flow-parallel skill | `internal/cli/parallel.go` | `internal/cli/parallel_test.go` | `/mp:parallel` command invokes flow-parallel skill | pending |
+| CMD-009 | spec command | Command wrapper missing for flow-spec skill | `internal/cli/spec.go` | `internal/cli/spec_test.go` | `/mp:spec` command invokes flow-spec skill | pending |
 
-*To be populated from Task 10 analysis.*
+**Source:** `docs/architecture/commands_skills_difference.md` § 决策与证据索引（高风险项）
 
 ## Script Missing Decision Classification
 
