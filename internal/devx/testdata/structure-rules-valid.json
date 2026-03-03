@@ -2,7 +2,7 @@
   "rules": [
     {
       "source_root": ".claude/commands",
-      "target_root": ".claude-plugin/.claude/commands",
+      "target_root": ".claude/commands",
       "decision": "MUST_HOMOMORPHIC",
       "ignore_source_names": [
         "octo.md"
@@ -14,13 +14,13 @@
     },
     {
       "source_root": ".claude/skills",
-      "target_root": ".claude-plugin/.claude/skills",
+      "target_root": ".claude/skills",
       "decision": "MUST_HOMOMORPHIC",
       "notes": "shared skills must remain structurally aligned"
     },
     {
       "source_root": ".claude/commands",
-      "target_root": ".claude-plugin/.claude/commands/init.md",
+      "target_root": ".claude/commands/init.md",
       "decision": "ALLOW_FORK",
       "notes": "go-only command entry is allowed"
     }
