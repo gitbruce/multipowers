@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -100,6 +101,29 @@ func (r Runner) RunSyncMainToGo(cfg SyncRulesConfig, opts SyncOptions) error {
 		}
 		return nil
 	})
+}
+
+func (r Runner) ListTreeNames(ref string, root string) ([]string, error) {
+	out, err := r.run(".", "git", "ls-tree", "-r", "--name-only", ref, root)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(out), "\n")
+	names := make([]string, 0, len(lines))
+	prefix := root
+	if !strings.HasSuffix(prefix, "/") {
+		prefix += "/"
+	}
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		line = strings.TrimPrefix(line, prefix)
+		names = append(names, line)
+	}
+	sort.Strings(names)
+	return names, nil
 }
 
 func (Runner) CommandPlan(suite string) ([]string, error) {
