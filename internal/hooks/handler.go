@@ -5,6 +5,7 @@ import (
 
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
 	"github.com/gitbruce/claude-octopus/internal/modelroute"
+	"github.com/gitbruce/claude-octopus/internal/policy"
 	"github.com/gitbruce/claude-octopus/pkg/api"
 )
 
@@ -50,12 +51,11 @@ func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 		}
 		if isSpecPrompt(evt) {
 			raw, _ := evt.ToolInput["prompt"].(string)
-			r := modelroute.ResolveForPrompt(projectDir, raw)
+			// Use new policy resolver first, fall back to legacy modelroute
+			metadata := resolveModelRouting(projectDir, raw)
 			return api.HookResult{
 				Decision: "allow",
-				Metadata: map[string]any{
-					"model_routing": r,
-				},
+				Metadata: metadata,
 			}
 		}
 		return api.HookResult{Decision: "allow"}
@@ -68,4 +68,54 @@ func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 	default:
 		return api.HookResult{Decision: "allow"}
 	}
+}
+
+// resolveModelRouting resolves model routing using the new policy resolver
+// with fallback to legacy modelroute for backward compatibility
+func resolveModelRouting(projectDir, prompt string) map[string]any {
+	// Try new policy resolver first
+	resolver, err := policy.NewResolverFromProjectDir(projectDir)
+	if err == nil {
+		// Parse workflow name from prompt
+		workflowName := extractWorkflowName(prompt)
+		if workflowName != "" {
+			contract, err := resolver.Resolve(policy.ResolveRequest{
+				Scope: policy.ScopeWorkflow,
+				Name:  workflowName,
+			})
+			if err == nil {
+				return map[string]any{
+					"model_routing": map[string]any{
+						"command":            workflowName,
+						"model":              contract.RequestedModel,
+						"provider":           string(contract.ExecutorKind),
+						"executor_profile":   contract.ExecutorProfile,
+						"enforcement":        string(contract.Enforcement),
+						"fallback_target":    contract.FallbackTarget,
+						"source":             contract.SourceRef,
+						"resolved_by_policy": true,
+					},
+				}
+			}
+		}
+	}
+
+	// Fall back to legacy modelroute
+	r := modelroute.ResolveForPrompt(projectDir, prompt)
+	return map[string]any{
+		"model_routing": r,
+	}
+}
+
+// extractWorkflowName extracts the workflow name from a /mp: command
+func extractWorkflowName(prompt string) string {
+	p := strings.ToLower(strings.TrimSpace(prompt))
+	if !strings.HasPrefix(p, "/mp:") {
+		return ""
+	}
+	p = strings.TrimPrefix(p, "/mp:")
+	if i := strings.IndexAny(p, " \t\n"); i >= 0 {
+		return p[:i]
+	}
+	return p
 }

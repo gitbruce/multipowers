@@ -23,9 +23,9 @@
 | T03 | Compile runtime policy JSON artifact | COMPLETED |
 | T03-S01 | Compiler output model + golden tests | COMPLETED |
 | T03-S02 | Build action integration in `mp-devx` | COMPLETED |
-| T04 | Integrate runtime resolver into hooks and workflow entrypoints | NOT_STARTED |
-| T04-S01 | Resolver contract + workflow task resolution | NOT_STARTED |
-| T04-S02 | Hook metadata + persona/workflow consumption | NOT_STARTED |
+| T04 | Integrate runtime resolver into hooks and workflow entrypoints | COMPLETED |
+| T04-S01 | Resolver contract + workflow task resolution | COMPLETED |
+| T04-S02 | Hook metadata + persona/workflow consumption | COMPLETED |
 | T05 | Implement executor dispatch and one-hop fallback | NOT_STARTED |
 | T05-S01 | External hard enforcement with model arg injection | NOT_STARTED |
 | T05-S02 | Automatic single-hop fallback (cross-provider allowed) | NOT_STARTED |
