@@ -16,8 +16,8 @@ func TestValidateStructureParity_PassesWithExplicitIgnores(t *testing.T) {
 			switch ref + ":" + root {
 			case "main:.claude/commands":
 				return []byte(".claude/commands/plan.md\n.claude/commands/octo.md\n"), nil
-			case "go:.claude-plugin/.claude/commands":
-				return []byte(".claude-plugin/.claude/commands/plan.md\n.claude-plugin/.claude/commands/mp.md\n"), nil
+			case "go:.claude/commands":
+				return []byte(".claude/commands/plan.md\n.claude/commands/mp.md\n"), nil
 			default:
 				t.Fatalf("unexpected lookup: %s:%s", ref, root)
 				return nil, nil
@@ -28,7 +28,7 @@ func TestValidateStructureParity_PassesWithExplicitIgnores(t *testing.T) {
 		Rules: []StructureRule{
 			{
 				SourceRoot:        ".claude/commands",
-				TargetRoot:        ".claude-plugin/.claude/commands",
+				TargetRoot:        ".claude/commands",
 				Decision:          DecisionMustHomomorphic,
 				IgnoreSourceNames: []string{"octo.md"},
 				IgnoreTargetNames: []string{"mp.md"},
@@ -52,8 +52,8 @@ func TestValidateStructureParity_FailsOnUnignoredDifferences(t *testing.T) {
 			switch ref + ":" + root {
 			case "main:.claude/commands":
 				return []byte(".claude/commands/plan.md\n.claude/commands/review.md\n"), nil
-			case "go:.claude-plugin/.claude/commands":
-				return []byte(".claude-plugin/.claude/commands/plan.md\n"), nil
+			case "go:.claude/commands":
+				return []byte(".claude/commands/plan.md\n"), nil
 			default:
 				t.Fatalf("unexpected lookup: %s:%s", ref, root)
 				return nil, nil
@@ -64,7 +64,7 @@ func TestValidateStructureParity_FailsOnUnignoredDifferences(t *testing.T) {
 		Rules: []StructureRule{
 			{
 				SourceRoot: ".claude/commands",
-				TargetRoot: ".claude-plugin/.claude/commands",
+				TargetRoot: ".claude/commands",
 				Decision:   DecisionMustHomomorphic,
 			},
 		},
