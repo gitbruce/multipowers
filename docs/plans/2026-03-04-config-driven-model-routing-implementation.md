@@ -26,9 +26,9 @@
 | T04 | Integrate runtime resolver into hooks and workflow entrypoints | COMPLETED |
 | T04-S01 | Resolver contract + workflow task resolution | COMPLETED |
 | T04-S02 | Hook metadata + persona/workflow consumption | COMPLETED |
-| T05 | Implement executor dispatch and one-hop fallback | NOT_STARTED |
-| T05-S01 | External hard enforcement with model arg injection | NOT_STARTED |
-| T05-S02 | Automatic single-hop fallback (cross-provider allowed) | NOT_STARTED |
+| T05 | Implement executor dispatch and one-hop fallback | COMPLETED |
+| T05-S01 | External hard enforcement with model arg injection | COMPLETED |
+| T05-S02 | Automatic single-hop fallback (cross-provider allowed) | COMPLETED |
 | T06 | Add `/mp:config` visibility toggle (default show) | NOT_STARTED |
 | T06-S01 | Persist `show_model_routing` setting | NOT_STARTED |
 | T06-S02 | Respect toggle in output rendering | NOT_STARTED |
