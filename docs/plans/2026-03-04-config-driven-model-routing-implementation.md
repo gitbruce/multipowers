@@ -17,9 +17,9 @@
 | T01 | Define policy schemas and source config files | COMPLETED |
 | T01-S01 | Workflow config with optional task level | COMPLETED |
 | T01-S02 | Agent + executor config base | COMPLETED |
-| T02 | Build parser and semantic validator (`internal/policy`) | IN_PROGRESS |
-| T02-S01 | YAML loader + schema validation tests | NOT_STARTED |
-| T02-S02 | Semantic checks (fallback, executor mapping) | NOT_STARTED |
+| T02 | Build parser and semantic validator (`internal/policy`) | COMPLETED |
+| T02-S01 | YAML loader + schema validation tests | COMPLETED |
+| T02-S02 | Semantic checks (fallback, executor mapping) | COMPLETED |
 | T03 | Compile runtime policy JSON artifact | NOT_STARTED |
 | T03-S01 | Compiler output model + golden tests | NOT_STARTED |
 | T03-S02 | Build action integration in `mp-devx` | NOT_STARTED |

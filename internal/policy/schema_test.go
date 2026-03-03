@@ -87,6 +87,82 @@ func TestWorkflowSchema(t *testing.T) {
 	})
 }
 
+// TestAgentSchema tests agent config validation
+func TestAgentSchema(t *testing.T) {
+	t.Run("valid agent config", func(t *testing.T) {
+		cfg := &AgentPolicy{
+			Model:           "gpt-5.3-codex",
+			ExecutorProfile: "codex_cli",
+			FallbackPolicy:  "cross_provider_once",
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid agent config, got error: %v", err)
+		}
+	})
+
+	t.Run("invalid agent missing model", func(t *testing.T) {
+		cfg := &AgentPolicy{
+			ExecutorProfile: "codex_cli",
+		}
+		if err := cfg.Validate(); err == nil {
+			t.Error("expected error for missing model")
+		}
+	})
+
+	t.Run("invalid agent missing executor_profile", func(t *testing.T) {
+		cfg := &AgentPolicy{
+			Model: "gpt-5.3-codex",
+		}
+		if err := cfg.Validate(); err == nil {
+			t.Error("expected error for missing executor_profile")
+		}
+	})
+}
+
+// TestExecutorSchema tests executor config validation
+func TestExecutorSchema(t *testing.T) {
+	t.Run("valid external_cli executor", func(t *testing.T) {
+		cfg := &ExecutorConfig{
+			Kind:            ExecutorKindExternalCLI,
+			CommandTemplate: []string{"codex", "-m", "{model}", "{prompt}"},
+			Enforcement:     EnforcementHard,
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid executor config, got error: %v", err)
+		}
+	})
+
+	t.Run("valid claude_code executor", func(t *testing.T) {
+		cfg := &ExecutorConfig{
+			Kind:        ExecutorKindClaudeCode,
+			Enforcement: EnforcementHint,
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid claude_code executor, got error: %v", err)
+		}
+	})
+
+	t.Run("external_cli requires command_template", func(t *testing.T) {
+		cfg := &ExecutorConfig{
+			Kind:        ExecutorKindExternalCLI,
+			Enforcement: EnforcementHard,
+		}
+		if err := cfg.Validate(); err == nil {
+			t.Error("expected error for missing command_template")
+		}
+	})
+
+	t.Run("invalid enforcement value", func(t *testing.T) {
+		cfg := &ExecutorConfig{
+			Kind:        ExecutorKindClaudeCode,
+			Enforcement: Enforcement("invalid"),
+		}
+		if err := cfg.Validate(); err == nil {
+			t.Error("expected error for invalid enforcement value")
+		}
+	})
+}
+
 // TestWorkflowsYAML tests parsing workflows.yaml file
 func TestWorkflowsYAML(t *testing.T) {
 	t.Run("parse valid workflows.yaml", func(t *testing.T) {

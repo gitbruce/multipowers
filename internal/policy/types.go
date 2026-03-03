@@ -42,11 +42,39 @@ type AgentPolicy struct {
 	DisplayName     string `yaml:"display_name,omitempty"`
 }
 
+// Validate checks that required fields are present
+func (a *AgentPolicy) Validate() error {
+	if a.Model == "" {
+		return &ValidationError{Field: "model", Reason: "model is required"}
+	}
+	if a.ExecutorProfile == "" {
+		return &ValidationError{Field: "executor_profile", Reason: "executor_profile is required"}
+	}
+	return nil
+}
+
 // ExecutorConfig defines how to invoke an external or internal executor
 type ExecutorConfig struct {
 	Kind            ExecutorKind `yaml:"kind"`
 	CommandTemplate []string     `yaml:"command_template,omitempty"`
 	Enforcement     Enforcement  `yaml:"enforcement"`
+}
+
+// Validate checks that required fields are present and valid
+func (e *ExecutorConfig) Validate() error {
+	if e.Kind == "" {
+		return &ValidationError{Field: "kind", Reason: "kind is required"}
+	}
+	if e.Kind != ExecutorKindExternalCLI && e.Kind != ExecutorKindClaudeCode {
+		return &ValidationError{Field: "kind", Reason: "invalid executor kind, must be external_cli or claude_code"}
+	}
+	if e.Enforcement != EnforcementHard && e.Enforcement != EnforcementHint {
+		return &ValidationError{Field: "enforcement", Reason: "invalid enforcement, must be hard or hint"}
+	}
+	if e.Kind == ExecutorKindExternalCLI && len(e.CommandTemplate) == 0 {
+		return &ValidationError{Field: "command_template", Reason: "command_template is required for external_cli"}
+	}
+	return nil
 }
 
 // ExecutorKind represents the type of executor
