@@ -43,7 +43,7 @@ go test ./internal/devx ./cmd/mp-devx -v
 
 - `main` fast-forwards to `upstream/main` in isolated worktree.
 - `go` receives only rules-allowed shared files.
-- `.claude-plugin/.claude` structure checks pass for `MUST_HOMOMORPHIC` scopes.
+- `.claude` structure checks pass for `MUST_HOMOMORPHIC` scopes.
 - No local uncommitted user edits are reverted.
 
 ## Failure Handling

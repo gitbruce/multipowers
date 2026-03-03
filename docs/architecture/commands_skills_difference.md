@@ -7,8 +7,8 @@
 ## 范围与判定口径
 
 - 仅关注：
-  - `main:.claude/commands/*` vs `go:.claude-plugin/.claude/commands/*`
-  - `main:.claude/skills/*` vs `go:.claude-plugin/.claude/skills/*`
+  - `main:.claude/commands/*` vs `go:.claude/commands/*`
+  - `main:.claude/skills/*` vs `go:.claude/skills/*`
 - 状态定义：`equivalent` / `partial` / `missing` / `intentional-diff`
 - 决策（decision）取值：`MIGRATE_TO_GO`、`COPY_FROM_MAIN`、`EXCLUDE_WITH_REASON`、`DEFER_WITH_CONDITION`
 - 决策依据：`.multipowers/product-guidelines.md`、`.multipowers/product.md`
@@ -37,15 +37,15 @@
 规则文件：`config/sync/claude-structure-rules.json`
 
 - `MUST_HOMOMORPHIC`：
-  - `.claude/commands` -> `.claude-plugin/.claude/commands`（共享子集）
-  - `.claude/skills` -> `.claude-plugin/.claude/skills`（共享子集）
-  - `.claude/references` -> `.claude-plugin/.claude/references`
-  - `.claude/state` -> `.claude-plugin/.claude/state`
+  - `.claude/commands` -> `.claude/commands`（共享子集）
+  - `.claude/skills` -> `.claude/skills`（共享子集）
+  - `.claude/references` -> `.claude/references`
+  - `.claude/state` -> `.claude/state`
 - `ALLOW_FORK`：
-  - `.claude-plugin/.claude/commands/init.md`
-  - `.claude-plugin/.claude/commands/mp.md`
-  - `.claude-plugin/.claude/commands/persona.md`
-  - `.claude-plugin/.claude/skills/skill-persona.md`
+  - `.claude/commands/init.md`
+  - `.claude/commands/mp.md`
+  - `.claude/commands/persona.md`
+  - `.claude/skills/skill-persona.md`
   - 以及规则内显式 ignore 列表
 
 校验入口：`./scripts/validate-claude-structure.sh -dry-run`
@@ -78,10 +78,9 @@ go-only skills：
 
 | source | target | decision | evidence | 最新状态 |
 |---|---|---|---|---|
-| `.claude/commands/octo.md` | `.claude-plugin/.claude/commands/mp.md` | `MIGRATE_TO_GO` | `E0` | 仍为 `partial` |
+| `.claude/commands/octo.md` | `.claude/commands/mp.md` | `MIGRATE_TO_GO` | `E0` | 仍为 `partial` |
 | `.claude/commands/sentinel.md` | `internal/hooks/*`（治理门禁域） | `MIGRATE_TO_GO` | `E0` | 仍为 `missing` |
 | `.claude/commands/schedule.md` + `.claude/commands/scheduler.md` | `internal/scheduler/*` | `DEFER_WITH_CONDITION` | `E0` | 待 scheduler 域契约落地 |
 | `.claude/commands/claw.md` | `N/A` | `DEFER_WITH_CONDITION` | `E0` | 待产品范围确认 |
 | `.claude/commands/doctor.md` | `sys-configure` 能力域 | `EXCLUDE_WITH_REASON` | `E0` | 维持排除 |
 | `.claude/skills/skill-claw.md` + `.claude/skills/skill-doctor.md` | `N/A` | `EXCLUDE_WITH_REASON` | `E0` | 维持排除 |
-

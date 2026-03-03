@@ -58,11 +58,11 @@ High-impact configuration and documentation gaps.
 | OTH-001 | mcp-server/* | `internal/providers/*` (DetectAll/RouteIntent) | `E0 -> E1: Create adapter interface in internal/providers/mcp_adapter.go` | providers | deferred |
 | OTH-002 | openclaw/* | N/A | N/A | external | closed |
 | OTH-003 | tests/benchmark/* + tests/live/README.md | `internal/workflows/*_test.go` | `E0 -> E2: Add TestBenchmarkRunner, TestLiveTestHarness` | workflows | pending |
-| OTH-004 | .claude/settings.json | `.claude-plugin/.claude/settings.json` | `E0 -> E1: Copy file with path migration` | context | pending |
+| OTH-004 | .claude/settings.json | `.claude/settings.json` | `E0 -> E1: Copy file with path migration` | context | pending |
 | OTH-005 | .claude-plugin/settings.json | `.claude-plugin/custom/config/setup.toml` | `E0 -> E2: Document field mapping, add conversion test` | config | pending |
 | OTH-006 | .mcp.json | `.dependencies/claude-skills` | `E0 -> E1: Document new dependency model` | deps | pending |
 | OTH-007 | docs/SCHEDULER.md | `docs/architecture/script-differences.md` | `E0 -> E1: Add scheduler section to script-differences.md` | docs | pending |
-| OTH-008 | agents/personas/openclaw-admin.md | `.claude-plugin/.claude/commands/persona.md` | `E0 -> E1: If persona needed, add to persona lanes config` | personas | deferred |
+| OTH-008 | agents/personas/openclaw-admin.md | `.claude/commands/persona.md` | `E0 -> E1: If persona needed, add to persona lanes config` | personas | deferred |
 
 **Source:** `docs/architecture/other-differences.md` § 关键缺口决策与契约索引
 

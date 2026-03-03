@@ -43,7 +43,7 @@ go-only（214）状态统计：
 
 | 语义域 | main | go | 状态 | decision |
 |---|---|---|---|---|
-| Claude 工作区文档 | `.claude/*` | `.claude-plugin/.claude/*` | `equivalent` | `COPY_FROM_MAIN` |
+| Claude 工作区文档 | `.claude/*` | `.claude/*` | `equivalent` | `COPY_FROM_MAIN` |
 | 插件配置入口 | `.claude-plugin/settings.json` | `.claude-plugin/custom/config/setup.toml` | `partial` | `MIGRATE_TO_GO` |
 | MCP 配置入口 | `.mcp.json` | `.dependencies/claude-skills` + go 配置体系 | `partial` | `MIGRATE_TO_GO` |
 | MCP Server 子项目 | `mcp-server/*` | `internal/providers/*` 语义承接 | `missing` | `DEFER_WITH_CONDITION` |
@@ -58,10 +58,9 @@ go-only（214）状态统计：
 | `mcp-server/*` | `internal/providers/*` | `DEFER_WITH_CONDITION` | `E0` | 待独立 server 边界需求 |
 | `openclaw/*` | `N/A` | `EXCLUDE_WITH_REASON` | `E0` | 当前产品范围排除 |
 | `tests/benchmark/*` + `tests/live/*` | `internal/workflows/*_test.go` | `MIGRATE_TO_GO` | `E0` | 持续迁移中 |
-| `.claude/settings.json` | `.claude-plugin/.claude/settings.json` | `COPY_FROM_MAIN` | `E0` | 需保持 workspace 配置承接 |
+| `.claude/settings.json` | `.claude/settings.json` | `COPY_FROM_MAIN` | `E0` | 需保持 workspace 配置承接 |
 | `.claude-plugin/settings.json` | `.claude-plugin/custom/config/setup.toml` | `MIGRATE_TO_GO` | `E0` | 字段映射文档待补全 |
 
 ## go-only 增量说明（当前）
 
 `go-only` 的新增文件以 no-shell runtime、sync 自动化、结构治理和自定义层为主，属于当前分支预期 `intentional-diff`，不需要回迁 `main`。
-

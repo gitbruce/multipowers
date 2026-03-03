@@ -6,19 +6,19 @@
 - Keep `main` as mirror; keep implementation deltas on `go`.
 - No legacy layering mechanism; all shared sync uses rules contracts.
 
-## Structure Policy (`.claude` -> `.claude-plugin/.claude`)
+## Structure Policy (`.claude` -> `.claude`)
 
 `MUST_HOMOMORPHIC` (must remain structurally aligned):
-- `.claude/commands` -> `.claude-plugin/.claude/commands` (shared subset)
-- `.claude/skills` -> `.claude-plugin/.claude/skills` (shared subset)
-- `.claude/references` -> `.claude-plugin/.claude/references`
-- `.claude/state` -> `.claude-plugin/.claude/state`
+- `.claude/commands` -> `.claude/commands` (shared subset)
+- `.claude/skills` -> `.claude/skills` (shared subset)
+- `.claude/references` -> `.claude/references`
+- `.claude/state` -> `.claude/state`
 
 `ALLOW_FORK` (explicitly allowed divergence):
-- `.claude-plugin/.claude/commands/init.md`
-- `.claude-plugin/.claude/commands/mp.md`
-- `.claude-plugin/.claude/commands/persona.md`
-- `.claude-plugin/.claude/skills/skill-persona.md`
+- `.claude/commands/init.md`
+- `.claude/commands/mp.md`
+- `.claude/commands/persona.md`
+- `.claude/skills/skill-persona.md`
 - plus explicit ignore lists in `config/sync/claude-structure-rules.json`
 
 ## Execution Discipline
