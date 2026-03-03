@@ -35,9 +35,9 @@
 | T07 | Replace hardcoded model paths and add guardrails | COMPLETED |
 | T07-S01 | Remove runtime hardcoding dependency points | COMPLETED |
 | T07-S02 | Add hardcoded-model scan tests | COMPLETED |
-| T08 | Build/release integration for runtime-only `.claude-plugin` | NOT_STARTED |
-| T08-S01 | Build binaries + policy in one pipeline | NOT_STARTED |
-| T08-S02 | Runtime read-only contract checks | NOT_STARTED |
+| T08 | Build/release integration for runtime-only `.claude-plugin` | COMPLETED |
+| T08-S01 | Build binaries + policy in one pipeline | COMPLETED |
+| T08-S02 | Runtime read-only contract checks | COMPLETED |
 | T09 | End-to-end verification and migration docs | NOT_STARTED |
 | T09-S01 | E2E tests for resolver/enforcement/fallback | NOT_STARTED |
 | T09-S02 | Operator docs + evidence capture | NOT_STARTED |
