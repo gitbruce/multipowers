@@ -41,6 +41,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	push := fs.Bool("push", false, "push branch after successful sync")
 	rulesPath := fs.String("rules", "config/sync/main-to-go-rules.json", "sync rules path")
 	structureRulesPath := fs.String("structure-rules", "config/sync/claude-structure-rules.json", "structure parity rules path")
+	sourceRef := fs.String("source-ref", "main", "source git ref for structure parity")
+	targetRef := fs.String("target-ref", "go", "target git ref for structure parity")
 
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -116,7 +118,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		if err := r.ValidateStructureParity(cfg, "main", "go"); err != nil {
+		if err := r.ValidateStructureParity(cfg, *sourceRef, *targetRef); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
