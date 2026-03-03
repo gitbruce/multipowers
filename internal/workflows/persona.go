@@ -157,20 +157,7 @@ func oneLine(s string) string {
 }
 
 func DefaultPersonaConfig(projectDir string) string {
-	projectConfig := filepath.Join(projectDir, "agents", "config.yaml")
-	if fileExists(projectConfig) {
-		return projectConfig
-	}
-
-	pluginRoot := strings.TrimSpace(os.Getenv("CLAUDE_PLUGIN_ROOT"))
-	if pluginRoot != "" {
-		pluginConfig := filepath.Join(pluginRoot, "agents", "config.yaml")
-		if fileExists(pluginConfig) {
-			return pluginConfig
-		}
-	}
-
-	return projectConfig
+	return defaultPersonaConfigWithResolver(projectDir, resolvePersonaConfigRoots)
 }
 
 func fileExists(path string) bool {
@@ -179,4 +166,51 @@ func fileExists(path string) bool {
 		return false
 	}
 	return !info.IsDir()
+}
+
+func defaultPersonaConfigWithResolver(projectDir string, resolveRoots func() []string) string {
+	projectConfig := filepath.Join(projectDir, "agents", "config.yaml")
+	if fileExists(projectConfig) {
+		return projectConfig
+	}
+
+	for _, root := range resolveRoots() {
+		if strings.TrimSpace(root) == "" {
+			continue
+		}
+		candidate := filepath.Join(root, "agents", "config.yaml")
+		if fileExists(candidate) {
+			return candidate
+		}
+	}
+
+	return projectConfig
+}
+
+func resolvePersonaConfigRoots() []string {
+	seen := map[string]struct{}{}
+	roots := make([]string, 0, 3)
+	add := func(root string) {
+		root = strings.TrimSpace(root)
+		if root == "" {
+			return
+		}
+		root = filepath.Clean(root)
+		if _, ok := seen[root]; ok {
+			return
+		}
+		seen[root] = struct{}{}
+		roots = append(roots, root)
+	}
+
+	add(os.Getenv("CLAUDE_PLUGIN_ROOT"))
+
+	if exePath, err := os.Executable(); err == nil && strings.TrimSpace(exePath) != "" {
+		add(filepath.Dir(filepath.Dir(exePath)))
+		if resolved, err := filepath.EvalSymlinks(exePath); err == nil && strings.TrimSpace(resolved) != "" {
+			add(filepath.Dir(filepath.Dir(resolved)))
+		}
+	}
+
+	return roots
 }

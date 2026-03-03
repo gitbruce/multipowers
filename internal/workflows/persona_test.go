@@ -67,3 +67,22 @@ func TestDefaultPersonaConfig_FallsBackToPluginConfig(t *testing.T) {
 		t.Fatalf("expected plugin config fallback, got %s", got)
 	}
 }
+
+func TestDefaultPersonaConfigWithResolver_FallsBackWithoutEnv(t *testing.T) {
+	projectDir := t.TempDir()
+	pluginRoot := t.TempDir()
+	pluginConfig := filepath.Join(pluginRoot, "agents", "config.yaml")
+	if err := os.MkdirAll(filepath.Dir(pluginConfig), 0o755); err != nil {
+		t.Fatalf("mkdir plugin agents: %v", err)
+	}
+	if err := os.WriteFile(pluginConfig, []byte("agents:\n"), 0o644); err != nil {
+		t.Fatalf("write plugin config: %v", err)
+	}
+
+	got := defaultPersonaConfigWithResolver(projectDir, func() []string {
+		return []string{pluginRoot}
+	})
+	if got != pluginConfig {
+		t.Fatalf("expected resolver fallback config, got %s", got)
+	}
+}
