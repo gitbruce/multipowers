@@ -157,5 +157,26 @@ func oneLine(s string) string {
 }
 
 func DefaultPersonaConfig(projectDir string) string {
-	return filepath.Join(projectDir, "agents", "config.yaml")
+	projectConfig := filepath.Join(projectDir, "agents", "config.yaml")
+	if fileExists(projectConfig) {
+		return projectConfig
+	}
+
+	pluginRoot := strings.TrimSpace(os.Getenv("CLAUDE_PLUGIN_ROOT"))
+	if pluginRoot != "" {
+		pluginConfig := filepath.Join(pluginRoot, "agents", "config.yaml")
+		if fileExists(pluginConfig) {
+			return pluginConfig
+		}
+	}
+
+	return projectConfig
+}
+
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !info.IsDir()
 }

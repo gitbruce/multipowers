@@ -10,5 +10,10 @@ git checkout main -- .claude
 rm -rf .claude-plugin/.claude
 mv .claude .claude-plugin/.claude
 
+# Keep bundled persona defaults aligned with main.
+git checkout main -- agents/config.yaml
+mkdir -p .claude-plugin/agents
+cp agents/config.yaml .claude-plugin/agents/config.yaml
+
 test ! -d .claude
 echo "Synced main:.claude -> .claude-plugin/.claude"

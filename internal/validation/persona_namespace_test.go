@@ -47,6 +47,11 @@ func TestPersonaCommandIsPluginNamespacedOnly(t *testing.T) {
 		t.Fatalf("plugin.json must not register deprecated skill-persona")
 	}
 
+	bundledPersonaConfig := filepath.Join(root, ".claude-plugin", "agents", "config.yaml")
+	if _, err := os.Stat(bundledPersonaConfig); err != nil {
+		t.Fatalf("plugin must bundle fallback persona config: %v", err)
+	}
+
 	legacySkill := filepath.Join(root, ".claude-plugin", ".claude", "skills", "skill-persona.md")
 	if _, err := os.Stat(legacySkill); err == nil {
 		t.Fatalf("deprecated skill-persona file must be removed: %s", legacySkill)
