@@ -37,7 +37,7 @@ fi
 
 ### Integration in Extract Command
 
-Add to `.claude-plugin/.claude/commands/extract.md`:
+Add to `.claude/commands/extract.md`:
 
 ```javascript
 // Before processing PDF files
@@ -80,7 +80,7 @@ if (filePath.endsWith('.pdf')) {
 
 ### Integration in Research Workflow
 
-Add to `.claude-plugin/.claude/skills/skill-deep-research.md`:
+Add to `.claude/skills/skill-deep-research.md`:
 
 ```markdown
 ## PDF Handling
@@ -301,8 +301,8 @@ pages=$(ask_pdf_page_selection "$pdf_file" "$page_count" 5)  # 5-page threshold
 ## Related Features
 
 - **Debug Mode**: See [DEBUG_MODE.md](DEBUG_MODE.md)
-- **Extract Workflow**: See `.claude-plugin/.claude/commands/extract.md`
-- **Research Skills**: See `.claude-plugin/.claude/skills/skill-deep-research.md`
+- **Extract Workflow**: See `.claude/commands/extract.md`
+- **Research Skills**: See `.claude/skills/skill-deep-research.md`
 
 ## Version History
 

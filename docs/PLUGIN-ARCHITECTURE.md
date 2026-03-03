@@ -43,15 +43,15 @@ This guide explains the internal architecture of Claude Octopus for contributors
   "version": "7.4.0",
   "description": "Multi-tentacled orchestrator...",
   "skills": [
-    "./.claude-plugin/.claude/skills/parallel-agents.md",
-    "./.claude-plugin/.claude/skills/probe-workflow.md",
-    "./.claude-plugin/.claude/skills/grasp-workflow.md",
-    "./.claude-plugin/.claude/skills/tangle-workflow.md",
-    "./.claude-plugin/.claude/skills/ink-workflow.md",
-    "./.claude-plugin/.claude/skills/debate.md",
+    "./.claude/skills/parallel-agents.md",
+    "./.claude/skills/probe-workflow.md",
+    "./.claude/skills/grasp-workflow.md",
+    "./.claude/skills/tangle-workflow.md",
+    "./.claude/skills/ink-workflow.md",
+    "./.claude/skills/debate.md",
     ...
   ],
-  "commands": "./.claude-plugin/.claude/commands/",
+  "commands": "./.claude/commands/",
   "dependencies": {
     "claude-skills": {
       "repository": "https://github.com/wolverin0/claude-skills",
@@ -73,7 +73,7 @@ This guide explains the internal architecture of Claude Octopus for contributors
 
 Skills are markdown files with YAML frontmatter that define Claude's behavior for specific tasks.
 
-**Location:** `.claude-plugin/.claude/skills/*.md`
+**Location:** `.claude/skills/*.md`
 
 #### Skill Structure
 
@@ -339,13 +339,13 @@ fi
 └── skills/
     └── debate.md                    # Original skill by wolverin0
 
-.claude-plugin/.claude/skills/
+.claude/skills/
 ├── debate.md                        # Wrapper with YAML frontmatter
 └── debate-integration.md            # Enhancement layer
 ```
 
 **Wrapper Strategy:**
-1. `.claude-plugin/.claude/skills/debate.md` - Proper YAML frontmatter for Claude Code
+1. `.claude/skills/debate.md` - Proper YAML frontmatter for Claude Code
 2. Content from `.dependencies/claude-skills/skills/debate.md` embedded
 3. Enhancements (quality gates, cost tracking) in `debate-integration.md`
 
@@ -438,7 +438,7 @@ claude-octopus/
 ├── .claude-plugin/
 │   ├── plugin.json                 # Plugin manifest
 │   └── hooks.json                  # Hook definitions
-├── .claude-plugin/.claude/
+├── .claude/
 │   ├── commands/                   # Slash commands
 │   ├── hooks/                      # Hook scripts
 │   │   ├── octopus-hud.mjs      # Visual indicators
@@ -473,7 +473,7 @@ claude-octopus/
 
 ### Adding a New Workflow Skill
 
-1. **Create skill file:** `.claude-plugin/.claude/skills/my-workflow.md`
+1. **Create skill file:** `.claude/skills/my-workflow.md`
 2. **Add YAML frontmatter:**
    ```yaml
    ---

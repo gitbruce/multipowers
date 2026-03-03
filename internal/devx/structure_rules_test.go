@@ -24,7 +24,7 @@ func TestLoadStructureRules_RootTargetsUseClaudeRoot(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	for _, rule := range cfg.Rules {
-		if strings.Contains(rule.TargetRoot, ".claude-plugin/.claude") {
+		if strings.Contains(rule.TargetRoot, ".claude-plugin/") {
 			t.Fatalf("unexpected legacy target root: %s", rule.TargetRoot)
 		}
 	}

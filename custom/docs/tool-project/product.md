@@ -18,7 +18,7 @@ Naming contract:
 ## What This Repository Delivers
 
 1. Workflow orchestration engine in `.claude-plugin/bin/mp` (developer wrapper: `scripts/mp`).
-2. Command surface in `.claude-plugin/.claude/commands/*` and skill implementations in `.claude-plugin/.claude/skills/*`.
+2. Command surface in `.claude/commands/*` and skill implementations in `.claude/skills/*`.
 3. Persona and routing configuration in `agents/` and `agents/config.yaml`.
 4. Provider and workflow configuration in `config/providers/*` and `workflows/embrace.yaml`.
 5. Operational hooks and safeguards in `hooks/*`.
@@ -62,7 +62,7 @@ Default provider/model policy for this repository:
 ### 3) Persona and Skill System
 
 - Persona catalog in `agents/personas/*` provides domain-specialized behavior.
-- Skills in `.claude-plugin/.claude/skills/*` encode repeatable delivery patterns (review, debug, TDD, research, docs, debate, resume, etc.).
+- Skills in `.claude/skills/*` encode repeatable delivery patterns (review, debug, TDD, research, docs, debate, resume, etc.).
 - Routing uses context and intent to select workflows/personas rather than fixed single-agent execution.
 
 ### 4) State, Context, and Resume
