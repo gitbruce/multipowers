@@ -10,6 +10,7 @@ The `go` branch keeps product-specific customization, but long-term maintenance 
 - Keep naming conventions aligned with `main` for:
   - Markdown files (`*.md`)
   - Claude Code related files under `.claude*` policy/command/skill/reference/state scopes
+- Exclude `./custom/**` from naming parity enforcement.
 - Do not constrain Go implementation files (`*.go`), which remain independently evolved in `go`.
 - Allow controlled customization in `init/mp/persona/skill-persona` while preserving naming discipline.
 
@@ -42,6 +43,7 @@ Use three policy classes:
   - `*.md` in mapped parity scopes
   - Claude Code related files in `.claude` / `.claude-plugin/.claude` mapped scopes
 - Exclude from parity:
+  - `./custom/**` (all files under custom are policy-exempt)
   - `*.go` (all Go files remain unconstrained by naming parity)
 
 ### 3) Validation Flow
@@ -72,6 +74,7 @@ This keeps drift pressure on structure/naming while preserving customization fle
 - Unknown rule decision: fail validation.
 - Unregistered add/delete in `ALLOW_FORK_WITH_NAME_PARITY`: fail validation and list offending files.
 - Go file mismatch reports are suppressed by scope filter to avoid false policy failures.
+- `./custom/**` files are suppressed by scope filter to avoid policy noise on product customizations.
 
 ## Testing Strategy
 
