@@ -1,0 +1,12 @@
+{
+  "rules": [
+    {
+      "name": "shared-scripts",
+      "decision": "COPY_FROM_MAIN",
+      "paths": [
+        "deploy.sh",
+        "install.sh"
+      ]
+    }
+  ]
+}

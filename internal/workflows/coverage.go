@@ -2,10 +2,15 @@ package workflows
 
 import (
 	"bufio"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 )
+
+func skipNestedGoTest() bool {
+	return os.Getenv("OCTO_SKIP_NESTED_GO_TEST") == "1"
+}
 
 // CoverageResult represents the structured result of a coverage check
 type CoverageResult struct {
@@ -27,15 +32,20 @@ type PackageCoverage struct {
 
 // CoverageCheck runs go test -cover and returns structured results
 func CoverageCheck(projectDir string, threshold float64) CoverageResult {
-	cmd := exec.Command("go", "test", "./...", "-cover", "-coverprofile=coverage.out")
-	cmd.Dir = projectDir
-	output, err := cmd.CombinedOutput()
-
 	result := CoverageResult{
 		Command:   "go test -cover ./...",
 		Status:    "passed",
 		Threshold: threshold,
 	}
+	if skipNestedGoTest() {
+		result.Status = "skipped"
+		return result
+	}
+
+	cmd := exec.Command("go", "test", "./...", "-cover", "-coverprofile=coverage.out")
+	cmd.Dir = projectDir
+	cmd.Env = append(os.Environ(), "OCTO_SKIP_NESTED_GO_TEST=1")
+	output, err := cmd.CombinedOutput()
 
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {

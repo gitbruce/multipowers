@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"encoding/json"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -22,14 +23,19 @@ type TestRunResult struct {
 
 // TestRun executes go test and returns structured results
 func TestRun(projectDir string) TestRunResult {
-	cmd := exec.Command("go", "test", "./...", "-v", "-json")
-	cmd.Dir = projectDir
-	output, err := cmd.CombinedOutput()
-
 	result := TestRunResult{
 		Command: "go test ./...",
 		Status:  "passed",
 	}
+	if skipNestedGoTest() {
+		result.Status = "skipped"
+		return result
+	}
+
+	cmd := exec.Command("go", "test", "./...", "-v", "-json")
+	cmd.Dir = projectDir
+	cmd.Env = append(os.Environ(), "OCTO_SKIP_NESTED_GO_TEST=1")
+	output, err := cmd.CombinedOutput()
 
 	if err != nil {
 		// Check if it's a test failure vs command error
