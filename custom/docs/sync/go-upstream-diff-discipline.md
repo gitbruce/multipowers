@@ -4,7 +4,7 @@
 
 - Keep sync direction fixed: `upstream/main -> main -> go`.
 - Keep `main` as mirror; keep implementation deltas on `go`.
-- No overlay mechanism; all shared sync uses rules contracts.
+- No legacy layering mechanism; all shared sync uses rules contracts.
 
 ## Structure Policy (`.claude` -> `.claude-plugin/.claude`)
 

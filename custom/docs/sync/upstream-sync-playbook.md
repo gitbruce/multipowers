@@ -4,7 +4,7 @@
 
 - Sync direction is fixed: `upstream/main -> main -> go`.
 - `main` stays a clean mirror of `upstream/main`; implementation continues on `go`.
-- No overlay mechanism: common content enters `go` only through `COPY_FROM_MAIN` rules.
+- No legacy layering mechanism: common content enters `go` only through `COPY_FROM_MAIN` rules.
 - All sync mutations run in isolated `.worktrees/sync-*` worktrees, never by switching the current working branch.
 
 ## Rules Contracts

@@ -28,7 +28,7 @@
 从 2026-03-03 起，`.claude-plugin/.claude` 目录差异治理采用规则文件 `config/sync/claude-structure-rules.json`，并由 `./scripts/validate-claude-structure.sh -dry-run` 执行校验：
 - `MUST_HOMOMORPHIC`（必须同构）：`commands`、`skills`、`references`、`state`。
 - `ALLOW_FORK`（允许分叉）：`init.md`、`mp.md`、`persona.md`、`skill-persona.md` 及规则里显式声明的例外。
-- 不再使用 overlay 机制；同步路径固定为 `upstream/main -> main -> go`，共通文件通过规则同步与结构校验进入 `go`。
+- 不再使用历史分层回放机制；同步路径固定为 `upstream/main -> main -> go`，共通文件通过规则同步与结构校验进入 `go`。
 
 ## 结果概览
 
