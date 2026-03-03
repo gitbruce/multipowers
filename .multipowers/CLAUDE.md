@@ -23,7 +23,11 @@
 - `main` is read-only in local workflow: no feature commits, no direct edits, no migration work.
 - Periodically sync upstream into `main` to keep baseline current (for example before each major planning/implementation wave).
 - Use `main` only as canonical upstream baseline reference; active development happens on `go`.
-- If upstream changes are needed locally, flow is: sync upstream -> refresh baseline docs/mapping on `go` -> commit/push `go`.
+- Sync flow is: `upstream/main -> main -> go`.
+- Never run sync by switching current worktree branch.
+- Run sync branch mutations only in `.worktrees/sync-*`.
+- Never resolve sync with revert/reset of local uncommitted files.
+- Preferred entrypoints: `./scripts/sync-upstream-main.sh`, `./scripts/sync-main-to-go.sh`, `./scripts/sync-all.sh`.
 
 ## Workflow
 Discover -> Define -> Develop -> Deliver, with contract-first verification and parity checks at delivery time.

@@ -1,32 +1,26 @@
 # Verification Transcript
 
 ## git status --short --branch
-## multipowers
- M custom/docs/reference/compatibility.md
+## go
  M custom/docs/sync/conflict-resolution.md
+ M custom/docs/sync/upstream-sync-playbook.md
 ?? custom/docs/sync/verification-transcript.md
 
-## ./scripts/mp-devx sync
+## ./scripts/sync-upstream-main.sh -dry-run
+sync upstream->main ok
 
-## ./scripts/mp-devx overlay
-Overlay applied successfully
+## ./scripts/sync-main-to-go.sh -dry-run
+sync main->go ok
 
-## ./.claude-plugin/bin/mp persona list (first 20 lines)
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Claude Code v2.1.52 detected
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Task Management: true | Fork Context: true | Agent Teams: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Persistent Memory: true | Hook Events: true | Agent Type Routing: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Stable Agent Teams: true | Agent Memory: true | Fast Opus: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Native Task Metrics: true | Agent Teams Bridge: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Auth CLI: true | Anchor Mentions: true | OTel Speed: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Prompt Cache Opt: true | Enterprise Fix: true | Stable Auth: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Sonnet 4.6: true | Per-Project Plugins: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Stable BG Agents: true | Hook Last Message: true | Agent Model Field: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: ConfigChange Hook: true | Plugin Scope Auto: true | SDK Model Caps: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Worktree Isolation: true | Worktree Hooks: true | Agents CLI: true | Fast Opus 1M: true
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: User /fast mode: false
-[0;34m[2026-02-25 15:13:58][0m [0;32mINFO[0m: Optional progress tracking disabled
+## ./scripts/sync-all.sh -dry-run
+sync all ok
 
-[1;33m🐙 First time? Run the configuration wizard to get started:[0m
-   [0;36m./.claude-plugin/bin/mp octopus-configure[0m
+## ./.claude-plugin/bin/mp persona list (first 3 lines)
+[INFO] Claude runtime detected
+[INFO] persona registry loaded
+[INFO] project state ready
 
-[0;32mSUCCESS:[0m Initialized state file at .claude-octopus/state.json
+## Guardrail Confirmation
+- no active-worktree branch switching used
+- sync operations isolated in `.worktrees/sync-*`
+- no revert/reset command used on local uncommitted files

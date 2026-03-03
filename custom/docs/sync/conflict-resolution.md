@@ -3,7 +3,10 @@
 ## First Rule
 
 - Keep `main` unchanged except syncing from `upstream/main`.
-- Resolve customization conflicts only in `multipowers`.
+- Resolve customization conflicts only in `go`.
+- Never run sync by switching current worktree branch.
+- Use temporary worktrees rooted at `.worktrees/sync-*` for sync actions.
+- Never resolve by revert/reset of local uncommitted files.
 
 ## Resolve Rebase Path
 1. Check status:
@@ -31,24 +34,23 @@ git status --short --branch
 
 Then recover using sync flow:
 ```bash
-git fetch upstream origin
-git switch main
-git merge --ff-only upstream/main
-git switch multipowers
-./scripts/mp-devx sync
+./scripts/sync-upstream-main.sh -dry-run
+./scripts/sync-main-to-go.sh -dry-run
+./scripts/sync-all.sh -dry-run
 ```
 
 ## Manual Verification Checklist
 ```bash
 git status --short --branch
-./scripts/mp-devx sync
-./scripts/mp-devx overlay
+./scripts/sync-upstream-main.sh -dry-run
+./scripts/sync-main-to-go.sh -dry-run
+./scripts/sync-all.sh -dry-run
 ./.claude-plugin/bin/mp persona list
 ```
 
 Expected outcomes:
 - no unresolved merge markers
-- overlay apply succeeds
+- sync dry-run commands return success
 - persona list returns configured personas
 
 ## Conductor Path Canonicalization

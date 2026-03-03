@@ -12,7 +12,95 @@ import (
 	"time"
 )
 
-type Runner struct{}
+type Runner struct {
+	NowFn func() time.Time
+	RunFn func(dir string, name string, args ...string) ([]byte, error)
+}
+
+type SyncOptions struct {
+	DryRun bool
+	Push   bool
+}
+
+func (r Runner) now() time.Time {
+	if r.NowFn != nil {
+		return r.NowFn()
+	}
+	return time.Now()
+}
+
+func (r Runner) run(dir string, name string, args ...string) ([]byte, error) {
+	if r.RunFn != nil {
+		return r.RunFn(dir, name, args...)
+	}
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	return cmd.CombinedOutput()
+}
+
+func (r Runner) WithTempWorktree(branch, prefix string, fn func(path string) error) error {
+	tmpPath := filepath.Join(".worktrees", fmt.Sprintf("%s-%d", prefix, r.now().Unix()))
+	if _, err := r.run(".", "git", "worktree", "add", "--detach", tmpPath, branch); err != nil {
+		return err
+	}
+	defer func() { _, _ = r.run(".", "git", "worktree", "remove", "--force", tmpPath) }()
+	return fn(tmpPath)
+}
+
+func (r Runner) RunSyncUpstreamMain(opts SyncOptions) error {
+	return r.WithTempWorktree("main", "sync-main", func(path string) error {
+		if _, err := r.run(path, "git", "fetch", "upstream", "--prune"); err != nil {
+			return err
+		}
+		if _, err := r.run(path, "git", "fetch", "origin", "--prune"); err != nil {
+			return err
+		}
+		if opts.DryRun {
+			return nil
+		}
+		if _, err := r.run(path, "git", "merge", "--ff-only", "upstream/main"); err != nil {
+			return err
+		}
+		if opts.Push {
+			if _, err := r.run(path, "git", "push", "origin", "HEAD:main"); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (r Runner) RunSyncMainToGo(cfg SyncRulesConfig, opts SyncOptions) error {
+	return r.WithTempWorktree("go", "sync-go", func(path string) error {
+		copyPaths := make([]string, 0)
+		for _, rule := range cfg.Rules {
+			if rule.Decision == DecisionCopyFromMain {
+				copyPaths = append(copyPaths, rule.Paths...)
+			}
+		}
+		if len(copyPaths) == 0 {
+			return nil
+		}
+		args := append([]string{"checkout", "main", "--"}, copyPaths...)
+		if _, err := r.run(path, "git", args...); err != nil {
+			return err
+		}
+		if !opts.DryRun {
+			if _, err := r.run(path, "git", "add", "--all"); err != nil {
+				return err
+			}
+			if _, err := r.run(path, "git", "commit", "-m", "chore(sync): copy common files from main into go"); err != nil {
+				return err
+			}
+			if opts.Push {
+				if _, err := r.run(path, "git", "push", "origin", "HEAD:go"); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+}
 
 func (Runner) CommandPlan(suite string) ([]string, error) {
 	switch suite {
