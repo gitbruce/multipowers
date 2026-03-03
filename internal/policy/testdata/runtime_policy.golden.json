@@ -1,0 +1,53 @@
+{
+  "version": "1",
+  "generated_at": "2026-03-03T19:04:29Z",
+  "checksum": "1152abf5d1f79119",
+  "workflows": {
+    "define": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.define"
+    }
+  },
+  "agents": {
+    "test-agent": {
+      "contract": {
+        "model": "test-model",
+        "executor_profile": "test-executor"
+      },
+      "source_ref": "agents.yaml#agents.test-agent"
+    }
+  },
+  "executors": {
+    "codex_cli": {
+      "kind": "external_cli",
+      "command_template": [
+        "codex",
+        "exec"
+      ],
+      "enforcement": "hard",
+      "source_ref": "executors.yaml#executors.codex_cli"
+    },
+    "test-executor": {
+      "kind": "claude_code",
+      "enforcement": "hint",
+      "source_ref": "executors.yaml#executors.test-executor"
+    }
+  },
+  "fallback": {
+    "policies": {
+      "cross_provider_once": {
+        "max_hops": 1,
+        "chain": [
+          {
+            "from": "gpt-5.3-codex",
+            "to": "gemini-3-pro-preview"
+          }
+        ]
+      }
+    }
+  }
+}

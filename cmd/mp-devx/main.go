@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
 	"github.com/gitbruce/claude-octopus/internal/devx"
+	"github.com/gitbruce/claude-octopus/internal/policy"
 )
 
 type devxRunner interface {
@@ -34,7 +36,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 
 	suite := fs.String("suite", "unit", "test suite")
-	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|sync-upstream-main|sync-main-to-go|sync-all|validate-structure-parity")
+	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|sync-upstream-main|sync-main-to-go|sync-all|validate-structure-parity|build-policy|build-runtime")
+	configDir := fs.String("config-dir", "config", "config directory for policy source")
+	outputDir := fs.String("output-dir", ".claude-plugin/runtime", "output directory for compiled artifacts")
 	mapPath := fs.String("map", "docs/plans/evidence/no-shell-runtime/mapping/sh-to-go-map.csv", "sh-to-go map path")
 	threshold := fs.Int64("threshold-ms", 50, "benchmark threshold p95 in milliseconds")
 	dryRun := fs.Bool("dry-run", false, "plan only, no push/commit")
@@ -123,9 +127,94 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		fmt.Fprintln(stdout, "structure parity ok")
+	case "build-policy":
+		if err := runBuildPolicy(*configDir, *outputDir, stdout); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, "policy build ok")
+	case "build-runtime":
+		// Build policy first
+		if err := runBuildPolicy(*configDir, *outputDir, stdout); err != nil {
+			fmt.Fprintln(stderr, fmt.Errorf("policy build failed: %w", err))
+			return 1
+		}
+		// Build binaries
+		if err := runBuildBinaries(stdout); err != nil {
+			fmt.Fprintln(stderr, fmt.Errorf("binary build failed: %w", err))
+			return 1
+		}
+		fmt.Fprintln(stdout, "runtime build ok")
 	default:
 		fmt.Fprintf(stderr, "unknown action: %s\n", *action)
 		return 1
 	}
 	return 0
+}
+
+func runBuildPolicy(configDir, outputDir string, stdout io.Writer) error {
+	fmt.Fprintf(stdout, "loading source config from %s\n", configDir)
+
+	cfg, err := policy.LoadSourceConfig(configDir)
+	if err != nil {
+		return fmt.Errorf("failed to load source config: %w", err)
+	}
+
+	fmt.Fprintf(stdout, "validating and compiling policy\n")
+
+	runtimePolicy, err := policy.Compile(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to compile policy: %w", err)
+	}
+
+	// Ensure output directory exists
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Write policy.json
+	outputPath := filepath.Join(outputDir, "policy.json")
+	jsonBytes, err := runtimePolicy.ToJSON()
+	if err != nil {
+		return fmt.Errorf("failed to serialize policy: %w", err)
+	}
+
+	if err := os.WriteFile(outputPath, jsonBytes, 0644); err != nil {
+		return fmt.Errorf("failed to write policy.json: %w", err)
+	}
+
+	fmt.Fprintf(stdout, "wrote %s (checksum: %s)\n", outputPath, runtimePolicy.Checksum)
+	return nil
+}
+
+func runBuildBinaries(stdout io.Writer) error {
+	fmt.Fprintf(stdout, "building binaries\n")
+
+	binDir := ".claude-plugin/bin"
+	if err := os.MkdirAll(binDir, 0755); err != nil {
+		return fmt.Errorf("failed to create bin directory: %w", err)
+	}
+
+	// Build mp binary
+	if err := buildBinary("./cmd/mp", filepath.Join(binDir, "mp"), stdout); err != nil {
+		return err
+	}
+
+	// Build mp-devx binary
+	if err := buildBinary("./cmd/mp-devx", filepath.Join(binDir, "mp-devx"), stdout); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func buildBinary(srcPath, outputPath string, stdout io.Writer) error {
+	cmd := exec.Command("go", "build", "-o", outputPath, srcPath)
+	cmd.Dir = "."
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("go build %s failed: %w\n%s", srcPath, err, output)
+	}
+	fmt.Fprintf(stdout, "built %s\n", outputPath)
+	return nil
 }

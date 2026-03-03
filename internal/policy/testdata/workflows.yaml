@@ -1,0 +1,7 @@
+version: "1"
+workflows:
+  define:
+    default:
+      model: gpt-5.3-codex
+      executor_profile: codex_cli
+      fallback_policy: cross_provider_once

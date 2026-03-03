@@ -20,9 +20,9 @@
 | T02 | Build parser and semantic validator (`internal/policy`) | COMPLETED |
 | T02-S01 | YAML loader + schema validation tests | COMPLETED |
 | T02-S02 | Semantic checks (fallback, executor mapping) | COMPLETED |
-| T03 | Compile runtime policy JSON artifact | NOT_STARTED |
-| T03-S01 | Compiler output model + golden tests | NOT_STARTED |
-| T03-S02 | Build action integration in `mp-devx` | NOT_STARTED |
+| T03 | Compile runtime policy JSON artifact | COMPLETED |
+| T03-S01 | Compiler output model + golden tests | COMPLETED |
+| T03-S02 | Build action integration in `mp-devx` | COMPLETED |
 | T04 | Integrate runtime resolver into hooks and workflow entrypoints | NOT_STARTED |
 | T04-S01 | Resolver contract + workflow task resolution | NOT_STARTED |
 | T04-S02 | Hook metadata + persona/workflow consumption | NOT_STARTED |

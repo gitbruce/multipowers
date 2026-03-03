@@ -1,0 +1,17 @@
+version: "1"
+executors:
+  codex_cli:
+    kind: external_cli
+    command_template:
+      - codex
+      - exec
+    enforcement: hard
+  test-executor:
+    kind: claude_code
+    enforcement: hint
+fallback_policies:
+  cross_provider_once:
+    max_hops: 1
+    chain:
+      - from: gpt-5.3-codex
+        to: gemini-3-pro-preview

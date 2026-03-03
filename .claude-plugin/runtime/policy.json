@@ -1,0 +1,172 @@
+{
+  "version": "1",
+  "generated_at": "2026-03-03T19:05:53Z",
+  "checksum": "0c7cdc41762dbceb",
+  "workflows": {
+    "debate": {
+      "default": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "workflows.yaml#workflows.debate",
+      "display_name": "Debate"
+    },
+    "define": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "tasks": {
+        "task_1": {
+          "model": "gpt-5.3-codex",
+          "executor_profile": "codex_cli"
+        },
+        "task_2": {
+          "model": "gemini-3-pro-preview",
+          "executor_profile": "gemini_cli"
+        }
+      },
+      "source_ref": "workflows.yaml#workflows.define",
+      "display_name": "Define"
+    },
+    "deliver": {
+      "default": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "workflows.yaml#workflows.deliver",
+      "display_name": "Deliver"
+    },
+    "develop": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.develop",
+      "display_name": "Develop"
+    },
+    "discover": {
+      "default": {
+        "model": "gemini-3-pro-preview",
+        "executor_profile": "gemini_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.discover",
+      "display_name": "Discover"
+    },
+    "embrace": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.embrace",
+      "display_name": "Embrace"
+    }
+  },
+  "agents": {
+    "backend-architect": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.backend-architect",
+      "display_name": "Backend Architect"
+    },
+    "frontend-developer": {
+      "contract": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.frontend-developer",
+      "display_name": "Frontend Developer"
+    },
+    "researcher": {
+      "contract": {
+        "model": "gemini-3-pro-preview",
+        "executor_profile": "gemini_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.researcher",
+      "display_name": "Researcher"
+    },
+    "security-auditor": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.security-auditor",
+      "display_name": "Security Auditor"
+    },
+    "test-runner": {
+      "contract": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.test-runner",
+      "display_name": "Test Runner"
+    }
+  },
+  "executors": {
+    "claude_code": {
+      "kind": "claude_code",
+      "enforcement": "hint",
+      "source_ref": "executors.yaml#executors.claude_code"
+    },
+    "codex_cli": {
+      "kind": "external_cli",
+      "command_template": [
+        "codex",
+        "exec",
+        "-m",
+        "{model}",
+        "-C",
+        "{project_dir}",
+        "{prompt}"
+      ],
+      "enforcement": "hard",
+      "source_ref": "executors.yaml#executors.codex_cli"
+    },
+    "gemini_cli": {
+      "kind": "external_cli",
+      "command_template": [
+        "gemini",
+        "-m",
+        "{model}",
+        "-p",
+        "{prompt}"
+      ],
+      "enforcement": "hard",
+      "source_ref": "executors.yaml#executors.gemini_cli"
+    }
+  },
+  "fallback": {
+    "policies": {
+      "cross_provider_once": {
+        "max_hops": 1,
+        "chain": [
+          {
+            "from": "gpt-5.3-codex",
+            "to": "gemini-3-pro-preview"
+          },
+          {
+            "from": "gemini-3-pro-preview",
+            "to": "claude-sonnet-4.5"
+          }
+        ]
+      },
+      "none": {
+        "max_hops": 0,
+        "chain": []
+      }
+    }
+  }
+}
