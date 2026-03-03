@@ -1,0 +1,36 @@
+version: "1"
+executors:
+  codex_cli:
+    kind: external_cli
+    command_template:
+      - codex
+      - exec
+      - -m
+      - "{model}"
+      - -C
+      - "{project_dir}"
+      - "{prompt}"
+    enforcement: hard
+  gemini_cli:
+    kind: external_cli
+    command_template:
+      - gemini
+      - -m
+      - "{model}"
+      - -p
+      - "{prompt}"
+    enforcement: hard
+  claude_code:
+    kind: claude_code
+    enforcement: hint
+fallback_policies:
+  cross_provider_once:
+    max_hops: 1
+    chain:
+      - from: gpt-5.3-codex
+        to: gemini-3-pro-preview
+      - from: gemini-3-pro-preview
+        to: claude-sonnet-4.5
+  none:
+    max_hops: 0
+    chain: []

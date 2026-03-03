@@ -1,0 +1,27 @@
+version: "1"
+agents:
+  backend-architect:
+    model: gpt-5.3-codex
+    executor_profile: codex_cli
+    fallback_policy: cross_provider_once
+    display_name: Backend Architect
+  security-auditor:
+    model: claude-opus-4.6
+    executor_profile: claude_code
+    fallback_policy: none
+    display_name: Security Auditor
+  frontend-developer:
+    model: claude-sonnet-4.5
+    executor_profile: claude_code
+    fallback_policy: none
+    display_name: Frontend Developer
+  researcher:
+    model: gemini-3-pro-preview
+    executor_profile: gemini_cli
+    fallback_policy: cross_provider_once
+    display_name: Researcher
+  test-runner:
+    model: claude-sonnet-4.5
+    executor_profile: claude_code
+    fallback_policy: none
+    display_name: Test Runner
