@@ -245,7 +245,7 @@ func Run(args []string) int {
 		})
 		return respond(r)
 	case "persona":
-		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), effectivePrompt)
+		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), absDir, effectivePrompt)
 		if err != nil {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
 		}

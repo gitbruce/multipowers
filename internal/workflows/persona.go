@@ -7,6 +7,9 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/gitbruce/claude-octopus/internal/execx"
+	"github.com/gitbruce/claude-octopus/internal/providers"
 )
 
 type Persona struct {
@@ -33,7 +36,7 @@ func RenderPersonaList(configPath string) (string, error) {
 	return strings.Join(lines, "\n"), nil
 }
 
-func RunPersona(configPath, arguments string) (map[string]any, error) {
+func RunPersona(configPath, projectDir, arguments string) (map[string]any, error) {
 	parts := strings.Fields(strings.TrimSpace(arguments))
 	if len(parts) == 0 || strings.EqualFold(parts[0], "list") {
 		out, err := RenderPersonaList(configPath)
@@ -45,24 +48,102 @@ func RunPersona(configPath, arguments string) (map[string]any, error) {
 
 	name := parts[0]
 	prompt := strings.TrimSpace(strings.TrimPrefix(arguments, name))
+	if prompt == "" {
+		return nil, fmt.Errorf("persona prompt is required")
+	}
 	personas, err := loadPersonas(configPath)
 	if err != nil {
 		return nil, err
 	}
 	for _, p := range personas {
 		if p.Name == name {
+			spec, err := buildPersonaExecSpec(p, prompt, projectDir)
+			if err != nil {
+				return nil, err
+			}
+			res := execx.Run(spec.Binary, spec.Args, personaExecutionEnv(), 300)
+			if res.ExitCode != 0 {
+				return nil, fmt.Errorf(
+					"%s execution failed for model %s (exit=%d): %s",
+					p.CLI,
+					p.Model,
+					res.ExitCode,
+					oneLine(firstNonEmpty(res.Stderr, res.Stdout)),
+				)
+			}
+			output := strings.TrimSpace(res.Stdout)
+			if output == "" {
+				output = strings.TrimSpace(res.Stderr)
+			}
 			return map[string]any{
-				"mode":       "run",
-				"persona":    p.Name,
-				"model":      p.Model,
-				"lane":       fmt.Sprintf("%s:%s", p.CLI, p.Model),
-				"prompt":     strings.TrimSpace(prompt),
-				"using_line": fmt.Sprintf("Using: %s:%s", p.CLI, p.Model),
+				"mode":            "run",
+				"persona":         p.Name,
+				"model":           p.Model,
+				"lane":            fmt.Sprintf("%s:%s", p.CLI, p.Model),
+				"prompt":          strings.TrimSpace(prompt),
+				"using_line":      fmt.Sprintf("Using: %s:%s", p.CLI, p.Model),
+				"provider_output": output,
 			}, nil
 		}
 	}
 
 	return nil, fmt.Errorf("unknown persona: %s", name)
+}
+
+type personaExecSpec struct {
+	Binary string
+	Args   []string
+}
+
+func buildPersonaExecSpec(p Persona, prompt, projectDir string) (personaExecSpec, error) {
+	cli := strings.ToLower(strings.TrimSpace(p.CLI))
+	model := strings.TrimSpace(p.Model)
+	if cli == "" || cli == "unknown" {
+		return personaExecSpec{}, fmt.Errorf("persona %s has invalid cli lane: %s", p.Name, p.CLI)
+	}
+	if model == "" || model == "unknown" {
+		return personaExecSpec{}, fmt.Errorf("persona %s has invalid model: %s", p.Name, p.Model)
+	}
+
+	switch {
+	case strings.HasPrefix(cli, "gemini"):
+		return personaExecSpec{
+			Binary: "gemini",
+			Args:   []string{"-m", model, "-p", prompt},
+		}, nil
+	case strings.HasPrefix(cli, "codex"):
+		args := []string{"exec", "-m", model}
+		if strings.TrimSpace(projectDir) != "" {
+			args = append(args, "-C", projectDir)
+		}
+		args = append(args, prompt)
+		return personaExecSpec{
+			Binary: "codex",
+			Args:   args,
+		}, nil
+	case strings.HasPrefix(cli, "claude"):
+		return personaExecSpec{
+			Binary: "claude",
+			Args:   []string{"--print", "--model", model, prompt},
+		}, nil
+	default:
+		return personaExecSpec{}, fmt.Errorf("unsupported persona cli lane: %s", p.CLI)
+	}
+}
+
+func personaExecutionEnv() []string {
+	env := os.Environ()
+	env = append(env, providers.ProxyEnv()...)
+	return env
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if strings.TrimSpace(v) != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 func loadPersonas(configPath string) ([]Persona, error) {
@@ -114,11 +195,11 @@ func loadPersonas(configPath string) ([]Persona, error) {
 			continue
 		}
 		if strings.HasPrefix(trim, "model:") {
-			current.Model = strings.Trim(strings.TrimPrefix(trim, "model:"), " \"'")
+			current.Model = parseYAMLScalar(strings.TrimPrefix(trim, "model:"))
 			continue
 		}
 		if strings.HasPrefix(trim, "cli:") {
-			current.CLI = strings.Trim(strings.TrimPrefix(trim, "cli:"), " \"'")
+			current.CLI = parseYAMLScalar(strings.TrimPrefix(trim, "cli:"))
 			continue
 		}
 		if strings.HasPrefix(trim, "expertise:") {
@@ -213,4 +294,12 @@ func resolvePersonaConfigRoots() []string {
 	}
 
 	return roots
+}
+
+func parseYAMLScalar(raw string) string {
+	v := strings.TrimSpace(raw)
+	if i := strings.Index(v, "#"); i >= 0 {
+		v = strings.TrimSpace(v[:i])
+	}
+	return strings.Trim(v, " \"'")
 }
