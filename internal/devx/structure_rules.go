@@ -14,10 +14,12 @@ const (
 )
 
 type StructureRule struct {
-	SourceRoot string            `json:"source_root"`
-	TargetRoot string            `json:"target_root"`
-	Decision   StructureDecision `json:"decision"`
-	Notes      string            `json:"notes"`
+	SourceRoot        string            `json:"source_root"`
+	TargetRoot        string            `json:"target_root"`
+	Decision          StructureDecision `json:"decision"`
+	IgnoreSourceNames []string          `json:"ignore_source_names"`
+	IgnoreTargetNames []string          `json:"ignore_target_names"`
+	Notes             string            `json:"notes"`
 }
 
 type StructureRulesConfig struct {
@@ -34,6 +36,9 @@ func LoadStructureRules(path string) (StructureRulesConfig, error) {
 		return cfg, err
 	}
 	for _, rule := range cfg.Rules {
+		if rule.SourceRoot == "" || rule.TargetRoot == "" {
+			return cfg, fmt.Errorf("structure rule must include source_root and target_root")
+		}
 		switch rule.Decision {
 		case DecisionMustHomomorphic, DecisionAllowFork:
 		default:

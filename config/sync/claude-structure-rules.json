@@ -4,13 +4,35 @@
       "source_root": ".claude/commands",
       "target_root": ".claude-plugin/.claude/commands",
       "decision": "MUST_HOMOMORPHIC",
-      "notes": "shared command wrappers must stay path/name aligned"
+      "ignore_source_names": [
+        "claw.md",
+        "doctor.md",
+        "octo.md",
+        "parallel.md",
+        "schedule.md",
+        "scheduler.md",
+        "sentinel.md",
+        "spec.md"
+      ],
+      "ignore_target_names": [
+        "init.md",
+        "mp.md",
+        "persona.md"
+      ],
+      "notes": "shared command wrappers must stay path/name aligned; intentional forks ignored explicitly"
     },
     {
       "source_root": ".claude/skills",
       "target_root": ".claude-plugin/.claude/skills",
       "decision": "MUST_HOMOMORPHIC",
-      "notes": "shared skills must stay path/name aligned"
+      "ignore_source_names": [
+        "skill-claw.md",
+        "skill-doctor.md"
+      ],
+      "ignore_target_names": [
+        "skill-persona.md"
+      ],
+      "notes": "shared skills must stay path/name aligned; intentional forks ignored explicitly"
     },
     {
       "source_root": ".claude/references",

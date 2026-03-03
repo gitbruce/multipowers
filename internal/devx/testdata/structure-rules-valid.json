@@ -4,6 +4,12 @@
       "source_root": ".claude/commands",
       "target_root": ".claude-plugin/.claude/commands",
       "decision": "MUST_HOMOMORPHIC",
+      "ignore_source_names": [
+        "octo.md"
+      ],
+      "ignore_target_names": [
+        "mp.md"
+      ],
       "notes": "shared commands must remain structurally aligned"
     },
     {
