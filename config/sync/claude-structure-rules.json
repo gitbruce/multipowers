@@ -2,7 +2,7 @@
   "rules": [
     {
       "source_root": ".claude/commands",
-      "target_root": ".claude/commands",
+      "target_root": ".claude-plugin/.claude/commands",
       "decision": "MUST_HOMOMORPHIC",
       "ignore_source_names": [
         "claw.md",
@@ -23,52 +23,43 @@
     },
     {
       "source_root": ".claude/skills",
-      "target_root": ".claude/skills",
+      "target_root": ".claude-plugin/.claude/skills",
       "decision": "MUST_HOMOMORPHIC",
       "ignore_source_names": [
         "skill-claw.md",
         "skill-doctor.md"
       ],
-      "ignore_target_names": [
-        "skill-persona.md"
-      ],
       "notes": "shared skills must stay path/name aligned; intentional forks ignored explicitly"
     },
     {
       "source_root": ".claude/references",
-      "target_root": ".claude/references",
+      "target_root": ".claude-plugin/.claude/references",
       "decision": "MUST_HOMOMORPHIC",
       "notes": "reference docs should remain structurally aligned"
     },
     {
       "source_root": ".claude/state",
-      "target_root": ".claude/state",
+      "target_root": ".claude-plugin/.claude/state",
       "decision": "MUST_HOMOMORPHIC",
       "notes": "state docs should remain structurally aligned"
     },
     {
       "source_root": ".claude/commands",
-      "target_root": ".claude/commands/init.md",
+      "target_root": ".claude-plugin/.claude/commands/init.md",
       "decision": "ALLOW_FORK",
       "notes": "go-only init command is intentional"
     },
     {
       "source_root": ".claude/commands",
-      "target_root": ".claude/commands/mp.md",
+      "target_root": ".claude-plugin/.claude/commands/mp.md",
       "decision": "ALLOW_FORK",
       "notes": "go root command entry is intentional"
     },
     {
       "source_root": ".claude/commands",
-      "target_root": ".claude/commands/persona.md",
+      "target_root": ".claude-plugin/.claude/commands/persona.md",
       "decision": "ALLOW_FORK",
       "notes": "go-only persona command is intentional"
-    },
-    {
-      "source_root": ".claude/skills",
-      "target_root": ".claude/skills/skill-persona.md",
-      "decision": "ALLOW_FORK",
-      "notes": "go-only persona skill is intentional"
     }
   ]
 }

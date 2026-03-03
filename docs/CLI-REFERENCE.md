@@ -91,6 +91,20 @@ source ~/.bashrc
 ./.claude-plugin/bin/mp status
 ```
 
+### Go Branch Sync Playbook (Root `.claude` Deleted)
+
+When `go` keeps root `.claude` deleted but `main` remains read-only with legacy layout, use this sequence after merging:
+
+```bash
+git fetch upstream --prune
+git merge upstream/main -X theirs
+./scripts/sync-main-claude-into-plugin.sh
+go test ./internal/validation -count=1
+go test ./internal/devx -count=1
+```
+
+This refreshes `main:.claude` into `.claude-plugin/.claude` and re-applies the `go` layout invariant.
+
 ---
 
 ## Double Diamond Workflows

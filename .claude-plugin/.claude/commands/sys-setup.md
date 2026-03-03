@@ -14,7 +14,19 @@ This command checks your current setup and provides instructions for any missing
 Running setup detection...
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/mp detect-providers
+MP_BIN=""
+if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -x "${CLAUDE_PLUGIN_ROOT}/bin/mp" ]]; then
+  MP_BIN="${CLAUDE_PLUGIN_ROOT}/bin/mp"
+elif [[ -x "$PWD/.claude-plugin/bin/mp" ]]; then
+  MP_BIN="$PWD/.claude-plugin/bin/mp"
+elif [[ -x "./.claude-plugin/bin/mp" ]]; then
+  MP_BIN="./.claude-plugin/bin/mp"
+else
+  echo "mp binary not found. Restart Claude Code and use /mp:* commands, or build via scripts/build.sh." >&2
+  exit 1
+fi
+
+"$MP_BIN" detect-providers
 ```
 
 Based on the results above, here's what you need:
@@ -101,7 +113,19 @@ export GEMINI_API_KEY="AIza..."
 
 After installing and configuring, verify with:
 ```bash
-${CLAUDE_PLUGIN_ROOT}/bin/mp detect-providers
+MP_BIN=""
+if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -x "${CLAUDE_PLUGIN_ROOT}/bin/mp" ]]; then
+  MP_BIN="${CLAUDE_PLUGIN_ROOT}/bin/mp"
+elif [[ -x "$PWD/.claude-plugin/bin/mp" ]]; then
+  MP_BIN="$PWD/.claude-plugin/bin/mp"
+elif [[ -x "./.claude-plugin/bin/mp" ]]; then
+  MP_BIN="./.claude-plugin/bin/mp"
+else
+  echo "mp binary not found. Restart Claude Code and use /mp:* commands, or build via scripts/build.sh." >&2
+  exit 1
+fi
+
+"$MP_BIN" detect-providers
 ```
 
 You should see at least one provider with status:
@@ -224,6 +248,6 @@ Add the export statement to your shell profile (~/.zshrc or ~/.bashrc) so it loa
 ## Getting Help
 
 If you encounter issues:
-1. Run `${CLAUDE_PLUGIN_ROOT}/bin/mp preflight` for a detailed system check
+1. Run `"$MP_BIN" preflight` for a detailed system check (use the same resolved path logic above)
 2. Check the logs in `~/.claude-octopus/logs/`
 3. Report issues at: https://github.com/nyldn/claude-octopus/issues

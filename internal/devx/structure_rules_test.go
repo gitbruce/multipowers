@@ -18,14 +18,14 @@ func TestLoadStructureRules_ValidAndInvalid(t *testing.T) {
 	}
 }
 
-func TestLoadStructureRules_RootTargetsUseClaudeRoot(t *testing.T) {
+func TestLoadStructureRules_TargetsUsePackagedClaudeRoot(t *testing.T) {
 	cfg, err := LoadStructureRules(filepath.Join("..", "..", "config", "sync", "claude-structure-rules.json"))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	for _, rule := range cfg.Rules {
-		if strings.Contains(rule.TargetRoot, ".claude-plugin/") {
-			t.Fatalf("unexpected legacy target root: %s", rule.TargetRoot)
+		if !strings.Contains(rule.TargetRoot, ".claude-plugin/.claude/") {
+			t.Fatalf("target root must use packaged .claude path: %s", rule.TargetRoot)
 		}
 	}
 }

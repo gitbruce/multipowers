@@ -50,6 +50,11 @@
 - `scripts/validate-claude-structure.sh`
 - `scripts/verify-architecture-diff-docs.sh`
 
+## `tmp/compare.md` 补充漏项（2026-03-03）
+
+- `.claude/hooks/visual-feedback.sh`：`main` 中存在、`go` 中已移除；当前应标记为 `partial`，决策为 `MIGRATE_TO_GO`。
+  - 语义承接：`.claude/skills/skill-visual-feedback.md` 与 `internal/render/banner.go`。
+
 ## `COPY_FROM_MAIN` 已落地清单（最新）
 
 - `.claude/hooks/pre-commit.sh`
@@ -90,4 +95,3 @@
 | `PostToolUse` | `hooks/quality-gate.sh` + `hooks/task-completion-checkpoint.sh` | `internal/hooks/post_tool_use.go` + `internal/hooks/handler.go` | `status`, `action`, `error_code`, `message`, `data` | `E2` | `MIGRATE_TO_GO` |
 | `Stop` | `hooks/task-completed-transition.sh` | `internal/hooks/stop.go` | `status`, `action`, `message`, `data` | `E2` | `MIGRATE_TO_GO` |
 | `SubagentStop` | `hooks/teammate-idle-dispatch.sh` + `hooks/task-dependency-validator.sh` | `internal/hooks/stop.go` + `internal/hooks/handler.go` | `status`, `action`, `message`, `data` | `E2` | `MIGRATE_TO_GO` |
-

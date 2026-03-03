@@ -24,18 +24,18 @@
 |---|---:|
 | `main` other 文件总数 | 195 |
 | `go` other 文件总数 | 371 |
-| shared | 157 |
-| main-only | 38 |
-| go-only | 214 |
+| shared | 162 |
+| main-only | 33 |
+| go-only | 209 |
 
-main-only（38）状态统计：
-- `equivalent=5`
+main-only（33）状态统计：
+- `equivalent=0`
 - `partial=9`
 - `missing=23`
 - `intentional-diff=1`
 
-go-only（214）状态统计：
-- `equivalent=5`
+go-only（209）状态统计：
+- `equivalent=0`
 - `partial=1`
 - `intentional-diff=208`
 
@@ -43,13 +43,17 @@ go-only（214）状态统计：
 
 | 语义域 | main | go | 状态 | decision |
 |---|---|---|---|---|
-| Claude 工作区文档 | `.claude/*` | `.claude/*` | `equivalent` | `COPY_FROM_MAIN` |
+| Claude 工作区文档 | `.claude/*` | `.claude/*` | `partial` | `COPY_FROM_MAIN` |
 | 插件配置入口 | `.claude-plugin/settings.json` | `.claude-plugin/custom/config/setup.toml` | `partial` | `MIGRATE_TO_GO` |
 | MCP 配置入口 | `.mcp.json` | `.dependencies/claude-skills` + go 配置体系 | `partial` | `MIGRATE_TO_GO` |
 | MCP Server 子项目 | `mcp-server/*` | `internal/providers/*` 语义承接 | `missing` | `DEFER_WITH_CONDITION` |
 | OpenClaw 子项目 | `openclaw/*` | `N/A` | `missing` | `EXCLUDE_WITH_REASON` |
 | benchmark/live 资产 | `tests/benchmark/*`, `tests/live/*` | `internal/workflows/*_test.go` + 新文档 | `partial` | `MIGRATE_TO_GO` |
 | no-shell runtime + custom 层 | `N/A` | `cmd/`, `internal/`, `pkg/`, `custom/`, `.multipowers/` | `intentional-diff` | `KEEP_IN_GO` |
+
+## `tmp/compare.md` 补充漏项（2026-03-03）
+
+- `STEELMAN.md`：`main` 保留、`go` 缺失，状态应为 `intentional-diff`（此前未在本文显式列出）。
 
 ## 关键决策快照（最新）
 

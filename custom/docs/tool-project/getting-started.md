@@ -6,22 +6,27 @@
 - Plugin id: `mp`
 - Marketplace id: `multipowers-plugins`
 
-## Branch Discipline
+## Branch Discipline (Go Development)
 
-1. Keep `main` synced to `upstream/main` only.
-2. Do all custom development on `multipowers`.
-3. Never merge `multipowers` back into `main`.
-4. Periodically merge `main` into `multipowers` and sync single-source command docs.
+1. Keep `main` synced to `upstream/main` only (as a clean mirror).
+2. All **Go-based no-shell runtime development** occurs on the `go` branch.
+3. Sync upstream with `./scripts/sync-all.sh`.
+4. Run validation with `./scripts/validate-claude-structure.sh`.
 
-## Quick Start
+## Maintenance Commands
 
 ```bash
-git switch main
-git fetch upstream
-git merge --ff-only upstream/main
-git switch multipowers
-./scripts/mp-devx overlay
-./scripts/mp persona list
+# Verify the no-shell runtime and logic
+go test ./...
+
+# Rebuild the main CLI
+go build -o .claude-plugin/bin/mp ./cmd/mp
+
+# Build the DevX helper
+go build -o .claude-plugin/bin/mp-devx ./cmd/mp-devx
+
+# Run an atomic command directly for testing
+./.claude-plugin/bin/mp status
 ```
 
 ## Install / Uninstall (User Scope)
@@ -42,6 +47,7 @@ Uninstall:
 
 ## Daily Maintainer Workflow
 
-1. Sync upstream with `./scripts/mp-devx sync`
-2. Reapply overlay
-3. Validate with `go test ./...`
+1. Sync upstream changes via `scripts/sync-upstream-main.sh` and `scripts/sync-main-to-go.sh`.
+2. Implement Go packages in `internal/` or CLI commands in `cmd/`.
+3. Validate parity and architecture with `scripts/verify-architecture-diff-docs.sh`.
+4. Ensure all Go tests pass: `go test ./... -v`.

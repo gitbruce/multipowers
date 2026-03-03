@@ -2,61 +2,59 @@
 
 ## Runtime and Languages
 
-- Go (primary): orchestration runtime and operational utilities.
-- Markdown/YAML (primary): command, skill, workflow, and policy definitions.
-- JavaScript/TypeScript (supporting): helper scripts and token-extraction subsystem.
-- Node.js (supporting runtime): package metadata and JS/TS tooling execution.
+- **Go (1.21+)**: Core orchestration runtime, atomic CLI, and internal packages.
+- **Markdown/YAML**: Command and skill reasoning, workflow graphs, and metadata.
+- **JSON/TOML**: Configuration and deterministic command contracts.
 
 ## Core Execution Components
 
-- `.claude-plugin/bin/mp`: central runtime command engine.
-- `scripts/mp`: developer wrapper that delegates to `.claude-plugin/bin/mp`.
-- `cmd/mp-devx`: maintainer/CI helper entrypoint.
-- `internal/providers/*`: provider/model routing logic.
-- `internal/tracks/*`: workflow state persistence and track status.
-- `internal/hooks/*`: lifecycle and governance hooks.
+- `cmd/mp`: Atomic CLI entrypoint for target-project operations.
+- `cmd/mp-devx`: Maintainer/CI helper entrypoint.
+- `internal/cli`: CLI surface and command routing.
+- `internal/providers`: Multi-provider adapters and role-based routing.
+- `internal/tracks`: Workflow state persistence and task tracking.
+- `internal/hooks`: First-class lifecycle hook handlers (`SessionStart`, etc.).
+- `internal/validation`: Go-based quality gates and no-shell runtime enforcement.
+- `pkg/api`: Shared JSON schemas and Go type definitions.
 
 ## Command and Skill Surface
 
-- `.claude/commands/*.md`: `/mp:*` command entrypoints.
-- `.claude/skills/*.md`: workflow and discipline skills used by commands.
-- `workflows/embrace.yaml`: structured workflow graph definition.
-- `workflows/schema.yaml`: workflow schema/validation reference.
+- `.claude/commands/*.md`: `/mp:*` entrypoints for Claude Code.
+- `.claude/skills/*.md`: High-level reasoning and orchestration skills.
+- `custom/config/setup.toml`: Template and initialization protocol for `/mp:init`.
 
 ## Persona and Routing Configuration
 
-- `agents/config.yaml`: persona catalog and routing metadata.
-- `agents/personas/*.md`: persona behavior and domain expertise.
-- `config/providers/{claude,codex,gemini}/CLAUDE.md`: provider-specific operational context.
-- `config/workflows/CLAUDE.md`: workflow-level operational context.
+- `custom/config/models.json`: Provider, role-based routing, and fallback lanes.
+- `custom/config/persona-lanes.json`: Persona catalog and intent mappings.
+- `agents/personas/*.md`: Persona system prompts and domain expertise.
 
 ## Routing Policy Baseline
 
-- Codex (`gpt-5.3-codex`) is the default lane for planning, architecture, and important technical decisions.
-- Claude Opus (mapped to GLM-5 in this environment) is the default lane for heavy implementation and heavy-token quality audits.
-- Claude Sonnet (mapped to GLM-4.7 in this environment) is the default lane for documentation and test-case authoring.
-- Gemini (`gemini-3-pro-preview`) is the default lane for external research tasks.
-- Lighter quality checks prefer Codex; heavier quality checks prefer Claude Opus.
+- **Codex** (`gpt-5.3-codex`): Planning, architecture, and important technical decisions.
+- **Claude Opus**: Heavy implementation and heavy-token quality audits.
+- **Claude Sonnet**: Documentation and test-case authoring.
+- **Gemini** (`gemini-3-pro-preview`): External research tasks.
 
 ## Operational Hooks and Safeguards
 
-- `hooks/*.md` and `.claude-plugin/hooks.json`: lifecycle hooks and runtime wiring.
-- `SAFEGUARDS.md` and `SECURITY.md`: policy-level security and safe-operation constraints.
+- `internal/hooks/handler.go`: Dispatcher for all `mp hook run` events.
+- `SAFEGUARDS.md` and `SECURITY.md`: Operational security policies.
 
 ## Test and Verification Stack
 
-- `make test`, `make test-smoke`, `make test-unit`, `make test-integration`.
-- Go test suites validate routing, workflow contracts, hook behavior, and release integrity.
+- `go test ./...`: Unified Go test suite (unit, integration, parity).
+- `scripts/validate-claude-structure.sh`: Parity check between `main` and `go`.
+- `internal/devx/structure_validation_test.go`: Automated structure rules enforcement.
 
 ## External Dependencies
 
 - Claude Code runtime and plugin framework.
-- Optional Codex CLI (`@openai/codex`) for OpenAI-backed provider execution.
-- Optional Gemini CLI (`@google/gemini-cli`) for Google-backed provider execution.
+- Codex CLI (`@openai/codex`) and Gemini CLI (`@google/gemini-cli`) for provider execution.
 
 ## Engineering Constraints
 
-- Keep orchestration logic shell-first unless there is a clear maintainability benefit to move code.
-- Preserve backward compatibility for command aliases and workflow triggers where feasible.
-- Design for graceful provider degradation; single-provider mode must remain operational.
-- Keep documentation, commands, skills, and tests synchronized for every behavioral change.
+- **No-Shell Runtime**: Core control flow must remain in Go; avoid shell scripting for logic.
+- **Deterministic Contracts**: All internal commands must return normalized JSON fields.
+- **Upstream Parity**: Maintain semantic parity with upstream `main` via `COPY_FROM_MAIN` rules.
+- **Reasoning/Logic Split**: Keep reasoning in Markdown skills; keep state/validation in Go.

@@ -32,6 +32,13 @@
 
 当前结论：`commands/skills = partial parity`
 
+## 与 `tmp/compare.md` 的对齐校验（2026-03-03）
+
+- `commands` 与 `skills` 的关键统计项复核一致：
+  - `commands (main-only)=8`
+  - `skills (main-only)=2`
+- 本轮无需调整差异清单与决策快照，仅补充该校验结论。
+
 ## 目录结构治理（当前生效）
 
 规则文件：`config/sync/claude-structure-rules.json`

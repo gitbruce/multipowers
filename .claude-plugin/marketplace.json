@@ -1,7 +1,7 @@
 {
   "name": "multipowers-plugins",
   "owner": {
-    "name": "nyldn"
+    "name": "bruce"
   },
   "metadata": {
     "description": "Multi-tentacled orchestration plugin for Claude Code",
@@ -14,9 +14,9 @@
       "description": "v9.1.9 - wizard contract + hook-driven model routing from custom/config/models.json.",
       "version": "9.1.9",
       "author": {
-        "name": "nyldn"
+        "name": "bruce"
       },
-      "repository": "https://github.com/nyldn/claude-octopus",
+      "repository": "https://github.com/gitbruce/multipowers",
       "license": "MIT",
       "commands": [
         "./.claude/commands"

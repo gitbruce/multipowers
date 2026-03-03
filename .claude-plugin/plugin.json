@@ -3,7 +3,7 @@
   "version": "9.1.9",
   "description": "Strict no-shell runtime: Go-only execution engine with .multipowers boundary enforcement and shell-free CI/runtime paths.",
   "author": {
-    "name": "nyldn"
+    "name": "bruce"
   },
   "license": "MIT",
   "repository": "https://github.com/nyldn/claude-octopus",
@@ -82,8 +82,7 @@
     "./.claude/skills/skill-resume.md",
     "./.claude/skills/skill-resume-enhanced.md",
     "./.claude/skills/skill-ship.md",
-    "./.claude/skills/skill-deck.md",
-    "./.claude/skills/skill-persona.md"
+    "./.claude/skills/skill-deck.md"
   ],
   "commands": [
     "./.claude/commands/mp.md",
