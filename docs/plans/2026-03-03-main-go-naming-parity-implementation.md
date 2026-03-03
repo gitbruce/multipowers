@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Enforce naming parity with `main` for Markdown and Claude Code related files while excluding `./custom/**` and keeping all Go files unconstrained in `go`.
+**Goal:** Enforce naming parity with `main` for Markdown and Claude Code related files while excluding non-parity scopes (`custom`, tests/hooks/tooling/runtime artifacts) and keeping all Go files unconstrained in `go`.
 
-**Architecture:** Extend the structure-rules contract with a new decision type for controlled forks that still require naming parity and explicit add/delete registration. Apply scope filters during structure validation so only `*.md` and configured Claude-related files are evaluated, with a hard exclusion for `./custom/**`. Keep existing `MUST_HOMOMORPHIC` behavior intact and add CI lanes for required parity checks plus non-blocking content-diff reporting.
+**Architecture:** Extend the structure-rules contract with a new decision type for controlled forks that still require naming parity and explicit add/delete registration. Apply scope filters during structure validation so only `*.md` and configured Claude-related files are evaluated, with a hard exclusion set for `custom/**`, test/hook/tooling trees, and coverage/release artifacts. Keep existing `MUST_HOMOMORPHIC` behavior intact and add CI lanes for required parity checks plus non-blocking content-diff reporting.
 
 **Tech Stack:** Go 1.24, Git CLI (`ls-tree`), `mp-devx`, GitHub Actions, Markdown docs.
 
@@ -19,6 +19,29 @@
 - Never revert local uncommitted files.
 - Never run `git reset --hard` or branch-switch the active developer workspace.
 - All sync-related branch mutations run in isolated `.worktrees/*`.
+
+### Default Exclusion Set
+
+Do not include these paths in naming parity validation:
+
+- `custom/**`
+- `tests/**`
+- `hooks/**`
+- `openclaw/**`
+- `mcp-server/**`
+- `scripts/**` (except explicitly included parity wrappers such as `scripts/validate-claude-structure.sh`)
+- `docs/plans/**`
+- `docs/plans/evidence/**`
+- `.multipowers/**`
+- `.github/workflows/**`
+- `config/sync/**`
+- `.dependencies/**`
+- `coverage.out`
+- `**/coverage.out`
+- `RELEASE_NOTES*.md`
+- `MIGRATION-*.md`
+- `IMPLEMENTATION_SUMMARY.md`
+- all `*.go`
 
 ### Task 1: Extend Rules Contract For Naming-Parity Forks
 
@@ -119,6 +142,23 @@ func TestScopeFilter_ExcludesGoFilesAndKeepsMarkdown(t *testing.T) {
 }
 ```
 
+Add exclusion-set test:
+
+```go
+func TestScopeFilter_ExcludesDefaultNonParityPaths(t *testing.T) {
+	in := []string{
+		"custom/docs/a.md",
+		"tests/smoke/t.md",
+		"hooks/pre-commit.sh",
+		"docs/architecture/commands_skills_difference.md",
+	}
+	got := ExcludePaths(in, DefaultParityExcludes())
+	if len(got) != 1 || got[0] != "docs/architecture/commands_skills_difference.md" {
+		t.Fatalf("unexpected filtered set: %#v", got)
+	}
+}
+```
+
 **Step 2: Run test to verify it fails**
 
 Run: `go test ./internal/devx -run TestScopeFilter_ExcludesGoFilesAndKeepsMarkdown -v`  
@@ -128,10 +168,12 @@ Expected: FAIL with `undefined: FilterByPatterns`
 
 ```go
 func FilterByPatterns(names []string, patterns []string) []string
+func ExcludePaths(names []string, excludes []string) []string
+func DefaultParityExcludes() []string
 ```
 
 Use `path.Match` with stable sorted output and default passthrough when no patterns provided.
-Add a fast-path exclusion helper for `custom/` prefixes.
+Add a fast-path exclusion matcher for the default non-parity path set.
 
 **Step 4: Run test to verify it passes**
 
@@ -180,6 +222,7 @@ Expected: FAIL because decision path is not implemented.
 - In `ValidateStructureParity`, handle `ALLOW_FORK_WITH_NAME_PARITY`:
   - list source/target names
   - apply ignore filters
+  - apply default exclusion set
   - apply pattern filters (e.g., `*.md`)
   - compare name sets
   - allow only differences present in explicit addition/removal registries
@@ -265,7 +308,10 @@ Script outline:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-git diff --name-status main...go -- .claude .claude-plugin/.claude || true
+git diff --name-status main...go -- .claude .claude-plugin/.claude \
+  ':!custom/**' ':!tests/**' ':!hooks/**' ':!openclaw/**' ':!mcp-server/**' \
+  ':!docs/plans/**' ':!docs/plans/evidence/**' ':!.multipowers/**' \
+  ':!coverage.out' ':!**/coverage.out' || true
 ```
 
 **Step 4: Run checks to verify they pass**
@@ -291,7 +337,7 @@ git commit -m "ci(sync): add informational content diff reporting lane"
 **Step 1: Write the failing doc checks**
 
 ```bash
-rg -n "ALLOW_FORK_WITH_NAME_PARITY|\\.go.*excluded|custom/\\*\\*.*excluded|explicitly registered" docs/architecture/commands_skills_difference.md
+rg -n "ALLOW_FORK_WITH_NAME_PARITY|\\.go.*excluded|custom/\\*\\*.*excluded|tests/\\*\\*.*excluded|hooks/\\*\\*.*excluded|openclaw/\\*\\*.*excluded|mcp-server/\\*\\*.*excluded|docs/plans/\\*\\*.*excluded|explicitly registered" docs/architecture/commands_skills_difference.md
 ```
 
 **Step 2: Run check to verify it fails**
@@ -303,7 +349,7 @@ Expected: no matches.
 
 - Document policy:
   - markdown + Claude-related file naming parity with `main`
-  - `./custom/**` is excluded from naming parity enforcement
+  - default non-parity exclusion set (`custom/tests/hooks/openclaw/mcp-server/scripts/docs/plans/.multipowers/.github/workflows/config/sync/.dependencies/coverage/release-migration artifacts`)
   - Go files excluded from naming parity
   - add/remove in forked scopes requires explicit registry entries
 
@@ -311,7 +357,7 @@ Expected: no matches.
 
 Run:
 - `rg -n "ALLOW_FORK_WITH_NAME_PARITY" docs/architecture/commands_skills_difference.md`
-- `rg -n "custom/\\*\\*.*excluded|Go files.*excluded|\\.go files.*excluded" docs/architecture/commands_skills_difference.md`
+- `rg -n "custom/\\*\\*.*excluded|tests/\\*\\*.*excluded|hooks/\\*\\*.*excluded|openclaw/\\*\\*.*excluded|mcp-server/\\*\\*.*excluded|Go files.*excluded|\\.go files.*excluded" docs/architecture/commands_skills_difference.md`
 
 Expected: PASS
 
@@ -366,7 +412,7 @@ git commit -m "test(sync): record naming parity policy verification evidence"
 
 - Rules contract supports controlled forks with naming parity and explicit registry.
 - Validation scope enforces naming parity for Markdown and Claude-related files.
-- `./custom/**` is excluded from naming parity enforcement.
+- default non-parity path set is excluded from naming parity enforcement.
 - Go files are excluded from naming parity checks.
 - CI has required parity gate and non-blocking content diff report.
 - Sync docs describe the finalized policy and exception workflow.
