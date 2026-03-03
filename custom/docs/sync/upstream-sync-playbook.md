@@ -1,59 +1,52 @@
 # Upstream Sync Playbook
 
-## Branch Principle
+## Core Principles
 
-- `main` must remain a clean mirror of `upstream/main`.
-- `go` is the only customization branch.
-- Sync direction is one-way: `upstream/main -> main -> go`.
-- Never run sync by switching current worktree branch.
-- Run branch mutation only in temporary worktrees under `.worktrees/sync-*`.
-- Never resolve sync by revert/reset of local uncommitted files.
-- Minimize edits in high-conflict upstream files (`.claude-plugin/bin/mp`, `.claude-plugin/.claude/*`, `.claude-plugin/*`); prefer `custom/*`.
+- Sync direction is fixed: `upstream/main -> main -> go`.
+- `main` stays a clean mirror of `upstream/main`; implementation continues on `go`.
+- No overlay mechanism: common content enters `go` only through `COPY_FROM_MAIN` rules.
+- All sync mutations run in isolated `.worktrees/sync-*` worktrees, never by switching the current working branch.
 
-## Routine Sync Sequence
+## Rules Contracts
+
+- File copy contract: `config/sync/main-to-go-rules.json`
+- Structure parity contract: `config/sync/claude-structure-rules.json`
+- Validation entrypoint: `./scripts/validate-claude-structure.sh`
+
+## Optional Proxy (If Git Is Slow)
+
+```bash
+host_ip=$(ip route show | grep -i default | awk '{print $3}')
+export http_proxy="http://$host_ip:7890"
+export https_proxy="http://$host_ip:7890"
+```
+
+## Dry-Run Sequence
 
 ```bash
 ./scripts/sync-upstream-main.sh -dry-run
 ./scripts/sync-main-to-go.sh -dry-run
 ./scripts/sync-all.sh -dry-run
+./scripts/validate-claude-structure.sh -dry-run
 ```
 
-## Pre-Sync Guards
+## Apply Sequence
 
 ```bash
-git status --short --branch
-git fetch upstream origin --prune
+./scripts/sync-upstream-main.sh
+./scripts/sync-main-to-go.sh
+./scripts/validate-claude-structure.sh
+go test ./internal/devx ./cmd/mp-devx -v
 ```
 
-Required outcomes:
-- no branch switch in the active developer worktree
-- sync branch mutations execute only in `.worktrees/sync-*`
-- `main` fast-forwards from `upstream/main`
-- `COPY_FROM_MAIN` rules are applied from `main` into `go`
+## Required Outcomes
 
-## Conflict SLA and Fallback
+- `main` fast-forwards to `upstream/main` in isolated worktree.
+- `go` receives only rules-allowed shared files.
+- `.claude-plugin/.claude` structure checks pass for `MUST_HOMOMORPHIC` scopes.
+- No local uncommitted user edits are reverted.
 
-- Target: resolve sync conflicts within 30 minutes.
-- If not resolved within SLA:
+## Failure Handling
 
-```bash
-git worktree list
-# remove failed temp worktree and rerun scripts
-```
-
-Then restart from clean baseline using this playbook.
-
-## Example Sync Transcript
-
-See: `custom/docs/sync/verification-transcript.md`
-
-## Expected Result
-
-- `main` matches `upstream/main`
-- `go` receives only allowed shared-file sync via rules
-- dry-run and automation checks pass
-
-## Conductor Source Reference
-
-Conductor-style setup behavior used by `/mp:init` is tracked here:
-- `custom/references/conductor-upstream/SOURCE-MAP.md`
+- If sync or validation fails, follow: `custom/docs/sync/conflict-resolution.md`
+- Keep evidence in: `custom/docs/sync/verification-transcript.md`

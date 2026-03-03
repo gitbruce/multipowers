@@ -1,62 +1,62 @@
 # Conflict Resolution Runbooks
 
-## First Rule
+## Safety Baseline
 
-- Keep `main` unchanged except syncing from `upstream/main`.
-- Resolve customization conflicts only in `go`.
-- Never run sync by switching current worktree branch.
-- Use temporary worktrees rooted at `.worktrees/sync-*` for sync actions.
-- Never resolve by revert/reset of local uncommitted files.
+- Do not revert local uncommitted files.
+- Do not run destructive reset commands.
+- Resolve sync issues only in isolated sync worktrees.
 
-## Resolve Rebase Path
-1. Check status:
+## A. Git Conflict During Sync
+
+1. Inspect state:
 ```bash
 git status --short --branch
 ```
 2. Resolve conflicted files manually.
 3. Mark resolved files:
 ```bash
-git add <resolved-file-1> <resolved-file-2>
+git add <resolved-files>
 ```
-4. Continue rebase:
-```bash
-git rebase --continue
-```
-5. Repeat until complete.
-
-## Abort Rebase Path
-Use this when conflict resolution exceeds the working SLA.
-
-```bash
-git rebase --abort
-git status --short --branch
-```
-
-Then recover using sync flow:
+4. Continue the operation (`rebase --continue` or merge continue path).
+5. Re-run dry-run checks:
 ```bash
 ./scripts/sync-upstream-main.sh -dry-run
 ./scripts/sync-main-to-go.sh -dry-run
 ./scripts/sync-all.sh -dry-run
+```
+
+## B. Structure Parity Validation Failure
+
+1. Reproduce:
+```bash
+./scripts/validate-claude-structure.sh -dry-run
+```
+2. For unexpected drift, sync from `main` again and re-check.
+3. For intentional divergence, update explicit allow/ignore entries in:
+- `config/sync/claude-structure-rules.json`
+4. Re-run:
+```bash
+./scripts/validate-claude-structure.sh -dry-run
+go test ./internal/devx ./cmd/mp-devx -v
+```
+
+## C. Abort and Retry Path
+
+Use this when conflict resolution exceeds SLA.
+
+```bash
+git rebase --abort || true
+git status --short --branch
+./scripts/sync-all.sh -dry-run
+./scripts/validate-claude-structure.sh -dry-run
 ```
 
 ## Manual Verification Checklist
+
 ```bash
 git status --short --branch
 ./scripts/sync-upstream-main.sh -dry-run
 ./scripts/sync-main-to-go.sh -dry-run
 ./scripts/sync-all.sh -dry-run
-./.claude-plugin/bin/mp persona list
+./scripts/validate-claude-structure.sh -dry-run
 ```
-
-Expected outcomes:
-- no unresolved merge markers
-- sync dry-run commands return success
-- persona list returns configured personas
-
-## Conductor Path Canonicalization
-
-Use only:
-- `conductor/tracks.md`
-- `conductor/tracks/`
-
-Avoid legacy or typo variants like `conductor/track/`.

@@ -2,7 +2,7 @@
 
 日期：2026-03-02  
 比较分支：`main` vs `go`  
-基线提交：`main=f6a815a326ec`，`go=5484dd8`
+基线提交：`main=f6a815a326ec`，`go=a21dc94873d8`
 
 ## 范围与口径
 
@@ -41,10 +41,10 @@
 | 指标 | 数量 |
 |---|---:|
 | `main` other 文件总数 | 195 |
-| `go` other 文件总数 | 334 |
+| `go` other 文件总数 | 367 |
 | shared | 157 |
 | main-only | 38 |
-| go-only | 177 |
+| go-only | 210 |
 
 main-only（38）状态统计：
 - `equivalent=5`
@@ -52,10 +52,14 @@ main-only（38）状态统计：
 - `missing=23`
 - `intentional-diff=1`
 
-go-only（177）状态统计：
+go-only（210）状态统计：
 - `equivalent=5`
 - `partial=1`
-- `intentional-diff=171`
+- `intentional-diff=204`
+
+2026-03-03 增量说明（相对旧基线）：
+- 新增同步与结构治理资产（`config/sync/*`、`cmd/mp-devx`、`internal/devx/*`、`.github/workflows/*`、`custom/docs/sync/*`）均归类为 `intentional-diff`。
+- 这些新增文件用于 `upstream/main -> main -> go` 自动化同步与结构同构校验，不改变 main-only 侧分类结论。
 
 ## 语义差异主表
 

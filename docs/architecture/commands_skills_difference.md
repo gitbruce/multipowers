@@ -2,7 +2,7 @@
 
 日期：2026-03-02  
 比较分支：`main` vs `go`  
-基线提交：`main=f6a815a326ec`，`go=5484dd8`
+基线提交：`main=f6a815a326ec`，`go=a21dc94873d8`
 
 ## 关键说明
 
@@ -22,6 +22,13 @@
 - `.claude/skills/extract-skill.md`（main 231 行完整指南）
 - `.claude-plugin/.claude/skills/extract-skill.md`（go 231 行，按 main 恢复并完成 `/octo:` -> `/mp:` 前缀迁移）
 - 该映射当前应判定为 `equivalent`。
+
+## 目录结构治理（必须同构 / 允许分叉）
+
+从 2026-03-03 起，`.claude-plugin/.claude` 目录差异治理采用规则文件 `config/sync/claude-structure-rules.json`，并由 `./scripts/validate-claude-structure.sh -dry-run` 执行校验：
+- `MUST_HOMOMORPHIC`（必须同构）：`commands`、`skills`、`references`、`state`。
+- `ALLOW_FORK`（允许分叉）：`init.md`、`mp.md`、`persona.md`、`skill-persona.md` 及规则里显式声明的例外。
+- 不再使用 overlay 机制；同步路径固定为 `upstream/main -> main -> go`，共通文件通过规则同步与结构校验进入 `go`。
 
 ## 结果概览
 

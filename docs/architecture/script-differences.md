@@ -2,7 +2,7 @@
 
 日期：2026-03-02  
 比较分支：`main` vs `go`  
-基线提交：`main=f6a815a326ec`，`go=5484dd8`
+基线提交：`main=f6a815a326ec`，`go=a21dc94873d8`
 
 ## 判定口径
 
@@ -38,22 +38,22 @@
 | 指标 | 数量 |
 |---|---:|
 | `main` 脚本总数 (`*.sh`) | 135 |
-| `go` 脚本总数 (`*.sh`) | 16 |
+| `go` 脚本总数 (`*.sh`) | 21 |
 | shared | 14 |
 | main-only | 121 |
-| go-only | 2 |
+| go-only | 7 |
 
-覆盖策略统计（全量 137 行 = main 135 + go-only 2）：
+覆盖策略统计（全量 142 行 = main 135 + go-only 7）：
 - `需要覆盖=121`
-- `可不覆盖=16`（包含 go-only 2）
+- `可不覆盖=21`（包含 go-only 7）
 
-语义状态统计（全量 137 行）：
+语义状态统计（全量 142 行）：
 - `equivalent=14`
 - `partial=71`
 - `missing=50`
-- `intentional-diff=2`
+- `intentional-diff=7`
 
-## 最新代码复检（go=5484dd8）
+## 最新代码复检（go=a21dc94873d8）
 
 - 已基于最新 `go` 分支重新回放主脚本映射：`tmp/recheck/scripts-refresh.tsv`（main 135 行全覆盖）。
 - 覆盖校验结果：`main` 脚本 `missing=0`、`extra=0`（即文档与主分支脚本树一一对应）。
@@ -347,6 +347,11 @@
 |---|---|---|---|---|---|---|---|---|
 | `scripts/auto-push.sh` | **可不覆盖** | `intentional-diff` | go 分支 CI/协作辅助 wrapper，main 无此文件 | `KEEP_IN_GO` | `scripts/auto-push.sh` | `N/A` | `N/A` | 保留为 go 分支附加能力，无需回迁 main |
 | `scripts/build.sh` | **可不覆盖** | `intentional-diff` | go 分支构建 wrapper，main 无此文件 | `KEEP_IN_GO` | `scripts/build.sh` | `N/A` | `N/A` | 保留为 go 分支附加能力，无需回迁 main |
+| `scripts/sync-all.sh` | **可不覆盖** | `intentional-diff` | go 分支新增同步编排 wrapper（`upstream/main -> main -> go`） | `KEEP_IN_GO` | `scripts/sync-all.sh` | `N/A` | `N/A` | 保留为 go 分支同步治理入口，无需回迁 main |
+| `scripts/sync-main-to-go.sh` | **可不覆盖** | `intentional-diff` | go 分支新增 main->go 规则同步 wrapper | `KEEP_IN_GO` | `scripts/sync-main-to-go.sh` | `N/A` | `N/A` | 保留为 go 分支同步治理入口，无需回迁 main |
+| `scripts/sync-upstream-main.sh` | **可不覆盖** | `intentional-diff` | go 分支新增 upstream->main 快进同步 wrapper | `KEEP_IN_GO` | `scripts/sync-upstream-main.sh` | `N/A` | `N/A` | 保留为 go 分支同步治理入口，无需回迁 main |
+| `scripts/validate-claude-structure.sh` | **可不覆盖** | `intentional-diff` | go 分支新增 `.claude` 结构同构校验 wrapper | `KEEP_IN_GO` | `scripts/validate-claude-structure.sh` | `N/A` | `N/A` | 保留为 go 分支结构治理入口，无需回迁 main |
+| `scripts/verify-architecture-diff-docs.sh` | **可不覆盖** | `intentional-diff` | go 分支架构差异文档一致性校验脚本，main 无此文件 | `KEEP_IN_GO` | `scripts/verify-architecture-diff-docs.sh` | `N/A` | `N/A` | 保留为 go 分支文档治理能力，无需回迁 main |
 
 
 ## Hook Lifecycle Alignment Index
