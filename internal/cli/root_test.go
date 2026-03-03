@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/gitbruce/claude-octopus/internal/tracks"
 	"github.com/gitbruce/claude-octopus/pkg/api"
 )
 
@@ -113,4 +114,48 @@ func TestInitWithPromptCreatesContext(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(d, ".multipowers", "product.md")); err != nil {
 		t.Fatalf("expected generated context file: %v", err)
 	}
+}
+
+func TestConfigShowModelRouting(t *testing.T) {
+	d := t.TempDir()
+
+	// Initialize state directory
+	if err := os.MkdirAll(filepath.Join(d, ".multipowers", "temp"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := tracks.WriteState(d, tracks.State{}); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("default is true", func(t *testing.T) {
+		code := Run([]string{"config", "show-model-routing", "--dir", d, "--json"})
+		if code != 0 {
+			t.Fatalf("expected zero exit, got %d", code)
+		}
+	})
+
+	t.Run("set to off", func(t *testing.T) {
+		code := Run([]string{"config", "show-model-routing", "--dir", d, "--value", "off", "--json"})
+		if code != 0 {
+			t.Fatalf("expected zero exit, got %d", code)
+		}
+	})
+
+	t.Run("verify off", func(t *testing.T) {
+		// The value should now be false
+		val, err := tracks.KVGet(d, "settings.show_model_routing")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if val != "false" {
+			t.Errorf("expected settings.show_model_routing=false, got %s", val)
+		}
+	})
+
+	t.Run("set to on", func(t *testing.T) {
+		code := Run([]string{"config", "show-model-routing", "--dir", d, "--value", "true", "--json"})
+		if code != 0 {
+			t.Fatalf("expected zero exit, got %d", code)
+		}
+	})
 }

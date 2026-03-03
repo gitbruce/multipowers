@@ -29,9 +29,9 @@
 | T05 | Implement executor dispatch and one-hop fallback | COMPLETED |
 | T05-S01 | External hard enforcement with model arg injection | COMPLETED |
 | T05-S02 | Automatic single-hop fallback (cross-provider allowed) | COMPLETED |
-| T06 | Add `/mp:config` visibility toggle (default show) | NOT_STARTED |
-| T06-S01 | Persist `show_model_routing` setting | NOT_STARTED |
-| T06-S02 | Respect toggle in output rendering | NOT_STARTED |
+| T06 | Add `/mp:config` visibility toggle (default show) | COMPLETED |
+| T06-S01 | Persist `show_model_routing` setting | COMPLETED |
+| T06-S02 | Respect toggle in output rendering | COMPLETED |
 | T07 | Replace hardcoded model paths and add guardrails | NOT_STARTED |
 | T07-S01 | Remove runtime hardcoding dependency points | NOT_STARTED |
 | T07-S02 | Add hardcoded-model scan tests | NOT_STARTED |

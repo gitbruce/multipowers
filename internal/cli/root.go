@@ -12,6 +12,7 @@ import (
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
 	"github.com/gitbruce/claude-octopus/internal/hooks"
 	"github.com/gitbruce/claude-octopus/internal/providers"
+	"github.com/gitbruce/claude-octopus/internal/settings"
 	"github.com/gitbruce/claude-octopus/internal/tracks"
 	"github.com/gitbruce/claude-octopus/internal/validation"
 	"github.com/gitbruce/claude-octopus/internal/workflows"
@@ -26,7 +27,7 @@ func Run(args []string) int {
 	cmd := args[0]
 	sub := ""
 	rest := args[1:]
-	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage") && len(rest) > 0 {
+	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config") && len(rest) > 0 {
 		sub = rest[0]
 		rest = rest[1:]
 	}
@@ -367,6 +368,43 @@ func Run(args []string) int {
 				"packages":     result.Packages,
 			},
 		})
+	case "config":
+		switch sub {
+		case "show-model-routing":
+			// Toggle show_model_routing setting
+			if *value == "" {
+				// Get current value
+				current := settings.ShowModelRouting(absDir)
+				return respond(api.Response{
+					Status:  "ok",
+					Message: fmt.Sprintf("show_model_routing=%v", current),
+					Data: map[string]any{
+						"show_model_routing": current,
+					},
+				})
+			}
+			// Set new value
+			newValue := *value == "true" || *value == "1" || *value == "on"
+			if err := settings.SetShowModelRouting(absDir, newValue); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{
+				Status:  "ok",
+				Message: fmt.Sprintf("show_model_routing set to %v", newValue),
+				Data: map[string]any{
+					"show_model_routing": newValue,
+				},
+			})
+		case "get":
+			// Get all settings
+			return respond(api.Response{
+				Status:  "ok",
+				Message: "runtime settings",
+				Data:    settings.AllSettings(absDir),
+			})
+		default:
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown config subcommand: use show-model-routing|get"})
+		}
 	default:
 		return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown command"})
 	}
