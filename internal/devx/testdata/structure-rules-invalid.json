@@ -1,0 +1,10 @@
+{
+  "rules": [
+    {
+      "source_root": ".claude/commands",
+      "target_root": ".claude-plugin/.claude/commands",
+      "decision": "INVALID",
+      "notes": "must fail"
+    }
+  ]
+}

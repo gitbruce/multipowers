@@ -1,0 +1,52 @@
+{
+  "rules": [
+    {
+      "source_root": ".claude/commands",
+      "target_root": ".claude-plugin/.claude/commands",
+      "decision": "MUST_HOMOMORPHIC",
+      "notes": "shared command wrappers must stay path/name aligned"
+    },
+    {
+      "source_root": ".claude/skills",
+      "target_root": ".claude-plugin/.claude/skills",
+      "decision": "MUST_HOMOMORPHIC",
+      "notes": "shared skills must stay path/name aligned"
+    },
+    {
+      "source_root": ".claude/references",
+      "target_root": ".claude-plugin/.claude/references",
+      "decision": "MUST_HOMOMORPHIC",
+      "notes": "reference docs should remain structurally aligned"
+    },
+    {
+      "source_root": ".claude/state",
+      "target_root": ".claude-plugin/.claude/state",
+      "decision": "MUST_HOMOMORPHIC",
+      "notes": "state docs should remain structurally aligned"
+    },
+    {
+      "source_root": ".claude/commands",
+      "target_root": ".claude-plugin/.claude/commands/init.md",
+      "decision": "ALLOW_FORK",
+      "notes": "go-only init command is intentional"
+    },
+    {
+      "source_root": ".claude/commands",
+      "target_root": ".claude-plugin/.claude/commands/mp.md",
+      "decision": "ALLOW_FORK",
+      "notes": "go root command entry is intentional"
+    },
+    {
+      "source_root": ".claude/commands",
+      "target_root": ".claude-plugin/.claude/commands/persona.md",
+      "decision": "ALLOW_FORK",
+      "notes": "go-only persona command is intentional"
+    },
+    {
+      "source_root": ".claude/skills",
+      "target_root": ".claude-plugin/.claude/skills/skill-persona.md",
+      "decision": "ALLOW_FORK",
+      "notes": "go-only persona skill is intentional"
+    }
+  ]
+}
