@@ -1,3 +1,9 @@
+// Package modelroute provides legacy model routing functionality.
+//
+// Deprecated: Use internal/policy instead. This package is retained for
+// backward compatibility and will be removed in a future version.
+// The new policy resolver (internal/policy.Resolver) provides config-driven
+// model routing with workflow task-level overrides and executor profiles.
 package modelroute
 
 import (

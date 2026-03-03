@@ -32,9 +32,9 @@
 | T06 | Add `/mp:config` visibility toggle (default show) | COMPLETED |
 | T06-S01 | Persist `show_model_routing` setting | COMPLETED |
 | T06-S02 | Respect toggle in output rendering | COMPLETED |
-| T07 | Replace hardcoded model paths and add guardrails | NOT_STARTED |
-| T07-S01 | Remove runtime hardcoding dependency points | NOT_STARTED |
-| T07-S02 | Add hardcoded-model scan tests | NOT_STARTED |
+| T07 | Replace hardcoded model paths and add guardrails | COMPLETED |
+| T07-S01 | Remove runtime hardcoding dependency points | COMPLETED |
+| T07-S02 | Add hardcoded-model scan tests | COMPLETED |
 | T08 | Build/release integration for runtime-only `.claude-plugin` | NOT_STARTED |
 | T08-S01 | Build binaries + policy in one pipeline | NOT_STARTED |
 | T08-S02 | Runtime read-only contract checks | NOT_STARTED |
