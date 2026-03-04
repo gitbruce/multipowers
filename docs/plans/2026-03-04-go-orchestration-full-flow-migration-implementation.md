@@ -19,7 +19,7 @@
 | T01-S02 | Add workflow override config schema | COMPLETED |
 | T01-S03 | Add provider model-pattern inference schema support | COMPLETED |
 | T02 | Implement config loading and merge resolution | NOT_STARTED |
-| T02-S01 | Load `orchestration.yaml` globals | NOT_STARTED |
+| T02-S01 | Load `orchestration.yaml` globals | COMPLETED |
 | T02-S02 | Load workflow flow-specific override sections | NOT_STARTED |
 | T02-S03 | Implement precedence merge (`task > workflow > global`) | NOT_STARTED |
 | T03 | Implement planner for all flows | NOT_STARTED |

@@ -1,8 +1,10 @@
 package orchestration
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -290,5 +292,162 @@ phase_defaults:
 	_, err := LoadConfigFromProjectDir(d)
 	if err == nil {
 		t.Fatal("expected error for invalid YAML")
+	}
+}
+
+func TestLoadConfigInvalidRegexPattern(t *testing.T) {
+	tests := []struct {
+		name        string
+		yamlContent string
+		expectError bool
+		errorField  string
+	}{
+		{
+			name: "valid regex pattern",
+			yamlContent: `version: "1"
+skill_triggers:
+  testing:
+    pattern: "(test|tdd)"
+    skill: skill-tdd
+`,
+			expectError: false,
+		},
+		{
+			name: "invalid regex pattern",
+			yamlContent: `version: "1"
+skill_triggers:
+  broken:
+    pattern: "[invalid(regex"
+    skill: skill-broken
+`,
+			expectError: true,
+			errorField:  "skill_triggers.broken.pattern",
+		},
+		{
+			name: "empty pattern",
+			yamlContent: `version: "1"
+skill_triggers:
+  empty:
+    pattern: ""
+    skill: skill-empty
+`,
+			expectError: true,
+			errorField:  "skill_triggers.empty.pattern",
+		},
+		{
+			name: "empty skill",
+			yamlContent: `version: "1"
+skill_triggers:
+  noskill:
+    pattern: "(test)"
+    skill: ""
+`,
+			expectError: true,
+			errorField:  "skill_triggers.noskill.skill",
+		},
+		{
+			name: "whitespace only pattern",
+			yamlContent: `version: "1"
+skill_triggers:
+  ws:
+    pattern: "   "
+    skill: skill-ws
+`,
+			expectError: true,
+			errorField:  "skill_triggers.ws.pattern",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := t.TempDir()
+			cfgDir := filepath.Join(d, "config")
+			if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(tt.yamlContent), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			_, err := LoadConfigFromProjectDir(d)
+			if tt.expectError {
+				if err == nil {
+					t.Fatal("expected error for invalid config")
+				}
+				var cfgErr *ConfigError
+				if !errors.As(err, &cfgErr) {
+					t.Fatalf("expected ConfigError, got %T: %v", err, err)
+				}
+				if !strings.Contains(cfgErr.Field, tt.errorField) {
+					t.Errorf("error field: got %q, want to contain %q", cfgErr.Field, tt.errorField)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestLoadConfigMalformedCases(t *testing.T) {
+	tests := []struct {
+		name        string
+		yamlContent string
+		expectError bool
+	}{
+		{
+			name: "phase_defaults with wrong type",
+			yamlContent: `version: "1"
+phase_defaults: "invalid"
+`,
+			expectError: true, // YAML unmarshal error for type mismatch
+		},
+		{
+			name: "ralph_wiggum with string max_iterations",
+			yamlContent: `version: "1"
+ralph_wiggum:
+  max_iterations: "invalid"
+`,
+			expectError: true, // Type error
+		},
+		{
+			name: "skill_triggers with wrong type",
+			yamlContent: `version: "1"
+skill_triggers: "invalid"
+`,
+			expectError: true, // YAML unmarshal error for type mismatch
+		},
+		{
+			name: "version as number",
+			yamlContent: `version: 1
+phase_defaults: {}
+`,
+			expectError: false, // YAML converts to string
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := t.TempDir()
+			cfgDir := filepath.Join(d, "config")
+			if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(tt.yamlContent), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			_, err := LoadConfigFromProjectDir(d)
+			if tt.expectError {
+				if err == nil {
+					t.Error("expected error for malformed config")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("unexpected error: %v", err)
+				}
+			}
+		})
 	}
 }
