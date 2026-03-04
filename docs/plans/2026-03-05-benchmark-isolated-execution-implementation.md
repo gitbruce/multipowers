@@ -38,7 +38,7 @@
 | E3 | Shared Git Worktree Runtime Manager | DONE | 2026-03-05 02:30:18 CST |
 | E4 | Event-Driven Model Progress + Heartbeats | DONE | 2026-03-05 02:33:06 CST |
 | E5 | Sync Gate Collector with Timeout Degradation | DONE | 2026-03-05 02:35:59 CST |
-| E6 | Critic Top-1 Deterministic Selection | TODO | - |
+| E6 | Critic Top-1 Deterministic Selection | DONE | 2026-03-05 02:37:46 CST |
 | E7 | Integration Branch + Same-Model Repair Retry | TODO | - |
 | E8 | JSONL/Docs/E2E Verification | TODO | - |
 
@@ -409,7 +409,7 @@ git commit -m "feat(isolation): add shared sync gate timeout degradation policie
 
 ### Task E6: Critic Top-1 Deterministic Selection
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Integration choice must be deterministic and explainable.
