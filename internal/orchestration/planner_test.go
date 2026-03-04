@@ -244,26 +244,29 @@ func TestPlanImmutability(t *testing.T) {
 }
 
 func TestAllFlowPlans(t *testing.T) {
+	// T03-S03: Data-driven tests for all 6 flows with expected phases and step counts
 	flows := []struct {
-		name          string
-		expectedPhase string
+		name           string
+		expectedPhase  string
+		expectedPhases int
+		description    string
 	}{
-		{"discover", "probe"},
-		{"define", "grasp"},
-		{"develop", "tangle"},
-		{"deliver", "ink"},
-		{"debate", "debate"},
-		{"embrace", "probe"}, // embrace starts with probe
+		{"discover", "probe", 1, "research and exploration phase"},
+		{"define", "grasp", 1, "requirements and scope phase"},
+		{"develop", "tangle", 1, "implementation phase"},
+		{"deliver", "ink", 1, "validation and review phase"},
+		{"debate", "debate", 1, "multi-AI deliberation phase"},
+		{"embrace", "probe", 4, "full 4-phase workflow (probe,grasp,tangle,ink)"},
 	}
 
 	global := &Config{
 		Version: "1",
 		PhaseDefaults: map[string]PhaseDefault{
-			"probe":   {Primary: "researcher"},
-			"grasp":   {Primary: "architect"},
-			"tangle":  {Primary: "implementer"},
-			"ink":     {Primary: "reviewer"},
-			"debate":  {Primary: "debater"},
+			"probe":   {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
+			"grasp":   {Primary: "architect", Agents: []string{"backend-architect"}},
+			"tangle":  {Primary: "implementer", Agents: []string{"developer1", "developer2"}},
+			"ink":     {Primary: "reviewer", Agents: []string{"code-reviewer", "qa-engineer"}},
+			"debate":  {Primary: "debater", Agents: []string{"proponent", "opponent"}},
 			"embrace": {Primary: "coordinator"},
 		},
 	}
@@ -279,12 +282,150 @@ func TestAllFlowPlans(t *testing.T) {
 				t.Errorf("expected workflow %s, got %s", tc.name, plan.WorkflowName)
 			}
 
-			// Verify at least one phase exists
-			if len(plan.Phases) == 0 {
-				t.Errorf("expected at least one phase for flow %s", tc.name)
+			// Verify expected phase count
+			if len(plan.Phases) != tc.expectedPhases {
+				t.Errorf("flow %s: expected %d phases, got %d", tc.name, tc.expectedPhases, len(plan.Phases))
+			}
+
+			// Verify first phase matches expected
+			if len(plan.Phases) > 0 && plan.Phases[0].Name != tc.expectedPhase {
+				t.Errorf("flow %s: expected first phase %s, got %s", tc.name, tc.expectedPhase, plan.Phases[0].Name)
+			}
+
+			// Verify all phases have steps
+			for i, phase := range plan.Phases {
+				if len(phase.Steps) == 0 {
+					t.Errorf("flow %s phase %d (%s): expected at least one step", tc.name, i, phase.Name)
+				}
+			}
+
+			// Verify synthesis is enabled by default
+			if !plan.Synthesis.Enabled {
+				t.Errorf("flow %s: expected synthesis to be enabled", tc.name)
 			}
 		})
 	}
+}
+
+// TestFlowPhaseSequence verifies correct phase ordering for multi-phase flows
+func TestFlowPhaseSequence(t *testing.T) {
+	t.Run("embrace has correct 4-phase sequence", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe":   {Primary: "researcher"},
+				"grasp":   {Primary: "architect"},
+				"tangle":  {Primary: "implementer"},
+				"ink":     {Primary: "reviewer"},
+			},
+		}
+
+		plan, err := BuildPlan(global, "embrace", "", "full workflow", "/workdir")
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		expectedSequence := []string{"probe", "grasp", "tangle", "ink"}
+		if len(plan.Phases) != len(expectedSequence) {
+			t.Fatalf("expected %d phases, got %d", len(expectedSequence), len(plan.Phases))
+		}
+
+		for i, expectedPhase := range expectedSequence {
+			if plan.Phases[i].Name != expectedPhase {
+				t.Errorf("phase %d: expected %s, got %s", i, expectedPhase, plan.Phases[i].Name)
+			}
+		}
+	})
+}
+
+// TestFlowStepCounts verifies step counts per flow based on agent configuration
+func TestFlowStepCounts(t *testing.T) {
+	t.Run("discover with multiple agents creates multiple steps", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst", "context-manager"}},
+			},
+		}
+
+		plan, err := BuildPlan(global, "discover", "", "prompt", "/workdir")
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		if len(plan.Phases[0].Steps) != 3 {
+			t.Errorf("expected 3 steps, got %d", len(plan.Phases[0].Steps))
+		}
+	})
+
+	t.Run("develop with single agent creates one step", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"tangle": {Primary: "implementer"},
+			},
+		}
+
+		plan, err := BuildPlan(global, "develop", "", "prompt", "/workdir")
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		if len(plan.Phases[0].Steps) != 1 {
+			t.Errorf("expected 1 step, got %d", len(plan.Phases[0].Steps))
+		}
+	})
+
+	t.Run("debate creates proponent and opponent steps", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"debate": {Primary: "moderator", Agents: []string{"proponent", "opponent"}},
+			},
+		}
+
+		plan, err := BuildPlan(global, "debate", "", "prompt", "/workdir")
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		if len(plan.Phases[0].Steps) != 2 {
+			t.Errorf("expected 2 debate steps, got %d", len(plan.Phases[0].Steps))
+		}
+	})
+}
+
+// TestFlowParallelExecution verifies parallel execution settings per flow
+func TestFlowParallelExecution(t *testing.T) {
+	t.Run("discover with multiple agents is parallel", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher", Agents: []string{"a1", "a2", "a3"}},
+			},
+		}
+
+		plan, _ := BuildPlan(global, "discover", "", "prompt", "/workdir")
+
+		if !plan.Phases[0].Parallel {
+			t.Error("expected discover to be parallel with multiple agents")
+		}
+	})
+
+	t.Run("develop with single agent is not parallel", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"tangle": {Primary: "implementer"},
+			},
+		}
+
+		plan, _ := BuildPlan(global, "develop", "", "prompt", "/workdir")
+
+		if plan.Phases[0].Parallel {
+			t.Error("expected develop to not be parallel with single agent")
+		}
+	})
 }
 
 func TestPlanWithTaskOverrides(t *testing.T) {
