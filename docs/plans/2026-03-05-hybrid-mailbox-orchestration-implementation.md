@@ -48,7 +48,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | T5 | Structural Conflict Monitor | DONE | 2026-03-05 03:36 CST | pending |
 | T6 | Mailbox Watcher + Control Events | DONE | 2026-03-05 03:39 CST | pending |
 | T7 | Deterministic Gate Engine | DONE | 2026-03-05 03:41 CST | pending |
-| T8 | Worktree Slot Scheduler (Cap Backpressure) | TODO | - | - |
+| T8 | Worktree Slot Scheduler (Cap Backpressure) | DONE | 2026-03-05 03:45 CST | pending |
 | T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | TODO | - | - |
 | T10 | E2E Validation + Docs Sync | TODO | - | - |
 
@@ -260,7 +260,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T8: Worktree Slot Scheduler (Cap Backpressure)
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Unlimited isolated worktrees can exhaust disk/inodes and destabilize long runs.
 
@@ -280,11 +280,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T8.1 Failing tests | TODO | lock cap behavior | add cap-blocking tests | unit + executor tests | assert no pull-next while full | `go test ./internal/orchestration -run "TestWorktreeSlots|TestExecutor_DoesNotPullNextTaskWhenCapReached" -v` |
-| T8.2 Slot manager | TODO | enforce bounded concurrency | implement Acquire/Release | condvar + ctx cancel | no deadlocks | slot tests |
-| T8.3 Executor wiring | TODO | enforce cap at runtime | gate pull-next path | acquire before new attempt, release on cleanup | avoid starving cleanup path | executor tests |
-| T8.4 Event telemetry | TODO | observe pressure state | emit cap reached/freed events | reuse event emitter | drop-tolerant metrics | tests |
-| T8.5 Commit + status update | TODO | keep reviewability high | commit and board update | standard git flow | one commit task | clean diff |
+| T8.1 Failing tests | DONE | lock cap behavior | add cap-blocking tests | unit + executor tests | assert no pull-next while full | `go test ./internal/orchestration -run "TestWorktreeSlots|TestExecutor_DoesNotPullNextTaskWhenCapReached" -v` |
+| T8.2 Slot manager | DONE | enforce bounded concurrency | implement Acquire/Release | condvar + ctx cancel | no deadlocks | slot tests |
+| T8.3 Executor wiring | DONE | enforce cap at runtime | gate pull-next path | acquire before new attempt, release on cleanup | avoid starving cleanup path | executor tests |
+| T8.4 Event telemetry | DONE | observe pressure state | emit cap reached/freed events | reuse event emitter | drop-tolerant metrics | tests |
+| T8.5 Commit + status update | DONE | keep reviewability high | commit and board update | standard git flow | one commit task | clean diff |
 
 ---
 

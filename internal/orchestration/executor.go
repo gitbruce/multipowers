@@ -31,6 +31,7 @@ type Executor struct {
 	events         *EventEmitter
 	benchmarkQueue *benchmark.Queue
 	benchmarkEmit  benchmark.SafeEmitter
+	worktreeSlots  *WorktreeSlots
 	mu             sync.Mutex
 }
 
@@ -275,6 +276,20 @@ func (e *Executor) executePhaseSequential(ctx context.Context, phase PhasePlan, 
 
 // executeStep executes a single step
 func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName string) StepResult {
+	if e.worktreeSlots != nil {
+		if err := e.worktreeSlots.Acquire(ctx); err != nil {
+			return StepResult{
+				StepID: step.ID,
+				Phase:  step.Phase,
+				Agent:  step.Agent,
+				Model:  step.Model,
+				Status: StepStatusCanceled,
+				Error:  err,
+			}
+		}
+		defer e.worktreeSlots.Release()
+	}
+
 	// Emit step start event
 	e.events.Emit(Event{
 		Type:         EventTypeStepStart,
@@ -355,6 +370,14 @@ func (e *Executor) Events() <-chan Event {
 // Close cleans up executor resources
 func (e *Executor) Close() {
 	e.events.Close()
+}
+
+// SetWorktreeSlots attaches worktree cap slots to this executor.
+func (e *Executor) SetWorktreeSlots(slots *WorktreeSlots) {
+	if e == nil {
+		return
+	}
+	e.worktreeSlots = slots
 }
 
 func (e *Executor) emitBenchmarkEvent(jobType string, payload map[string]any) {

@@ -516,3 +516,38 @@ func collectStepProgressEvents(events <-chan Event) []ModelProgressData {
 		}
 	}
 }
+
+func TestExecutor_DoesNotPullNextTaskWhenCapReached(t *testing.T) {
+	dispatcher := NewMockDispatcher()
+	dispatcher.SetShouldDelay(120 * time.Millisecond)
+
+	executor := NewExecutor(ExecutorConfig{
+		MaxWorkers: 2,
+	}, dispatcher)
+	executor.SetWorktreeSlots(NewWorktreeSlots(1))
+
+	phase := PhasePlan{
+		Name: "develop",
+		Steps: []StepPlan{
+			{ID: "s1", Phase: "develop", Agent: "a1"},
+			{ID: "s2", Phase: "develop", Agent: "a2"},
+		},
+		Parallel:   true,
+		MaxWorkers: 2,
+	}
+
+	done := make(chan PhaseResult, 1)
+	go func() {
+		done <- executor.ExecutePhase(context.Background(), phase, "develop")
+	}()
+
+	time.Sleep(40 * time.Millisecond)
+	if got := dispatcher.CallCount(); got != 1 {
+		t.Fatalf("dispatch call count while cap reached = %d, want 1", got)
+	}
+
+	result := <-done
+	if result.Completed != 2 {
+		t.Fatalf("completed = %d, want 2", result.Completed)
+	}
+}
