@@ -1,11 +1,66 @@
 package policy
 
+// OrchestrationOverrides contains optional orchestration settings that override global defaults
+type OrchestrationOverrides struct {
+	// Phase settings override
+	Phases []PhaseOverride `yaml:"phases,omitempty"`
+	// Perspective settings override
+	Perspectives []PerspectiveOverride `yaml:"perspectives,omitempty"`
+	// Parallel execution settings
+	Parallel *ParallelConfig `yaml:"parallel,omitempty"`
+	// Synthesis settings
+	Synthesis *SynthesisConfig `yaml:"synthesis,omitempty"`
+}
+
+// PhaseOverride defines per-phase orchestration settings
+type PhaseOverride struct {
+	Name        string   `yaml:"name"`
+	Enabled     *bool    `yaml:"enabled,omitempty"`
+	Agent       string   `yaml:"agent,omitempty"`
+	Agents      []string `yaml:"agents,omitempty"`
+	MaxWorkers  int      `yaml:"max_workers,omitempty"`
+	TimeoutSecs int      `yaml:"timeout_secs,omitempty"`
+}
+
+// PerspectiveOverride defines perspective decomposition settings
+type PerspectiveOverride struct {
+	Name        string `yaml:"name"`
+	Description string `yaml:"description,omitempty"`
+	Agent       string `yaml:"agent,omitempty"`
+	Model       string `yaml:"model,omitempty"`
+}
+
+// ParallelConfig defines parallel execution settings
+type ParallelConfig struct {
+	Enabled    *bool `yaml:"enabled,omitempty"`
+	MaxWorkers int   `yaml:"max_workers,omitempty"`
+}
+
+// SynthesisConfig defines synthesis settings
+type SynthesisConfig struct {
+	// Progressive synthesis settings
+	Progressive *ProgressiveSynthesisConfig `yaml:"progressive,omitempty"`
+	// Final synthesis settings
+	FinalEnabled *bool `yaml:"final_enabled,omitempty"`
+	// Model to use for synthesis (optional, defaults to workflow model)
+	Model string `yaml:"model,omitempty"`
+}
+
+// ProgressiveSynthesisConfig defines progressive synthesis trigger settings
+type ProgressiveSynthesisConfig struct {
+	Enabled      *bool `yaml:"enabled,omitempty"`
+	MinCompleted int   `yaml:"min_completed,omitempty"`
+	MinBytes     int   `yaml:"min_bytes,omitempty"`
+}
+
 // WorkflowPolicy defines model/executor settings for a workflow or task
 type WorkflowPolicy struct {
-	Model           string `yaml:"model"`
-	ExecutorProfile string `yaml:"executor_profile"`
-	FallbackPolicy  string `yaml:"fallback_policy,omitempty"`
-	DisplayName     string `yaml:"display_name,omitempty"`
+	Model           string                `yaml:"model"`
+	ExecutorProfile string                `yaml:"executor_profile"`
+	FallbackPolicy  string                `yaml:"fallback_policy,omitempty"`
+	DisplayName     string                `yaml:"display_name,omitempty"`
+	// Orchestration overrides (optional)
+	Orchestration *OrchestrationOverrides `yaml:"orchestration,omitempty"`
 }
 
 // WorkflowConfig contains a workflow's default policy and optional task-level overrides

@@ -87,6 +87,171 @@ func TestWorkflowSchema(t *testing.T) {
 	})
 }
 
+// TestOrchestrationOverrideSchema tests orchestration override config parsing
+func TestOrchestrationOverrideSchema(t *testing.T) {
+	t.Run("workflow without orchestration overrides is valid", func(t *testing.T) {
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config without overrides, got error: %v", err)
+		}
+		if cfg.Default.Orchestration != nil {
+			t.Error("orchestration should be nil when not specified")
+		}
+	})
+
+	t.Run("workflow with empty orchestration overrides is valid", func(t *testing.T) {
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+				Orchestration: &OrchestrationOverrides{},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config with empty overrides, got error: %v", err)
+		}
+	})
+
+	t.Run("workflow with phase overrides", func(t *testing.T) {
+		enabled := true
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+				Orchestration: &OrchestrationOverrides{
+					Phases: []PhaseOverride{
+						{Name: "probe", Agent: "researcher", MaxWorkers: 3},
+						{Name: "grasp", Enabled: &enabled, Agent: "architect"},
+					},
+				},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config with phase overrides, got error: %v", err)
+		}
+		if len(cfg.Default.Orchestration.Phases) != 2 {
+			t.Errorf("expected 2 phases, got %d", len(cfg.Default.Orchestration.Phases))
+		}
+	})
+
+	t.Run("workflow with perspective overrides", func(t *testing.T) {
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+				Orchestration: &OrchestrationOverrides{
+					Perspectives: []PerspectiveOverride{
+						{Name: "security", Agent: "security-auditor", Model: "claude-sonnet-4.5"},
+						{Name: "performance", Agent: "performance-engineer"},
+						{Name: "testing", Description: "Test coverage analysis"},
+					},
+				},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config with perspective overrides, got error: %v", err)
+		}
+		if len(cfg.Default.Orchestration.Perspectives) != 3 {
+			t.Errorf("expected 3 perspectives, got %d", len(cfg.Default.Orchestration.Perspectives))
+		}
+	})
+
+	t.Run("workflow with parallel config", func(t *testing.T) {
+		enabled := true
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+				Orchestration: &OrchestrationOverrides{
+					Parallel: &ParallelConfig{
+						Enabled:    &enabled,
+						MaxWorkers: 5,
+					},
+				},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config with parallel settings, got error: %v", err)
+		}
+		if cfg.Default.Orchestration.Parallel.MaxWorkers != 5 {
+			t.Errorf("expected max_workers 5, got %d", cfg.Default.Orchestration.Parallel.MaxWorkers)
+		}
+	})
+
+	t.Run("workflow with synthesis config", func(t *testing.T) {
+		progEnabled := true
+		finalEnabled := true
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+				Orchestration: &OrchestrationOverrides{
+					Synthesis: &SynthesisConfig{
+						Progressive: &ProgressiveSynthesisConfig{
+							Enabled:      &progEnabled,
+							MinCompleted: 2,
+							MinBytes:     1000,
+						},
+						FinalEnabled: &finalEnabled,
+						Model:        "claude-sonnet-4.5",
+					},
+				},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config with synthesis settings, got error: %v", err)
+		}
+		if cfg.Default.Orchestration.Synthesis.Progressive.MinCompleted != 2 {
+			t.Errorf("expected min_completed 2, got %d", cfg.Default.Orchestration.Synthesis.Progressive.MinCompleted)
+		}
+	})
+
+	t.Run("task with orchestration overrides", func(t *testing.T) {
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+			},
+			Tasks: map[string]WorkflowPolicy{
+				"task_with_overrides": {
+					Model: "gemini-3-pro-preview",
+					Orchestration: &OrchestrationOverrides{
+						Parallel: &ParallelConfig{MaxWorkers: 10},
+					},
+				},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config with task overrides, got error: %v", err)
+		}
+		task := cfg.Tasks["task_with_overrides"]
+		if task.Orchestration.Parallel.MaxWorkers != 10 {
+			t.Errorf("expected task max_workers 10, got %d", task.Orchestration.Parallel.MaxWorkers)
+		}
+	})
+
+	t.Run("missing override falls back to global", func(t *testing.T) {
+		// This test verifies the design principle that missing override means fallback
+		cfg := &WorkflowConfig{
+			Default: WorkflowPolicy{
+				Model: "gpt-5.3-codex",
+				Orchestration: &OrchestrationOverrides{
+					// Only set phases, not parallel or synthesis
+					Phases: []PhaseOverride{{Name: "probe"}},
+				},
+			},
+		}
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected valid config, got error: %v", err)
+		}
+		// Parallel and Synthesis should be nil (fallback to global)
+		if cfg.Default.Orchestration.Parallel != nil {
+			t.Error("parallel should be nil for fallback")
+		}
+		if cfg.Default.Orchestration.Synthesis != nil {
+			t.Error("synthesis should be nil for fallback")
+		}
+	})
+}
+
 // TestAgentSchema tests agent config validation
 func TestAgentSchema(t *testing.T) {
 	t.Run("valid agent config", func(t *testing.T) {
