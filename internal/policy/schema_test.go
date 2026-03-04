@@ -53,14 +53,14 @@ func TestWorkflowSchema(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid workflow missing executor_profile", func(t *testing.T) {
+	t.Run("valid workflow missing executor_profile", func(t *testing.T) {
 		cfg := &WorkflowConfig{
 			Default: WorkflowPolicy{
 				Model: "gpt-5.3-codex",
 			},
 		}
-		if err := cfg.Validate(); err == nil {
-			t.Error("expected error for missing executor_profile, got nil")
+		if err := cfg.Validate(); err != nil {
+			t.Errorf("expected no error for missing executor_profile, got %v", err)
 		}
 	})
 

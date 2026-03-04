@@ -59,19 +59,20 @@ func Compile(cfg *SourceConfig) (*RuntimePolicy, error) {
 		}
 	}
 
-	// Compile executors
-	if cfg.Executors != nil {
-		for execName, exec := range cfg.Executors.Executors {
+	// Compile providers
+	if cfg.Providers != nil {
+		for execName, exec := range cfg.Providers.Providers {
 			policy.Executors[execName] = RuntimeExecutor{
 				Kind:            exec.Kind,
 				CommandTemplate: exec.CommandTemplate,
 				Enforcement:     exec.Enforcement,
-				SourceRef:       fmt.Sprintf("executors.yaml#executors.%s", execName),
+				ModelPatterns:   exec.ModelPatterns,
+				SourceRef:       fmt.Sprintf("providers.yaml#providers.%s", execName),
 			}
 		}
 
 		// Compile fallback policies
-		for policyName, fb := range cfg.Executors.FallbackPolicies {
+		for policyName, fb := range cfg.Providers.FallbackPolicies {
 			rfb := RuntimeFallbackPolicy{
 				MaxHops: fb.MaxHops,
 				Chain:   make([]RuntimeFallbackRule, len(fb.Chain)),
@@ -145,7 +146,7 @@ func computeChecksum(policy *RuntimePolicy) (string, error) {
 	for _, k := range execKeys {
 		execMap[k] = policy.Executors[k]
 	}
-	data["executors"] = execMap
+	data["providers"] = execMap
 
 	// Add fallback policies
 	data["fallback"] = policy.Fallback

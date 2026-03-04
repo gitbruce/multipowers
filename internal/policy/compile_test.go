@@ -44,9 +44,9 @@ func TestCompileRuntimePolicy(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex", "exec", "-m", "{model}", "{prompt}"},
@@ -133,9 +133,9 @@ func TestCompileRuntimePolicy(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"test-executor": {
 						Kind:        ExecutorKindClaudeCode,
 						Enforcement: EnforcementHint,
@@ -203,9 +203,9 @@ func TestCompileGoldenFile(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},
@@ -295,9 +295,9 @@ func TestCompileToJSON(t *testing.T) {
 				},
 			},
 		},
-		Executors: &ExecutorsSourceConfig{
+		Providers: &ProvidersSourceConfig{
 			Version: "1",
-			Executors: map[string]ExecutorConfig{
+			Providers: map[string]ExecutorConfig{
 				"test-executor": {
 					Kind:        ExecutorKindClaudeCode,
 					Enforcement: EnforcementHint,

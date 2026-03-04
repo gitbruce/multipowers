@@ -19,15 +19,9 @@ func (w *WorkflowConfig) Validate() error {
 	if w.Default.Model == "" {
 		return &ValidationError{Field: "default.model", Reason: "model is required"}
 	}
-	if w.Default.ExecutorProfile == "" {
-		return &ValidationError{Field: "default.executor_profile", Reason: "executor_profile is required"}
-	}
 	for taskName, task := range w.Tasks {
 		if task.Model == "" {
 			return &ValidationError{Field: "tasks." + taskName + ".model", Reason: "model is required"}
-		}
-		if task.ExecutorProfile == "" {
-			return &ValidationError{Field: "tasks." + taskName + ".executor_profile", Reason: "executor_profile is required"}
 		}
 	}
 	return nil
@@ -35,11 +29,13 @@ func (w *WorkflowConfig) Validate() error {
 
 // AgentPolicy defines model/executor settings for an agent/persona
 type AgentPolicy struct {
-	Model           string `yaml:"model"`
-	ExecutorProfile string `yaml:"executor_profile"`
-	FallbackPolicy  string `yaml:"fallback_policy,omitempty"`
-	PermissionMode  string `yaml:"permission_mode,omitempty"`
-	DisplayName     string `yaml:"display_name,omitempty"`
+	Model                string `yaml:"model"`
+	ExecutorProfile      string `yaml:"executor_profile"`
+	CLI                  string `yaml:"cli,omitempty"`
+	FallbackPolicy       string `yaml:"fallback_policy,omitempty"`
+	PermissionMode       string `yaml:"permission_mode,omitempty"`
+	PermissionModeLegacy string `yaml:"permissionMode,omitempty"`
+	DisplayName          string `yaml:"display_name,omitempty"`
 }
 
 // Validate checks that required fields are present
@@ -47,8 +43,8 @@ func (a *AgentPolicy) Validate() error {
 	if a.Model == "" {
 		return &ValidationError{Field: "model", Reason: "model is required"}
 	}
-	if a.ExecutorProfile == "" {
-		return &ValidationError{Field: "executor_profile", Reason: "executor_profile is required"}
+	if a.ExecutorProfile == "" && a.CLI == "" {
+		return &ValidationError{Field: "executor_profile", Reason: "executor_profile (or cli) is required"}
 	}
 	return nil
 }
@@ -58,6 +54,7 @@ type ExecutorConfig struct {
 	Kind            ExecutorKind `yaml:"kind"`
 	CommandTemplate []string     `yaml:"command_template,omitempty"`
 	Enforcement     Enforcement  `yaml:"enforcement"`
+	ModelPatterns   []string     `yaml:"model_patterns,omitempty"`
 }
 
 // Validate checks that required fields are present and valid
@@ -101,7 +98,7 @@ type FallbackRule struct {
 
 // FallbackPolicyConfig defines fallback behavior
 type FallbackPolicyConfig struct {
-	MaxHops int           `yaml:"max_hops"`
+	MaxHops int            `yaml:"max_hops"`
 	Chain   []FallbackRule `yaml:"chain"`
 }
 
@@ -117,10 +114,10 @@ type AgentsSourceConfig struct {
 	Agents  map[string]AgentPolicy `yaml:"agents"`
 }
 
-// ExecutorsSourceConfig is the root structure for executors.yaml
-type ExecutorsSourceConfig struct {
-	Version         string                          `yaml:"version"`
-	Executors       map[string]ExecutorConfig       `yaml:"executors"`
+// ProvidersSourceConfig is the root structure for providers.yaml
+type ProvidersSourceConfig struct {
+	Version          string                          `yaml:"version"`
+	Providers        map[string]ExecutorConfig       `yaml:"providers"`
 	FallbackPolicies map[string]FallbackPolicyConfig `yaml:"fallback_policies,omitempty"`
 }
 
@@ -128,7 +125,7 @@ type ExecutorsSourceConfig struct {
 type SourceConfig struct {
 	Workflows *WorkflowsSourceConfig
 	Agents    *AgentsSourceConfig
-	Executors *ExecutorsSourceConfig
+	Providers *ProvidersSourceConfig
 }
 
 // ValidationError represents a validation failure

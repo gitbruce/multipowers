@@ -1,7 +1,11 @@
 version: "1"
-executors:
+providers:
   codex_cli:
     kind: external_cli
+    model_patterns:
+      - "^gpt-.*"
+      - "^o3$"
+      - ".*codex.*"
     command_template:
       - codex
       - exec
@@ -13,6 +17,8 @@ executors:
     enforcement: hard
   gemini_cli:
     kind: external_cli
+    model_patterns:
+      - "^gemini-.*"
     command_template:
       - gemini
       - -m
@@ -22,6 +28,8 @@ executors:
     enforcement: hard
   claude_code:
     kind: claude_code
+    model_patterns:
+      - "^claude-.*"
     enforcement: hint
 fallback_policies:
   cross_provider_once:

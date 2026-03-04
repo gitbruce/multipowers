@@ -1,5 +1,5 @@
 version: "1"
-executors:
+providers:
   codex_cli:
     kind: external_cli
     command_template:

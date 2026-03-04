@@ -105,6 +105,40 @@ func TestResolveExecutionContract(t *testing.T) {
 		}
 	})
 
+	t.Run("resolve workflow infers executor from model patterns", func(t *testing.T) {
+		// Remove explicit profile to force model-based resolution
+		mut := *policy
+		mut.Workflows = map[string]RuntimeWorkflow{}
+		for k, v := range policy.Workflows {
+			mut.Workflows[k] = v
+		}
+		wf := mut.Workflows["define"]
+		wf.Default.ExecutorProfile = ""
+		mut.Workflows["define"] = wf
+
+		// Inject model patterns into executors
+		execs := map[string]RuntimeExecutor{}
+		for k, v := range policy.Executors {
+			execs[k] = v
+		}
+		codex := execs["codex_cli"]
+		codex.ModelPatterns = []string{"^gpt-.*", "^o3$"}
+		execs["codex_cli"] = codex
+		mut.Executors = execs
+
+		modelResolver := NewResolver(&mut)
+		contract, err := modelResolver.Resolve(ResolveRequest{
+			Scope: ScopeWorkflow,
+			Name:  "define",
+		})
+		if err != nil {
+			t.Fatalf("resolve failed: %v", err)
+		}
+		if contract.ExecutorProfile != "codex_cli" {
+			t.Fatalf("expected inferred codex_cli, got %s", contract.ExecutorProfile)
+		}
+	})
+
 	t.Run("resolve workflow task_2 override", func(t *testing.T) {
 		contract, err := resolver.Resolve(ResolveRequest{
 			Scope: ScopeWorkflow,

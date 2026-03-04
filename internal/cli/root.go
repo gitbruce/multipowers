@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"github.com/gitbruce/claude-octopus/internal/app"
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
 	"github.com/gitbruce/claude-octopus/internal/hooks"
+	"github.com/gitbruce/claude-octopus/internal/orchestration"
 	"github.com/gitbruce/claude-octopus/internal/providers"
 	"github.com/gitbruce/claude-octopus/internal/settings"
 	"github.com/gitbruce/claude-octopus/internal/tracks"
@@ -27,7 +29,7 @@ func Run(args []string) int {
 	cmd := args[0]
 	sub := ""
 	rest := args[1:]
-	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config") && len(rest) > 0 {
+	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate") && len(rest) > 0 {
 		sub = rest[0]
 		rest = rest[1:]
 	}
@@ -47,6 +49,9 @@ func Run(args []string) int {
 	// Route command flags
 	intent := fs.String("intent", "", "intent for routing: discover|define|develop|deliver")
 	providerPolicy := fs.String("provider-policy", "", "provider routing policy")
+	phase := fs.String("phase", "", "workflow phase for orchestration")
+	agent := fs.String("agent", "", "agent name for persona/loop execution")
+	maxIterations := fs.Int("max-iterations", 0, "max iterations for loop execution")
 	if err := fs.Parse(rest); err != nil {
 		return 2
 	}
@@ -251,6 +256,94 @@ func Run(args []string) int {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
 		}
 		return respond(api.Response{Status: "ok", Data: data})
+	case "orchestrate":
+		if sub != "select-agent" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown orchestrate subcommand: use select-agent"})
+		}
+		if strings.TrimSpace(*phase) == "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--phase is required"})
+		}
+		orchestrationCfg, err := orchestration.LoadConfigFromProjectDir(absDir)
+		if err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
+		agentProfiles, err := orchestration.LoadAgentProfiles(absDir)
+		if err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
+		selected, reason, candidates := orchestration.SelectAgent(orchestrationCfg, agentProfiles, *phase, effectivePrompt)
+		if strings.TrimSpace(selected) == "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "no agent selected: " + reason})
+		}
+		return respond(api.Response{
+			Status:  "ok",
+			Message: reason,
+			Data: map[string]any{
+				"phase":      *phase,
+				"prompt":     effectivePrompt,
+				"selected":   selected,
+				"reason":     reason,
+				"candidates": candidates,
+			},
+		})
+	case "loop":
+		orchestrationCfg, err := orchestration.LoadConfigFromProjectDir(absDir)
+		if err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
+		selectedAgent := strings.TrimSpace(*agent)
+		loopPhase := strings.TrimSpace(*phase)
+		if loopPhase == "" {
+			loopPhase = "develop"
+		}
+		if selectedAgent == "" {
+			agentProfiles, err := orchestration.LoadAgentProfiles(absDir)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			chosen, _, _ := orchestration.SelectAgent(orchestrationCfg, agentProfiles, loopPhase, effectivePrompt)
+			selectedAgent = chosen
+		}
+		if selectedAgent == "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "failed to resolve loop agent"})
+		}
+		limit := orchestrationCfg.RalphWiggum.MaxIterations
+		if *maxIterations > 0 {
+			limit = *maxIterations
+		}
+		promise := orchestrationCfg.RalphWiggum.CompletionPromise
+		loopResult, err := orchestration.RunLoop(context.Background(), orchestration.LoopOptions{
+			MaxIterations:     limit,
+			CompletionPromise: promise,
+		}, func(iter int) (string, error) {
+			iterPrompt := fmt.Sprintf("%s\n\nIteration %d/%d. Output exactly %s when truly complete.", effectivePrompt, iter, limit, promise)
+			out, runErr := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), absDir, selectedAgent+" "+iterPrompt)
+			if runErr != nil {
+				return "", runErr
+			}
+			raw, _ := out["provider_output"].(string)
+			return raw, nil
+		})
+		if err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
+		status := "ok"
+		if !loopResult.Completed {
+			status = "blocked"
+		}
+		return respond(api.Response{
+			Status:  status,
+			Message: "loop execution finished",
+			Data: map[string]any{
+				"phase":              loopPhase,
+				"agent":              selectedAgent,
+				"completed":          loopResult.Completed,
+				"iterations":         loopResult.Iterations,
+				"completion_promise": promise,
+				"completion_seen":    loopResult.CompletionSeen,
+				"last_output":        loopResult.LastOutput,
+			},
+		})
 	case "hook":
 		e := api.HookEvent{Event: *event, CWD: absDir, ToolInput: map[string]any{"prompt": effectivePrompt}}
 		hr := hooks.Handle(absDir, e)

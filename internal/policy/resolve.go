@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sort"
+	"strings"
 )
 
 // ResolutionScope indicates whether we're resolving for a workflow or agent
@@ -25,18 +28,18 @@ type ResolveRequest struct {
 
 // ExecutionContract contains the resolved execution parameters
 type ExecutionContract struct {
-	RequestedModel   string      `json:"requested_model"`
-	EffectiveModel   string      `json:"effective_model"`
-	ExecutorKind     ExecutorKind `json:"executor_kind"`
-	ExecutorProfile  string      `json:"executor_profile"`
-	Enforcement      Enforcement `json:"enforcement"`
-	FallbackTarget   string      `json:"fallback_target,omitempty"`
-	FallbackPolicy   string      `json:"fallback_policy,omitempty"`
-	CommandTemplate  []string    `json:"command_template,omitempty"`
-	SourceRef        string      `json:"source_ref"`
-	Scope            ResolutionScope `json:"scope"`
-	Name             string      `json:"name"`
-	Task             string      `json:"task,omitempty"`
+	RequestedModel  string          `json:"requested_model"`
+	EffectiveModel  string          `json:"effective_model"`
+	ExecutorKind    ExecutorKind    `json:"executor_kind"`
+	ExecutorProfile string          `json:"executor_profile"`
+	Enforcement     Enforcement     `json:"enforcement"`
+	FallbackTarget  string          `json:"fallback_target,omitempty"`
+	FallbackPolicy  string          `json:"fallback_policy,omitempty"`
+	CommandTemplate []string        `json:"command_template,omitempty"`
+	SourceRef       string          `json:"source_ref"`
+	Scope           ResolutionScope `json:"scope"`
+	Name            string          `json:"name"`
+	Task            string          `json:"task,omitempty"`
 }
 
 // Resolver loads and resolves execution contracts from compiled policy
@@ -133,12 +136,13 @@ func (r *Resolver) resolveWorkflow(req ResolveRequest) (*ExecutionContract, erro
 		Task:            req.Task,
 	}
 
-	// Resolve executor
-	executor, err := r.resolveExecutor(contract.ExecutorProfile)
+	// Resolve executor (explicit profile first, then model-pattern inference)
+	profile, executor, err := r.resolveExecutorForModel(contract.Model, contract.ExecutorProfile)
 	if err != nil {
 		return nil, err
 	}
 
+	execContract.ExecutorProfile = profile
 	execContract.ExecutorKind = executor.Kind
 	execContract.Enforcement = executor.Enforcement
 	execContract.CommandTemplate = executor.CommandTemplate
@@ -171,12 +175,13 @@ func (r *Resolver) resolveAgent(req ResolveRequest) (*ExecutionContract, error) 
 		Name:            req.Name,
 	}
 
-	// Resolve executor
-	executor, err := r.resolveExecutor(contract.ExecutorProfile)
+	// Resolve executor (explicit profile first, then model-pattern inference)
+	profile, executor, err := r.resolveExecutorForModel(contract.Model, contract.ExecutorProfile)
 	if err != nil {
 		return nil, err
 	}
 
+	execContract.ExecutorProfile = profile
 	execContract.ExecutorKind = executor.Kind
 	execContract.Enforcement = executor.Enforcement
 	execContract.CommandTemplate = executor.CommandTemplate
@@ -196,6 +201,70 @@ func (r *Resolver) resolveExecutor(profile string) (*RuntimeExecutor, error) {
 		return nil, fmt.Errorf("executor profile not found: %s", profile)
 	}
 	return &exec, nil
+}
+
+func (r *Resolver) resolveExecutorForModel(model, profile string) (string, *RuntimeExecutor, error) {
+	if strings.TrimSpace(profile) != "" {
+		exec, err := r.resolveExecutor(profile)
+		return profile, exec, err
+	}
+	if r.policy == nil || len(r.policy.Executors) == 0 {
+		return "", nil, fmt.Errorf("no executors configured")
+	}
+
+	// First pass: explicit regex model_patterns on provider config.
+	keys := make([]string, 0, len(r.policy.Executors))
+	for name := range r.policy.Executors {
+		keys = append(keys, name)
+	}
+	sort.Strings(keys)
+	for _, name := range keys {
+		exec := r.policy.Executors[name]
+		for _, pattern := range exec.ModelPatterns {
+			re, err := regexp.Compile(pattern)
+			if err != nil {
+				continue
+			}
+			if re.MatchString(model) {
+				e := exec
+				return name, &e, nil
+			}
+		}
+	}
+
+	// Second pass: fallback inference by model name family.
+	lm := strings.ToLower(strings.TrimSpace(model))
+	for _, key := range []string{"gemini_cli", "codex_cli", "claude_code"} {
+		if _, ok := r.policy.Executors[key]; !ok {
+			continue
+		}
+		switch key {
+		case "gemini_cli":
+			if strings.Contains(lm, "gemini") {
+				exec := r.policy.Executors[key]
+				return key, &exec, nil
+			}
+		case "codex_cli":
+			if strings.Contains(lm, "gpt") || lm == "o3" || strings.Contains(lm, "codex") {
+				exec := r.policy.Executors[key]
+				return key, &exec, nil
+			}
+		case "claude_code":
+			if strings.Contains(lm, "claude") {
+				exec := r.policy.Executors[key]
+				return key, &exec, nil
+			}
+		}
+	}
+
+	// Last resort: use claude_code if present, otherwise first executor.
+	if exec, ok := r.policy.Executors["claude_code"]; ok {
+		e := exec
+		return "claude_code", &e, nil
+	}
+	first := keys[0]
+	exec := r.policy.Executors[first]
+	return first, &exec, nil
 }
 
 func (r *Resolver) resolveFallbackTarget(model, policyName string) string {

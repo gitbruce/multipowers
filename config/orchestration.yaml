@@ -1,0 +1,59 @@
+version: "1"
+
+# Phase-to-agent mappings for orchestration selection
+phase_defaults:
+  probe:
+    primary: researcher
+    agents: [ai-engineer, business-analyst, context-manager]
+  grasp:
+    primary: backend-architect
+    agents: [frontend-developer, database-architect, cloud-architect, graphql-architect]
+  tangle:
+    primary: implementer
+    agents: [tdd-orchestrator, debugger, devops-troubleshooter, python-pro, typescript-pro]
+  ink:
+    primary: code-reviewer
+    agents: [security-auditor, test-automator, performance-engineer, deployment-engineer]
+
+# Ralph-wiggum iterative loop controls
+ralph_wiggum:
+  enabled: true
+  completion_promise: "<promise>COMPLETE</promise>"
+  max_iterations: 50
+  loop_phases: [tangle]
+
+# Prompt-triggered skill hints used by orchestrator selection
+skill_triggers:
+  api-design:
+    pattern: "(rest|graphql|grpc).*(api|endpoint|service)"
+    skill: skill-architecture
+  security:
+    pattern: "(security|owasp|vulnerability|auth)"
+    skill: skill-security-audit
+  testing:
+    pattern: "(test|tdd|coverage|e2e)"
+    skill: skill-tdd
+  performance:
+    pattern: "(performance|optimize|profile|benchmark)"
+    skill: skill-code-review
+  task-completion:
+    pattern: "(commit.*push|complete.*tasks.*push|wrap.*up.*push)"
+    skill: skill-finish-branch
+  task-management:
+    pattern: "(add.*todo|resume.*task|save.*progress|proceed.*next)"
+    skill: skill-task-management
+  why-questions:
+    pattern: "(why.*(is|did|isn't|doesn't|didn't).*(not|n't)|why.*fail)"
+    skill: skill-debug
+  visual-feedback:
+    pattern: "(\\[Image\\]|button.*styles.*fix|UI.*mess|UX.*mess)"
+    skill: skill-visual-feedback
+  options-request:
+    pattern: "(fix.*or.*provide.*option|give.*me.*option|show.*alternative)"
+    skill: skill-decision-support
+  iteration:
+    pattern: "(loop.*times|loop.*around.*times|keep.*trying.*until|iterate.*until)"
+    skill: skill-iterative-loop
+  audit:
+    pattern: "(audit.*and.*check|audit.*app|process.*to.*audit|scan.*for.*issue)"
+    skill: skill-audit

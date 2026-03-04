@@ -18,9 +18,9 @@ func TestValidateSourceConfig(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},
@@ -37,9 +37,9 @@ func TestValidateSourceConfig(t *testing.T) {
 
 	t.Run("fallback chain with 2 hops fails", func(t *testing.T) {
 		cfg := &SourceConfig{
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},
@@ -75,9 +75,9 @@ func TestValidateSourceConfig(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},
@@ -106,9 +106,9 @@ func TestValidateSourceConfig(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},
@@ -138,9 +138,9 @@ func TestValidateSourceConfig(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},
@@ -187,9 +187,9 @@ func TestValidateSourceConfig(t *testing.T) {
 					},
 				},
 			},
-			Executors: &ExecutorsSourceConfig{
+			Providers: &ProvidersSourceConfig{
 				Version: "1",
-				Executors: map[string]ExecutorConfig{
+				Providers: map[string]ExecutorConfig{
 					"codex_cli": {
 						Kind:            ExecutorKindExternalCLI,
 						CommandTemplate: []string{"codex"},

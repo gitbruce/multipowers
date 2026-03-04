@@ -219,22 +219,30 @@ func fileExists(path string) bool {
 }
 
 func defaultPersonaConfigWithResolver(projectDir string, resolveRoots func() []string) string {
-	projectConfig := filepath.Join(projectDir, "agents", "config.yaml")
-	if fileExists(projectConfig) {
-		return projectConfig
+	projectPrimary := filepath.Join(projectDir, "config", "agents.yaml")
+	if fileExists(projectPrimary) {
+		return projectPrimary
+	}
+	projectLegacy := filepath.Join(projectDir, "agents", "config.yaml")
+	if fileExists(projectLegacy) {
+		return projectLegacy
 	}
 
 	for _, root := range resolveRoots() {
 		if strings.TrimSpace(root) == "" {
 			continue
 		}
-		candidate := filepath.Join(root, "agents", "config.yaml")
-		if fileExists(candidate) {
-			return candidate
+		candidatePrimary := filepath.Join(root, "config", "agents.yaml")
+		if fileExists(candidatePrimary) {
+			return candidatePrimary
+		}
+		candidateLegacy := filepath.Join(root, "agents", "config.yaml")
+		if fileExists(candidateLegacy) {
+			return candidateLegacy
 		}
 	}
 
-	return projectConfig
+	return projectPrimary
 }
 
 func resolvePersonaConfigRoots() []string {

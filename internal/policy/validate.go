@@ -9,19 +9,19 @@ import (
 func ValidateSourceConfig(cfg *SourceConfig) error {
 	var errors []error
 
-	// Build executor lookup
-	executors := make(map[string]bool)
-	if cfg.Executors != nil {
-		for name := range cfg.Executors.Executors {
-			executors[name] = true
+	// Build provider lookup
+	providers := make(map[string]bool)
+	if cfg.Providers != nil {
+		for name := range cfg.Providers.Providers {
+			providers[name] = true
 		}
 	}
 
 	// Validate workflow configs
 	if cfg.Workflows != nil {
 		for wfName, wf := range cfg.Workflows.Workflows {
-			// Validate default references an existing executor
-			if wf.Default.ExecutorProfile != "" && !executors[wf.Default.ExecutorProfile] {
+			// Validate default references an existing provider
+			if wf.Default.ExecutorProfile != "" && !providers[wf.Default.ExecutorProfile] {
 				errors = append(errors, &ValidationError{
 					File:   "workflows.yaml",
 					Field:  fmt.Sprintf("workflows.%s.default.executor_profile", wfName),
@@ -31,7 +31,7 @@ func ValidateSourceConfig(cfg *SourceConfig) error {
 
 			// Validate task-level policies
 			for taskName, task := range wf.Tasks {
-				if task.ExecutorProfile != "" && !executors[task.ExecutorProfile] {
+				if task.ExecutorProfile != "" && !providers[task.ExecutorProfile] {
 					errors = append(errors, &ValidationError{
 						File:   "workflows.yaml",
 						Field:  fmt.Sprintf("workflows.%s.tasks.%s.executor_profile", wfName, taskName),
@@ -45,7 +45,7 @@ func ValidateSourceConfig(cfg *SourceConfig) error {
 	// Validate agent configs
 	if cfg.Agents != nil {
 		for agentName, agent := range cfg.Agents.Agents {
-			if agent.ExecutorProfile != "" && !executors[agent.ExecutorProfile] {
+			if agent.ExecutorProfile != "" && !providers[agent.ExecutorProfile] {
 				errors = append(errors, &ValidationError{
 					File:   "agents.yaml",
 					Field:  fmt.Sprintf("agents.%s.executor_profile", agentName),
@@ -55,13 +55,25 @@ func ValidateSourceConfig(cfg *SourceConfig) error {
 		}
 	}
 
+	// Validate providers
+	if cfg.Providers != nil {
+		for execName, exec := range cfg.Providers.Providers {
+			if err := exec.Validate(); err != nil {
+				ve := err.(*ValidationError)
+				ve.File = "providers.yaml"
+				ve.Field = "providers." + execName + "." + ve.Field
+				errors = append(errors, ve)
+			}
+		}
+	}
+
 	// Validate fallback policies
-	if cfg.Executors != nil {
-		for policyName, policy := range cfg.Executors.FallbackPolicies {
+	if cfg.Providers != nil {
+		for policyName, policy := range cfg.Providers.FallbackPolicies {
 			// In this phase, max_hops must be exactly 1 or 0
 			if policy.MaxHops > 1 {
 				errors = append(errors, &ValidationError{
-					File:   "executors.yaml",
+					File:   "providers.yaml",
 					Field:  fmt.Sprintf("fallback_policies.%s.max_hops", policyName),
 					Reason: "max_hops must be 0 or 1 in this phase",
 				})
@@ -73,14 +85,14 @@ func ValidateSourceConfig(cfg *SourceConfig) error {
 				// For now, we just validate the chain structure
 				if rule.From == "" {
 					errors = append(errors, &ValidationError{
-						File:   "executors.yaml",
+						File:   "providers.yaml",
 						Field:  fmt.Sprintf("fallback_policies.%s.chain", policyName),
 						Reason: "fallback rule missing 'from' field",
 					})
 				}
 				if rule.To == "" {
 					errors = append(errors, &ValidationError{
-						File:   "executors.yaml",
+						File:   "providers.yaml",
 						Field:  fmt.Sprintf("fallback_policies.%s.chain", policyName),
 						Reason: "fallback rule missing 'to' field",
 					})
@@ -125,10 +137,10 @@ func ValidateAll(cfg *SourceConfig) error {
 			}
 		}
 	}
-	if cfg.Executors != nil {
-		for execName, exec := range cfg.Executors.Executors {
+	if cfg.Providers != nil {
+		for execName, exec := range cfg.Providers.Providers {
 			if err := exec.Validate(); err != nil {
-				return fmt.Errorf("executors.%s: %w", execName, err)
+				return fmt.Errorf("providers.%s: %w", execName, err)
 			}
 		}
 	}

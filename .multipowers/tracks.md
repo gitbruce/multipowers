@@ -10,6 +10,8 @@
 - [ ] T003 Branch Governance and Upstream Sync
   - Objective: Enforce policy to keep `main` untouched and continuously sync with upstream before major changes.
   - Status: planned
+- [ ] **Track: Go Orchestration Full-Flow Migration**
+  - *Link: [./tracks/go_orchestration_20260304/](./tracks/go_orchestration_20260304/)*
 
 ## Template
 - [ ] Txxx <track name>

@@ -3,45 +3,37 @@ workflows:
   discover:
     default:
       model: gemini-3-pro-preview
-      executor_profile: gemini_cli
       fallback_policy: cross_provider_once
       display_name: Discover
   define:
     default:
       model: gpt-5.3-codex
-      executor_profile: codex_cli
       fallback_policy: cross_provider_once
       display_name: Define
     tasks:
       task_1:
         model: gpt-5.3-codex
-        executor_profile: codex_cli
         display_name: Define Task 1
       task_2:
         model: gemini-3-pro-preview
-        executor_profile: gemini_cli
         display_name: Define Task 2
   develop:
     default:
       model: gpt-5.3-codex
-      executor_profile: codex_cli
       fallback_policy: cross_provider_once
       display_name: Develop
   deliver:
     default:
       model: claude-sonnet-4.5
-      executor_profile: claude_code
       fallback_policy: none
       display_name: Deliver
   debate:
     default:
       model: claude-sonnet-4.5
-      executor_profile: claude_code
       fallback_policy: none
       display_name: Debate
   embrace:
     default:
       model: gpt-5.3-codex
-      executor_profile: codex_cli
       fallback_policy: cross_provider_once
       display_name: Embrace

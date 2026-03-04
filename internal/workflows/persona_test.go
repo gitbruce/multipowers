@@ -11,7 +11,7 @@ import (
 )
 
 func TestPersonaList_OneLineWithModelAndDescription(t *testing.T) {
-	out, err := RenderPersonaList("../../agents/config.yaml")
+	out, err := RenderPersonaList("../../config/agents.yaml")
 	if err != nil {
 		t.Fatalf("RenderPersonaList error: %v", err)
 	}
@@ -28,18 +28,18 @@ func TestPersonaList_OneLineWithModelAndDescription(t *testing.T) {
 
 func TestDefaultPersonaConfig_PrefersProjectConfig(t *testing.T) {
 	projectDir := t.TempDir()
-	projectConfig := filepath.Join(projectDir, "agents", "config.yaml")
+	projectConfig := filepath.Join(projectDir, "config", "agents.yaml")
 	if err := os.MkdirAll(filepath.Dir(projectConfig), 0o755); err != nil {
-		t.Fatalf("mkdir agents: %v", err)
+		t.Fatalf("mkdir config: %v", err)
 	}
 	if err := os.WriteFile(projectConfig, []byte("agents:\n"), 0o644); err != nil {
 		t.Fatalf("write project config: %v", err)
 	}
 
 	pluginRoot := t.TempDir()
-	pluginConfig := filepath.Join(pluginRoot, "agents", "config.yaml")
+	pluginConfig := filepath.Join(pluginRoot, "config", "agents.yaml")
 	if err := os.MkdirAll(filepath.Dir(pluginConfig), 0o755); err != nil {
-		t.Fatalf("mkdir plugin agents: %v", err)
+		t.Fatalf("mkdir plugin config: %v", err)
 	}
 	if err := os.WriteFile(pluginConfig, []byte("agents:\n"), 0o644); err != nil {
 		t.Fatalf("write plugin config: %v", err)
@@ -56,9 +56,9 @@ func TestDefaultPersonaConfig_FallsBackToPluginConfig(t *testing.T) {
 	projectDir := t.TempDir()
 	pluginRoot := t.TempDir()
 
-	pluginConfig := filepath.Join(pluginRoot, "agents", "config.yaml")
+	pluginConfig := filepath.Join(pluginRoot, "config", "agents.yaml")
 	if err := os.MkdirAll(filepath.Dir(pluginConfig), 0o755); err != nil {
-		t.Fatalf("mkdir plugin agents: %v", err)
+		t.Fatalf("mkdir plugin config: %v", err)
 	}
 	if err := os.WriteFile(pluginConfig, []byte("agents:\n"), 0o644); err != nil {
 		t.Fatalf("write plugin config: %v", err)
@@ -74,9 +74,9 @@ func TestDefaultPersonaConfig_FallsBackToPluginConfig(t *testing.T) {
 func TestDefaultPersonaConfigWithResolver_FallsBackWithoutEnv(t *testing.T) {
 	projectDir := t.TempDir()
 	pluginRoot := t.TempDir()
-	pluginConfig := filepath.Join(pluginRoot, "agents", "config.yaml")
+	pluginConfig := filepath.Join(pluginRoot, "config", "agents.yaml")
 	if err := os.MkdirAll(filepath.Dir(pluginConfig), 0o755); err != nil {
-		t.Fatalf("mkdir plugin agents: %v", err)
+		t.Fatalf("mkdir plugin config: %v", err)
 	}
 	if err := os.WriteFile(pluginConfig, []byte("agents:\n"), 0o644); err != nil {
 		t.Fatalf("write plugin config: %v", err)
@@ -210,7 +210,7 @@ func TestParseYAMLScalar_StripsInlineComments(t *testing.T) {
 }
 
 func TestLoadPersonas_ReasoningAnalystCLICommentStripped(t *testing.T) {
-	personas, err := loadPersonas("../../agents/config.yaml")
+	personas, err := loadPersonas("../../config/agents.yaml")
 	if err != nil {
 		t.Fatalf("load personas: %v", err)
 	}
@@ -225,8 +225,8 @@ func TestLoadPersonas_ReasoningAnalystCLICommentStripped(t *testing.T) {
 	t.Fatalf("reasoning-analyst not found")
 }
 
-func TestLoadPersonas_PluginConfigReasoningAnalystCLICommentStripped(t *testing.T) {
-	personas, err := loadPersonas("../../.claude-plugin/agents/config.yaml")
+func TestLoadPersonas_ConfigReasoningAnalystCLICommentStripped_SecondPass(t *testing.T) {
+	personas, err := loadPersonas("../../config/agents.yaml")
 	if err != nil {
 		t.Fatalf("load personas: %v", err)
 	}

@@ -131,13 +131,13 @@ workflows:
 		t.Fatal(err)
 	}
 
-	executorsYAML := `version: "1"
-executors:
+	providersYAML := `version: "1"
+providers:
   test-executor:
     kind: claude_code
     enforcement: hint
 `
-	if err := os.WriteFile(filepath.Join(configDir, "executors.yaml"), []byte(executorsYAML), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(configDir, "providers.yaml"), []byte(providersYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 

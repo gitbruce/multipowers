@@ -35,15 +35,15 @@ agents:
 			t.Fatal(err)
 		}
 
-		// Write executors.yaml
-		executorsYAML := `version: "1"
-executors:
+		// Write providers.yaml
+		providersYAML := `version: "1"
+providers:
   codex_cli:
     kind: external_cli
     command_template: ["codex", "-m", "{model}", "{prompt}"]
     enforcement: hard
 `
-		if err := os.WriteFile(filepath.Join(tmpDir, "executors.yaml"), []byte(executorsYAML), 0644); err != nil {
+		if err := os.WriteFile(filepath.Join(tmpDir, "providers.yaml"), []byte(providersYAML), 0644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -58,8 +58,8 @@ executors:
 		if cfg.Agents == nil {
 			t.Error("expected agents config")
 		}
-		if cfg.Executors == nil {
-			t.Error("expected executors config")
+		if cfg.Providers == nil {
+			t.Error("expected providers config")
 		}
 
 		// Verify workflows content
@@ -86,13 +86,13 @@ executors:
 			t.Errorf("expected model gpt-5.3-codex, got %s", architect.Model)
 		}
 
-		// Verify executors content
-		if cfg.Executors.Version != "1" {
-			t.Errorf("expected version 1, got %s", cfg.Executors.Version)
+		// Verify providers content
+		if cfg.Providers.Version != "1" {
+			t.Errorf("expected version 1, got %s", cfg.Providers.Version)
 		}
-		codexCLI, ok := cfg.Executors.Executors["codex_cli"]
+		codexCLI, ok := cfg.Providers.Providers["codex_cli"]
 		if !ok {
-			t.Fatal("expected codex_cli executor")
+			t.Fatal("expected codex_cli provider")
 		}
 		if codexCLI.Kind != ExecutorKindExternalCLI {
 			t.Errorf("expected kind external_cli, got %s", codexCLI.Kind)
@@ -141,6 +141,40 @@ workflows:
 		}
 		if cfg.Workflows.Workflows["define"].Default.ExecutorProfile != "unknown_executor" {
 			t.Error("expected unknown_executor to be parsed")
+		}
+	})
+
+	t.Run("derive executor profile from cli in agents config", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		agentsYAML := `version: "2.0"
+agents:
+  backend-architect:
+    model: gpt-5.3-codex
+    cli: codex
+  business-analyst:
+    model: gemini-3-pro-preview
+    cli: gemini
+  security-auditor:
+    model: claude-opus-4.6
+    cli: claude-opus
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "agents.yaml"), []byte(agentsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		if got := cfg.Agents.Agents["backend-architect"].ExecutorProfile; got != "codex_cli" {
+			t.Fatalf("expected codex_cli, got %q", got)
+		}
+		if got := cfg.Agents.Agents["business-analyst"].ExecutorProfile; got != "gemini_cli" {
+			t.Fatalf("expected gemini_cli, got %q", got)
+		}
+		if got := cfg.Agents.Agents["security-auditor"].ExecutorProfile; got != "claude_code" {
+			t.Fatalf("expected claude_code, got %q", got)
 		}
 	})
 }
