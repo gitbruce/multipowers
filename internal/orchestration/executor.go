@@ -2,7 +2,9 @@ package orchestration
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,8 +18,9 @@ type Dispatcher interface {
 
 // ExecutorConfig configures the executor
 type ExecutorConfig struct {
-	MaxWorkers int
-	Timeout    time.Duration
+	MaxWorkers        int
+	Timeout           time.Duration
+	HeartbeatInterval time.Duration
 }
 
 // Executor executes workflow plans with bounded concurrency
@@ -34,6 +37,9 @@ type Executor struct {
 func NewExecutor(config ExecutorConfig, dispatcher Dispatcher) *Executor {
 	if config.MaxWorkers <= 0 {
 		config.MaxWorkers = 1
+	}
+	if config.HeartbeatInterval <= 0 {
+		config.HeartbeatInterval = 30 * time.Second
 	}
 	return &Executor{
 		config:         config,
@@ -275,12 +281,36 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName 
 		PhaseName:    step.Phase,
 		StepID:       step.ID,
 	})
+	e.emitModelProgress(workflowName, step, "queued", 0, time.Time{})
+	e.emitModelProgress(workflowName, step, "sandbox_ready", 10, time.Time{})
+	e.emitModelProgress(workflowName, step, "running", 25, time.Now())
 
 	// Apply timeout if configured
 	var cancel context.CancelFunc
 	if e.config.Timeout > 0 {
 		ctx, cancel = context.WithTimeout(ctx, e.config.Timeout)
 		defer cancel()
+	}
+
+	var heartbeatWG sync.WaitGroup
+	stopHeartbeat := make(chan struct{})
+	if e.config.HeartbeatInterval > 0 {
+		heartbeatWG.Add(1)
+		go func() {
+			defer heartbeatWG.Done()
+			ticker := time.NewTicker(e.config.HeartbeatInterval)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					e.emitModelProgress(workflowName, step, "running", 50, time.Now())
+				case <-stopHeartbeat:
+					return
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
 	}
 
 	// Dispatch step
@@ -300,6 +330,9 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName 
 	} else if result.Fallback != nil && result.Fallback.Used {
 		result.Status = StepStatusDegraded
 	}
+	close(stopHeartbeat)
+	heartbeatWG.Wait()
+	e.emitModelProgress(workflowName, step, progressStatusForResult(result, err), 100, time.Now())
 
 	// Emit step end event
 	e.events.Emit(Event{
@@ -364,4 +397,63 @@ func (d *DefaultDispatcher) Dispatch(ctx context.Context, step StepPlan) (*StepR
 		Bytes:    len(output),
 		Duration: 10 * time.Millisecond,
 	}, nil
+}
+
+func (e *Executor) emitModelProgress(workflowName string, step StepPlan, status string, percent int, heartbeatAt time.Time) {
+	modelName := strings.TrimSpace(step.Model)
+	if modelName == "" {
+		modelName = strings.TrimSpace(step.Agent)
+	}
+	if modelName == "" {
+		modelName = "unknown"
+	}
+	e.events.Emit(Event{
+		Type:         EventTypeStepProgress,
+		WorkflowName: workflowName,
+		PhaseName:    step.Phase,
+		StepID:       step.ID,
+		Status:       status,
+		Data: ModelProgressData{
+			RunID:       workflowName,
+			Model:       modelName,
+			Status:      status,
+			Percent:     clampPercent(percent),
+			HeartbeatAt: heartbeatAt,
+		},
+	})
+}
+
+func progressStatusForResult(result *StepResult, dispatchErr error) string {
+	if result == nil {
+		if dispatchErr != nil {
+			return "failed"
+		}
+		return "completed"
+	}
+	switch result.Status {
+	case StepStatusCompleted, StepStatusDegraded:
+		return "completed"
+	case StepStatusCanceled:
+		if errors.Is(result.Error, context.DeadlineExceeded) || errors.Is(dispatchErr, context.DeadlineExceeded) {
+			return "timeout"
+		}
+		return "failed"
+	case StepStatusFailed:
+		if errors.Is(result.Error, context.DeadlineExceeded) || errors.Is(dispatchErr, context.DeadlineExceeded) {
+			return "timeout"
+		}
+		return "failed"
+	default:
+		return strings.TrimSpace(string(result.Status))
+	}
+}
+
+func clampPercent(percent int) int {
+	if percent < 0 {
+		return 0
+	}
+	if percent > 100 {
+		return 100
+	}
+	return percent
 }

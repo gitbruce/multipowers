@@ -36,7 +36,7 @@
 | E1 | Config Schema: Shared Execution Isolation + Sync Gate | DONE | 2026-03-05 02:21:40 CST |
 | E2 | Shared Isolation Policy Resolver | DONE | 2026-03-05 02:26:44 CST |
 | E3 | Shared Git Worktree Runtime Manager | DONE | 2026-03-05 02:30:18 CST |
-| E4 | Event-Driven Model Progress + Heartbeats | TODO | - |
+| E4 | Event-Driven Model Progress + Heartbeats | DONE | 2026-03-05 02:33:06 CST |
 | E5 | Sync Gate Collector with Timeout Degradation | TODO | - |
 | E6 | Critic Top-1 Deterministic Selection | TODO | - |
 | E7 | Integration Branch + Same-Model Repair Retry | TODO | - |
@@ -272,7 +272,7 @@ git commit -m "feat(isolation): add shared worktree runtime manager"
 
 ### Task E4: Event-Driven Model Progress + Heartbeats
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Long-running model tasks need continuous user-visible status.

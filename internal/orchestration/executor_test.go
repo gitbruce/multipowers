@@ -54,15 +54,15 @@ func (m *MockDispatcher) Dispatch(ctx context.Context, step StepPlan) (*StepResu
 	}
 
 	return &StepResult{
-		StepID:    step.ID,
-		Phase:     step.Phase,
-		Agent:     step.Agent,
-		Model:     step.Model,
-		Status:    StepStatusCompleted,
-		Output:    output,
-		Bytes:     len(output),
-		Duration:  10 * time.Millisecond,
-		Fallback:  m.fallbackInfo,
+		StepID:   step.ID,
+		Phase:    step.Phase,
+		Agent:    step.Agent,
+		Model:    step.Model,
+		Status:   StepStatusCompleted,
+		Output:   output,
+		Bytes:    len(output),
+		Duration: 10 * time.Millisecond,
+		Fallback: m.fallbackInfo,
 	}, nil
 }
 
@@ -417,13 +417,13 @@ func TestExecutor_ExecutePlan(t *testing.T) {
 			WorkflowName: "embrace",
 			Phases: []PhasePlan{
 				{
-					Name:   "discover",
-					Steps:  []StepPlan{{ID: "s1", Phase: "discover", Agent: "a1"}},
+					Name:     "discover",
+					Steps:    []StepPlan{{ID: "s1", Phase: "discover", Agent: "a1"}},
 					Parallel: false,
 				},
 				{
-					Name:   "define",
-					Steps:  []StepPlan{{ID: "s2", Phase: "define", Agent: "a2"}},
+					Name:     "define",
+					Steps:    []StepPlan{{ID: "s2", Phase: "define", Agent: "a2"}},
 					Parallel: false,
 				},
 			},
@@ -442,4 +442,77 @@ func TestExecutor_ExecutePlan(t *testing.T) {
 			t.Errorf("expected 2 completed steps, got %d", result.Completed)
 		}
 	})
+}
+
+func TestExecutor_EmitsModelProgressEvents(t *testing.T) {
+	dispatcher := NewMockDispatcher()
+	dispatcher.SetShouldDelay(40 * time.Millisecond)
+
+	executor := NewExecutor(ExecutorConfig{
+		MaxWorkers:        1,
+		HeartbeatInterval: 10 * time.Millisecond,
+	}, dispatcher)
+
+	phase := PhasePlan{
+		Name: "develop",
+		Steps: []StepPlan{
+			{ID: "develop-impl-0", Phase: "develop", Agent: "implementer", Model: "gpt-4o"},
+		},
+	}
+
+	result := executor.ExecutePhase(context.Background(), phase, "develop")
+	if result.Status != PhaseStatusCompleted {
+		t.Fatalf("phase status = %s, want %s", result.Status, PhaseStatusCompleted)
+	}
+
+	progressEvents := collectStepProgressEvents(executor.Events())
+	if len(progressEvents) == 0 {
+		t.Fatal("expected step_progress events, got 0")
+	}
+
+	seenQueued := false
+	seenCompleted := false
+	seenHeartbeat := false
+	for _, progress := range progressEvents {
+		if progress.Model != "gpt-4o" {
+			t.Fatalf("progress model = %q, want gpt-4o", progress.Model)
+		}
+		if progress.Status == "queued" {
+			seenQueued = true
+		}
+		if progress.Status == "completed" {
+			seenCompleted = true
+		}
+		if progress.Status == "running" && !progress.HeartbeatAt.IsZero() {
+			seenHeartbeat = true
+		}
+	}
+
+	if !seenQueued {
+		t.Fatal("expected queued progress event")
+	}
+	if !seenCompleted {
+		t.Fatal("expected completed progress event")
+	}
+	if !seenHeartbeat {
+		t.Fatal("expected running heartbeat progress event")
+	}
+}
+
+func collectStepProgressEvents(events <-chan Event) []ModelProgressData {
+	out := make([]ModelProgressData, 0, 8)
+	for {
+		select {
+		case event := <-events:
+			if event.Type != EventTypeStepProgress {
+				continue
+			}
+			progress, ok := event.Data.(ModelProgressData)
+			if ok {
+				out = append(out, progress)
+			}
+		default:
+			return out
+		}
+	}
 }

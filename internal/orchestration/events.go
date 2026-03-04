@@ -6,30 +6,41 @@ import "time"
 type EventType string
 
 const (
-	EventTypeExecutionStart   EventType = "execution_start"
-	EventTypeExecutionEnd     EventType = "execution_end"
-	EventTypePhaseStart       EventType = "phase_start"
-	EventTypePhaseEnd         EventType = "phase_end"
-	EventTypeStepStart        EventType = "step_start"
-	EventTypeStepProgress     EventType = "step_progress"
-	EventTypeStepEnd          EventType = "step_end"
-	EventTypeSynthesisStart   EventType = "synthesis_start"
-	EventTypeSynthesisEnd     EventType = "synthesis_end"
-	EventTypeError            EventType = "error"
-	EventTypeCanceled         EventType = "canceled"
+	EventTypeExecutionStart EventType = "execution_start"
+	EventTypeExecutionEnd   EventType = "execution_end"
+	EventTypePhaseStart     EventType = "phase_start"
+	EventTypePhaseEnd       EventType = "phase_end"
+	EventTypeStepStart      EventType = "step_start"
+	EventTypeStepProgress   EventType = "step_progress"
+	EventTypeStepEnd        EventType = "step_end"
+	EventTypeSynthesisStart EventType = "synthesis_start"
+	EventTypeSynthesisEnd   EventType = "synthesis_end"
+	EventTypeError          EventType = "error"
+	EventTypeCanceled       EventType = "canceled"
 )
 
 // Event represents an execution event
 type Event struct {
-	Type        EventType
-	Timestamp   time.Time
+	Type         EventType
+	Timestamp    time.Time
 	WorkflowName string
-	TaskName    string
-	PhaseName   string
-	StepID      string
-	Status      string
-	Message     string
-	Data        interface{}
+	TaskName     string
+	PhaseName    string
+	StepID       string
+	Status       string
+	Message      string
+	Data         interface{}
+}
+
+// ModelProgressData describes progress updates for long-running model execution.
+type ModelProgressData struct {
+	RunID        string    `json:"run_id"`
+	Model        string    `json:"model"`
+	Status       string    `json:"status"`
+	Percent      int       `json:"percent"`
+	Branch       string    `json:"branch"`
+	WorktreePath string    `json:"worktree_path"`
+	HeartbeatAt  time.Time `json:"heartbeat_at"`
 }
 
 // EventEmitter manages event emission
