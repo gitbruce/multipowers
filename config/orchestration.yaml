@@ -73,6 +73,9 @@ execution_isolation:
   min_completed_models: 1
   heartbeat_interval_seconds: 30
   logs_subdir: "logs"
+  active_worktree_cap: 12
+  mailbox_root: "~/.claude-octopus/runs"
+  mailbox_poll_interval_ms: 200
 
 # Async benchmark and smart routing controls
 benchmark_mode:

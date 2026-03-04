@@ -173,3 +173,66 @@ execution_isolation:
 		t.Fatalf("unexpected field: %q", cfgErr.Field)
 	}
 }
+
+func TestLoadOrchestrationConfig_MailboxAndCap(t *testing.T) {
+	d := t.TempDir()
+	cfgDir := filepath.Join(d, "config")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	data := `version: "1"
+execution_isolation:
+  enabled: true
+  active_worktree_cap: 12
+  mailbox_root: "~/.claude-octopus/runs"
+  mailbox_poll_interval_ms: 200
+`
+	if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(data), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := LoadConfigFromProjectDir(d)
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+	if cfg.ExecutionIsolation.ActiveWorktreeCap != 12 {
+		t.Fatalf("active_worktree_cap = %d, want 12", cfg.ExecutionIsolation.ActiveWorktreeCap)
+	}
+	if cfg.ExecutionIsolation.MailboxRoot != "~/.claude-octopus/runs" {
+		t.Fatalf("mailbox_root = %q, want ~/.claude-octopus/runs", cfg.ExecutionIsolation.MailboxRoot)
+	}
+	if cfg.ExecutionIsolation.MailboxPollIntervalMs != 200 {
+		t.Fatalf("mailbox_poll_interval_ms = %d, want 200", cfg.ExecutionIsolation.MailboxPollIntervalMs)
+	}
+}
+
+func TestLoadOrchestrationConfig_MailboxAndCapValidation(t *testing.T) {
+	d := t.TempDir()
+	cfgDir := filepath.Join(d, "config")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+data := `version: "1"
+execution_isolation:
+  active_worktree_cap: -1
+  mailbox_poll_interval_ms: -1
+`
+	if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(data), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadConfigFromProjectDir(d)
+	if err == nil {
+		t.Fatal("expected validation error")
+	}
+
+	var cfgErr *ConfigError
+	if !errors.As(err, &cfgErr) {
+		t.Fatalf("expected ConfigError, got %T: %v", err, err)
+	}
+	if !strings.Contains(cfgErr.Field, "execution_isolation.active_worktree_cap") {
+		t.Fatalf("unexpected field: %q", cfgErr.Field)
+	}
+}

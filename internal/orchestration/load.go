@@ -135,6 +135,15 @@ func applyExecutionIsolationDefaults(cfg *ExecutionIsolationConfig) {
 	if strings.TrimSpace(cfg.LogsSubdir) == "" {
 		cfg.LogsSubdir = "logs"
 	}
+	if cfg.ActiveWorktreeCap == 0 {
+		cfg.ActiveWorktreeCap = 12
+	}
+	if strings.TrimSpace(cfg.MailboxRoot) == "" {
+		cfg.MailboxRoot = "~/.claude-octopus/runs"
+	}
+	if cfg.MailboxPollIntervalMs == 0 {
+		cfg.MailboxPollIntervalMs = 200
+	}
 }
 
 func validateExecutionIsolationConfig(cfg *ExecutionIsolationConfig) error {
@@ -170,6 +179,24 @@ func validateExecutionIsolationConfig(cfg *ExecutionIsolationConfig) error {
 		return &ConfigError{
 			Field:  "execution_isolation.repair_retry_max",
 			Reason: "must be >= 0",
+		}
+	}
+	if cfg.ActiveWorktreeCap < 1 {
+		return &ConfigError{
+			Field:  "execution_isolation.active_worktree_cap",
+			Reason: "must be >= 1",
+		}
+	}
+	if strings.TrimSpace(cfg.MailboxRoot) == "" {
+		return &ConfigError{
+			Field:  "execution_isolation.mailbox_root",
+			Reason: "cannot be empty",
+		}
+	}
+	if cfg.MailboxPollIntervalMs < 1 {
+		return &ConfigError{
+			Field:  "execution_isolation.mailbox_poll_interval_ms",
+			Reason: "must be >= 1",
 		}
 	}
 	return nil

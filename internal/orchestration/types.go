@@ -96,6 +96,9 @@ type ExecutionIsolationConfig struct {
 	MinCompletedModels       int      `yaml:"min_completed_models,omitempty"`
 	HeartbeatIntervalSeconds int      `yaml:"heartbeat_interval_seconds,omitempty"`
 	LogsSubdir               string   `yaml:"logs_subdir,omitempty"`
+	ActiveWorktreeCap        int      `yaml:"active_worktree_cap,omitempty"`
+	MailboxRoot              string   `yaml:"mailbox_root,omitempty"`
+	MailboxPollIntervalMs    int      `yaml:"mailbox_poll_interval_ms,omitempty"`
 }
 
 type AgentProfile struct {
