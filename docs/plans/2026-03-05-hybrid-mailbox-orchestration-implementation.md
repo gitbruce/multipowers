@@ -42,7 +42,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | Task ID | Task Name | Status | Last Update | Commit |
 |---|---|---|---|---|
 | T1 | Config Schema: Mailbox + Worktree Cap | DONE | 2026-03-05 03:23 CST | pending |
-| T2 | Plan Metadata: Dependency Graph + Resume Modes | TODO | - | - |
+| T2 | Plan Metadata: Dependency Graph + Resume Modes | DONE | 2026-03-05 03:27 CST | pending |
 | T3 | Mailbox Atomic Writer | TODO | - | - |
 | T4 | Mailbox Reader + Idempotent Processor | TODO | - | - |
 | T5 | Structural Conflict Monitor | TODO | - | - |
@@ -87,7 +87,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T2: Plan Metadata: Dependency Graph + Resume Modes
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Abort/requeue logic needs deterministic dependency traversal and explicit resume semantics.
 
@@ -106,11 +106,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T2.1 Failing tests | TODO | Lock behavior before code | Add dependency/resume tests | New planner tests | Deterministic output checks | `go test ./internal/orchestration -run "TestBuildPlan_DependencyGraph|TestBuildPlan_TaskSnapshotDefaults" -v` |
-| T2.2 Plan types | TODO | Represent runtime decisions | Add graph + resume structs | Update `plan_types.go` | Explicit resume enums | compile |
-| T2.3 Graph builder | TODO | Resolve descendants fast | Build parent/descendant maps | Extend planner | Stable ordering in maps/slices | planner tests |
-| T2.4 Planner wiring | TODO | Make graph available runtime | Attach graph to plan metadata | Update `BuildPlan` | Preserve old behavior if no deps | planner tests |
-| T2.5 Commit + status update | TODO | Keep history clear | Commit and update board | standard git flow | one logical change | clean diff |
+| T2.1 Failing tests | DONE | Lock behavior before code | Add dependency/resume tests | New planner tests | Deterministic output checks | `go test ./internal/orchestration -run "TestBuildPlan_DependencyGraph|TestBuildPlan_TaskSnapshotDefaults" -v` |
+| T2.2 Plan types | DONE | Represent runtime decisions | Add graph + resume structs | Update `plan_types.go` | Explicit resume enums | compile |
+| T2.3 Graph builder | DONE | Resolve descendants fast | Build parent/descendant maps | Extend planner | Stable ordering in maps/slices | planner tests |
+| T2.4 Planner wiring | DONE | Make graph available runtime | Attach graph to plan metadata | Update `BuildPlan` | Preserve old behavior if no deps | planner tests |
+| T2.5 Commit + status update | DONE | Keep history clear | Commit and update board | standard git flow | one logical change | clean diff |
 
 ---
 

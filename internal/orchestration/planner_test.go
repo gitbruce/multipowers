@@ -243,6 +243,52 @@ func TestPlanImmutability(t *testing.T) {
 	})
 }
 
+func TestBuildPlan_DependencyGraph(t *testing.T) {
+	phases := []PhasePlan{
+		{
+			Name: "develop",
+			Steps: []StepPlan{
+				{ID: "step-a"},
+				{ID: "step-b", Dependencies: []string{"step-a"}},
+				{ID: "step-c", Dependencies: []string{"step-b"}},
+			},
+		},
+	}
+
+	graph := buildDependencyGraph(phases)
+	if got := len(graph.ParentsByStep["step-b"]); got != 1 {
+		t.Fatalf("parents(step-b) = %d, want 1", got)
+	}
+	if graph.ParentsByStep["step-b"][0] != "step-a" {
+		t.Fatalf("parents(step-b)[0] = %q, want step-a", graph.ParentsByStep["step-b"][0])
+	}
+	if got := len(graph.DescendantsByStep["step-a"]); got != 2 {
+		t.Fatalf("descendants(step-a) = %d, want 2", got)
+	}
+	if graph.DescendantsByStep["step-a"][0] != "step-b" || graph.DescendantsByStep["step-a"][1] != "step-c" {
+		t.Fatalf("descendants(step-a) = %v, want [step-b step-c]", graph.DescendantsByStep["step-a"])
+	}
+}
+
+func TestBuildPlan_TaskSnapshotDefaults(t *testing.T) {
+	global := &Config{
+		Version: "1",
+		PhaseDefaults: map[string]PhaseDefault{
+			"discover": {Primary: "researcher", Agents: []string{"researcher"}},
+		},
+	}
+	plan, err := BuildPlan(global, "discover", "", "prompt", "/workdir")
+	if err != nil {
+		t.Fatalf("BuildPlan failed: %v", err)
+	}
+	if len(plan.Snapshots) != 0 {
+		t.Fatalf("snapshots len = %d, want 0", len(plan.Snapshots))
+	}
+	if plan.Dependency.ParentsByStep == nil || plan.Dependency.DescendantsByStep == nil {
+		t.Fatal("dependency graph maps should be initialized")
+	}
+}
+
 func TestBuildPlan_Overrides(t *testing.T) {
 	t.Run("task perspective override replaces default decomposition", func(t *testing.T) {
 		global := &Config{

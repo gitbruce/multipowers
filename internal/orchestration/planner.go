@@ -2,6 +2,7 @@ package orchestration
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -106,6 +107,8 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 		WorkDir:      workDir,
 		Phases:       phasePlans,
 		Synthesis:    synthesisPlan,
+		Dependency:   buildDependencyGraph(phasePlans),
+		Snapshots:    []TaskSnapshot{},
 		Metadata: PlanMetadata{
 			CreatedAt:      time.Now(),
 			ConfigVersion:  global.Version,
@@ -278,4 +281,72 @@ func getSourceType(override *PhaseOverride, hasDefault bool) string {
 		return "global"
 	}
 	return "default"
+}
+
+func buildDependencyGraph(phases []PhasePlan) DependencyGraph {
+	parentsByStep := make(map[string][]string)
+	for _, phase := range phases {
+		for _, step := range phase.Steps {
+			deps := make([]string, 0, len(step.Dependencies))
+			for _, dep := range step.Dependencies {
+				if dep == "" || dep == step.ID {
+					continue
+				}
+				deps = append(deps, dep)
+			}
+			sort.Strings(deps)
+			parentsByStep[step.ID] = uniqueOrdered(deps)
+		}
+	}
+
+	descByStep := make(map[string][]string)
+	children := make(map[string][]string)
+	for stepID, deps := range parentsByStep {
+		for _, dep := range deps {
+			children[dep] = append(children[dep], stepID)
+		}
+	}
+	for stepID := range parentsByStep {
+		desc := collectDescendants(stepID, children)
+		sort.Strings(desc)
+		descByStep[stepID] = uniqueOrdered(desc)
+	}
+
+	return DependencyGraph{
+		ParentsByStep:     parentsByStep,
+		DescendantsByStep: descByStep,
+	}
+}
+
+func collectDescendants(root string, children map[string][]string) []string {
+	seen := map[string]struct{}{}
+	stack := append([]string{}, children[root]...)
+	out := make([]string, 0)
+	for len(stack) > 0 {
+		last := len(stack) - 1
+		node := stack[last]
+		stack = stack[:last]
+		if _, ok := seen[node]; ok {
+			continue
+		}
+		seen[node] = struct{}{}
+		out = append(out, node)
+		stack = append(stack, children[node]...)
+	}
+	return out
+}
+
+func uniqueOrdered(items []string) []string {
+	if len(items) == 0 {
+		return items
+	}
+	out := make([]string, 0, len(items))
+	var prev string
+	for i, item := range items {
+		if i == 0 || item != prev {
+			out = append(out, item)
+			prev = item
+		}
+	}
+	return out
 }

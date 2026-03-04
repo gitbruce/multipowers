@@ -10,6 +10,8 @@ type ExecutionPlan struct {
 	WorkDir      string
 	Phases       []PhasePlan
 	Synthesis    SynthesisPlan
+	Dependency   DependencyGraph
+	Snapshots    []TaskSnapshot
 	Metadata     PlanMetadata
 }
 
@@ -31,6 +33,31 @@ type StepPlan struct {
 	Model        string
 	Prompt       string
 	Dependencies []string
+}
+
+// ResumeMode defines how a task attempt resumes after gate/requeue decisions.
+type ResumeMode string
+
+const (
+	ResumeInPlace      ResumeMode = "RESUME_IN_PLACE"
+	RestartFromScratch ResumeMode = "RESTART_FROM_SCRATCH"
+)
+
+// DependencyGraph stores parent and descendant relationships for step IDs.
+type DependencyGraph struct {
+	ParentsByStep     map[string][]string
+	DescendantsByStep map[string][]string
+}
+
+// TaskSnapshot stores resumable task attempt state metadata.
+type TaskSnapshot struct {
+	TaskID          string
+	AttemptID       string
+	StepID          string
+	ResumeMode      ResumeMode
+	BaseSHA         string
+	ArtifactID      string
+	StaleArtifactID string
 }
 
 // SynthesisPlan defines how results should be synthesized
