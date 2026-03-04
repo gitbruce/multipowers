@@ -43,7 +43,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 |---|---|---|---|---|
 | T1 | Config Schema: Mailbox + Worktree Cap | DONE | 2026-03-05 03:23 CST | pending |
 | T2 | Plan Metadata: Dependency Graph + Resume Modes | DONE | 2026-03-05 03:27 CST | pending |
-| T3 | Mailbox Atomic Writer | TODO | - | - |
+| T3 | Mailbox Atomic Writer | DONE | 2026-03-05 03:31 CST | pending |
 | T4 | Mailbox Reader + Idempotent Processor | TODO | - | - |
 | T5 | Structural Conflict Monitor | TODO | - | - |
 | T6 | Mailbox Watcher + Control Events | TODO | - | - |
@@ -116,7 +116,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T3: Mailbox Atomic Writer
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Filesystem IPC fails if readers see partial JSON writes.
 
@@ -135,11 +135,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T3.1 Failing tests | TODO | Prevent non-atomic IPC | Add writer tests first | Test tmp and final paths | Assert no partial inbox file | `go test ./internal/mailbox -run "TestWriteMessageAtomic" -v` |
-| T3.2 Envelope types | TODO | Keep schema stable | Add envelope structs | Define fields from design doc | JSON tags match mailbox spec | compile |
-| T3.3 Atomic write impl | TODO | Guarantee read safety | Write tmp then rename | `os.Rename` on same FS | Fail if tmp/inbox not same root policy | writer tests |
-| T3.4 Error paths | TODO | Fail clearly and recoverably | Return typed errors | validate dirs and write failures | No silent drops | writer tests |
-| T3.5 Commit + status update | TODO | Keep incremental trace | Commit + board update | standard git flow | one commit per task | clean diff |
+| T3.1 Failing tests | DONE | Prevent non-atomic IPC | Add writer tests first | Test tmp and final paths | Assert no partial inbox file | `go test ./internal/mailbox -run "TestWriteMessageAtomic" -v` |
+| T3.2 Envelope types | DONE | Keep schema stable | Add envelope structs | Define fields from design doc | JSON tags match mailbox spec | compile |
+| T3.3 Atomic write impl | DONE | Guarantee read safety | Write tmp then rename | `os.Rename` on same FS | Fail if tmp/inbox not same root policy | writer tests |
+| T3.4 Error paths | DONE | Fail clearly and recoverably | Return typed errors | validate dirs and write failures | No silent drops | writer tests |
+| T3.5 Commit + status update | DONE | Keep incremental trace | Commit + board update | standard git flow | one commit per task | clean diff |
 
 ---
 
