@@ -26,7 +26,7 @@
 | T2 | Code-Intent Classification Contract | DONE | 2026-03-04 21:59:00 CST |
 | T3 | Force-All-Models Routing Override | DONE | 2026-03-04 22:01:49 CST |
 | T4 | Async Queue (Non-Blocking) | DONE | 2026-03-04 22:04:15 CST |
-| T5 | Daily JSONL Store | TODO | - |
+| T5 | Daily JSONL Store | DONE | 2026-03-04 22:06:58 CST |
 | T6 | Judge Scoring Worker | TODO | - |
 | T7 | Smart Routing from History | TODO | - |
 | T8 | E2E Failure Isolation + Docs | TODO | - |
@@ -219,7 +219,7 @@ git commit -m "feat(benchmark): add bounded non-blocking async queue"
 
 ### Task T5: Daily JSONL Store
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Product requirement changed from DB to local JSONL cross-project storage.
