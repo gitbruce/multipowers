@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gitbruce/claude-octopus/internal/benchmark"
 )
 
 type Config struct {
@@ -24,6 +26,13 @@ type Resolution struct {
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
 	Source   string `json:"source"`
+}
+
+type SmartRoutingRequest struct {
+	Enabled            bool
+	Signature          string
+	MinSamplesPerModel int
+	Records            []benchmark.HistoryJudgeRecord
 }
 
 func defaultConfig() Config {
@@ -96,6 +105,14 @@ func ResolveForPrompt(projectDir, prompt string) Resolution {
 		Model:    model,
 		Source:   source,
 	}
+}
+
+// ResolveBestModelFromHistory resolves smart-routing override only when enabled.
+func ResolveBestModelFromHistory(req SmartRoutingRequest) (string, int, bool) {
+	if !req.Enabled {
+		return "", 0, false
+	}
+	return benchmark.SelectBestModelByHistory(req.Records, req.Signature, req.MinSamplesPerModel)
 }
 
 func commandFromPrompt(prompt string) string {

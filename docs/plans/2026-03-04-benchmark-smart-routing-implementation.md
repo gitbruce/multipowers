@@ -28,7 +28,7 @@
 | T4 | Async Queue (Non-Blocking) | DONE | 2026-03-04 22:04:15 CST |
 | T5 | Daily JSONL Store | DONE | 2026-03-04 22:06:58 CST |
 | T6 | Judge Scoring Worker | DONE | 2026-03-04 22:09:08 CST |
-| T7 | Smart Routing from History | TODO | - |
+| T7 | Smart Routing from History | DONE | 2026-03-04 22:11:45 CST |
 | T8 | E2E Failure Isolation + Docs | TODO | - |
 
 ## Shared Context for Junior Developers
@@ -307,7 +307,7 @@ git commit -m "feat(judge): add benchmark score worker and aggregation"
 
 ### Task T7: Smart Routing from History
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Need automatic model override for similar scenarios when enabled.
