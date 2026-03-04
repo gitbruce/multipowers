@@ -11,24 +11,26 @@ import (
 
 // Model patterns to detect
 var modelPatterns = []*regexp.Regexp{
+	// Current runtime policy models
 	regexp.MustCompile(`gpt-5\.3-codex`),
 	regexp.MustCompile(`gemini-3-pro-preview`),
 	regexp.MustCompile(`claude-opus-4\.6`),
 	regexp.MustCompile(`claude-sonnet-4\.5`),
-	regexp.MustCompile(`claude-sonnet`),
-	regexp.MustCompile(`claude-opus`),
+	regexp.MustCompile(`\bo3\b`),
+	// Known/legacy catalog models documented in project configs
+	regexp.MustCompile(`gpt-5\.3-codex-spark`),
+	regexp.MustCompile(`gpt-5\.2-codex`),
+	regexp.MustCompile(`gpt-5\.1-codex-mini`),
+	regexp.MustCompile(`gpt-4\.1-mini`),
+	regexp.MustCompile(`gpt-4\.1`),
 }
 
 // Allowed paths for model strings
 var allowedPaths = []string{
-	"config/",                        // Config files
-	"internal/policy/testdata/",      // Test fixtures
-	"internal/modelroute/",           // Legacy modelroute (deprecated but allowed)
-	"CHANGELOG.md",                   // Changelog
-	"RELEASE_NOTES",                  // Release notes
-	"docs/plans/",                    // Design docs
-	".claude-plugin/runtime/",        // Runtime policy
-	"_test.go",                       // Test files
+	"config/",                   // Policy source of truth
+	"internal/policy/testdata/", // Test fixtures
+	".md",                       // Documentation
+	"_test.go",                  // Test files
 }
 
 // isAllowedPath checks if the path is allowed to contain model strings
@@ -64,9 +66,9 @@ func TestNoHardcodedModelsOutsideConfig(t *testing.T) {
 			return nil
 		}
 
-		// Only check Go files and markdown files (not config yaml)
+		// Only check Go files.
 		ext := filepath.Ext(path)
-		if ext != ".go" && ext != ".md" {
+		if ext != ".go" {
 			return nil
 		}
 

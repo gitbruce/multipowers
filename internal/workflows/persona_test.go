@@ -1,10 +1,13 @@
 package workflows
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/gitbruce/claude-octopus/internal/policy"
 )
 
 func TestPersonaList_OneLineWithModelAndDescription(t *testing.T) {
@@ -87,48 +90,115 @@ func TestDefaultPersonaConfigWithResolver_FallsBackWithoutEnv(t *testing.T) {
 	}
 }
 
-func TestBuildPersonaExecSpec_Gemini(t *testing.T) {
-	spec, err := buildPersonaExecSpec(
-		Persona{Name: "business-analyst", CLI: "gemini", Model: "gemini-3-pro-preview"},
-		"analyze churn metrics",
-		"/tmp/project",
-	)
+type stubPersonaDispatcher struct {
+	gotReq        policy.ResolveRequest
+	gotPrompt     string
+	gotProjectDir string
+	result        *policy.DispatchResult
+	err           error
+}
+
+func (s *stubPersonaDispatcher) DispatchWithFallback(req policy.ResolveRequest, prompt, projectDir string) (*policy.DispatchResult, error) {
+	s.gotReq = req
+	s.gotPrompt = prompt
+	s.gotProjectDir = projectDir
+	return s.result, s.err
+}
+
+func TestRunPersona_UsesPolicyDispatchForAgentScope(t *testing.T) {
+	oldResolverFactory := personaResolverFactory
+	oldDispatcherFactory := personaDispatcherFactory
+	defer func() {
+		personaResolverFactory = oldResolverFactory
+		personaDispatcherFactory = oldDispatcherFactory
+	}()
+
+	stub := &stubPersonaDispatcher{
+		result: &policy.DispatchResult{
+			Success:      true,
+			Stdout:       "ok-from-policy",
+			ExitCode:     0,
+			ExecutorKind: policy.ExecutorKindExternalCLI,
+			Model:        "gpt-5.3-codex",
+		},
+	}
+
+	personaResolverFactory = func(projectDir string) (*policy.Resolver, error) {
+		return &policy.Resolver{}, nil
+	}
+	personaDispatcherFactory = func(_ *policy.Resolver) personaPolicyDispatcher {
+		return stub
+	}
+
+	got, err := RunPersona("", "/tmp/policy-project", "backend-architect explain auth strategy")
 	if err != nil {
-		t.Fatalf("build spec: %v", err)
+		t.Fatalf("RunPersona error: %v", err)
 	}
-	if spec.Binary != "gemini" {
-		t.Fatalf("expected gemini binary, got %s", spec.Binary)
+
+	if stub.gotReq.Scope != policy.ScopeAgent || stub.gotReq.Name != "backend-architect" {
+		t.Fatalf("unexpected resolve request: %+v", stub.gotReq)
 	}
-	if len(spec.Args) < 4 || spec.Args[0] != "-m" || spec.Args[1] != "gemini-3-pro-preview" || spec.Args[2] != "-p" {
-		t.Fatalf("unexpected gemini args: %#v", spec.Args)
+	if stub.gotPrompt != "explain auth strategy" {
+		t.Fatalf("unexpected prompt: %q", stub.gotPrompt)
+	}
+	if stub.gotProjectDir != "/tmp/policy-project" {
+		t.Fatalf("unexpected project dir: %q", stub.gotProjectDir)
+	}
+	if got["model"] != "gpt-5.3-codex" {
+		t.Fatalf("expected routed model in output, got: %+v", got)
+	}
+	if got["provider_output"] != "ok-from-policy" {
+		t.Fatalf("unexpected provider output: %+v", got)
 	}
 }
 
-func TestBuildPersonaExecSpec_CodexReasoning(t *testing.T) {
-	spec, err := buildPersonaExecSpec(
-		Persona{Name: "reasoning-analyst", CLI: "codex-reasoning", Model: "o3"},
-		"evaluate tradeoffs",
-		"/tmp/project",
-	)
-	if err != nil {
-		t.Fatalf("build spec: %v", err)
-	}
-	if spec.Binary != "codex" {
-		t.Fatalf("expected codex binary, got %s", spec.Binary)
-	}
-	if len(spec.Args) < 6 || spec.Args[0] != "exec" || spec.Args[1] != "-m" || spec.Args[2] != "o3" || spec.Args[3] != "-C" || spec.Args[4] != "/tmp/project" {
-		t.Fatalf("unexpected codex args: %#v", spec.Args)
-	}
-}
+func TestRunPersona_ReturnsDispatchFailure(t *testing.T) {
+	oldResolverFactory := personaResolverFactory
+	oldDispatcherFactory := personaDispatcherFactory
+	defer func() {
+		personaResolverFactory = oldResolverFactory
+		personaDispatcherFactory = oldDispatcherFactory
+	}()
 
-func TestBuildPersonaExecSpec_InvalidPersonaConfig(t *testing.T) {
-	_, err := buildPersonaExecSpec(
-		Persona{Name: "broken", CLI: "unknown", Model: "unknown"},
-		"prompt",
-		"/tmp/project",
-	)
+	personaResolverFactory = func(projectDir string) (*policy.Resolver, error) {
+		return &policy.Resolver{}, nil
+	}
+	personaDispatcherFactory = func(_ *policy.Resolver) personaPolicyDispatcher {
+		return &stubPersonaDispatcher{
+			result: &policy.DispatchResult{
+				Success:  false,
+				ExitCode: 2,
+				Stderr:   "policy-exec failed",
+				Model:    "gpt-5.3-codex",
+			},
+		}
+	}
+
+	_, err := RunPersona("", "/tmp/policy-project", "backend-architect explain auth strategy")
 	if err == nil {
-		t.Fatalf("expected invalid persona config error")
+		t.Fatalf("expected dispatch error")
+	}
+	if !strings.Contains(err.Error(), "execution failed") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestRunPersona_ReturnsResolverFailure(t *testing.T) {
+	oldResolverFactory := personaResolverFactory
+	defer func() {
+		personaResolverFactory = oldResolverFactory
+	}()
+
+	personaResolverFactory = func(projectDir string) (*policy.Resolver, error) {
+		return nil, fmt.Errorf("resolver unavailable")
+	}
+
+	_, err := RunPersona("", "/tmp/policy-project", "backend-architect explain auth strategy")
+	if err == nil {
+		t.Fatalf("expected resolver error")
+	}
+	if !strings.Contains(err.Error(), "resolver unavailable") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 

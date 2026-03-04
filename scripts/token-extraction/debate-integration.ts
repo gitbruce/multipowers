@@ -3,6 +3,8 @@
  * Multi-AI debate for design token validation and improvement
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
 import { Token, DebateResult, DebateConsensus, TokenChange } from './types';
 import {
   generateDebatePrompts,
@@ -18,13 +20,85 @@ export interface DebateOptions {
   minConfidence?: number;
 }
 
-const DEFAULT_DEBATE_OPTIONS: Required<DebateOptions> = {
+type RuntimePolicyExecutors = {
+  executors?: Record<string, {
+    kind?: string;
+    command_template?: string[];
+  }>;
+};
+
+const DEFAULT_DEBATE_OPTIONS: Omit<Required<DebateOptions>, 'providers'> = {
   rounds: 2,
   consensusThreshold: 0.67,
-  providers: ['claude', 'codex', 'gemini'],
   autoApply: false,
   minConfidence: 0.75,
 };
+
+function loadRuntimePolicyExecutors(): RuntimePolicyExecutors | undefined {
+  const candidates = [
+    path.join(process.cwd(), '.claude-plugin', 'runtime', 'policy.json'),
+    path.join(process.cwd(), 'runtime', 'policy.json'),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      if (!fs.existsSync(candidate)) {
+        continue;
+      }
+      const raw = fs.readFileSync(candidate, 'utf8');
+      return JSON.parse(raw) as RuntimePolicyExecutors;
+    } catch {
+      // Continue on parse/read errors and try next candidate.
+    }
+  }
+  return undefined;
+}
+
+function providerFromCommandTemplate(commandTemplate?: string[]): string | undefined {
+  if (!commandTemplate || commandTemplate.length === 0) {
+    return undefined;
+  }
+  const binary = commandTemplate[0]?.trim();
+  if (!binary) {
+    return undefined;
+  }
+  return path.basename(binary);
+}
+
+export function resolveDebateProviders(policy?: RuntimePolicyExecutors): string[] {
+  const source = policy ?? loadRuntimePolicyExecutors();
+  const executors = source?.executors ?? {};
+  const providers = new Set<string>();
+
+  for (const exec of Object.values(executors)) {
+    if (exec.kind === 'claude_code') {
+      providers.add('claude_code');
+      continue;
+    }
+    const provider = providerFromCommandTemplate(exec.command_template);
+    if (provider) {
+      providers.add(provider);
+    }
+  }
+
+  if (providers.size === 0) {
+    return ['claude_code'];
+  }
+  return Array.from(providers).sort();
+}
+
+function providerForRole(role: string, providers: string[]): string {
+  if (providers.length === 0) {
+    return 'claude_code';
+  }
+
+  const roleOrder = ['proposer', 'critic', 'synthesizer'];
+  const idx = roleOrder.indexOf(role);
+  if (idx < 0) {
+    return providers[0];
+  }
+  return providers[idx % providers.length];
+}
 
 /**
  * Run multi-AI debate on extracted tokens
@@ -33,7 +107,10 @@ export async function runDebateOnTokens(
   tokens: Token[],
   options: DebateOptions = {}
 ): Promise<DebateResult> {
-  const opts = { ...DEFAULT_DEBATE_OPTIONS, ...options };
+  const providers = options.providers && options.providers.length > 0
+    ? options.providers
+    : resolveDebateProviders();
+  const opts: Required<DebateOptions> = { ...DEFAULT_DEBATE_OPTIONS, ...options, providers };
 
   console.log('Starting multi-AI debate on tokens...');
   console.log(`  Rounds: ${opts.rounds}`);
@@ -108,7 +185,7 @@ async function runDebateRound(
   const proposerResponse = await callAIProvider(
     'proposer',
     prompts.proposer,
-    'claude'
+    providerForRole('proposer', options.providers)
   );
   const proposerAnalysis = parseDebateResponse(proposerResponse);
 
@@ -116,7 +193,7 @@ async function runDebateRound(
   const criticResponse = await callAIProvider(
     'critic',
     prompts.critic(proposerResponse),
-    'gemini'
+    providerForRole('critic', options.providers)
   );
   const criticAnalysis = parseDebateResponse(criticResponse);
 
@@ -124,7 +201,7 @@ async function runDebateRound(
   const synthesisResponse = await callAIProvider(
     'synthesizer',
     prompts.synthesis(proposerResponse, criticResponse),
-    'claude'
+    providerForRole('synthesizer', options.providers)
   );
   const synthesis = parseDebateResponse(synthesisResponse);
 
@@ -157,8 +234,7 @@ async function callAIProvider(
   // Mock implementation - returns structured response
   // Real implementation would call:
   // - mp runtime grapple_debate
-  // - codex CLI
-  // - gemini CLI
+  // - runtime-selected provider CLI
 
   const mockResponses: Record<string, any> = {
     proposer: {

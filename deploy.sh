@@ -164,14 +164,15 @@ echo ""
 
 # Check 9: No hardcoded local paths
 echo "Check 9: Hardcoded Local Paths"
-if [ -x "scripts/validate-no-hardcoded-paths.sh" ]; then
-    if scripts/validate-no-hardcoded-paths.sh >/dev/null 2>&1; then
-        pass "No hardcoded local paths (username, absolute paths)"
+# This check is now performed by mp-devx and Go tests (internal/validation)
+if [ -f ".claude-plugin/bin/mp-devx" ]; then
+    if ./.claude-plugin/bin/mp-devx -action parity >/dev/null 2>&1; then
+        pass "No hardcoded local paths or structural violations (verified by mp-devx)"
     else
-        fail "Hardcoded local paths detected" "Run scripts/validate-no-hardcoded-paths.sh to see details"
+        fail "Structural violations detected" "Run ./.claude-plugin/bin/mp-devx -action parity to see details"
     fi
 else
-    warn "Path validation script not found" "Should exist at scripts/validate-no-hardcoded-paths.sh"
+    warn "mp-devx binary not found" "Run ./scripts/build.sh to build binaries and enable full validation"
 fi
 echo ""
 

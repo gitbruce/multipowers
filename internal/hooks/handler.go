@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/internal/modelroute"
 	"github.com/gitbruce/claude-octopus/internal/policy"
 	"github.com/gitbruce/claude-octopus/pkg/api"
 )
@@ -70,40 +69,49 @@ func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 	}
 }
 
-// resolveModelRouting resolves model routing using the new policy resolver
-// with fallback to legacy modelroute for backward compatibility
+// resolveModelRouting resolves model routing using the compiled policy resolver.
 func resolveModelRouting(projectDir, prompt string) map[string]any {
-	// Try new policy resolver first
+	workflowName := extractWorkflowName(prompt)
 	resolver, err := policy.NewResolverFromProjectDir(projectDir)
-	if err == nil {
-		// Parse workflow name from prompt
-		workflowName := extractWorkflowName(prompt)
-		if workflowName != "" {
-			contract, err := resolver.Resolve(policy.ResolveRequest{
-				Scope: policy.ScopeWorkflow,
-				Name:  workflowName,
-			})
-			if err == nil {
-				return map[string]any{
-					"model_routing": map[string]any{
-						"command":            workflowName,
-						"model":              contract.RequestedModel,
-						"provider":           string(contract.ExecutorKind),
-						"executor_profile":   contract.ExecutorProfile,
-						"enforcement":        string(contract.Enforcement),
-						"fallback_target":    contract.FallbackTarget,
-						"source":             contract.SourceRef,
-						"resolved_by_policy": true,
-					},
-				}
-			}
+	if err != nil {
+		return map[string]any{
+			"model_routing_error": err.Error(),
+			"model_routing": map[string]any{
+				"command": workflowName,
+			},
 		}
 	}
 
-	// Fall back to legacy modelroute
-	r := modelroute.ResolveForPrompt(projectDir, prompt)
+	if workflowName == "" {
+		return map[string]any{
+			"model_routing_error": "workflow name missing from prompt",
+		}
+	}
+
+	contract, err := resolver.Resolve(policy.ResolveRequest{
+		Scope: policy.ScopeWorkflow,
+		Name:  workflowName,
+	})
+	if err != nil {
+		return map[string]any{
+			"model_routing_error": err.Error(),
+			"model_routing": map[string]any{
+				"command": workflowName,
+			},
+		}
+	}
+
 	return map[string]any{
-		"model_routing": r,
+		"model_routing": map[string]any{
+			"command":            workflowName,
+			"model":              contract.RequestedModel,
+			"provider":           string(contract.ExecutorKind),
+			"executor_profile":   contract.ExecutorProfile,
+			"enforcement":        string(contract.Enforcement),
+			"fallback_target":    contract.FallbackTarget,
+			"source":             contract.SourceRef,
+			"resolved_by_policy": true,
+		},
 	}
 }
 

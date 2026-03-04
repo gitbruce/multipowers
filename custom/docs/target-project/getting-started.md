@@ -3,13 +3,14 @@
 ## Install Plugin (User Scope)
 
 ```text
-/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json
+/plugin marketplace add /mnt/f/src/ai/claude-octopus
 /plugin install mp@multipowers-plugins --scope user
 ```
 
 ## Uninstall Plugin / Marketplace (User Scope)
 
 ```text
+rm -rf ~/.claude/plugins/cache/multipowers-plugins
 /plugin uninstall mp@multipowers-plugins --scope user
 /plugin marketplace remove multipowers-plugins
 ```

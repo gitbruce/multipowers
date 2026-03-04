@@ -295,7 +295,7 @@ File: `.claude-plugin/hooks.json`
     {
       "matcher": {
         "tool": "Bash",
-        "pattern": "orchestrate\\.sh.*(probe|grasp|tangle|ink)"
+        "pattern": "internal/workflows/.*(probe|grasp|tangle|ink)"
       },
       "hooks": [
         {

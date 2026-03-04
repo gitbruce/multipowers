@@ -8,6 +8,7 @@ import {
   runDebateOnTokens,
   applyDebateImprovements,
   generateAuditTrail,
+  resolveDebateProviders,
 } from '../../debate-integration';
 import { Token, TokenSource, DebateResult } from '../../types';
 
@@ -153,6 +154,20 @@ describe('Debate Integration', () => {
       expect(result.timestamp).toBeDefined();
       expect(() => new Date(result.timestamp)).not.toThrow();
       expect(new Date(result.timestamp).toISOString()).toBe(result.timestamp);
+    });
+  });
+
+  describe('resolveDebateProviders', () => {
+    it('should derive providers from runtime policy executors', () => {
+      const providers = resolveDebateProviders({
+        executors: {
+          codex_cli: { kind: 'external_cli', command_template: ['codex', 'exec', '{prompt}'] },
+          gemini_cli: { kind: 'external_cli', command_template: ['gemini', '-p', '{prompt}'] },
+          claude_code: { kind: 'claude_code' },
+        },
+      });
+
+      expect(providers).toEqual(['claude_code', 'codex', 'gemini']);
     });
   });
 

@@ -1,9 +1,7 @@
-// Package modelroute provides legacy model routing functionality.
+// Package modelroute is a deprecated compatibility shim.
 //
-// Deprecated: Use internal/policy instead. This package is retained for
-// backward compatibility and will be removed in a future version.
-// The new policy resolver (internal/policy.Resolver) provides config-driven
-// model routing with workflow task-level overrides and executor profiles.
+// Deprecated: Use internal/policy instead. This package intentionally does not
+// encode any model/provider defaults or routing policy.
 package modelroute
 
 import (
@@ -30,19 +28,8 @@ type Resolution struct {
 
 func defaultConfig() Config {
 	return Config{
-		Providers: map[string]string{
-			"codex":        "gpt-5.3-codex",
-			"gemini":       "gemini-3-pro-preview",
-			"claude_heavy": "claude-opus",
-			"claude_light": "claude-sonnet",
-		},
-		RoleRouting: map[string]string{
-			"heavy_coding":                 "claude_heavy",
-			"docs_and_tests":               "claude_light",
-			"architecture_review_decision": "codex",
-			"external_search_business":     "gemini",
-		},
-		FallbackLane: "claude_light",
+		Providers:   map[string]string{},
+		RoleRouting: map[string]string{},
 	}
 }
 
@@ -91,13 +78,12 @@ func findConfigPath(projectDir string) (string, bool) {
 func ResolveForPrompt(projectDir, prompt string) Resolution {
 	cfg := Load(projectDir)
 	cmd := commandFromPrompt(prompt)
-	role := roleForCommand(cmd)
-	lane := cfg.RoleRouting[role]
+	role := ""
+	lane := cfg.RoleRouting[cmd]
 	if strings.TrimSpace(lane) == "" {
 		lane = cfg.FallbackLane
 	}
 	model := cfg.Providers[lane]
-	provider := providerFromLane(lane)
 	source := "default"
 	if path, ok := findConfigPath(projectDir); ok {
 		source = path
@@ -106,7 +92,7 @@ func ResolveForPrompt(projectDir, prompt string) Resolution {
 		Command:  cmd,
 		Role:     role,
 		Lane:     lane,
-		Provider: provider,
+		Provider: providerFromLane(lane),
 		Model:    model,
 		Source:   source,
 	}
@@ -122,21 +108,6 @@ func commandFromPrompt(prompt string) string {
 		return p[:i]
 	}
 	return p
-}
-
-func roleForCommand(cmd string) string {
-	switch cmd {
-	case "discover", "research":
-		return "external_search_business"
-	case "define", "review", "deliver", "debate", "plan":
-		return "architecture_review_decision"
-	case "develop", "embrace":
-		return "heavy_coding"
-	case "tdd", "docs", "debug":
-		return "docs_and_tests"
-	default:
-		return "docs_and_tests"
-	}
 }
 
 func providerFromLane(lane string) string {

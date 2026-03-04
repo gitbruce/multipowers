@@ -192,7 +192,7 @@ These must stay in sync:
 ![Version 7.9.7](...)
 ```
 
-Use: `scripts/bump-version.sh` to update all at once (if it exists, otherwise manual sync required).
+Use: `scripts/release.sh <version> "<summary>"` to update all at once and manage the full release workflow.
 
 ---
 

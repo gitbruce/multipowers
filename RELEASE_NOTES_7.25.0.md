@@ -33,7 +33,7 @@ Track real-time task progress with comprehensive metrics and analytics.
 - Better visibility into multi-agent orchestration
 - Native Claude Code UI integration
 
-**Implementation:** `scripts/state-manager.sh`
+**Implementation:** `internal/tracks/state.go`
 
 ---
 
@@ -224,7 +224,7 @@ sudo dnf install poppler-utils
 ### Modified Files
 
 - `scripts/mp` - Core logic additions
-- `scripts/state-manager.sh` - Task metrics implementation
+- `internal/tracks/state.go` - Task metrics implementation
 - `.claude-plugin/.claude/commands/extract.md` - PDF page selection integration
 - `.claude-plugin/.claude/skills/skill-deep-research.md` - PDF handling documentation
 - `package.json` - Version bump to 7.25.0
@@ -238,8 +238,8 @@ sudo dnf install poppler-utils
 
 ### Test Coverage
 
-- `tests/test-debug-mode.sh` - Debug functionality tests
-- `tests/test-pdf-pages.sh` - PDF page selection tests
+- `internal/tracks/debug_test.go` - Debug functionality tests
+- `internal/tracks/pdf_test.go` - PDF page selection tests
 - Syntax validation for all new bash functions
 
 ---

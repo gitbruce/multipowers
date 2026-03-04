@@ -36,7 +36,7 @@ All phases of the native integration plan have been implemented:
 - Enabled seamless multi-day project continuity
 
 ### ✅ Phase 5: Testing
-- Created test-native-integration.sh with 6 comprehensive tests
+- Created comprehensive integration tests (now migrated to Go `internal/policy/*_test.go`)
 - Tests cover: task migration, plan compatibility, state persistence, session resume, hybrid planning, backward compatibility
 - All tests passing
 
@@ -65,7 +65,7 @@ plugin/scripts/
 └── migrate-todos.sh                  # TodoWrite → TaskCreate migration
 
 tests/integration/
-└── test-native-integration.sh        # Comprehensive integration tests
+└── Go `internal/policy/*_test.go`       # Comprehensive integration tests (migrated from shell)
 ```
 
 ### Documentation
@@ -230,7 +230,7 @@ All tests passed!
 - ✅ MIGRATION-7.23.0.md (user migration)
 - ✅ skill-task-management-v2.md (API reference)
 - ✅ skill-resume-enhanced.md (resume protocol)
-- ✅ test-native-integration.sh (test suite)
+- ✅ Go `internal/policy/*_test.go` (migrated from shell)
 
 ### Pending
 
@@ -369,8 +369,8 @@ Include:
 - [x] Verify resilience to context clearing
 
 ### Phase 5: Testing
-- [x] Create test-native-integration.sh
-- [x] Implement 6 comprehensive tests
+- [x] Migrate integration tests to Go `internal/policy/*_test.go`
+- [x] Implement 6 comprehensive Go tests
 - [x] Verify all tests pass
 - [x] Document test scenarios
 - [x] Add CI/CD integration (planned)

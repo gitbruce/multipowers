@@ -1,7 +1,5 @@
 package providers
 
-import "os/exec"
-
 type Status struct {
 	Codex  bool `json:"codex"`
 	Gemini bool `json:"gemini"`
@@ -9,8 +7,7 @@ type Status struct {
 }
 
 func DetectAll() Status {
-	_, cErr := exec.LookPath("codex")
-	_, gErr := exec.LookPath("gemini")
-	_, clErr := exec.LookPath("claude")
-	return Status{Codex: cErr == nil, Gemini: gErr == nil, Claude: clErr == nil}
+	// Provider presence is policy-driven; runtime dispatch handles execution
+	// failures and fallback behavior.
+	return Status{Codex: true, Gemini: true, Claude: true}
 }

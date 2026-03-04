@@ -8,8 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/execx"
-	"github.com/gitbruce/claude-octopus/internal/providers"
+	"github.com/gitbruce/claude-octopus/internal/policy"
 )
 
 type Persona struct {
@@ -17,6 +16,16 @@ type Persona struct {
 	Description string
 	Model       string
 	CLI         string
+}
+
+type personaPolicyDispatcher interface {
+	DispatchWithFallback(req policy.ResolveRequest, prompt, projectDir string) (*policy.DispatchResult, error)
+}
+
+var personaResolverFactory = policy.NewResolverFromProjectDir
+
+var personaDispatcherFactory = func(resolver *policy.Resolver) personaPolicyDispatcher {
+	return policy.NewDispatcher(resolver)
 }
 
 func RenderPersonaList(configPath string) (string, error) {
@@ -51,90 +60,50 @@ func RunPersona(configPath, projectDir, arguments string) (map[string]any, error
 	if prompt == "" {
 		return nil, fmt.Errorf("persona prompt is required")
 	}
-	personas, err := loadPersonas(configPath)
+	resolver, err := personaResolverFactory(projectDir)
 	if err != nil {
-		return nil, err
-	}
-	for _, p := range personas {
-		if p.Name == name {
-			spec, err := buildPersonaExecSpec(p, prompt, projectDir)
-			if err != nil {
-				return nil, err
-			}
-			res := execx.Run(spec.Binary, spec.Args, personaExecutionEnv(), 300)
-			if res.ExitCode != 0 {
-				return nil, fmt.Errorf(
-					"%s execution failed for model %s (exit=%d): %s",
-					p.CLI,
-					p.Model,
-					res.ExitCode,
-					oneLine(firstNonEmpty(res.Stderr, res.Stdout)),
-				)
-			}
-			output := strings.TrimSpace(res.Stdout)
-			if output == "" {
-				output = strings.TrimSpace(res.Stderr)
-			}
-			return map[string]any{
-				"mode":            "run",
-				"persona":         p.Name,
-				"model":           p.Model,
-				"lane":            fmt.Sprintf("%s:%s", p.CLI, p.Model),
-				"prompt":          strings.TrimSpace(prompt),
-				"using_line":      fmt.Sprintf("Using: %s:%s", p.CLI, p.Model),
-				"provider_output": output,
-			}, nil
-		}
+		return nil, fmt.Errorf("persona policy resolver error: %w", err)
 	}
 
-	return nil, fmt.Errorf("unknown persona: %s", name)
-}
-
-type personaExecSpec struct {
-	Binary string
-	Args   []string
-}
-
-func buildPersonaExecSpec(p Persona, prompt, projectDir string) (personaExecSpec, error) {
-	cli := strings.ToLower(strings.TrimSpace(p.CLI))
-	model := strings.TrimSpace(p.Model)
-	if cli == "" || cli == "unknown" {
-		return personaExecSpec{}, fmt.Errorf("persona %s has invalid cli lane: %s", p.Name, p.CLI)
-	}
-	if model == "" || model == "unknown" {
-		return personaExecSpec{}, fmt.Errorf("persona %s has invalid model: %s", p.Name, p.Model)
+	dispatcher := personaDispatcherFactory(resolver)
+	res, err := dispatcher.DispatchWithFallback(policy.ResolveRequest{
+		Scope: policy.ScopeAgent,
+		Name:  name,
+	}, prompt, projectDir)
+	if err != nil {
+		return nil, fmt.Errorf("persona dispatch error: %w", err)
 	}
 
-	switch {
-	case strings.HasPrefix(cli, "gemini"):
-		return personaExecSpec{
-			Binary: "gemini",
-			Args:   []string{"-m", model, "-p", prompt},
-		}, nil
-	case strings.HasPrefix(cli, "codex"):
-		args := []string{"exec", "-m", model}
-		if strings.TrimSpace(projectDir) != "" {
-			args = append(args, "-C", projectDir)
-		}
-		args = append(args, prompt)
-		return personaExecSpec{
-			Binary: "codex",
-			Args:   args,
-		}, nil
-	case strings.HasPrefix(cli, "claude"):
-		return personaExecSpec{
-			Binary: "claude",
-			Args:   []string{"--print", "--model", model, prompt},
-		}, nil
-	default:
-		return personaExecSpec{}, fmt.Errorf("unsupported persona cli lane: %s", p.CLI)
+	if !res.Success {
+		return nil, fmt.Errorf(
+			"persona execution failed for model %s (exit=%d): %s",
+			res.Model,
+			res.ExitCode,
+			oneLine(firstNonEmpty(res.Stderr, res.Stdout)),
+		)
 	}
-}
 
-func personaExecutionEnv() []string {
-	env := os.Environ()
-	env = append(env, providers.ProxyEnv()...)
-	return env
+	output := strings.TrimSpace(res.Stdout)
+	if output == "" {
+		output = strings.TrimSpace(res.Stderr)
+	}
+
+	lane := fmt.Sprintf("%s:%s", res.ExecutorKind, res.Model)
+	result := map[string]any{
+		"mode":            "run",
+		"persona":         name,
+		"model":           res.Model,
+		"lane":            lane,
+		"prompt":          strings.TrimSpace(prompt),
+		"using_line":      fmt.Sprintf("Using: %s", lane),
+		"provider_output": output,
+	}
+	if res.Degraded {
+		result["degraded"] = true
+		result["fallback_from"] = res.FallbackFrom
+		result["fallback_to"] = res.FallbackTo
+	}
+	return result, nil
 }
 
 func firstNonEmpty(values ...string) string {
