@@ -423,11 +423,33 @@ You can enable async benchmark collection for `/mp:*` code-related requests, the
 Configure in `config/orchestration.yaml`:
 
 ```yaml
+execution_isolation:
+  enabled: true
+  command_whitelist:
+    - develop
+    - review
+    - embrace
+  branch_prefix: "bench"
+  worktree_root: ".worktrees/bench"
+  repair_retry_max: 1
+  global_timeout_ms: 120000
+  proceed_policy: "all_or_timeout"
+  min_completed_models: 1
+  heartbeat_interval_seconds: 30
+  logs_subdir: "logs"
+
 benchmark_mode:
   enabled: true
   async_enabled: true
   force_all_models_on_code: true
   judge_model: "claude-opus"
+  execution_profile:
+    enabled: true
+    require_code_intent: true
+    command_whitelist:
+      - develop
+      - review
+      - embrace
 
 smart_routing:
   enabled: false
@@ -435,9 +457,12 @@ smart_routing:
 ```
 
 Behavior:
+- `execution_isolation.enabled=true`: any external command flow that may edit files is executed in isolated `worktree + branch` sandboxes (shared runtime, benchmark and non-benchmark paths).
 - `benchmark_mode.enabled=true`: code-related `/mp:*` requests can fan out to all available models and write daily JSONL records under `~/.claude-octopus/metrics`.
+- `benchmark_mode.execution_profile`: optional benchmark-specific gate layered on shared isolation policy (code intent + benchmark whitelist).
 - `smart_routing.enabled=false`: no history override is applied.
 - `smart_routing.enabled=true`: override is applied only when a similar-scenario model has at least `min_samples_per_model` judged samples.
+- Long-running isolated runs emit `step_progress` heartbeat events and enforce a timeout sync gate that can proceed with completed candidates.
 - Benchmark queue/store/judge failures are best-effort only and do not fail the main workflow result.
 
 ---

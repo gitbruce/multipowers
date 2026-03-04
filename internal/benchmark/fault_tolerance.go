@@ -2,6 +2,7 @@ package benchmark
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -33,9 +34,16 @@ func (e SafeEmitter) logError(job Job, err error) {
 	}
 	e.LogError(ErrorRecord{
 		JobID:      fmt.Sprintf("%s-%d", job.Type, now().UnixNano()),
-		Stage:      "benchmark_emit",
+		Stage:      errorStageForJob(job.Type),
 		ErrorClass: "emit_failure",
 		Message:    err.Error(),
 		Retryable:  true,
 	})
+}
+
+func errorStageForJob(jobType string) string {
+	if strings.TrimSpace(jobType) == "" {
+		return "benchmark_emit"
+	}
+	return jobType
 }

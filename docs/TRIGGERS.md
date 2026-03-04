@@ -40,9 +40,12 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 When enabled in `config/orchestration.yaml`, `/mp:*` commands can activate benchmark fan-out and optional history override:
 
+- `execution_isolation.enabled=true`: external-command runs that may edit files use isolated `worktree + branch` sandboxes with shared runtime policy.
 - `benchmark_mode.enabled=true`: code-related `/mp:*` requests may run across all configured available models for benchmarking.
+- `benchmark_mode.execution_profile`: benchmark-specific profile gate layered on top of shared isolation policy (code intent + command whitelist).
 - `smart_routing.enabled=false`: benchmark data is collected, but routing remains unchanged.
 - `smart_routing.enabled=true`: routing can be overridden only when similar-scenario history meets `min_samples_per_model` (default gate `10`).
+- Long-running isolated fan-out emits `step_progress` heartbeat updates and uses timeout sync-gate degradation instead of blocking forever.
 - Benchmark classification/scoring/storage runs asynchronously and failures are isolated from user-facing command completion.
 
 ---

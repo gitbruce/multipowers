@@ -64,3 +64,60 @@ func TestJSONLStore(t *testing.T) {
 		t.Fatalf("run_id = %v, want run-1", first["run_id"])
 	}
 }
+
+func TestJSONLStore_IsolationAndProgressStreams(t *testing.T) {
+	root := t.TempDir()
+	fixedNow := func() time.Time {
+		return time.Date(2026, time.March, 5, 8, 0, 0, 0, time.UTC)
+	}
+	store := NewJSONLStore(root, fixedNow)
+
+	isolationRecord := IsolationRunRecord{
+		RunID:           "run-iso-1",
+		Enforced:        true,
+		Reason:          "enforced",
+		Command:         "develop",
+		CodeIntentFinal: true,
+		WhitelistMatch:  true,
+		Models:          []string{"claude-sonnet", "gpt-4o"},
+		WorktreeRoot:    ".worktrees/bench",
+		BranchPrefix:    "bench",
+	}
+	path, err := store.Append("isolation_runs", isolationRecord)
+	if err != nil {
+		t.Fatalf("append isolation record: %v", err)
+	}
+	wantPath := filepath.Join(root, "isolation_runs.2026-03-05.jsonl")
+	if path != wantPath {
+		t.Fatalf("path = %q, want %q", path, wantPath)
+	}
+
+	asyncRecord := AsyncJobRecord{
+		JobID:       "job-1",
+		JobType:     "model_execution",
+		Status:      "running",
+		Attempts:    1,
+		LatencyMs:   10,
+		RunID:       "run-iso-1",
+		Model:       "gpt-4o",
+		Stage:       "running",
+		HeartbeatAt: "2026-03-05T08:00:00Z",
+		Attempt:     1,
+	}
+	if _, err := store.Append("async_jobs", asyncRecord); err != nil {
+		t.Fatalf("append async job record: %v", err)
+	}
+
+	data, err := os.ReadFile(wantPath)
+	if err != nil {
+		t.Fatalf("read isolation file: %v", err)
+	}
+	line := strings.TrimSpace(string(data))
+	var got map[string]any
+	if err := json.Unmarshal([]byte(line), &got); err != nil {
+		t.Fatalf("invalid json line: %v", err)
+	}
+	if got["run_id"] != "run-iso-1" {
+		t.Fatalf("run_id = %v, want run-iso-1", got["run_id"])
+	}
+}

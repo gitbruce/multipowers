@@ -248,6 +248,15 @@ Log write failures must never fail the main orchestration result.
 8. With timeout policy enabled, critic ranking proceeds with completed candidates instead of failing the whole run.
 9. Isolation runtime/policy components are reusable by non-benchmark external command paths with shared semantics.
 
+## Implementation Notes (2026-03-05)
+
+1. Shared isolation entrypoint is exposed via `ResolveExternalCommandIsolation(...)` for benchmark and non-benchmark external-command flows.
+2. Runtime isolation lifecycle (`CreateModelSandbox`, `CleanupModelSandbox`) is implemented in `internal/isolation/runtime.go`.
+3. Progress telemetry uses `EventTypeStepProgress` with `ModelProgressData` payload and heartbeat timestamps.
+4. Sync gate timeout degradation is implemented as shared `internal/isolation/sync_gate.go` and consumed by orchestration helpers.
+5. Critic deterministic top-1 selection and same-model single repair retry integration flow are implemented in `internal/isolation/*`.
+6. Benchmark JSONL schema is extended with isolation/progress/integration metadata fields and `isolation_runs` stream contract.
+
 ## Out of Scope
 
 1. Multi-retry cascading across rank #2/#3.

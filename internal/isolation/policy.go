@@ -11,6 +11,17 @@ type IsolationPolicyInput struct {
 	BenchmarkProfile BenchmarkProfileInput
 }
 
+// ExternalCommandIsolationInput is a shared entrypoint for all external-command flows.
+type ExternalCommandIsolationInput struct {
+	IsolationEnabled bool
+	ExternalCommand  bool
+	MayEditFiles     bool
+	CodeRelated      bool
+	Command          string
+	CommandWhitelist []string
+	BenchmarkProfile BenchmarkProfileInput
+}
+
 // IsolationPolicyDecision is the shared policy decision and rationale.
 type IsolationPolicyDecision struct {
 	Enforced              bool
@@ -56,4 +67,17 @@ func ResolveIsolationPolicy(in IsolationPolicyInput) IsolationPolicyDecision {
 		SharedWhitelistMatch:  sharedMatch,
 		ProfileWhitelistMatch: profileDecision.WhitelistMatch,
 	}
+}
+
+// ResolveExternalCommandIsolation reuses shared runtime policy for any external-command flow.
+func ResolveExternalCommandIsolation(in ExternalCommandIsolationInput) IsolationPolicyDecision {
+	return ResolveIsolationPolicy(IsolationPolicyInput{
+		IsolationEnabled: in.IsolationEnabled,
+		ExternalCommand:  in.ExternalCommand,
+		MayEditFiles:     in.MayEditFiles,
+		CodeRelated:      in.CodeRelated,
+		Command:          in.Command,
+		Whitelist:        in.CommandWhitelist,
+		BenchmarkProfile: in.BenchmarkProfile,
+	})
 }

@@ -13,6 +13,16 @@ import (
 
 const defaultMetricsRootName = ".claude-octopus/metrics"
 
+const (
+	StreamRuns           = "runs"
+	StreamModelOutputs   = "model_outputs"
+	StreamJudgeScores    = "judge_scores"
+	StreamRouteOverrides = "route_overrides"
+	StreamAsyncJobs      = "async_jobs"
+	StreamErrors         = "errors"
+	StreamIsolationRuns  = "isolation_runs"
+)
+
 var jsonlFileLocks sync.Map // map[string]*sync.Mutex
 
 // JSONLStore appends benchmark events into daily-partitioned JSONL files.
@@ -76,6 +86,16 @@ func (s *JSONLStore) Append(stream string, record any) (string, error) {
 	}
 
 	return path, nil
+}
+
+// AppendIsolationRun appends one isolation run record to the isolation stream.
+func (s *JSONLStore) AppendIsolationRun(record IsolationRunRecord) (string, error) {
+	return s.Append(StreamIsolationRuns, record)
+}
+
+// AppendAsyncJob appends one async job status record.
+func (s *JSONLStore) AppendAsyncJob(record AsyncJobRecord) (string, error) {
+	return s.Append(StreamAsyncJobs, record)
 }
 
 func fileLock(path string) *sync.Mutex {

@@ -40,7 +40,7 @@
 | E5 | Sync Gate Collector with Timeout Degradation | DONE | 2026-03-05 02:35:59 CST |
 | E6 | Critic Top-1 Deterministic Selection | DONE | 2026-03-05 02:37:46 CST |
 | E7 | Integration Branch + Same-Model Repair Retry | DONE | 2026-03-05 02:40:00 CST |
-| E8 | JSONL/Docs/E2E Verification | TODO | - |
+| E8 | JSONL/Docs/E2E Verification | DONE | 2026-03-05 02:46:03 CST |
 
 ---
 
@@ -539,7 +539,7 @@ git commit -m "feat(isolation): add top-1 integration with same-model single ret
 
 ### Task E8: JSONL/Docs/E2E Verification
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Enhancement must be observable, documented, and verifiable end-to-end.
@@ -612,13 +612,13 @@ git commit -m "feat(isolation): enforce shared isolated execution with progress 
 
 ## Completion Checklist
 
-- [ ] Task statuses are updated in real time during execution (`IN_PROGRESS` -> `DONE`/`BLOCKED`).
-- [ ] Isolation policy is runtime-enforced for external commands that may edit files.
-- [ ] Every eligible model run uses unique branch/worktree.
-- [ ] Model progress + heartbeat feedback is visible via events.
-- [ ] Sync gate timeout proceeds with completed candidates (graceful degradation).
-- [ ] Critic top-1 direct integration works deterministically.
-- [ ] Same-model repair retry executes exactly once on merge/gate failure.
-- [ ] JSONL records include isolation/progress/integration metadata.
-- [ ] Benchmark and non-benchmark profiles both use the same shared isolation runtime/policy.
-- [ ] All tests pass.
+- [x] Task statuses are updated in real time during execution (`IN_PROGRESS` -> `DONE`/`BLOCKED`).
+- [x] Isolation policy is runtime-enforced for external commands that may edit files.
+- [x] Every eligible model run uses unique branch/worktree.
+- [x] Model progress + heartbeat feedback is visible via events.
+- [x] Sync gate timeout proceeds with completed candidates (graceful degradation).
+- [x] Critic top-1 direct integration works deterministically.
+- [x] Same-model repair retry executes exactly once on merge/gate failure.
+- [x] JSONL records include isolation/progress/integration metadata.
+- [x] Benchmark and non-benchmark profiles both use the same shared isolation runtime/policy.
+- [x] All tests pass.

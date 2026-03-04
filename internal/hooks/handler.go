@@ -220,13 +220,13 @@ func resolveExecutionIsolation(projectDir, workflowName string, codeRelated bool
 		}
 	}
 
-	decision := isolation.ResolveIsolationPolicy(isolation.IsolationPolicyInput{
+	decision := isolation.ResolveExternalCommandIsolation(isolation.ExternalCommandIsolationInput{
 		IsolationEnabled: cfg.ExecutionIsolation.Enabled,
 		ExternalCommand:  strings.TrimSpace(workflowName) != "",
 		MayEditFiles:     mayEditFilesForWorkflow(workflowName),
 		CodeRelated:      codeRelated,
 		Command:          workflowName,
-		Whitelist:        cfg.ExecutionIsolation.CommandWhitelist,
+		CommandWhitelist: cfg.ExecutionIsolation.CommandWhitelist,
 		BenchmarkProfile: isolation.BenchmarkProfileInput{
 			Enabled:           cfg.BenchmarkMode.ExecutionProfile.Enabled,
 			RequireCodeIntent: cfg.BenchmarkMode.ExecutionProfile.RequireCodeIntent,
