@@ -25,7 +25,7 @@
 | T1 | Config Schema for Benchmark/Smart Routing | DONE | 2026-03-04 21:55:09 CST |
 | T2 | Code-Intent Classification Contract | DONE | 2026-03-04 21:59:00 CST |
 | T3 | Force-All-Models Routing Override | DONE | 2026-03-04 22:01:49 CST |
-| T4 | Async Queue (Non-Blocking) | TODO | - |
+| T4 | Async Queue (Non-Blocking) | DONE | 2026-03-04 22:04:15 CST |
 | T5 | Daily JSONL Store | TODO | - |
 | T6 | Judge Scoring Worker | TODO | - |
 | T7 | Smart Routing from History | TODO | - |
@@ -175,7 +175,7 @@ git commit -m "feat(routing): add force-all-models benchmark override"
 
 ### Task T4: Async Queue (Non-Blocking Main Path)
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Benchmark should be fully async and must not increase critical-path latency.

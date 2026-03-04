@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/gitbruce/claude-octopus/internal/benchmark"
 )
 
 // Dispatcher interface for step execution
@@ -20,10 +22,11 @@ type ExecutorConfig struct {
 
 // Executor executes workflow plans with bounded concurrency
 type Executor struct {
-	config     ExecutorConfig
-	dispatcher Dispatcher
-	events     *EventEmitter
-	mu         sync.Mutex
+	config         ExecutorConfig
+	dispatcher     Dispatcher
+	events         *EventEmitter
+	benchmarkQueue *benchmark.Queue
+	mu             sync.Mutex
 }
 
 // NewExecutor creates a new executor
@@ -32,9 +35,10 @@ func NewExecutor(config ExecutorConfig, dispatcher Dispatcher) *Executor {
 		config.MaxWorkers = 1
 	}
 	return &Executor{
-		config:     config,
-		dispatcher: dispatcher,
-		events:     NewEventEmitter(100),
+		config:         config,
+		dispatcher:     dispatcher,
+		events:         NewEventEmitter(100),
+		benchmarkQueue: benchmark.NewQueue(256),
 	}
 }
 
@@ -48,6 +52,10 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 		Phases:       make([]PhaseResult, 0, len(plan.Phases)),
 		Status:       ExecutionStatusRunning,
 	}
+	e.emitBenchmarkEvent("execution_start", map[string]any{
+		"workflow": plan.WorkflowName,
+		"task":     plan.TaskName,
+	})
 
 	// Emit execution start event
 	e.events.Emit(Event{
@@ -94,6 +102,11 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 		WorkflowName: plan.WorkflowName,
 		TaskName:     plan.TaskName,
 		Status:       string(result.Status),
+	})
+	e.emitBenchmarkEvent("execution_end", map[string]any{
+		"workflow": plan.WorkflowName,
+		"task":     plan.TaskName,
+		"status":   string(result.Status),
 	})
 
 	return result
@@ -306,6 +319,23 @@ func (e *Executor) Events() <-chan Event {
 // Close cleans up executor resources
 func (e *Executor) Close() {
 	e.events.Close()
+}
+
+func (e *Executor) emitBenchmarkEvent(jobType string, payload map[string]any) {
+	if e == nil || e.benchmarkQueue == nil {
+		return
+	}
+	_ = e.benchmarkQueue.TryEnqueue(benchmark.Job{
+		Type:    jobType,
+		Payload: payload,
+	})
+}
+
+func (e *Executor) BenchmarkQueueMetrics() benchmark.QueueMetrics {
+	if e == nil || e.benchmarkQueue == nil {
+		return benchmark.QueueMetrics{}
+	}
+	return e.benchmarkQueue.Metrics()
 }
 
 // DefaultDispatcher is a basic dispatcher that returns mock results
