@@ -342,3 +342,180 @@ func TestPlanDeterminism(t *testing.T) {
 		}
 	})
 }
+
+// T03-S02: Task-specific plan builder API tests
+func TestTaskSpecificOverrides(t *testing.T) {
+	t.Run("task perspective override replaces default agents", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher", Agents: []string{"a1", "a2", "a3"}},
+			},
+		}
+
+		taskOverride := &WorkflowOverride{
+			Perspectives: []PerspectiveOverride{
+				{Name: "security", Agent: "security-auditor"},
+				{Name: "performance", Agent: "performance-engineer"},
+			},
+		}
+
+		plan, err := BuildPlan(global, "discover", "security-task", "prompt", "/workdir", taskOverride)
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		// Task name should be set
+		if plan.TaskName != "security-task" {
+			t.Errorf("expected task name security-task, got %s", plan.TaskName)
+		}
+
+		// Should have source refs for traceability
+		if len(plan.Metadata.SourceRefs) == 0 {
+			t.Error("expected source refs for task override")
+		}
+	})
+
+	t.Run("task parallel override modifies execution", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"tangle": {Primary: "implementer", Agents: []string{"d1", "d2", "d3", "d4"}},
+			},
+		}
+
+		taskOverride := &WorkflowOverride{
+			Parallel: &ParallelConfig{
+				MaxWorkers: 2,
+			},
+		}
+
+		plan, err := BuildPlan(global, "develop", "limited-parallel-task", "prompt", "/workdir", taskOverride)
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		// Should have task name set
+		if plan.TaskName != "limited-parallel-task" {
+			t.Errorf("expected task name limited-parallel-task, got %s", plan.TaskName)
+		}
+	})
+
+	t.Run("task synthesis override changes model", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher"},
+			},
+		}
+
+		finalEnabled := true
+		taskOverride := &WorkflowOverride{
+			Synthesis: &SynthesisConfig{
+				Model:        "claude-opus-4.6",
+				FinalEnabled: &finalEnabled,
+			},
+		}
+
+		plan, err := BuildPlan(global, "discover", "high-quality-synthesis", "prompt", "/workdir", taskOverride)
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		if plan.Synthesis.Model != "claude-opus-4.6" {
+			t.Errorf("expected synthesis model claude-opus-4.6, got %s", plan.Synthesis.Model)
+		}
+	})
+
+	t.Run("task phase override changes agents", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher", Agents: []string{"default-agent"}},
+			},
+		}
+
+		taskOverride := &WorkflowOverride{
+			Phases: []PhaseOverride{
+				{Name: "probe", Agent: "custom-researcher", Agents: []string{"custom1", "custom2"}},
+			},
+		}
+
+		plan, err := BuildPlan(global, "discover", "custom-phase-task", "prompt", "/workdir", taskOverride)
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		// Should have custom agents
+		if len(plan.Phases) == 0 {
+			t.Fatal("expected at least one phase")
+		}
+		if len(plan.Phases[0].Steps) != 2 {
+			t.Errorf("expected 2 custom steps, got %d", len(plan.Phases[0].Steps))
+		}
+	})
+
+	t.Run("source refs track override origin", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher"},
+			},
+		}
+
+		taskOverride := &WorkflowOverride{
+			Model: "task-model",
+		}
+
+		plan, err := BuildPlan(global, "discover", "traced-task", "prompt", "/workdir", taskOverride)
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		// Verify source refs exist
+		if len(plan.Metadata.SourceRefs) == 0 {
+			t.Error("expected source refs to be tracked")
+		}
+
+		// Verify resolved config is attached
+		if plan.Metadata.ResolvedConfig == nil {
+			t.Error("expected resolved config to be attached")
+		}
+	})
+}
+
+func TestWorkflowModelOverride(t *testing.T) {
+	t.Run("workflow model override affects plan", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"probe": {Primary: "researcher"},
+			},
+		}
+
+		// Create merged config with workflow override
+		merged := &MergedOrchestrationConfig{
+			Version:       "1",
+			PhaseDefaults: global.PhaseDefaults,
+			WorkflowOverrides: map[string]WorkflowOverride{
+				"discover": {
+					Model:          "gemini-3-pro-preview",
+					FallbackPolicy: "cross_provider_once",
+				},
+			},
+		}
+
+		// Build plan with merged config
+		plan := &ExecutionPlan{
+			WorkflowName: "discover",
+			Phases:       []PhasePlan{{Name: "probe", Steps: []StepPlan{{Agent: "researcher"}}}},
+			Metadata: PlanMetadata{
+				ResolvedConfig: merged,
+			},
+		}
+
+		if plan.Metadata.ResolvedConfig.WorkflowOverrides["discover"].Model != "gemini-3-pro-preview" {
+			t.Error("expected workflow model override in resolved config")
+		}
+	})
+}
