@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gitbruce/claude-octopus/internal/benchmark"
+	"github.com/gitbruce/claude-octopus/internal/isolation"
 )
 
 // Dispatcher interface for step execution
@@ -379,6 +380,27 @@ func (e *Executor) BenchmarkQueueMetrics() benchmark.QueueMetrics {
 		return benchmark.QueueMetrics{}
 	}
 	return e.benchmarkQueue.Metrics()
+}
+
+// waitCandidateGate blocks candidate aggregation until completion or timeout and applies proceed policy.
+func (e *Executor) waitCandidateGate(
+	ctx context.Context,
+	gate *isolation.CandidateSyncGate,
+	policy string,
+	minCompleted int,
+	timeout time.Duration,
+) isolation.SyncGateResult {
+	waitCtx := ctx
+	cancel := func() {}
+	if timeout > 0 {
+		waitCtx, cancel = context.WithTimeout(ctx, timeout)
+	}
+	defer cancel()
+	return isolation.WaitForCandidates(waitCtx, isolation.SyncGateInput{
+		Gate:               gate,
+		ProceedPolicy:      policy,
+		MinCompletedModels: minCompleted,
+	})
 }
 
 // DefaultDispatcher is a basic dispatcher that returns mock results

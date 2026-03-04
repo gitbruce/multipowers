@@ -37,7 +37,7 @@
 | E2 | Shared Isolation Policy Resolver | DONE | 2026-03-05 02:26:44 CST |
 | E3 | Shared Git Worktree Runtime Manager | DONE | 2026-03-05 02:30:18 CST |
 | E4 | Event-Driven Model Progress + Heartbeats | DONE | 2026-03-05 02:33:06 CST |
-| E5 | Sync Gate Collector with Timeout Degradation | TODO | - |
+| E5 | Sync Gate Collector with Timeout Degradation | DONE | 2026-03-05 02:35:59 CST |
 | E6 | Critic Top-1 Deterministic Selection | TODO | - |
 | E7 | Integration Branch + Same-Model Repair Retry | TODO | - |
 | E8 | JSONL/Docs/E2E Verification | TODO | - |
@@ -344,7 +344,7 @@ git commit -m "feat(orchestration): emit model progress and heartbeat events for
 
 ### Task E5: Sync Gate Collector with Timeout Degradation
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - One slow model must not block the whole command indefinitely.
