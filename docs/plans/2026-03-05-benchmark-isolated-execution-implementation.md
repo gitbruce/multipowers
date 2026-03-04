@@ -1,14 +1,26 @@
-# Benchmark Isolated Execution Enhancement Implementation Plan
+# External Command Isolation (Shared) Enhancement Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Enforce per-model isolated `worktree + branch` execution at runtime when benchmark mode is enabled, code intent is true, and command whitelist matches; then integrate critic top-1 with one same-model repair retry on failure.
+**Goal:** Enforce shared per-model/task isolated `worktree + branch` execution at runtime whenever external commands may edit files, with benchmark mode as one profile, and integrate critic top-1 with one same-model repair retry on failure.
 
-**Architecture:** Add an isolation policy gate and git-isolation runtime manager inside benchmark/orchestration flow. Every eligible model candidate runs in a dedicated sandbox branch/worktree. Critic ranking chooses top-1 for integration branch. If top-1 integration fails, run one same-model repair attempt and retry once.
+**Architecture:** Add shared isolation policy/runtime components used by all external-command flows in orchestration. Every eligible candidate runs in a dedicated sandbox branch/worktree. Executor emits model progress events with heartbeats. A sync gate (waitgroup + timeout) advances with completed candidates when timeout occurs. Benchmark becomes one profile on top of shared logic. Critic ranking chooses top-1 for integration branch; failures trigger one same-model repair retry.
 
-**Tech Stack:** Go, YAML config, git worktree CLI, JSONL persistence, existing `internal/orchestration`, `internal/benchmark`, `go test`.
+**Tech Stack:** Go, YAML config, git worktree CLI, JSONL persistence, existing `internal/orchestration`, `internal/isolation` (new shared package), profile adapters (including benchmark), `go test`.
 
 ---
+
+## Mandatory Execution Rules
+
+1. Use TDD for every task: failing test -> minimal implementation -> passing test.
+2. Keep commits small: one commit per task.
+3. **When executing this plan, update task status in real time:**
+- Set task `Status` to `IN_PROGRESS` before any code change.
+- Set task `Status` to `DONE` immediately after verification and commit.
+- If blocked, set `Status` to `BLOCKED` and record blocker reason under the task.
+4. Allowed status values: `TODO`, `IN_PROGRESS`, `BLOCKED`, `DONE`.
+5. Keep task table and per-task `Status` field synchronized.
+6. No destructive git commands.
 
 ## Required Skills and Guardrails
 
@@ -17,29 +29,42 @@
 - `@superpowers:verification-before-completion`
 - `@superpowers:executing-plans`
 
-Rules:
-1. TDD only: failing test first, then minimal code.
-2. One commit per task.
-3. Update status board immediately after each task.
-4. No destructive git commands.
-5. Isolation runtime must not mutate the active developer worktree branch.
-
 ## Task Status Board
 
 | Task ID | Task Name | Status | Last Update |
 |---|---|---|---|
-| E1 | Config Schema: Execution Isolation | TODO | - |
-| E2 | Isolation Policy Resolver | TODO | - |
-| E3 | Git Worktree Runtime Manager | TODO | - |
-| E4 | Orchestration Integration for Isolated Candidate Runs | TODO | - |
-| E5 | Critic Top-1 Deterministic Selection | TODO | - |
-| E6 | Integration Branch + Same-Model Repair Retry | TODO | - |
-| E7 | JSONL Schema/Store Enhancements | TODO | - |
-| E8 | E2E + Docs + Full Verification | TODO | - |
+| E1 | Config Schema: Shared Execution Isolation + Sync Gate | TODO | - |
+| E2 | Shared Isolation Policy Resolver | TODO | - |
+| E3 | Shared Git Worktree Runtime Manager | TODO | - |
+| E4 | Event-Driven Model Progress + Heartbeats | TODO | - |
+| E5 | Sync Gate Collector with Timeout Degradation | TODO | - |
+| E6 | Critic Top-1 Deterministic Selection | TODO | - |
+| E7 | Integration Branch + Same-Model Repair Retry | TODO | - |
+| E8 | JSONL/Docs/E2E Verification | TODO | - |
 
 ---
 
-### Task E1: Config Schema: Execution Isolation
+### Task E1: Config Schema: Shared Execution Isolation + Sync Gate
+
+**Status:** TODO
+
+**Why**
+- Runtime enforcement requires explicit config to avoid hardcoded behavior.
+- Long-running fan-out needs configurable timeout/proceed policy.
+
+**What**
+- Add shared `execution_isolation` root config and profile override support.
+- Add defaults and validation.
+
+**How**
+- Add `ExecutionIsolationConfig` to orchestration types at root scope.
+- Add optional profile override parsing for benchmark profile.
+- Parse and default fields in config loader.
+- Validate enum/range values.
+
+**Key Design**
+- Backward compatible: missing section keeps current behavior.
+- Safe defaults: isolation off, proceed policy deterministic.
 
 **Files:**
 - Modify: `internal/orchestration/types.go`
@@ -47,37 +72,44 @@ Rules:
 - Modify: `internal/orchestration/config_test.go`
 - Modify: `config/orchestration.yaml`
 
-**Step 1: Write failing test**
+**Step 0: Status update**
+- Set task `E1` to `IN_PROGRESS` in board and this section.
+
+**Step 1: Write failing tests**
 
 ```go
 func TestLoadOrchestrationConfig_ExecutionIsolation(t *testing.T) {
-    // load yaml with benchmark_mode.execution_isolation and assert fields
+    // assert execution_isolation fields are loaded/defaulted
+}
+
+func TestLoadOrchestrationConfig_ExecutionIsolationValidation(t *testing.T) {
+    // invalid proceed_policy or timeout should fail
 }
 ```
 
-**Step 2: Run failing test**
+**Step 2: Run failing tests**
 
 Run: `go test ./internal/orchestration -run TestLoadOrchestrationConfig_ExecutionIsolation -v`
-Expected: FAIL with missing struct fields.
+Expected: FAIL.
 
 **Step 3: Minimal implementation**
 
 ```go
 type ExecutionIsolationConfig struct {
-    Enabled          bool     `yaml:"enabled"`
-    CommandWhitelist []string `yaml:"command_whitelist,omitempty"`
-    BranchPrefix     string   `yaml:"branch_prefix,omitempty"`
-    WorktreeRoot     string   `yaml:"worktree_root,omitempty"`
-    RepairRetryMax   int      `yaml:"repair_retry_max,omitempty"`
+    Enabled                  bool     `yaml:"enabled"`
+    CommandWhitelist         []string `yaml:"command_whitelist,omitempty"`
+    BranchPrefix             string   `yaml:"branch_prefix,omitempty"`
+    WorktreeRoot             string   `yaml:"worktree_root,omitempty"`
+    RepairRetryMax           int      `yaml:"repair_retry_max,omitempty"`
+    GlobalTimeoutMs          int      `yaml:"global_timeout_ms,omitempty"`
+    ProceedPolicy            string   `yaml:"proceed_policy,omitempty"`
+    MinCompletedModels       int      `yaml:"min_completed_models,omitempty"`
+    HeartbeatIntervalSeconds int      `yaml:"heartbeat_interval_seconds,omitempty"`
+    LogsSubdir               string   `yaml:"logs_subdir,omitempty"`
 }
 ```
 
-Add defaults:
-- `branch_prefix=bench`
-- `worktree_root=.worktrees/bench`
-- `repair_retry_max=1`
-
-**Step 4: Re-run test**
+**Step 4: Re-run tests**
 
 Run: `go test ./internal/orchestration -run TestLoadOrchestrationConfig_ExecutionIsolation -v`
 Expected: PASS.
@@ -86,236 +118,393 @@ Expected: PASS.
 
 ```bash
 git add internal/orchestration/types.go internal/orchestration/load.go internal/orchestration/config_test.go config/orchestration.yaml
-git commit -m "feat(config): add execution isolation schema for benchmark"
+git commit -m "feat(config): add shared execution isolation and sync gate schema"
 ```
 
 **Step 6: Status update**
-- Mark `E1` as `DONE`.
+- Set task `E1` to `DONE` with timestamp.
 
 ---
 
-### Task E2: Isolation Policy Resolver
+### Task E2: Shared Isolation Policy Resolver
+
+**Status:** TODO
+
+**Why**
+- Enforcement must be deterministic and auditable.
+
+**What**
+- Implement shared policy decision for isolation activation in any external-command flow.
+
+**How**
+- Build pure resolver from isolation toggle + external command involvement + file-edit intent + optional profile gates.
+- Return decision with reason fields.
+
+**Key Design**
+- No side effects in policy resolver.
+- Normalized command matching for predictable behavior.
 
 **Files:**
-- Create: `internal/benchmark/isolation_policy.go`
-- Create: `internal/benchmark/isolation_policy_test.go`
+- Create: `internal/isolation/policy.go`
+- Create: `internal/isolation/policy_test.go`
+- Create: `internal/isolation/profile_benchmark.go`
 - Modify: `internal/hooks/handler.go`
+
+**Step 0: Status update**
+- Set task `E2` to `IN_PROGRESS`.
 
 **Step 1: Write failing tests**
 
 ```go
 func TestResolveIsolationPolicy(t *testing.T) {
-    // enforce true only when benchmark enabled + code related + whitelist match + isolation enabled
+    // enforce true only on full condition match
 }
 ```
 
 **Step 2: Run failing tests**
 
-Run: `go test ./internal/benchmark -run TestResolveIsolationPolicy -v`
-Expected: FAIL with undefined resolver.
+Run: `go test ./internal/isolation -run TestResolveIsolationPolicy -v`
+Expected: FAIL.
 
 **Step 3: Minimal implementation**
 
 ```go
 type IsolationPolicyInput struct {
-    BenchmarkEnabled bool
     IsolationEnabled bool
+    ExternalCommand  bool
+    MayEditFiles     bool
     CodeRelated      bool
     Command          string
     Whitelist        []string
 }
 
 func ResolveIsolationPolicy(in IsolationPolicyInput) IsolationPolicyDecision {
-    // deterministic boolean logic + reason fields
+    // deterministic result + reason
 }
 ```
 
 **Step 4: Re-run tests**
 
-Run: `go test ./internal/benchmark -run TestResolveIsolationPolicy -v`
+Run: `go test ./internal/isolation -run TestResolveIsolationPolicy -v`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add internal/benchmark/isolation_policy.go internal/benchmark/isolation_policy_test.go internal/hooks/handler.go
-git commit -m "feat(benchmark): add isolation policy resolver"
+git add internal/isolation/policy.go internal/isolation/policy_test.go internal/isolation/profile_benchmark.go internal/hooks/handler.go
+git commit -m "feat(isolation): add shared runtime isolation policy resolver"
 ```
 
 **Step 6: Status update**
-- Mark `E2` as `DONE`.
+- Set task `E2` to `DONE` with timestamp.
 
 ---
 
-### Task E3: Git Worktree Runtime Manager
+### Task E3: Shared Git Worktree Runtime Manager
+
+**Status:** TODO
+
+**Why**
+- Hard isolation requires per-model sandbox lifecycle control.
+
+**What**
+- Create shared runtime manager to create/cleanup command sandboxes.
+
+**How**
+- Add git runner abstraction.
+- Create branch/worktree naming conventions.
+- Support logs directory initialization.
+
+**Key Design**
+- Never mutate active developer worktree branch.
+- Always use bounded cleanup and error surfaces.
 
 **Files:**
-- Create: `internal/benchmark/isolation_runtime.go`
-- Create: `internal/benchmark/isolation_runtime_test.go`
+- Create: `internal/isolation/runtime.go`
+- Create: `internal/isolation/runtime_test.go`
+
+**Step 0: Status update**
+- Set task `E3` to `IN_PROGRESS`.
 
 **Step 1: Write failing tests**
 
 ```go
-func TestIsolationRuntime_CreateModelSandbox(t *testing.T) {
-    // verifies branch/worktree paths and git commands
+func TestIsolationRuntime_CreateModelSandbox(t *testing.T) {}
+func TestIsolationRuntime_CleanupModelSandbox(t *testing.T) {}
+```
+
+**Step 2: Run failing tests**
+
+Run: `go test ./internal/isolation -run TestIsolationRuntime -v`
+Expected: FAIL.
+
+**Step 3: Minimal implementation**
+
+```go
+type ModelSandbox struct {
+    Model        string
+    Branch       string
+    WorktreePath string
+    LogsPath     string
 }
 
-func TestIsolationRuntime_Cleanup(t *testing.T) {
-    // verifies safe removal behavior
+func (r RuntimeManager) CreateModelSandbox(runID, model, baseRef string) (ModelSandbox, error) {
+    // git worktree add -b <branch> <path> <baseRef>
+}
+```
+
+**Step 4: Re-run tests**
+
+Run: `go test ./internal/isolation -run TestIsolationRuntime -v`
+Expected: PASS.
+
+**Step 5: Commit**
+
+```bash
+git add internal/isolation/runtime.go internal/isolation/runtime_test.go
+git commit -m "feat(isolation): add shared worktree runtime manager"
+```
+
+**Step 6: Status update**
+- Set task `E3` to `DONE` with timestamp.
+
+---
+
+### Task E4: Event-Driven Model Progress + Heartbeats
+
+**Status:** TODO
+
+**Why**
+- Long-running model tasks need continuous user-visible status.
+
+**What**
+- Emit model progress events from executor.
+- Add periodic heartbeat updates.
+
+**How**
+- Reuse `EventTypeStepProgress` with structured `Event.Data` payload.
+- Emit `queued/sandbox_ready/running/completed/failed/timeout/repair_retry` transitions.
+- Emit heartbeat every configured interval.
+
+**Key Design**
+- Event emission is non-blocking and drop-tolerant.
+- Progress events should not affect execution correctness.
+
+**Files:**
+- Modify: `internal/orchestration/events.go`
+- Modify: `internal/orchestration/executor.go`
+- Modify: `internal/orchestration/executor_test.go`
+
+**Step 0: Status update**
+- Set task `E4` to `IN_PROGRESS`.
+
+**Step 1: Write failing tests**
+
+```go
+func TestExecutor_EmitsModelProgressEvents(t *testing.T) {
+    // expects step_progress events with model payload and heartbeat
 }
 ```
 
 **Step 2: Run failing tests**
 
-Run: `go test ./internal/benchmark -run TestIsolationRuntime -v`
+Run: `go test ./internal/orchestration -run TestExecutor_EmitsModelProgressEvents -v`
 Expected: FAIL.
 
 **Step 3: Minimal implementation**
 
 ```go
-type GitRunner interface {
-    Run(workdir string, args ...string) (string, error)
-}
-
-type ModelSandbox struct {
-    Model        string
-    Branch       string
-    WorktreePath string
-}
-
-func (r RuntimeManager) CreateModelSandbox(runID, model, baseBranch string) (ModelSandbox, error) {
-    // git worktree add -b <branch> <path> <base>
+type BenchmarkProgress struct {
+    RunID       string
+    Model       string
+    Status      string
+    Percent     int
+    Branch      string
+    Worktree    string
+    HeartbeatAt time.Time
 }
 ```
 
 **Step 4: Re-run tests**
 
-Run: `go test ./internal/benchmark -run TestIsolationRuntime -v`
+Run: `go test ./internal/orchestration -run TestExecutor_EmitsModelProgressEvents -v`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add internal/benchmark/isolation_runtime.go internal/benchmark/isolation_runtime_test.go
-git commit -m "feat(benchmark): add git worktree runtime manager for model isolation"
+git add internal/orchestration/events.go internal/orchestration/executor.go internal/orchestration/executor_test.go
+git commit -m "feat(orchestration): emit model progress and heartbeat events for isolated external commands"
 ```
 
 **Step 6: Status update**
-- Mark `E3` as `DONE`.
+- Set task `E4` to `DONE` with timestamp.
 
 ---
 
-### Task E4: Orchestration Integration for Isolated Candidate Runs
+### Task E5: Sync Gate Collector with Timeout Degradation
+
+**Status:** TODO
+
+**Why**
+- One slow model must not block the whole command indefinitely.
+
+**What**
+- Add waitgroup-based sync gate with timeout.
+- Proceed with completed candidates based on policy.
+
+**How**
+- Use `sync.WaitGroup` + `context.WithTimeout`.
+- Mark unfinished candidates as `timeout`.
+- Support proceed policies (`all_done`, `all_or_timeout`, `majority_or_timeout`).
+
+**Key Design**
+- Graceful degradation: use available candidates rather than fail full run.
+- Gate applies only to candidate collection/ranking boundary.
 
 **Files:**
 - Modify: `internal/orchestration/executor.go`
-- Modify: `internal/orchestration/result_types.go`
-- Modify: `internal/orchestration/executor_test.go`
+- Create: `internal/isolation/sync_gate.go`
+- Create: `internal/isolation/sync_gate_test.go`
+
+**Step 0: Status update**
+- Set task `E5` to `IN_PROGRESS`.
 
 **Step 1: Write failing tests**
 
 ```go
-func TestExecutor_UsesIsolatedWorktreeWhenPolicyEnforced(t *testing.T) {
-    // each model candidate carries worktree/branch metadata
-}
+func TestSyncGate_ProceedWithCompletedCandidatesOnTimeout(t *testing.T) {}
+func TestSyncGate_MajorityPolicy(t *testing.T) {}
 ```
 
-**Step 2: Run failing test**
+**Step 2: Run failing tests**
 
-Run: `go test ./internal/orchestration -run TestExecutor_UsesIsolatedWorktreeWhenPolicyEnforced -v`
+Run: `go test ./internal/isolation -run TestSyncGate -v`
 Expected: FAIL.
 
 **Step 3: Minimal implementation**
 
 ```go
-type DispatchContext struct {
-    ExecBranch   string
-    ExecWorktree string
-    ExecHeadSHA  string
+func WaitForCandidates(ctx context.Context, in SyncGateInput) SyncGateResult {
+    // waitgroup + timeout + timeout marking + policy decision
 }
 ```
 
-Wire isolation policy + runtime manager into candidate dispatch path.
+**Step 4: Re-run tests**
 
-**Step 4: Re-run test**
-
-Run: `go test ./internal/orchestration -run TestExecutor_UsesIsolatedWorktreeWhenPolicyEnforced -v`
+Run: `go test ./internal/isolation -run TestSyncGate -v`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add internal/orchestration/executor.go internal/orchestration/result_types.go internal/orchestration/executor_test.go
-git commit -m "feat(orchestration): run benchmark candidates in isolated worktrees"
+git add internal/isolation/sync_gate.go internal/isolation/sync_gate_test.go internal/orchestration/executor.go
+git commit -m "feat(isolation): add shared sync gate timeout degradation policies"
 ```
 
 **Step 6: Status update**
-- Mark `E4` as `DONE`.
+- Set task `E5` to `DONE` with timestamp.
 
 ---
 
-### Task E5: Critic Top-1 Deterministic Selection
+### Task E6: Critic Top-1 Deterministic Selection
+
+**Status:** TODO
+
+**Why**
+- Integration choice must be deterministic and explainable.
+
+**What**
+- Implement top-1 selector with tie-break rules.
+
+**How**
+- Sort by weighted score desc, failures asc, duration asc, model lexical asc.
+
+**Key Design**
+- Deterministic output for same input set.
+- No side effects or IO in selector.
 
 **Files:**
-- Create: `internal/benchmark/critic_selection.go`
-- Create: `internal/benchmark/critic_selection_test.go`
+- Create: `internal/isolation/critic_selection.go`
+- Create: `internal/isolation/critic_selection_test.go`
+
+**Step 0: Status update**
+- Set task `E6` to `IN_PROGRESS`.
 
 **Step 1: Write failing tests**
 
 ```go
 func TestSelectTopCandidate(t *testing.T) {
-    // weighted score desc + deterministic tie-breakers
+    // validates ordering and tie-break determinism
 }
 ```
 
 **Step 2: Run failing tests**
 
-Run: `go test ./internal/benchmark -run TestSelectTopCandidate -v`
+Run: `go test ./internal/isolation -run TestSelectTopCandidate -v`
 Expected: FAIL.
 
 **Step 3: Minimal implementation**
 
 ```go
 func SelectTopCandidate(candidates []CandidateScore) (CandidateScore, error) {
-    // score desc, failures asc, duration asc, model lexical asc
+    // deterministic sort and top-1 selection
 }
 ```
 
 **Step 4: Re-run tests**
 
-Run: `go test ./internal/benchmark -run TestSelectTopCandidate -v`
+Run: `go test ./internal/isolation -run TestSelectTopCandidate -v`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add internal/benchmark/critic_selection.go internal/benchmark/critic_selection_test.go
-git commit -m "feat(benchmark): add deterministic critic top-1 selection"
+git add internal/isolation/critic_selection.go internal/isolation/critic_selection_test.go
+git commit -m "feat(isolation): add deterministic critic top-1 selection"
 ```
 
 **Step 6: Status update**
-- Mark `E5` as `DONE`.
+- Set task `E6` to `DONE` with timestamp.
 
 ---
 
-### Task E6: Integration Branch + Same-Model Repair Retry
+### Task E7: Integration Branch + Same-Model Repair Retry
+
+**Status:** TODO
+
+**Why**
+- Top-1 merge/gate failures need deterministic automated recovery.
+
+**What**
+- Implement integration flow with one same-model repair retry.
+
+**How**
+- Create integration branch.
+- Try merge/cherry-pick top-1.
+- On failure, run same-model repair prompt once and retry once.
+
+**Key Design**
+- No fallback to rank #2 in this phase.
+- Explicit status model (`merged`, `repair_retry`, `failed_after_retry`).
 
 **Files:**
-- Create: `internal/benchmark/integration_flow.go`
-- Create: `internal/benchmark/integration_flow_test.go`
+- Create: `internal/isolation/integration_flow.go`
+- Create: `internal/isolation/integration_flow_test.go`
 - Modify: `internal/orchestration/synthesis_final_test.go`
+
+**Step 0: Status update**
+- Set task `E7` to `IN_PROGRESS`.
 
 **Step 1: Write failing tests**
 
 ```go
-func TestIntegrateTopCandidate_RepairRetryOnce(t *testing.T) {
-    // merge fail -> same model repair -> retry once
-}
+func TestIntegrateTopCandidate_RepairRetryOnce(t *testing.T) {}
 ```
 
 **Step 2: Run failing tests**
 
-Run: `go test ./internal/benchmark -run TestIntegrateTopCandidate_RepairRetryOnce -v`
+Run: `go test ./internal/isolation -run TestIntegrateTopCandidate_RepairRetryOnce -v`
 Expected: FAIL.
 
 **Step 3: Minimal implementation**
@@ -327,107 +516,78 @@ type IntegrationResult struct {
 }
 
 func IntegrateTopCandidate(in Input) IntegrationResult {
-    // top1 merge attempt, one same-model repair retry on failure
+    // one retry on same model only
 }
 ```
 
 **Step 4: Re-run tests**
 
-Run: `go test ./internal/benchmark -run TestIntegrateTopCandidate_RepairRetryOnce -v`
+Run: `go test ./internal/isolation -run TestIntegrateTopCandidate_RepairRetryOnce -v`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
-git add internal/benchmark/integration_flow.go internal/benchmark/integration_flow_test.go internal/orchestration/synthesis_final_test.go
-git commit -m "feat(benchmark): add top-1 integration flow with single repair retry"
+git add internal/isolation/integration_flow.go internal/isolation/integration_flow_test.go internal/orchestration/synthesis_final_test.go
+git commit -m "feat(isolation): add top-1 integration with same-model single retry"
 ```
 
 **Step 6: Status update**
-- Mark `E6` as `DONE`.
+- Set task `E7` to `DONE` with timestamp.
 
 ---
 
-### Task E7: JSONL Schema/Store Enhancements
+### Task E8: JSONL/Docs/E2E Verification
+
+**Status:** TODO
+
+**Why**
+- Enhancement must be observable, documented, and verifiable end-to-end.
+
+**What**
+- Extend JSONL records for isolation/progress/integration metadata.
+- Update user docs and add e2e tests.
+
+**How**
+- Add `isolation_runs` stream and extend existing streams.
+- Add e2e tests for benchmark profile and at least one non-benchmark external-command profile.
+- Update README/TRIGGERS and finalize verification.
+
+**Key Design**
+- Persistence remains best-effort and non-blocking.
+- Verification command output is required before completion claims.
 
 **Files:**
 - Modify: `internal/benchmark/records.go`
 - Modify: `internal/benchmark/store_jsonl.go`
 - Modify: `internal/benchmark/store_jsonl_test.go`
-- Create: `internal/benchmark/isolation_records_test.go`
-
-**Step 1: Write failing tests**
-
-```go
-func TestJSONLStore_IsolationStreams(t *testing.T) {
-    // writes isolation_runs and extended fields
-}
-```
-
-**Step 2: Run failing tests**
-
-Run: `go test ./internal/benchmark -run TestJSONLStore_IsolationStreams -v`
-Expected: FAIL.
-
-**Step 3: Minimal implementation**
-
-```go
-type IsolationRunRecord struct {
-    RunID          string   `json:"run_id"`
-    Enforced       bool     `json:"enforced"`
-    Command        string   `json:"command"`
-    Models         []string `json:"models"`
-    WorktreeRoot   string   `json:"worktree_root"`
-    BranchPrefix   string   `json:"branch_prefix"`
-}
-```
-
-Extend existing records with exec/integration fields from design.
-
-**Step 4: Re-run tests**
-
-Run: `go test ./internal/benchmark -run TestJSONLStore_IsolationStreams -v`
-Expected: PASS.
-
-**Step 5: Commit**
-
-```bash
-git add internal/benchmark/records.go internal/benchmark/store_jsonl.go internal/benchmark/store_jsonl_test.go internal/benchmark/isolation_records_test.go
-git commit -m "feat(storage): persist isolation and integration benchmark metadata"
-```
-
-**Step 6: Status update**
-- Mark `E7` as `DONE`.
-
----
-
-### Task E8: E2E + Docs + Full Verification
-
-**Files:**
 - Modify: `internal/benchmark/integration_test.go`
+- Create/Modify: `internal/isolation/e2e_profile_test.go`
 - Modify: `README.md`
 - Modify: `docs/TRIGGERS.md`
 - Modify: `docs/plans/2026-03-05-benchmark-isolated-execution-design.md`
 
-**Step 1: Write failing end-to-end test**
+**Step 0: Status update**
+- Set task `E8` to `IN_PROGRESS`.
+
+**Step 1: Write failing tests**
 
 ```go
-func TestBenchmarkIsolationEnforcedForWhitelistedCommand(t *testing.T) {
-    // benchmark on + code intent + whitelist => isolated runs observed
-}
+func TestJSONLStore_IsolationAndProgressStreams(t *testing.T) {}
+func TestBenchmarkIsolationEnforcedForWhitelistedCommand(t *testing.T) {}
+func TestExternalCommandIsolationNonBenchmarkProfile(t *testing.T) {}
 ```
 
-**Step 2: Run failing test**
+**Step 2: Run failing tests**
 
-Run: `go test ./internal/benchmark -run TestBenchmarkIsolationEnforcedForWhitelistedCommand -v`
+Run: `go test ./internal/benchmark ./internal/isolation -run 'TestJSONLStore_IsolationAndProgressStreams|TestBenchmarkIsolationEnforcedForWhitelistedCommand|TestExternalCommandIsolationNonBenchmarkProfile' -v`
 Expected: FAIL.
 
 **Step 3: Minimal implementation & docs wiring**
-- Final e2e wiring.
-- README add isolation policy section.
-- TRIGGERS add whitelist/isolation behavior.
+- Implement schema/store updates.
+- Update README and TRIGGERS.
 
-**Step 4: Re-run target tests**
+**Step 4: Re-run targeted suites**
 
 Run: `go test ./internal/benchmark ./internal/orchestration ./internal/modelroute -v`
 Expected: PASS.
@@ -440,22 +600,25 @@ Expected: PASS.
 **Step 6: Commit**
 
 ```bash
-git add internal/benchmark internal/orchestration README.md docs/TRIGGERS.md docs/plans/2026-03-05-benchmark-isolated-execution-design.md
-git commit -m "feat(benchmark): enforce isolated model execution and top-1 integration retry policy"
+git add internal/isolation internal/benchmark internal/orchestration internal/modelroute README.md docs/TRIGGERS.md docs/plans/2026-03-05-benchmark-isolated-execution-design.md
+git commit -m "feat(isolation): enforce shared isolated execution with progress sync gate and retry integration"
 ```
 
 **Step 7: Status update**
-- Mark `E8` as `DONE`.
+- Set task `E8` to `DONE` with timestamp.
 - Confirm all rows are `DONE`.
 
 ---
 
 ## Completion Checklist
 
-- [ ] Isolation policy is runtime-enforced with whitelist scope.
+- [ ] Task statuses are updated in real time during execution (`IN_PROGRESS` -> `DONE`/`BLOCKED`).
+- [ ] Isolation policy is runtime-enforced for external commands that may edit files.
 - [ ] Every eligible model run uses unique branch/worktree.
+- [ ] Model progress + heartbeat feedback is visible via events.
+- [ ] Sync gate timeout proceeds with completed candidates (graceful degradation).
 - [ ] Critic top-1 direct integration works deterministically.
 - [ ] Same-model repair retry executes exactly once on merge/gate failure.
-- [ ] JSONL records include isolation/integration metadata.
+- [ ] JSONL records include isolation/progress/integration metadata.
+- [ ] Benchmark and non-benchmark profiles both use the same shared isolation runtime/policy.
 - [ ] All tests pass.
-
