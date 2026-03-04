@@ -1,0 +1,15 @@
+version: "1"
+phase_defaults:
+  discover:
+    primary: researcher
+    agents: [ai-engineer, business-analyst]
+benchmark_mode:
+  enabled: true
+  async_enabled: true
+  force_all_models_on_code: true
+  judge_model: "claude-opus"
+smart_routing:
+  enabled: true
+  override_existing_routing_when_on: true
+  strategy: performance_optimized
+  min_samples_per_model: 10

@@ -57,3 +57,51 @@ skill_triggers:
   audit:
     pattern: "(audit.*and.*check|audit.*app|process.*to.*audit|scan.*for.*issue)"
     skill: skill-audit
+
+# Async benchmark and smart routing controls
+benchmark_mode:
+  enabled: false
+  async_enabled: true
+  force_all_models_on_code: true
+  judge_model: "claude-opus"
+  code_intent:
+    whitelist:
+      task_types: []
+      tech_features: []
+      frameworks: []
+      languages: []
+    llm_semantic_judge: true
+    llm_decision_priority: true
+  storage:
+    type: jsonl
+    root: "~/.claude-octopus/metrics"
+    partition: daily
+  scoring:
+    scale: "1-5"
+    dimensions:
+      - correctness
+      - code_quality
+      - performance
+      - security
+      - design_fitness
+      - completeness
+      - framework_alignment
+      - testability
+      - maintainability
+      - clarity
+    weights: {}
+  fault_tolerance:
+    never_block_main_flow: true
+    retry_max: 3
+    timeout_ms: 20000
+
+smart_routing:
+  enabled: false
+  override_existing_routing_when_on: true
+  strategy: performance_optimized
+  min_samples_per_model: 10
+  match_keys:
+    - task_type
+    - tech_features
+    - framework
+    - language

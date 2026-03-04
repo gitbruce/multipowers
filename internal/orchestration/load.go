@@ -47,9 +47,21 @@ func LoadConfigFromProjectDir(projectDir string) (*Config, error) {
 	if cfg.SkillTriggers == nil {
 		cfg.SkillTriggers = map[string]SkillTrigger{}
 	}
+	if cfg.SmartRouting.MinSamplesPerModel == 0 {
+		cfg.SmartRouting.MinSamplesPerModel = 10
+	}
+	if cfg.BenchmarkMode.Enabled && !cfg.BenchmarkMode.AsyncEnabled {
+		cfg.BenchmarkMode.AsyncEnabled = true
+	}
+	if cfg.BenchmarkMode.Enabled && !cfg.BenchmarkMode.ForceAllModelsOnCode {
+		cfg.BenchmarkMode.ForceAllModelsOnCode = true
+	}
 
 	// Validate skill trigger patterns
 	if err := validateSkillTriggers(cfg.SkillTriggers); err != nil {
+		return nil, err
+	}
+	if err := validateBenchmarkRoutingConfig(&cfg); err != nil {
 		return nil, err
 	}
 
@@ -76,6 +88,16 @@ func validateSkillTriggers(triggers map[string]SkillTrigger) error {
 				Field:  fmt.Sprintf("skill_triggers.%s.skill", name),
 				Reason: "skill cannot be empty",
 			}
+		}
+	}
+	return nil
+}
+
+func validateBenchmarkRoutingConfig(cfg *Config) error {
+	if cfg.SmartRouting.MinSamplesPerModel < 1 {
+		return &ConfigError{
+			Field:  "smart_routing.min_samples_per_model",
+			Reason: "must be >= 1",
 		}
 	}
 	return nil
