@@ -416,6 +416,32 @@ Optional proxy settings for Codex/Gemini can be added in `~/.claude-octopus/conf
 
 ---
 
+## Benchmark + Smart Routing (Optional)
+
+You can enable async benchmark collection for `/mp:*` code-related requests, then optionally let history override routing.
+
+Configure in `config/orchestration.yaml`:
+
+```yaml
+benchmark_mode:
+  enabled: true
+  async_enabled: true
+  force_all_models_on_code: true
+  judge_model: "claude-opus"
+
+smart_routing:
+  enabled: false
+  min_samples_per_model: 10
+```
+
+Behavior:
+- `benchmark_mode.enabled=true`: code-related `/mp:*` requests can fan out to all available models and write daily JSONL records under `~/.claude-octopus/metrics`.
+- `smart_routing.enabled=false`: no history override is applied.
+- `smart_routing.enabled=true`: override is applied only when a similar-scenario model has at least `min_samples_per_model` judged samples.
+- Benchmark queue/store/judge failures are best-effort only and do not fail the main workflow result.
+
+---
+
 ## Cost Transparency
 
 You see cost estimates **before** execution. Interactive research asks 3 questions (depth, focus, format) then shows exactly what will run and how much it costs.

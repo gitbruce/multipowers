@@ -26,6 +26,7 @@ type Executor struct {
 	dispatcher     Dispatcher
 	events         *EventEmitter
 	benchmarkQueue *benchmark.Queue
+	benchmarkEmit  benchmark.SafeEmitter
 	mu             sync.Mutex
 }
 
@@ -39,6 +40,7 @@ func NewExecutor(config ExecutorConfig, dispatcher Dispatcher) *Executor {
 		dispatcher:     dispatcher,
 		events:         NewEventEmitter(100),
 		benchmarkQueue: benchmark.NewQueue(256),
+		benchmarkEmit:  benchmark.SafeEmitter{},
 	}
 }
 
@@ -322,12 +324,20 @@ func (e *Executor) Close() {
 }
 
 func (e *Executor) emitBenchmarkEvent(jobType string, payload map[string]any) {
-	if e == nil || e.benchmarkQueue == nil {
+	if e == nil {
 		return
 	}
-	_ = e.benchmarkQueue.TryEnqueue(benchmark.Job{
+	_ = e.benchmarkEmit.Emit(benchmark.Job{
 		Type:    jobType,
 		Payload: payload,
+	}, func(job benchmark.Job) error {
+		if e.benchmarkQueue == nil {
+			return fmt.Errorf("benchmark queue unavailable")
+		}
+		if ok := e.benchmarkQueue.TryEnqueue(job); !ok {
+			return fmt.Errorf("benchmark queue full")
+		}
+		return nil
 	})
 }
 

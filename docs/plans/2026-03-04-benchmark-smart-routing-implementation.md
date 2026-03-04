@@ -29,7 +29,7 @@
 | T5 | Daily JSONL Store | DONE | 2026-03-04 22:06:58 CST |
 | T6 | Judge Scoring Worker | DONE | 2026-03-04 22:09:08 CST |
 | T7 | Smart Routing from History | DONE | 2026-03-04 22:11:45 CST |
-| T8 | E2E Failure Isolation + Docs | TODO | - |
+| T8 | E2E Failure Isolation + Docs | DONE | 2026-03-04 22:15:35 CST |
 
 ## Shared Context for Junior Developers
 
@@ -350,7 +350,7 @@ git commit -m "feat(routing): add history-based smart routing override"
 
 ### Task T8: End-to-End Failure Isolation + Documentation
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Must guarantee benchmark subsystem errors never break user-facing execution.
@@ -399,8 +399,8 @@ git commit -m "feat(benchmark): complete async benchmark pipeline with failure i
 
 ## Completion Checklist
 
-- [ ] All task statuses updated in board.
-- [ ] All commits created task-by-task.
-- [ ] All listed test commands passing.
-- [ ] Docs updated for new config toggles.
-- [ ] No benchmark failure path can fail main run.
+- [x] All task statuses updated in board.
+- [x] All commits created task-by-task.
+- [x] All listed test commands passing.
+- [x] Docs updated for new config toggles.
+- [x] No benchmark failure path can fail main run.

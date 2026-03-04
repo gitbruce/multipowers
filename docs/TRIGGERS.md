@@ -36,6 +36,17 @@ This guide explains exactly what natural language phrases trigger external CLI e
 
 ---
 
+## Benchmark Mode + Smart Routing
+
+When enabled in `config/orchestration.yaml`, `/mp:*` commands can activate benchmark fan-out and optional history override:
+
+- `benchmark_mode.enabled=true`: code-related `/mp:*` requests may run across all configured available models for benchmarking.
+- `smart_routing.enabled=false`: benchmark data is collected, but routing remains unchanged.
+- `smart_routing.enabled=true`: routing can be overridden only when similar-scenario history meets `min_samples_per_model` (default gate `10`).
+- Benchmark classification/scoring/storage runs asynchronously and failures are isolated from user-facing command completion.
+
+---
+
 ## Discover Workflow (Research)
 
 ### Triggers 🐙 🔍
