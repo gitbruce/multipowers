@@ -35,7 +35,7 @@
 |---|---|---|---|
 | E1 | Config Schema: Shared Execution Isolation + Sync Gate | DONE | 2026-03-05 02:21:40 CST |
 | E2 | Shared Isolation Policy Resolver | DONE | 2026-03-05 02:26:44 CST |
-| E3 | Shared Git Worktree Runtime Manager | TODO | - |
+| E3 | Shared Git Worktree Runtime Manager | DONE | 2026-03-05 02:30:18 CST |
 | E4 | Event-Driven Model Progress + Heartbeats | TODO | - |
 | E5 | Sync Gate Collector with Timeout Degradation | TODO | - |
 | E6 | Critic Top-1 Deterministic Selection | TODO | - |
@@ -202,7 +202,7 @@ git commit -m "feat(isolation): add shared runtime isolation policy resolver"
 
 ### Task E3: Shared Git Worktree Runtime Manager
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Hard isolation requires per-model sandbox lifecycle control.
