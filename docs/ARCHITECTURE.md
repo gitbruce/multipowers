@@ -66,6 +66,16 @@ The Go-native orchestration engine (v8.0+) replaces legacy shell shims with a ro
 - **`internal/orchestration`**: The core orchestration runtime (Planner, Executor, Synthesizer).
 - **`config/*.yaml`**: Declarative source of truth for orchestration, providers, and workflows.
 
+### Hybrid Mailbox Control Plane (v8.1+)
+
+For isolated external-command runs, orchestration also supports a filesystem-backed control plane:
+
+1. **Mailbox IPC**: JSON envelope messages are written to `mailbox/tmp` and atomically renamed into inbox directories.
+2. **Watcher Tier**: A polling `MailboxWatcher` emits high-priority control events for semantic invalidation and structural overlap aborts.
+3. **Boundary Gate Tier**: Executor gate logic applies deterministic priority ordering (`abort -> invalidate -> overlap -> requeue -> continue`).
+4. **Resume Modes**: Requeue decisions explicitly choose `RESUME_IN_PLACE` or `RESTART_FROM_SCRATCH`; stale artifacts force restart.
+5. **Resource Guardrail**: Active worktree slots are capped (`active_worktree_cap`) to prevent unbounded sandbox growth.
+
 ---
 
 ## Execution Flow by Workflow (v8.0+)

@@ -152,4 +152,91 @@ phase_defaults:
 	})
 }
 
+func TestE2E_HybridMailboxBoundaryAndAbortFlow(t *testing.T) {
+	t.Run("boundary pause resumes in place for non-breaking rework", func(t *testing.T) {
+		decision := EvaluateGate(GateInput{
+			Requeue: &RequeueRequest{
+				TaskID:      "orders",
+				AttemptID:   "orders-attempt-2",
+				ResumeMode:  ResumeInPlace,
+				RequeueBaseSHA: "sha-users-accepted",
+			},
+		})
+		if decision.Action != GateActionRequeue {
+			t.Fatalf("action = %q, want %q", decision.Action, GateActionRequeue)
+		}
+		if decision.ResumeMode != ResumeInPlace {
+			t.Fatalf("resume_mode = %q, want %q", decision.ResumeMode, ResumeInPlace)
+		}
+	})
+
+	t.Run("semantic invalidation aborts descendant immediately", func(t *testing.T) {
+		decision := EvaluateGate(GateInput{
+			ActiveTaskID:    "orders",
+			ActiveAttemptID: "orders-attempt-1",
+			ControlEvents: []ControlEvent{{
+				Type:      ControlAbortSemantic,
+				TaskID:    "orders",
+				AttemptID: "orders-attempt-1",
+				Reason:    "semantic_invalidate",
+				ParentTask:"users",
+			}},
+		})
+		if decision.Action != GateActionAbort {
+			t.Fatalf("action = %q, want %q", decision.Action, GateActionAbort)
+		}
+		if decision.ResumeMode != RestartFromScratch {
+			t.Fatalf("resume_mode = %q, want %q", decision.ResumeMode, RestartFromScratch)
+		}
+	})
+
+	t.Run("structural overlap aborts and requeue uses fresh base", func(t *testing.T) {
+		monitor := ConflictMonitor{}
+		hasOverlap, overlap := monitor.HasOverlap(
+			[]string{"internal/api/orders.go", "internal/api/users.go"},
+			[]string{"internal/api/orders.go", "internal/api/products.go"},
+		)
+		if !hasOverlap {
+			t.Fatal("expected structural overlap")
+		}
+		decision := EvaluateGate(GateInput{
+			ActiveTaskID:    "orders",
+			ActiveAttemptID: "orders-attempt-1",
+			OverlapFiles:    overlap,
+		})
+		if decision.Action != GateActionAbort {
+			t.Fatalf("action = %q, want %q", decision.Action, GateActionAbort)
+		}
+		if decision.Reason != "structural_overlap" {
+			t.Fatalf("reason = %q, want structural_overlap", decision.Reason)
+		}
+	})
+
+	t.Run("worktree cap blocks next pull until slot release", func(t *testing.T) {
+		slots := NewWorktreeSlots(1)
+		if err := slots.Acquire(context.Background()); err != nil {
+			t.Fatalf("acquire: %v", err)
+		}
+		wait := make(chan error, 1)
+		go func() {
+			waitCtx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+			defer cancel()
+			wait <- slots.Acquire(waitCtx)
+		}()
+		select {
+		case err := <-wait:
+			t.Fatalf("second acquire should block, got %v", err)
+		case <-time.After(50 * time.Millisecond):
+		}
+		slots.Release()
+		select {
+		case err := <-wait:
+			if err != nil {
+				t.Fatalf("second acquire after release: %v", err)
+			}
+		case <-time.After(1 * time.Second):
+			t.Fatal("slot was not freed in time")
+		}
+	})
+}
 

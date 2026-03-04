@@ -47,6 +47,9 @@ When enabled in `config/orchestration.yaml`, `/mp:*` commands can activate bench
 - `smart_routing.enabled=true`: routing can be overridden only when similar-scenario history meets `min_samples_per_model` (default gate `10`).
 - Long-running isolated fan-out emits `step_progress` heartbeat updates and uses timeout sync-gate degradation instead of blocking forever.
 - Benchmark classification/scoring/storage runs asynchronously and failures are isolated from user-facing command completion.
+- Mailbox orchestration (when enabled by runtime policy) uses atomic message handover (`mailbox/tmp` write + `os.Rename`) to avoid partial-read race conditions.
+- High-priority reviewer/orchestrator mailbox events can trigger immediate semantic/structural abort control actions while normal flow remains boundary-first.
+- `execution_isolation.active_worktree_cap` applies backpressure to new task pulls when sandbox capacity is full; execution resumes when slots are freed.
 
 ---
 

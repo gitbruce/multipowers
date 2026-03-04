@@ -41,16 +41,16 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Task ID | Task Name | Status | Last Update | Commit |
 |---|---|---|---|---|
-| T1 | Config Schema: Mailbox + Worktree Cap | DONE | 2026-03-05 03:23 CST | pending |
-| T2 | Plan Metadata: Dependency Graph + Resume Modes | DONE | 2026-03-05 03:27 CST | pending |
-| T3 | Mailbox Atomic Writer | DONE | 2026-03-05 03:31 CST | pending |
-| T4 | Mailbox Reader + Idempotent Processor | DONE | 2026-03-05 03:34 CST | pending |
-| T5 | Structural Conflict Monitor | DONE | 2026-03-05 03:36 CST | pending |
-| T6 | Mailbox Watcher + Control Events | DONE | 2026-03-05 03:39 CST | pending |
-| T7 | Deterministic Gate Engine | DONE | 2026-03-05 03:41 CST | pending |
-| T8 | Worktree Slot Scheduler (Cap Backpressure) | DONE | 2026-03-05 03:45 CST | pending |
-| T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | DONE | 2026-03-05 03:49 CST | pending |
-| T10 | E2E Validation + Docs Sync | TODO | - | - |
+| T1 | Config Schema: Mailbox + Worktree Cap | DONE | 2026-03-05 03:23 CST | 4f2dd45 |
+| T2 | Plan Metadata: Dependency Graph + Resume Modes | DONE | 2026-03-05 03:27 CST | 5227cbc |
+| T3 | Mailbox Atomic Writer | DONE | 2026-03-05 03:31 CST | 9e6b081 |
+| T4 | Mailbox Reader + Idempotent Processor | DONE | 2026-03-05 03:34 CST | c5c7a3f |
+| T5 | Structural Conflict Monitor | DONE | 2026-03-05 03:36 CST | a8b7d61 |
+| T6 | Mailbox Watcher + Control Events | DONE | 2026-03-05 03:39 CST | 1b2037b |
+| T7 | Deterministic Gate Engine | DONE | 2026-03-05 03:41 CST | f2bd721 |
+| T8 | Worktree Slot Scheduler (Cap Backpressure) | DONE | 2026-03-05 03:45 CST | 9233f58 |
+| T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | DONE | 2026-03-05 03:49 CST | 43ebe08 |
+| T10 | E2E Validation + Docs Sync | DONE | 2026-03-05 03:52 CST | pending |
 
 ---
 
@@ -321,7 +321,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T10: E2E Validation + Docs Sync
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Complex async control systems require scenario-level verification and docs parity to avoid regressions.
 
@@ -341,11 +341,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T10.1 Failing E2E | TODO | prove scenario semantics | add API migration E2E test | users->orders->products with invalidation/overlap branches | assert deterministic transitions | `go test ./internal/orchestration -run TestE2E_HybridMailboxBoundaryAndAbortFlow -v` |
-| T10.2 Runtime glue | TODO | make E2E pass | connect watcher/gate/lifecycle/slots | minimal integration changes | no behavior change for non-mailbox flows | targeted tests |
-| T10.3 Full verification | TODO | validate no regressions | run package and full test suites | execute listed commands | evidence before completion | `go test ./internal/mailbox ./internal/orchestration ./internal/isolation ./internal/benchmark -count=1` + `go test ./... -count=1` |
-| T10.4 Docs sync | TODO | keep ops/dev alignment | update docs files | reflect final runtime behavior | no stale design claims | docs review |
-| T10.5 Commit + status update | TODO | close implementation cleanly | commit + final board update | standard git flow | traceable final commit | clean diff |
+| T10.1 Failing E2E | DONE | prove scenario semantics | add API migration E2E test | users->orders->products with invalidation/overlap branches | assert deterministic transitions | `go test ./internal/orchestration -run TestE2E_HybridMailboxBoundaryAndAbortFlow -v` |
+| T10.2 Runtime glue | DONE | make E2E pass | connect watcher/gate/lifecycle/slots | minimal integration changes | no behavior change for non-mailbox flows | targeted tests |
+| T10.3 Full verification | DONE | validate no regressions | run package and full test suites | execute listed commands | evidence before completion | `go test ./internal/mailbox ./internal/orchestration ./internal/isolation ./internal/benchmark -count=1` + `go test ./... -count=1` |
+| T10.4 Docs sync | DONE | keep ops/dev alignment | update docs files | reflect final runtime behavior | no stale design claims | docs review |
+| T10.5 Commit + status update | DONE | close implementation cleanly | commit + final board update | standard git flow | traceable final commit | clean diff |
 
 ---
 

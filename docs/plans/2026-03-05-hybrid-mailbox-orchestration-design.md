@@ -57,6 +57,8 @@ A background `MailboxWatcher` goroutine monitors reviewer/orchestrator inbox eve
 
 1. On high-priority semantic or structural invalidation, watcher triggers immediate task abort signaling.
 2. Control event is recorded and handed to executor state transition engine for deterministic requeue.
+3. V1 transport is polling (`100-300ms` default window) for portability across Linux/macOS/WSL.
+4. Optional optimization path: Linux `inotify` watcher backend behind feature flag if polling overhead becomes material.
 
 ### Finality Layer (Artifact Lifecycle & Cleanup)
 
@@ -130,10 +132,11 @@ A background `MailboxWatcher` goroutine monitors reviewer/orchestrator inbox eve
 ### Reliability Contract
 
 1. **Atomic handover rule:** writers must never write directly into `inbox-*`.
-2. Writers must create JSON in `mailbox/tmp/` on the same filesystem, `fsync` as needed, then atomically `os.Rename` into destination inbox.
-3. Consumers process one file per message and move it to `processed/` after successful handling.
-4. Consumption must be idempotent by `message_id`.
-5. Processing order is `(created_at, message_id)`.
+2. Writers must create JSON in `mailbox/tmp/`, `fsync` as needed, then atomically `os.Rename` into destination inbox.
+3. `mailbox/tmp/` and `inbox-*` must be on the same filesystem/partition so rename remains atomic (never copy-delete fallback).
+4. Consumers process one file per message and move it to `processed/` after successful handling.
+5. Consumption must be idempotent by `message_id`.
+6. Processing order is `(created_at, message_id)`.
 
 ## Control Flow + Gate Algorithm
 
@@ -159,6 +162,12 @@ A background `MailboxWatcher` goroutine monitors reviewer/orchestrator inbox eve
 2. Orchestrator resolves descendants using `dependency_graph`.
 3. Active descendants are aborted immediately.
 4. Requeue emits new `requeue_base_sha` and `stale_artifact_id`.
+
+### Dependency Graph Evolution
+
+1. V1 uses a static `ExecutionPlan.dependency_graph` resolved at plan creation time.
+2. Rework tasks may optionally emit dependency deltas; orchestrator can apply these to a runtime graph view.
+3. Dynamic graph mutation is a V2 enhancement and must preserve deterministic ordering/logging semantics.
 
 ### Structural Abort Path
 
@@ -292,6 +301,12 @@ Use API migration sequence (`/users`, `/orders`, `/products`):
 1. Cross-machine distributed mailbox transport.
 2. Multi-run global fair scheduling.
 3. Automatic fallback to rank #2 integration on rank #1 failure.
+
+## Implementation Notes (Current)
+
+1. Atomic mailbox handover requires `mailbox/tmp` and destination inbox directories on the same filesystem to preserve rename atomicity.
+2. Dependency graph support is static in V1; runtime dependency mutation is planned as a follow-up enhancement.
+3. Mailbox watcher uses portable polling in V1; Linux `inotify` backend is optional future optimization.
 
 ## Next Step
 
