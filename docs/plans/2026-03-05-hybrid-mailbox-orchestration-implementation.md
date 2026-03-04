@@ -45,7 +45,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | T2 | Plan Metadata: Dependency Graph + Resume Modes | DONE | 2026-03-05 03:27 CST | pending |
 | T3 | Mailbox Atomic Writer | DONE | 2026-03-05 03:31 CST | pending |
 | T4 | Mailbox Reader + Idempotent Processor | DONE | 2026-03-05 03:34 CST | pending |
-| T5 | Structural Conflict Monitor | TODO | - | - |
+| T5 | Structural Conflict Monitor | DONE | 2026-03-05 03:36 CST | pending |
 | T6 | Mailbox Watcher + Control Events | TODO | - | - |
 | T7 | Deterministic Gate Engine | TODO | - | - |
 | T8 | Worktree Slot Scheduler (Cap Backpressure) | TODO | - | - |
@@ -175,7 +175,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T5: Structural Conflict Monitor
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Active tasks can become stale if accepted upstream artifacts touch overlapping files.
 
@@ -193,10 +193,10 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T5.1 Failing tests | TODO | Lock conflict rules | Add overlap/no-overlap tests | Unit tests with normalized paths | deterministic output ordering | `go test ./internal/orchestration -run "TestConflictMonitor" -v` |
-| T5.2 Monitor impl | TODO | Produce overlap reason data | Add monitor API | path normalization + set intersection | sorted overlap list | unit tests |
-| T5.3 Integration utility | TODO | Reuse across watcher/gate | Add helper signatures | keep package-local minimal API | no side effects | compile |
-| T5.4 Commit + status update | TODO | keep audit trail clean | commit and board update | standard git flow | one commit task | clean diff |
+| T5.1 Failing tests | DONE | Lock conflict rules | Add overlap/no-overlap tests | Unit tests with normalized paths | deterministic output ordering | `go test ./internal/orchestration -run "TestConflictMonitor" -v` |
+| T5.2 Monitor impl | DONE | Produce overlap reason data | Add monitor API | path normalization + set intersection | sorted overlap list | unit tests |
+| T5.3 Integration utility | DONE | Reuse across watcher/gate | Add helper signatures | keep package-local minimal API | no side effects | compile |
+| T5.4 Commit + status update | DONE | keep audit trail clean | commit and board update | standard git flow | one commit task | clean diff |
 
 ---
 
