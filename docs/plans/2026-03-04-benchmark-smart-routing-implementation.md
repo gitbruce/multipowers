@@ -24,7 +24,7 @@
 |---|---|---|---|
 | T1 | Config Schema for Benchmark/Smart Routing | DONE | 2026-03-04 21:55:09 CST |
 | T2 | Code-Intent Classification Contract | DONE | 2026-03-04 21:59:00 CST |
-| T3 | Force-All-Models Routing Override | TODO | - |
+| T3 | Force-All-Models Routing Override | DONE | 2026-03-04 22:01:49 CST |
 | T4 | Async Queue (Non-Blocking) | TODO | - |
 | T5 | Daily JSONL Store | TODO | - |
 | T6 | Judge Scoring Worker | TODO | - |
@@ -131,7 +131,7 @@ git commit -m "feat(benchmark): add intent classification contract"
 
 ### Task T3: Force-All-Models Routing Override
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - When benchmark mode is on and intent is code-related, all available models must run regardless of default route.

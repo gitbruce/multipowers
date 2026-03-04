@@ -1,6 +1,9 @@
 package orchestration
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestSelectAgentByPhaseDefaults(t *testing.T) {
 	cfg := &Config{
@@ -22,5 +25,26 @@ func TestSelectAgentByPhaseDefaults(t *testing.T) {
 	}
 	if len(candidates) != 2 {
 		t.Fatalf("expected 2 candidates, got %d", len(candidates))
+	}
+}
+
+func TestResolveModelCandidates(t *testing.T) {
+	cfg := &Config{
+		BenchmarkMode: BenchmarkModeConfig{
+			Enabled:              true,
+			ForceAllModelsOnCode: true,
+		},
+	}
+
+	got, forced, reason := ResolveModelCandidates(cfg, []string{"claude-sonnet"}, []string{"claude-opus", "gemini-2.5"}, true)
+	want := []string{"claude-opus", "gemini-2.5"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("candidates = %v, want %v", got, want)
+	}
+	if !forced {
+		t.Fatalf("forced = %v, want true", forced)
+	}
+	if reason == "" {
+		t.Fatal("reason should not be empty")
 	}
 }

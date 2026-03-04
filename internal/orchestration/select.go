@@ -4,6 +4,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/gitbruce/claude-octopus/internal/benchmark"
 )
 
 func SelectAgent(cfg *Config, agents map[string]AgentProfile, phase, prompt string) (string, string, []string) {
@@ -82,4 +84,23 @@ func contains(items []string, target string) bool {
 		}
 	}
 	return false
+}
+
+// ResolveModelCandidates applies benchmark fan-out override for request-scoped model candidates.
+func ResolveModelCandidates(cfg *Config, defaultCandidates, availableModels []string, codeRelated bool) ([]string, bool, string) {
+	if cfg == nil {
+		return defaultCandidates, false, "default routing"
+	}
+
+	candidates, forced := benchmark.ResolveForcedCandidates(benchmark.OverrideRequest{
+		BenchmarkEnabled:     cfg.BenchmarkMode.Enabled,
+		ForceAllModelsOnCode: cfg.BenchmarkMode.ForceAllModelsOnCode,
+		CodeRelated:          codeRelated,
+		DefaultCandidates:    defaultCandidates,
+		AvailableModels:      availableModels,
+	})
+	if forced {
+		return candidates, true, "benchmark force_all_models_on_code"
+	}
+	return candidates, false, "default routing"
 }
