@@ -27,7 +27,7 @@
 | T3 | Force-All-Models Routing Override | DONE | 2026-03-04 22:01:49 CST |
 | T4 | Async Queue (Non-Blocking) | DONE | 2026-03-04 22:04:15 CST |
 | T5 | Daily JSONL Store | DONE | 2026-03-04 22:06:58 CST |
-| T6 | Judge Scoring Worker | TODO | - |
+| T6 | Judge Scoring Worker | DONE | 2026-03-04 22:09:08 CST |
 | T7 | Smart Routing from History | TODO | - |
 | T8 | E2E Failure Isolation + Docs | TODO | - |
 
@@ -263,7 +263,7 @@ git commit -m "feat(storage): add daily JSONL benchmark store"
 
 ### Task T6: Judge Scoring Worker
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Need consistent multi-dimensional quality scoring for model outputs.

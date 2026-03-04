@@ -4,19 +4,20 @@ import "time"
 
 // StepResult represents the result of executing a single step
 type StepResult struct {
-	StepID        string
-	Phase         string
-	Agent         string
-	Model         string
-	Status        StepStatus
-	Output        string
-	Bytes         int
-	Duration      time.Duration
-	StartTime     time.Time
-	EndTime       time.Time
-	Error         error
-	Fallback      *FallbackInfo
-	Dispatch      *DispatchInfo
+	StepID    string
+	Phase     string
+	Agent     string
+	Model     string
+	Judge     *JudgeResult
+	Status    StepStatus
+	Output    string
+	Bytes     int
+	Duration  time.Duration
+	StartTime time.Time
+	EndTime   time.Time
+	Error     error
+	Fallback  *FallbackInfo
+	Dispatch  *DispatchInfo
 }
 
 // StepStatus represents the status of a step execution
@@ -43,27 +44,35 @@ type FallbackInfo struct {
 
 // DispatchInfo contains raw dispatch metadata
 type DispatchInfo struct {
-	Provider       string
-	ExecutorKind   string
-	Profile        string
-	ModelPattern   string
-	Command        string
-	ExitCode       int
-	RawOutput      []byte
-	ExecutionTime  time.Duration
+	Provider      string
+	ExecutorKind  string
+	Profile       string
+	ModelPattern  string
+	Command       string
+	ExitCode      int
+	RawOutput     []byte
+	ExecutionTime time.Duration
+}
+
+// JudgeResult contains benchmark quality scoring metadata for a step output.
+type JudgeResult struct {
+	JudgeModel      string
+	DimensionScores map[string]int
+	WeightedScore   float64
+	Rationale       string
 }
 
 // PhaseResult represents the aggregated result of a phase
 type PhaseResult struct {
-	PhaseName     string
-	Steps         []StepResult
-	Completed     int
-	Failed        int
-	Degraded      int
-	TotalBytes    int
-	Duration      time.Duration
-	Status        PhaseStatus
-	Synthesis     *SynthesisResult
+	PhaseName  string
+	Steps      []StepResult
+	Completed  int
+	Failed     int
+	Degraded   int
+	TotalBytes int
+	Duration   time.Duration
+	Status     PhaseStatus
+	Synthesis  *SynthesisResult
 }
 
 // PhaseStatus represents the status of a phase
@@ -107,15 +116,15 @@ const (
 
 // SynthesisResult represents the result of synthesis
 type SynthesisResult struct {
-	Status       SynthesisStatus
-	Output       string
-	Model        string
-	Agent        string
-	InputBytes   int
-	OutputBytes  int
-	Duration     time.Duration
-	TriggerType  string // "progressive" or "final"
-	Error        error
+	Status      SynthesisStatus
+	Output      string
+	Model       string
+	Agent       string
+	InputBytes  int
+	OutputBytes int
+	Duration    time.Duration
+	TriggerType string // "progressive" or "final"
+	Error       error
 }
 
 // SynthesisStatus represents the status of synthesis
