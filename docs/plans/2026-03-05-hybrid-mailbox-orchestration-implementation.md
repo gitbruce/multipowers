@@ -46,7 +46,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | T3 | Mailbox Atomic Writer | DONE | 2026-03-05 03:31 CST | pending |
 | T4 | Mailbox Reader + Idempotent Processor | DONE | 2026-03-05 03:34 CST | pending |
 | T5 | Structural Conflict Monitor | DONE | 2026-03-05 03:36 CST | pending |
-| T6 | Mailbox Watcher + Control Events | TODO | - | - |
+| T6 | Mailbox Watcher + Control Events | DONE | 2026-03-05 03:39 CST | pending |
 | T7 | Deterministic Gate Engine | TODO | - | - |
 | T8 | Worktree Slot Scheduler (Cap Backpressure) | TODO | - | - |
 | T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | TODO | - | - |
@@ -202,7 +202,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T6: Mailbox Watcher + Control Events
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Immediate aborts require real-time control signal extraction, not only boundary polling.
 
@@ -222,11 +222,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T6.1 Failing tests | TODO | Protect real-time control behavior | Add watcher tests | semantic and structural cases | assert immediate control emission | `go test ./internal/orchestration -run "TestMailboxWatcher" -v` |
-| T6.2 Event contracts | TODO | Keep control API explicit | Add control event structs/enums | create typed event payloads | stable reason codes | compile |
-| T6.3 Watcher runtime | TODO | Connect mailbox to control stream | implement poll loop | reader + processor + channel emit | ack only after emit success | watcher tests |
-| T6.4 Poll config wiring | TODO | tune performance safely | use config poll interval | pass interval via config | portable polling V1 | tests |
-| T6.5 Commit + status update | TODO | keep implementation traceable | commit and board update | standard git flow | one logical commit | clean diff |
+| T6.1 Failing tests | DONE | Protect real-time control behavior | Add watcher tests | semantic and structural cases | assert immediate control emission | `go test ./internal/orchestration -run "TestMailboxWatcher" -v` |
+| T6.2 Event contracts | DONE | Keep control API explicit | Add control event structs/enums | create typed event payloads | stable reason codes | compile |
+| T6.3 Watcher runtime | DONE | Connect mailbox to control stream | implement poll loop | reader + processor + channel emit | ack only after emit success | watcher tests |
+| T6.4 Poll config wiring | DONE | tune performance safely | use config poll interval | pass interval via config | portable polling V1 | tests |
+| T6.5 Commit + status update | DONE | keep implementation traceable | commit and board update | standard git flow | one logical commit | clean diff |
 
 ---
 

@@ -17,6 +17,7 @@ const (
 	EventTypeSynthesisEnd   EventType = "synthesis_end"
 	EventTypeError          EventType = "error"
 	EventTypeCanceled       EventType = "canceled"
+	EventTypeControlEvent   EventType = "control_event"
 )
 
 // Event represents an execution event
