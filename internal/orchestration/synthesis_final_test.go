@@ -10,7 +10,7 @@ func TestFinalSynthesis(t *testing.T) {
     t.Run("aggregate results for synthesis", func(t *testing.T) {
         phaseResults := []PhaseResult{
             {
-                PhaseName: "probe",
+                PhaseName: "discover",
                 Steps: []StepResult{
                     {StepID: "s1", Agent: "researcher", Status: StepStatusCompleted, Output: "Finding 1", Bytes: 9},
                     {StepID: "s2", Agent: "analyst", Status: StepStatusCompleted, Output: "Finding 2", Bytes: 9},
@@ -35,7 +35,7 @@ func TestFinalSynthesis(t *testing.T) {
     t.Run("exclude empty step outputs", func(t *testing.T) {
         phaseResults := []PhaseResult{
             {
-                PhaseName: "probe",
+                PhaseName: "discover",
                 Steps: []StepResult{
                     {StepID: "s1", Status: StepStatusCompleted, Output: "Valid", Bytes: 5},
                     {StepID: "s2", Status: StepStatusFailed, Output: "", Bytes: 0},
@@ -60,7 +60,7 @@ func TestReportGeneration(t *testing.T) {
             TaskName:     "research-oauth",
             Phases: []PhaseResult{
                 {
-                    PhaseName: "probe",
+                    PhaseName: "discover",
                     Steps: []StepResult{
                         {StepID: "s1", Agent: "researcher", Status: StepStatusCompleted, Output: "Key finding 1"},
                         {StepID: "s2", Agent: "analyst", Status: StepStatusCompleted, Output: "Key finding 2"},
@@ -92,7 +92,7 @@ func TestReportGeneration(t *testing.T) {
             WorkflowName: "discover",
             Phases: []PhaseResult{
                 {
-                    PhaseName: "probe",
+                    PhaseName: "discover",
                     Steps: []StepResult{
                         {
                             StepID:   "s1",
@@ -128,7 +128,7 @@ func TestReportGeneration(t *testing.T) {
             WorkflowName: "discover",
             Phases: []PhaseResult{
                 {
-                    PhaseName: "probe",
+                    PhaseName: "discover",
                     Steps: []StepResult{
                         {
                             StepID: "s1",
@@ -196,10 +196,10 @@ func TestReportStructure(t *testing.T) {
             WorkflowName: "embrace",
             TaskName:     "build-auth",
             Phases: []PhaseResult{
-                {PhaseName: "probe", Completed: 2, Steps: []StepResult{{StepID: "s1", Output: "probe output"}}},
-                {PhaseName: "grasp", Completed: 1, Steps: []StepResult{{StepID: "s2", Output: "grasp output"}}},
-                {PhaseName: "tangle", Completed: 3, Steps: []StepResult{{StepID: "s3", Output: "tangle output"}}},
-                {PhaseName: "ink", Completed: 1, Steps: []StepResult{{StepID: "s4", Output: "ink output"}}},
+                {PhaseName: "discover", Completed: 2, Steps: []StepResult{{StepID: "s1", Output: "discover output"}}},
+                {PhaseName: "define", Completed: 1, Steps: []StepResult{{StepID: "s2", Output: "define output"}}},
+                {PhaseName: "develop", Completed: 3, Steps: []StepResult{{StepID: "s3", Output: "develop output"}}},
+                {PhaseName: "deliver", Completed: 1, Steps: []StepResult{{StepID: "s4", Output: "deliver output"}}},
             },
             TotalSteps: 7,
             Completed:  7,

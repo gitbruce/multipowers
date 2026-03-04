@@ -9,10 +9,10 @@ func TestDegradedReport(t *testing.T) {
 	t.Run("create degraded report from partial execution", func(t *testing.T) {
 		phases := []PhaseResult{
 			{
-				PhaseName: "probe",
+				PhaseName: "discover",
 				Steps: []StepResult{
-					{StepID: "s1", Phase: "probe", Agent: "researcher", Status: StepStatusCompleted, Output: "Finding 1", Bytes: 9},
-					{StepID: "s2", Phase: "probe", Agent: "analyst", Status: StepStatusFailed, Error: errors.New("timeout")},
+					{StepID: "s1", Phase: "discover", Agent: "researcher", Status: StepStatusCompleted, Output: "Finding 1", Bytes: 9},
+					{StepID: "s2", Phase: "discover", Agent: "analyst", Status: StepStatusFailed, Error: errors.New("timeout")},
 				},
 				Completed: 1,
 				Failed:    1,
@@ -53,10 +53,10 @@ func TestDegradedReport(t *testing.T) {
     t.Run("degraded report preserves partial outputs", func(t *testing.T) {
         phases := []PhaseResult{
             {
-                PhaseName: "probe",
+                PhaseName: "discover",
                 Steps: []StepResult{
-                    {StepID: "s1", Phase: "probe", Agent: "researcher", Status: StepStatusDegraded, Output: "Finding with fallback", Fallback: &FallbackInfo{Used: true}},
-                    {StepID: "s2", Phase: "probe", Agent: "architect", Status: StepStatusFailed, Error: errors.New("connection error")},
+                    {StepID: "s1", Phase: "discover", Agent: "researcher", Status: StepStatusDegraded, Output: "Finding with fallback", Fallback: &FallbackInfo{Used: true}},
+                    {StepID: "s2", Phase: "discover", Agent: "architect", Status: StepStatusFailed, Error: errors.New("connection error")},
                 },
             },
         }

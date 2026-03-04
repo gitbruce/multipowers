@@ -2,6 +2,7 @@ package orchestration
 
 type Config struct {
 	Version       string                  `yaml:"version"`
+	MaxWorkers    int                     `yaml:"max_workers,omitempty"`
 	PhaseDefaults map[string]PhaseDefault `yaml:"phase_defaults,omitempty"`
 	RalphWiggum   RalphWiggumConfig       `yaml:"ralph_wiggum,omitempty"`
 	SkillTriggers map[string]SkillTrigger `yaml:"skill_triggers,omitempty"`

@@ -98,9 +98,9 @@ func TestExecutor_ExecutePhase(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "probe-researcher-0", Phase: "probe", Agent: "researcher"},
+				{ID: "discover-researcher-0", Phase: "discover", Agent: "researcher"},
 			},
 			Parallel: false,
 		}
@@ -126,11 +126,11 @@ func TestExecutor_ExecutePhase(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "probe-a1-0", Phase: "probe", Agent: "a1"},
-				{ID: "probe-a2-1", Phase: "probe", Agent: "a2"},
-				{ID: "probe-a3-2", Phase: "probe", Agent: "a3"},
+				{ID: "discover-a1-0", Phase: "discover", Agent: "a1"},
+				{ID: "discover-a2-1", Phase: "discover", Agent: "a2"},
+				{ID: "discover-a3-2", Phase: "discover", Agent: "a3"},
 			},
 			Parallel:   true,
 			MaxWorkers: 3,
@@ -159,12 +159,12 @@ func TestExecutor_ExecutePhase(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
-				{ID: "s2", Phase: "probe", Agent: "a2"},
-				{ID: "s3", Phase: "probe", Agent: "a3"},
-				{ID: "s4", Phase: "probe", Agent: "a4"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
+				{ID: "s2", Phase: "discover", Agent: "a2"},
+				{ID: "s3", Phase: "discover", Agent: "a3"},
+				{ID: "s4", Phase: "discover", Agent: "a4"},
 			},
 			Parallel:   true,
 			MaxWorkers: 2,
@@ -197,10 +197,10 @@ func TestExecutor_Cancellation(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
-				{ID: "s2", Phase: "probe", Agent: "a2"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
+				{ID: "s2", Phase: "discover", Agent: "a2"},
 			},
 			Parallel: true,
 		}
@@ -238,13 +238,13 @@ func TestExecutor_Cancellation(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
-				{ID: "s2", Phase: "probe", Agent: "a2"},
-				{ID: "s3", Phase: "probe", Agent: "a3"},
-				{ID: "s4", Phase: "probe", Agent: "a4"},
-				{ID: "s5", Phase: "probe", Agent: "a5"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
+				{ID: "s2", Phase: "discover", Agent: "a2"},
+				{ID: "s3", Phase: "discover", Agent: "a3"},
+				{ID: "s4", Phase: "discover", Agent: "a4"},
+				{ID: "s5", Phase: "discover", Agent: "a5"},
 			},
 			Parallel: true,
 		}
@@ -272,9 +272,9 @@ func TestExecutor_Timeout(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
 			},
 		}
 
@@ -296,9 +296,9 @@ func TestExecutor_Events(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
 			},
 		}
 
@@ -326,10 +326,10 @@ func TestExecutor_NoGoroutineLeaks(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
-				{ID: "s2", Phase: "probe", Agent: "a2"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
+				{ID: "s2", Phase: "discover", Agent: "a2"},
 			},
 			Parallel: true,
 		}
@@ -359,9 +359,9 @@ func TestExecutor_FallbackAware(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1", Model: "claude-opus-4.6"},
+				{ID: "s1", Phase: "discover", Agent: "a1", Model: "claude-opus-4.6"},
 			},
 		}
 
@@ -391,9 +391,9 @@ func TestExecutor_FallbackAware(t *testing.T) {
 		}, dispatcher)
 
 		phase := PhasePlan{
-			Name: "probe",
+			Name: "discover",
 			Steps: []StepPlan{
-				{ID: "s1", Phase: "probe", Agent: "a1"},
+				{ID: "s1", Phase: "discover", Agent: "a1"},
 			},
 		}
 
@@ -417,13 +417,13 @@ func TestExecutor_ExecutePlan(t *testing.T) {
 			WorkflowName: "embrace",
 			Phases: []PhasePlan{
 				{
-					Name:   "probe",
-					Steps:  []StepPlan{{ID: "s1", Phase: "probe", Agent: "a1"}},
+					Name:   "discover",
+					Steps:  []StepPlan{{ID: "s1", Phase: "discover", Agent: "a1"}},
 					Parallel: false,
 				},
 				{
-					Name:   "grasp",
-					Steps:  []StepPlan{{ID: "s2", Phase: "grasp", Agent: "a2"}},
+					Name:   "define",
+					Steps:  []StepPlan{{ID: "s2", Phase: "define", Agent: "a2"}},
 					Parallel: false,
 				},
 			},

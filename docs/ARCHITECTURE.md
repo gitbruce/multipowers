@@ -52,53 +52,63 @@ Claude Octopus coordinates **three AI providers** to give you multi-perspective 
 
 ---
 
-## Execution Flow by Workflow
+## Orchestration Architecture (v8.0+)
 
-### Discover Phase (probe)
+The Go-native orchestration engine (v8.0+) replaces legacy shell shims with a robust three-layer pipeline:
 
-**Trigger:** `mp research X` or `/mp:discover`
+1.  **Planner Layer**: Resolves global defaults (`config/orchestration.yaml`), workflow overrides (`config/workflows.yaml`), and task-specific overrides into an immutable `ExecutionPlan`. It decomposes prompts into multiple perspectives for parallel phases.
+2.  **Executor Layer**: Executes the plan using a bounded worker pool (Goroutines). It manages lifecycle events, handles context cancellation, and performs one-hop automatic fallbacks via the `internal/policy` dispatcher.
+3.  **Synthesizer Layer**: Aggregates parallel outputs. It triggers **Progressive Synthesis** based on completed step thresholds and generates a **Final Synthesis** report using high-capability models.
+
+### Key Components
+
+- **`internal/policy`**: Unified model and executor selection logic.
+- **`internal/orchestration`**: The core orchestration runtime (Planner, Executor, Synthesizer).
+- **`config/*.yaml`**: Declarative source of truth for orchestration, providers, and workflows.
+
+---
+
+## Execution Flow by Workflow (v8.0+)
+
+### Discover Phase
+
+**Trigger:** `mp discover X` or `/mp:discover`
 
 ```
 User Request
      |
      v
-+--------------------+
-|   Claude Octopus   |
-|    Orchestrator    |
-+---------+----------+
-          |
-    +-----+-----+
-    |           |
-    v           v
-+-------+   +-------+
-| Codex |   |Gemini |   <- Run in PARALLEL
-| CLI   |   | CLI   |
-+---+---+   +---+---+
-    |           |
-    v           v
-"Technical   "Ecosystem
- analysis"    research"
-    |           |
-    +-----+-----+
-          |
-          v
-    +----------+
-    |  Claude  |   <- SEQUENTIAL (after both complete)
-    | Synthesis|
-    +----------+
-          |
-          v
-    Final Research
-       Report
++------------------------+
+| Orchestration Planner  | <-- Decomposes into perspectives
++-----------+------------+
+            |
+    +-------+-------+
+    |               |
+    v               v
++-------+       +-------+
+| Step 1|       | Step 2|   <-- Parallel Workers (Goroutines)
+| AgentA|       | AgentB|
++---+---+       +---+---+
+    |               |
+    v               v
+"Perspective A" "Perspective B"
+    |               |
+    +-------+-------+
+            |
+            v
+    +---------------+
+    |  Synthesizer  |   <-- Progressive & Final
+    +---------------+
+            |
+            v
+      Final Report
 ```
 
-**Execution:**
-1. Codex CLI and Gemini CLI run **in parallel** with the research prompt
-2. Both responses are collected
-3. Claude synthesizes both perspectives into a unified report
-
-**Typical duration:** 30-60 seconds  
-**Typical cost:** $0.01-0.05 (depending on prompt length)
+**New Naming Convention:**
+- **Discover** (formerly probe)
+- **Define** (formerly grasp)
+- **Develop** (formerly tangle)
+- **Deliver** (formerly ink)
 
 ---
 
@@ -433,13 +443,13 @@ When multi-AI mode is active, you'll see these indicators:
 
 ## Under the Hood: mp runtime
 
-All workflows are powered by `.claude-plugin/bin/mp`:
+All workflows are powered by the native Go binary at `.claude-plugin/bin/mp`:
 
 ```bash
-# Direct CLI usage (advanced)
-./.claude-plugin/bin/mp probe "research OAuth patterns"
-./.claude-plugin/bin/mp tangle "implement authentication"
-./.claude-plugin/bin/mp ink "review auth code"
+# Direct CLI usage
+./.claude-plugin/bin/mp discover "research OAuth patterns"
+./.claude-plugin/bin/mp develop "implement authentication"
+./.claude-plugin/bin/mp deliver "review auth code"
 ./.claude-plugin/bin/mp embrace "complete auth feature"
 ```
 

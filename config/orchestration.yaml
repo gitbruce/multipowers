@@ -2,16 +2,16 @@ version: "1"
 
 # Phase-to-agent mappings for orchestration selection
 phase_defaults:
-  probe:
+  discover:
     primary: researcher
     agents: [ai-engineer, business-analyst, context-manager]
-  grasp:
+  define:
     primary: backend-architect
     agents: [frontend-developer, database-architect, cloud-architect, graphql-architect]
-  tangle:
+  develop:
     primary: implementer
     agents: [tdd-orchestrator, debugger, devops-troubleshooter, python-pro, typescript-pro]
-  ink:
+  deliver:
     primary: code-reviewer
     agents: [security-auditor, test-automator, performance-engineer, deployment-engineer]
 
@@ -20,7 +20,7 @@ ralph_wiggum:
   enabled: true
   completion_promise: "<promise>COMPLETE</promise>"
   max_iterations: 50
-  loop_phases: [tangle]
+  loop_phases: [develop]
 
 # Prompt-triggered skill hints used by orchestrator selection
 skill_triggers:

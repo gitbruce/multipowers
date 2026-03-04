@@ -1,5 +1,6 @@
 package workflows
 
+// Embrace executes the full workflow using the orchestration engine
 func Embrace(prompt string) map[string]any {
-	return map[string]any{"workflow": "embrace", "prompt": prompt}
+	return runWorkflowHelper("embrace", prompt)
 }

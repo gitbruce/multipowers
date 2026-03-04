@@ -7,8 +7,8 @@ import (
 )
 
 func SelectAgent(cfg *Config, agents map[string]AgentProfile, phase, prompt string) (string, string, []string) {
-	canonical := canonicalPhase(phase)
-	pd, ok := cfg.PhaseDefaults[canonical]
+	phase = strings.ToLower(strings.TrimSpace(phase))
+	pd, ok := cfg.PhaseDefaults[phase]
 	if !ok {
 		return "", "phase has no configured default agents", nil
 	}
@@ -73,21 +73,6 @@ func SelectAgent(cfg *Config, agents map[string]AgentProfile, phase, prompt stri
 		reason = "selected by skill trigger match: " + triggerSkill
 	}
 	return selected, reason, sortedCandidates
-}
-
-func canonicalPhase(phase string) string {
-	switch strings.ToLower(strings.TrimSpace(phase)) {
-	case "discover":
-		return "probe"
-	case "define":
-		return "grasp"
-	case "develop":
-		return "tangle"
-	case "deliver":
-		return "ink"
-	default:
-		return strings.ToLower(strings.TrimSpace(phase))
-	}
 }
 
 func contains(items []string, target string) bool {

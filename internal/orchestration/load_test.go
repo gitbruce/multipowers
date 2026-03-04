@@ -16,14 +16,14 @@ func TestLoadConfigFromProjectDir(t *testing.T) {
 	}
 	data := `version: "1"
 phase_defaults:
-  probe:
+  discover:
     primary: researcher
     agents: [ai-engineer, business-analyst]
 ralph_wiggum:
   enabled: true
   completion_promise: "<promise>COMPLETE</promise>"
   max_iterations: 12
-  loop_phases: [tangle]
+  loop_phases: [develop]
 skill_triggers:
   testing:
     pattern: "(test|tdd)"
@@ -37,8 +37,8 @@ skill_triggers:
 	if err != nil {
 		t.Fatalf("load config: %v", err)
 	}
-	if cfg.PhaseDefaults["probe"].Primary != "researcher" {
-		t.Fatalf("unexpected primary: %+v", cfg.PhaseDefaults["probe"])
+	if cfg.PhaseDefaults["discover"].Primary != "researcher" {
+		t.Fatalf("unexpected primary: %+v", cfg.PhaseDefaults["discover"])
 	}
 	if cfg.RalphWiggum.MaxIterations != 12 {
 		t.Fatalf("unexpected max iterations: %d", cfg.RalphWiggum.MaxIterations)
@@ -85,7 +85,7 @@ ralph_wiggum:
   completion_promise: "<custom>PROMISE</custom>"
   max_iterations: 100
 phase_defaults:
-  probe:
+  discover:
     primary: researcher
 skill_triggers:
   api:
@@ -138,15 +138,15 @@ skill_triggers:
 func TestLoadConfigPhaseDefaults(t *testing.T) {
 	yamlContent := `version: "1"
 phase_defaults:
-  probe:
+  discover:
     primary: researcher
     agents: [ai-engineer, business-analyst, context-manager]
-  grasp:
+  define:
     primary: backend-architect
     agents: [frontend-developer, database-architect]
-  tangle:
+  develop:
     primary: implementer
-  ink:
+  deliver:
     primary: code-reviewer
     agents: []
 `
@@ -168,22 +168,22 @@ phase_defaults:
 		t.Fatalf("expected 4 phase defaults, got %d", len(cfg.PhaseDefaults))
 	}
 
-	// Check probe phase
-	probe := cfg.PhaseDefaults["probe"]
-	if probe.Primary != "researcher" {
-		t.Errorf("probe primary: got %q, want %q", probe.Primary, "researcher")
+	// Check discover phase
+	discover := cfg.PhaseDefaults["discover"]
+	if discover.Primary != "researcher" {
+		t.Errorf("discover primary: got %q, want %q", discover.Primary, "researcher")
 	}
-	if len(probe.Agents) != 3 {
-		t.Errorf("probe agents count: got %d, want 3", len(probe.Agents))
+	if len(discover.Agents) != 3 {
+		t.Errorf("discover agents count: got %d, want 3", len(discover.Agents))
 	}
 
-	// Check tangle phase (no agents)
-	tangle := cfg.PhaseDefaults["tangle"]
-	if tangle.Primary != "implementer" {
-		t.Errorf("tangle primary: got %q, want %q", tangle.Primary, "implementer")
+	// Check develop phase (no agents)
+	develop := cfg.PhaseDefaults["develop"]
+	if develop.Primary != "implementer" {
+		t.Errorf("develop primary: got %q, want %q", develop.Primary, "implementer")
 	}
-	if len(tangle.Agents) != 0 {
-		t.Errorf("tangle agents should be empty, got %d", len(tangle.Agents))
+	if len(develop.Agents) != 0 {
+		t.Errorf("develop agents should be empty, got %d", len(develop.Agents))
 	}
 }
 
@@ -233,7 +233,7 @@ ralph_wiggum:
   enabled: true
   completion_promise: "<promise>DONE</promise>"
   max_iterations: 25
-  loop_phases: [tangle, ink]
+  loop_phases: [develop, deliver]
 `
 	d := t.TempDir()
 	cfgDir := filepath.Join(d, "config")
@@ -281,7 +281,7 @@ func TestLoadConfigInvalidYAML(t *testing.T) {
 	}
 	invalidYAML := `version: "1"
 phase_defaults:
-  probe:
+  discover:
     primary: researcher
     agents: [invalid - unclosed bracket
 `

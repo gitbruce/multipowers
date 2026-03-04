@@ -5,7 +5,7 @@ import "testing"
 func TestSelectAgentByPhaseDefaults(t *testing.T) {
 	cfg := &Config{
 		PhaseDefaults: map[string]PhaseDefault{
-			"probe": {Primary: "researcher", Agents: []string{"researcher", "business-analyst"}},
+			"discover": {Primary: "researcher", Agents: []string{"researcher", "business-analyst"}},
 		},
 		SkillTriggers: map[string]SkillTrigger{
 			"testing": {Pattern: "(test|tdd)", Skill: "skill-tdd"},

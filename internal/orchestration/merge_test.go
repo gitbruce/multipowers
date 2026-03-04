@@ -9,14 +9,14 @@ func TestMergeConfigs(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"agent1", "agent2"}},
-				"grasp":  {Primary: "architect", Agents: []string{"agent3"}},
+				"discover": {Primary: "researcher", Agents: []string{"agent1", "agent2"}},
+				"define":  {Primary: "architect", Agents: []string{"agent3"}},
 			},
 			RalphWiggum: RalphWiggumConfig{
 				Enabled:           true,
 				CompletionPromise: "<promise>COMPLETE</promise>",
 				MaxIterations:     50,
-				LoopPhases:        []string{"tangle"},
+				LoopPhases:        []string{"develop"},
 			},
 			SkillTriggers: map[string]SkillTrigger{
 				"testing": {Pattern: "(test|tdd)", Skill: "skill-tdd"},
@@ -60,40 +60,40 @@ func TestMergeConfigs(t *testing.T) {
 func TestMergePhaseDefaults(t *testing.T) {
 	t.Run("merge global phase defaults with workflow overrides", func(t *testing.T) {
 		global := map[string]PhaseDefault{
-			"probe":  {Primary: "researcher", Agents: []string{"a1", "a2"}},
-			"grasp":  {Primary: "architect", Agents: []string{"b1"}},
+			"discover":  {Primary: "researcher", Agents: []string{"a1", "a2"}},
+			"define":  {Primary: "architect", Agents: []string{"b1"}},
 		}
 
 		workflow := []PhaseOverride{
-			{Name: "probe", Agent: "custom-researcher", Agents: []string{"c1", "c2", "c3"}},
-			{Name: "tangle", Agent: "implementer", Agents: []string{"d1"}},
+			{Name: "discover", Agent: "custom-researcher", Agents: []string{"c1", "c2", "c3"}},
+			{Name: "develop", Agent: "implementer", Agents: []string{"d1"}},
 		}
 
 		result := MergePhaseDefaults(global, workflow)
 
-		if result["probe"].Primary != "custom-researcher" {
-			t.Errorf("expected probe primary custom-researcher, got %s", result["probe"].Primary)
+		if result["discover"].Primary != "custom-researcher" {
+			t.Errorf("expected discover primary custom-researcher, got %s", result["discover"].Primary)
 		}
-		if len(result["probe"].Agents) != 3 {
-			t.Errorf("expected 3 probe agents, got %d", len(result["probe"].Agents))
+		if len(result["discover"].Agents) != 3 {
+			t.Errorf("expected 3 discover agents, got %d", len(result["discover"].Agents))
 		}
-		if result["grasp"].Primary != "architect" {
-			t.Errorf("expected grasp primary architect, got %s", result["grasp"].Primary)
+		if result["define"].Primary != "architect" {
+			t.Errorf("expected define primary architect, got %s", result["define"].Primary)
 		}
-		if result["tangle"].Primary != "implementer" {
-			t.Errorf("expected tangle primary implementer, got %s", result["tangle"].Primary)
+		if result["develop"].Primary != "implementer" {
+			t.Errorf("expected develop primary implementer, got %s", result["develop"].Primary)
 		}
 	})
 
 	t.Run("empty workflow overrides preserves global", func(t *testing.T) {
 		global := map[string]PhaseDefault{
-			"probe": {Primary: "researcher"},
+			"discover": {Primary: "researcher"},
 		}
 
 		result := MergePhaseDefaults(global, nil)
 
-		if result["probe"].Primary != "researcher" {
-			t.Errorf("expected probe primary researcher, got %s", result["probe"].Primary)
+		if result["discover"].Primary != "researcher" {
+			t.Errorf("expected discover primary researcher, got %s", result["discover"].Primary)
 		}
 	})
 }
@@ -110,7 +110,7 @@ func TestResolveConfig(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 			RalphWiggum: RalphWiggumConfig{
 				Enabled:           true,
@@ -172,7 +172,7 @@ func TestPrecedenceMerge(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 		}
 

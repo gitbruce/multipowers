@@ -7,12 +7,12 @@ import (
 
 // FlowPhaseMapping maps workflow names to their phase sequences
 var FlowPhaseMapping = map[string][]string{
-	"discover": {"probe"},
-	"define":   {"grasp"},
-	"develop":  {"tangle"},
-	"deliver":  {"ink"},
+	"discover": {"discover"},
+	"define":   {"define"},
+	"develop":  {"develop"},
+	"deliver":  {"deliver"},
 	"debate":   {"debate"},
-	"embrace":  {"probe", "grasp", "tangle", "ink"},
+	"embrace":  {"discover", "define", "develop", "deliver"},
 }
 
 // BuildPlan creates an execution plan for a workflow
@@ -72,7 +72,7 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 			override = taskOverridePhase
 		}
 
-		phasePlan := BuildPhasePlan(phaseName, phaseDefault, override, prompt)
+		phasePlan := BuildPhasePlan(phaseName, phaseDefault, override, prompt, taskOverride...)
 		phasePlans = append(phasePlans, phasePlan)
 
 		// Track source ref
@@ -118,7 +118,7 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 }
 
 // BuildPhasePlan creates a phase plan with steps
-func BuildPhasePlan(name string, defaultConfig PhaseDefault, override *PhaseOverride, prompt string) PhasePlan {
+func BuildPhasePlan(name string, defaultConfig PhaseDefault, override *PhaseOverride, prompt string, workflowOverride ...*WorkflowOverride) PhasePlan {
 	// Determine agents
 	agents := defaultConfig.Agents
 	if len(agents) == 0 {
@@ -136,27 +136,102 @@ func BuildPhasePlan(name string, defaultConfig PhaseDefault, override *PhaseOver
 		}
 	}
 
-	// Determine if parallel based on number of agents
+	// Check for perspective override in workflow/task override
+	var customPerspectives []PerspectiveOverride
+	if len(workflowOverride) > 0 && workflowOverride[0] != nil {
+		if len(workflowOverride[0].Perspectives) > 0 {
+			customPerspectives = workflowOverride[0].Perspectives
+		}
+		// Also check for parallel override
+		if workflowOverride[0].Parallel != nil {
+			if workflowOverride[0].Parallel.MaxWorkers > 0 {
+				maxWorkers = workflowOverride[0].Parallel.MaxWorkers
+			}
+		}
+	}
+
+	// Determine if parallel based on number of agents or explicit override
 	parallel := len(agents) > 1
+	if len(customPerspectives) > 0 {
+		parallel = len(customPerspectives) > 1
+	}
+	
+	if len(workflowOverride) > 0 && workflowOverride[0] != nil && workflowOverride[0].Parallel != nil {
+		if workflowOverride[0].Parallel.Enabled != nil {
+			parallel = *workflowOverride[0].Parallel.Enabled
+		}
+	}
 
 	return PhasePlan{
 		Name:       name,
-		Steps:      BuildStepPlans(name, agents, prompt),
+		Steps:      BuildStepPlansWithOverrides(name, agents, prompt, customPerspectives),
 		Parallel:   parallel,
 		MaxWorkers: maxWorkers,
 	}
 }
 
-// BuildStepPlans creates step plans from a list of agents
+// BuildStepPlansWithOverrides creates step plans with optional perspective overrides
+func BuildStepPlansWithOverrides(phase string, agents []string, prompt string, overrides []PerspectiveOverride) []StepPlan {
+	if len(overrides) > 0 {
+		steps := make([]StepPlan, len(overrides))
+		for i, o := range overrides {
+			perspectivePrompt := prompt
+			if o.Description != "" {
+				perspectivePrompt = fmt.Sprintf("%s\n\nYour specific perspective: %s", prompt, o.Description)
+			}
+			steps[i] = StepPlan{
+				ID:          fmt.Sprintf("%s-%s-%d", phase, o.Agent, i),
+				Phase:       phase,
+				Perspective: o.Name,
+				Agent:       o.Agent,
+				Model:       o.Model,
+				Prompt:      perspectivePrompt,
+			}
+		}
+		return steps
+	}
+	return BuildStepPlans(phase, agents, prompt)
+}
+
+// BuildStepPlans creates step plans from a list of agents with multi-perspective decomposition
 func BuildStepPlans(phase string, agents []string, prompt string) []StepPlan {
 	steps := make([]StepPlan, len(agents))
+	
+	// Default perspectives for specific phases
+	perspectives := map[string][]string{
+		"discover": {
+			"Analyze the problem and requirements from a technical standpoint.",
+			"Research existing solutions and industry best practices.",
+			"Identify potential edge cases and security implications.",
+			"Evaluate architectural tradeoffs and constraints.",
+			"Synthesize a preliminary implementation strategy.",
+		},
+		"develop": {
+			"Implement core business logic and data structures.",
+			"Add comprehensive unit and integration tests.",
+			"Apply security best practices and input validation.",
+			"Optimize performance and resource usage.",
+			"Document APIs and usage patterns.",
+		},
+	}
+
 	for i, agent := range agents {
+		perspectivePrompt := prompt
+		perspectiveName := agent // Default to agent name as perspective
+
+		// If we have defined perspectives for this phase, assign them round-robin
+		if phasePerspectives, ok := perspectives[phase]; ok && len(phasePerspectives) > 0 {
+			pIndex := i % len(phasePerspectives)
+			perspectiveName = fmt.Sprintf("perspective_%d", pIndex)
+			perspectivePrompt = fmt.Sprintf("%s\n\nYour specific perspective: %s", prompt, phasePerspectives[pIndex])
+		}
+
 		steps[i] = StepPlan{
 			ID:          fmt.Sprintf("%s-%s-%d", phase, agent, i),
 			Phase:       phase,
-			Perspective: agent,
+			Perspective: perspectiveName,
 			Agent:       agent,
-			Prompt:      prompt,
+			Prompt:      perspectivePrompt,
 		}
 	}
 	return steps

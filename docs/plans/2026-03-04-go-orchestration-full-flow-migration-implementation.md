@@ -18,40 +18,40 @@
 | T01-S01 | Add orchestration config schema/types | COMPLETED |
 | T01-S02 | Add workflow override config schema | COMPLETED |
 | T01-S03 | Add provider model-pattern inference schema support | COMPLETED |
-| T02 | Implement config loading and merge resolution | NOT_STARTED |
+| T02 | Implement config loading and merge resolution | COMPLETED |
 | T02-S01 | Load `orchestration.yaml` globals | COMPLETED |
 | T02-S02 | Load workflow flow-specific override sections | COMPLETED |
 | T02-S03 | Implement precedence merge (`task > workflow > global`) | COMPLETED |
-| T03 | Implement planner for all flows | NOT_STARTED |
-| T03-S01 | Build phase graph and perspective plan objects | NOT_STARTED |
-| T03-S02 | Build flow/task-specific plan builder API | NOT_STARTED |
-| T03-S03 | Add planner tests for all 6 flows | NOT_STARTED |
-| T04 | Implement parallel executor and result collection | NOT_STARTED |
-| T04-S01 | Build worker-pool step executor with context cancel | NOT_STARTED |
-| T04-S02 | Add fallback-aware step result model | NOT_STARTED |
-| T04-S03 | Add synchronization/progress event stream | NOT_STARTED |
-| T05 | Implement progressive and final synthesis | NOT_STARTED |
-| T05-S01 | Progressive trigger engine (`min_completed`, `min_bytes`) | NOT_STARTED |
-| T05-S02 | Final synthesis aggregator and report model | NOT_STARTED |
-| T05-S03 | Synthesis failure/degraded behavior contract | NOT_STARTED |
-| T06 | Migrate workflow entrypoints to orchestration engine | NOT_STARTED |
-| T06-S01 | Replace `internal/workflows/discover.go` facade | NOT_STARTED |
-| T06-S02 | Replace `define/develop/deliver/debate/embrace` facades | NOT_STARTED |
-| T06-S03 | Ensure returned metadata parity and structured report output | NOT_STARTED |
-| T07 | Integrate orchestration commands into CLI | NOT_STARTED |
-| T07-S01 | Add `mp orchestrate select-agent` final behavior | NOT_STARTED |
-| T07-S02 | Add `mp loop` final ralph-wiggum behavior | NOT_STARTED |
-| T07-S03 | Add CLI tests for new commands and invalid config cases | NOT_STARTED |
-| T08 | Remove legacy shell-era assumptions in Go paths | NOT_STARTED |
-| T08-S01 | Remove remaining phase hardcode assumptions from non-orchestration paths | NOT_STARTED |
-| T08-S02 | Ensure no compatibility fallback path remains | NOT_STARTED |
-| T09 | End-to-end verification for flow equivalence | NOT_STARTED |
-| T09-S01 | Build E2E tests per flow (happy path) | NOT_STARTED |
-| T09-S02 | Build E2E tests per flow (failure/degraded path) | NOT_STARTED |
-| T09-S03 | Verify progressive synthesis behavior with deterministic fixtures | NOT_STARTED |
-| T10 | Docs and migration evidence | NOT_STARTED |
-| T10-S01 | Update architecture docs for orchestration runtime | NOT_STARTED |
-| T10-S02 | Capture verification evidence and commands | NOT_STARTED |
+| T03 | Implement planner for all flows | COMPLETED |
+| T03-S01 | Build phase graph and perspective plan objects | COMPLETED |
+| T03-S02 | Build flow/task-specific plan builder API | COMPLETED |
+| T03-S03 | Add planner tests for all 6 flows | COMPLETED |
+| T04 | Implement parallel executor and result collection | COMPLETED |
+| T04-S01 | Build worker-pool step executor with context cancel | COMPLETED |
+| T04-S02 | Add fallback-aware step result model | COMPLETED |
+| T04-S03 | Add synchronization/progress event stream | COMPLETED |
+| T05 | Implement progressive and final synthesis | COMPLETED |
+| T05-S01 | Progressive trigger engine (`min_completed`, `min_bytes`) | COMPLETED |
+| T05-S02 | Final synthesis aggregator and report model | COMPLETED |
+| T05-S03 | Synthesis failure/degraded behavior contract | COMPLETED |
+| T06 | Migrate workflow entrypoints to orchestration engine | COMPLETED |
+| T06-S01 | Replace `internal/workflows/discover.go` facade | COMPLETED |
+| T06-S02 | Replace `define/develop/deliver/debate/embrace` facades | COMPLETED |
+| T06-S03 | Ensure returned metadata parity and structured report output | COMPLETED |
+| T07 | Integrate orchestration commands into CLI | COMPLETED |
+| T07-S01 | Add `mp orchestrate select-agent` final behavior | COMPLETED |
+| T07-S02 | Add `mp loop` final ralph-wiggum behavior | COMPLETED |
+| T07-S03 | Add CLI tests for new commands and invalid config cases | COMPLETED |
+| T08 | Remove legacy shell-era assumptions in Go paths | COMPLETED |
+| T08-S01 | Remove remaining phase hardcode assumptions from non-orchestration paths | COMPLETED |
+| T08-S02 | Ensure no compatibility fallback path remains | COMPLETED |
+| T09 | End-to-end verification for flow equivalence | COMPLETED |
+| T09-S01 | Build E2E tests per flow (happy path) | COMPLETED |
+| T09-S02 | Build E2E tests per flow (failure/degraded path) | COMPLETED |
+| T09-S03 | Verify progressive synthesis behavior with deterministic fixtures | COMPLETED |
+| T10 | Docs and migration evidence | COMPLETED |
+| T10-S01 | Update architecture docs for orchestration runtime | COMPLETED |
+| T10-S02 | Capture verification evidence and commands | COMPLETED |
 
 ## Mandatory Status Update Rule
 

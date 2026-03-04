@@ -10,10 +10,10 @@ func TestBuildPlan(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe":  {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
-				"grasp":  {Primary: "architect", Agents: []string{"backend-architect"}},
-				"tangle": {Primary: "implementer"},
-				"ink":    {Primary: "reviewer"},
+				"discover":  {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
+				"define":  {Primary: "architect", Agents: []string{"backend-architect"}},
+				"develop": {Primary: "implementer"},
+				"deliver":    {Primary: "reviewer"},
 			},
 			RalphWiggum: RalphWiggumConfig{
 				Enabled:           true,
@@ -41,11 +41,11 @@ func TestBuildPlan(t *testing.T) {
 		}
 	})
 
-	t.Run("build develop plan with tangle phase", func(t *testing.T) {
+	t.Run("build develop plan with develop phase", func(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"tangle": {Primary: "implementer", Agents: []string{"developer"}},
+				"develop": {Primary: "implementer", Agents: []string{"developer"}},
 			},
 		}
 
@@ -74,10 +74,10 @@ func TestBuildPhasePlan(t *testing.T) {
 			Agents:  []string{"ai-engineer", "business-analyst", "context-manager"},
 		}
 
-		phase := BuildPhasePlan("probe", phaseDefault, nil, "prompt")
+		phase := BuildPhasePlan("discover", phaseDefault, nil, "prompt")
 
-		if phase.Name != "probe" {
-			t.Errorf("expected phase name probe, got %s", phase.Name)
+		if phase.Name != "discover" {
+			t.Errorf("expected phase name discover, got %s", phase.Name)
 		}
 		if len(phase.Steps) == 0 {
 			t.Error("expected steps to be generated")
@@ -91,11 +91,11 @@ func TestBuildPhasePlan(t *testing.T) {
 		}
 
 		override := &PhaseOverride{
-			Name:       "tangle",
+			Name:       "develop",
 			MaxWorkers: 2,
 		}
 
-		phase := BuildPhasePlan("tangle", phaseDefault, override, "prompt")
+		phase := BuildPhasePlan("develop", phaseDefault, override, "prompt")
 
 		if phase.MaxWorkers != 2 {
 			t.Errorf("expected max_workers 2, got %d", phase.MaxWorkers)
@@ -106,14 +106,14 @@ func TestBuildPhasePlan(t *testing.T) {
 func TestBuildStepPlans(t *testing.T) {
 	t.Run("build steps from agents list", func(t *testing.T) {
 		agents := []string{"agent1", "agent2", "agent3"}
-		steps := BuildStepPlans("probe", agents, "base prompt")
+		steps := BuildStepPlans("discover", agents, "base prompt")
 
 		if len(steps) != 3 {
 			t.Errorf("expected 3 steps, got %d", len(steps))
 		}
 		for i, step := range steps {
-			if step.Phase != "probe" {
-				t.Errorf("step %d: expected phase probe, got %s", i, step.Phase)
+			if step.Phase != "discover" {
+				t.Errorf("step %d: expected phase discover, got %s", i, step.Phase)
 			}
 			if step.Agent != agents[i] {
 				t.Errorf("step %d: expected agent %s, got %s", i, agents[i], step.Agent)
@@ -123,7 +123,7 @@ func TestBuildStepPlans(t *testing.T) {
 
 	t.Run("steps have unique IDs", func(t *testing.T) {
 		agents := []string{"agent1", "agent2"}
-		steps := BuildStepPlans("probe", agents, "prompt")
+		steps := BuildStepPlans("discover", agents, "prompt")
 
 		ids := make(map[string]bool)
 		for _, step := range steps {
@@ -178,7 +178,7 @@ func TestPlanMetadata(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 		}
 
@@ -202,7 +202,7 @@ func TestPlanMetadata(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 		}
 
@@ -223,7 +223,7 @@ func TestPlanImmutability(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"a1", "a2"}},
+				"discover": {Primary: "researcher", Agents: []string{"a1", "a2"}},
 			},
 		}
 
@@ -243,6 +243,111 @@ func TestPlanImmutability(t *testing.T) {
 	})
 }
 
+func TestBuildPlan_Overrides(t *testing.T) {
+	t.Run("task perspective override replaces default decomposition", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"discover": {Primary: "researcher"},
+			},
+		}
+
+		taskOverride := &WorkflowOverride{
+			Perspectives: []PerspectiveOverride{
+				{Name: "security", Agent: "security-auditor", Description: "Focus on vulnerabilities"},
+				{Name: "performance", Agent: "perf-engineer", Description: "Focus on latency"},
+			},
+		}
+
+		plan, err := BuildPlan(global, "discover", "special-task", "prompt", "/work", taskOverride)
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		phase := plan.Phases[0]
+		if len(phase.Steps) != 2 {
+			t.Errorf("expected 2 steps from perspective override, got %d", len(phase.Steps))
+		}
+
+		if phase.Steps[0].Perspective != "security" {
+			t.Errorf("expected security perspective, got %s", phase.Steps[0].Perspective)
+		}
+		if phase.Steps[1].Perspective != "performance" {
+			t.Errorf("expected performance perspective, got %s", phase.Steps[1].Perspective)
+		}
+	})
+
+	t.Run("task parallel override", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"discover": {Primary: "researcher", Agents: []string{"a1", "a2"}},
+			},
+		}
+
+		enabled := false
+		taskOverride := &WorkflowOverride{
+			Parallel: &ParallelConfig{
+				Enabled:    &enabled,
+				MaxWorkers: 1,
+			},
+		}
+
+		plan, _ := BuildPlan(global, "discover", "serial-task", "prompt", "/work", taskOverride)
+		
+		phase := plan.Phases[0]
+		if phase.Parallel {
+			t.Error("expected parallel to be false via override")
+		}
+		if phase.MaxWorkers != 1 {
+			t.Errorf("expected max_workers 1, got %d", phase.MaxWorkers)
+		}
+	})
+}
+
+func TestBuildPlan_Perspectives(t *testing.T) {
+	t.Run("discover flow generates multiple perspectives", func(t *testing.T) {
+		global := &Config{
+			Version: "1",
+			PhaseDefaults: map[string]PhaseDefault{
+				"discover": {
+					Primary: "researcher",
+					Agents:  []string{"ai-engineer", "business-analyst", "security-expert"},
+				},
+			},
+		}
+
+		plan, err := BuildPlan(global, "discover", "", "Implement OAuth2", "/work")
+		if err != nil {
+			t.Fatalf("BuildPlan failed: %v", err)
+		}
+
+		if len(plan.Phases) == 0 {
+			t.Fatal("expected at least one phase")
+		}
+
+		phase := plan.Phases[0]
+		// We expect 3 steps because there are 3 agents, and each should have a unique perspective
+		if len(phase.Steps) != 3 {
+			t.Errorf("expected 3 steps, got %d", len(phase.Steps))
+		}
+
+		// Check that prompts are different (decomposed into perspectives)
+		// Currently they are likely all the same, which we want to fail
+		prompts := make(map[string]bool)
+		for _, step := range phase.Steps {
+			if step.Prompt == "" {
+				t.Errorf("step %s has empty prompt", step.ID)
+			}
+			prompts[step.Prompt] = true
+		}
+
+		if len(prompts) < 2 {
+			t.Errorf("expected at least 2 different perspective prompts, got %d", len(prompts))
+		}
+	})
+}
+
 func TestAllFlowPlans(t *testing.T) {
 	// T03-S03: Data-driven tests for all 6 flows with expected phases and step counts
 	flows := []struct {
@@ -251,21 +356,21 @@ func TestAllFlowPlans(t *testing.T) {
 		expectedPhases int
 		description    string
 	}{
-		{"discover", "probe", 1, "research and exploration phase"},
-		{"define", "grasp", 1, "requirements and scope phase"},
-		{"develop", "tangle", 1, "implementation phase"},
-		{"deliver", "ink", 1, "validation and review phase"},
+		{"discover", "discover", 1, "research and exploration phase"},
+		{"define", "define", 1, "requirements and scope phase"},
+		{"develop", "develop", 1, "implementation phase"},
+		{"deliver", "deliver", 1, "validation and review phase"},
 		{"debate", "debate", 1, "multi-AI deliberation phase"},
-		{"embrace", "probe", 4, "full 4-phase workflow (probe,grasp,tangle,ink)"},
+		{"embrace", "discover", 4, "full 4-phase workflow (discover,define,develop,deliver)"},
 	}
 
 	global := &Config{
 		Version: "1",
 		PhaseDefaults: map[string]PhaseDefault{
-			"probe":   {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
-			"grasp":   {Primary: "architect", Agents: []string{"backend-architect"}},
-			"tangle":  {Primary: "implementer", Agents: []string{"developer1", "developer2"}},
-			"ink":     {Primary: "reviewer", Agents: []string{"code-reviewer", "qa-engineer"}},
+			"discover":   {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
+			"define":   {Primary: "architect", Agents: []string{"backend-architect"}},
+			"develop":  {Primary: "implementer", Agents: []string{"developer1", "developer2"}},
+			"deliver":     {Primary: "reviewer", Agents: []string{"code-reviewer", "qa-engineer"}},
 			"debate":  {Primary: "debater", Agents: []string{"proponent", "opponent"}},
 			"embrace": {Primary: "coordinator"},
 		},
@@ -313,10 +418,10 @@ func TestFlowPhaseSequence(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe":   {Primary: "researcher"},
-				"grasp":   {Primary: "architect"},
-				"tangle":  {Primary: "implementer"},
-				"ink":     {Primary: "reviewer"},
+				"discover":   {Primary: "researcher"},
+				"define":   {Primary: "architect"},
+				"develop":  {Primary: "implementer"},
+				"deliver":     {Primary: "reviewer"},
 			},
 		}
 
@@ -325,7 +430,7 @@ func TestFlowPhaseSequence(t *testing.T) {
 			t.Fatalf("BuildPlan failed: %v", err)
 		}
 
-		expectedSequence := []string{"probe", "grasp", "tangle", "ink"}
+		expectedSequence := []string{"discover", "define", "develop", "deliver"}
 		if len(plan.Phases) != len(expectedSequence) {
 			t.Fatalf("expected %d phases, got %d", len(expectedSequence), len(plan.Phases))
 		}
@@ -344,7 +449,7 @@ func TestFlowStepCounts(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst", "context-manager"}},
+				"discover": {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst", "context-manager"}},
 			},
 		}
 
@@ -362,7 +467,7 @@ func TestFlowStepCounts(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"tangle": {Primary: "implementer"},
+				"develop": {Primary: "implementer"},
 			},
 		}
 
@@ -401,7 +506,7 @@ func TestFlowParallelExecution(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"a1", "a2", "a3"}},
+				"discover": {Primary: "researcher", Agents: []string{"a1", "a2", "a3"}},
 			},
 		}
 
@@ -416,7 +521,7 @@ func TestFlowParallelExecution(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"tangle": {Primary: "implementer"},
+				"develop": {Primary: "implementer"},
 			},
 		}
 
@@ -433,7 +538,7 @@ func TestPlanWithTaskOverrides(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"a1"}},
+				"discover": {Primary: "researcher", Agents: []string{"a1"}},
 			},
 		}
 
@@ -457,7 +562,7 @@ func TestPlanDeterminism(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"a1", "a2"}},
+				"discover": {Primary: "researcher", Agents: []string{"a1", "a2"}},
 			},
 		}
 
@@ -490,7 +595,7 @@ func TestTaskSpecificOverrides(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"a1", "a2", "a3"}},
+				"discover": {Primary: "researcher", Agents: []string{"a1", "a2", "a3"}},
 			},
 		}
 
@@ -521,7 +626,7 @@ func TestTaskSpecificOverrides(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"tangle": {Primary: "implementer", Agents: []string{"d1", "d2", "d3", "d4"}},
+				"develop": {Primary: "implementer", Agents: []string{"d1", "d2", "d3", "d4"}},
 			},
 		}
 
@@ -546,7 +651,7 @@ func TestTaskSpecificOverrides(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 		}
 
@@ -572,13 +677,13 @@ func TestTaskSpecificOverrides(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher", Agents: []string{"default-agent"}},
+				"discover": {Primary: "researcher", Agents: []string{"default-agent"}},
 			},
 		}
 
 		taskOverride := &WorkflowOverride{
 			Phases: []PhaseOverride{
-				{Name: "probe", Agent: "custom-researcher", Agents: []string{"custom1", "custom2"}},
+				{Name: "discover", Agent: "custom-researcher", Agents: []string{"custom1", "custom2"}},
 			},
 		}
 
@@ -600,7 +705,7 @@ func TestTaskSpecificOverrides(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 		}
 
@@ -630,7 +735,7 @@ func TestWorkflowModelOverride(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"probe": {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 			},
 		}
 
@@ -649,7 +754,7 @@ func TestWorkflowModelOverride(t *testing.T) {
 		// Build plan with merged config
 		plan := &ExecutionPlan{
 			WorkflowName: "discover",
-			Phases:       []PhasePlan{{Name: "probe", Steps: []StepPlan{{Agent: "researcher"}}}},
+			Phases:       []PhasePlan{{Name: "discover", Steps: []StepPlan{{Agent: "researcher"}}}},
 			Metadata: PlanMetadata{
 				ResolvedConfig: merged,
 			},
