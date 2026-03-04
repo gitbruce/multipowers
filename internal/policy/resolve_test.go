@@ -341,3 +341,208 @@ func TestResolverPrecedence(t *testing.T) {
 		t.Errorf("unknown task should fall back to default, got %s", contract.RequestedModel)
 	}
 }
+
+// TestModelPatternInference tests provider inference from model patterns
+func TestModelPatternInference(t *testing.T) {
+	policy := &RuntimePolicy{
+		Version: "1",
+		Executors: map[string]RuntimeExecutor{
+			"codex_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"codex", "exec", "-m", "{model}", "{prompt}"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{"^gpt-.*", "^o3$", ".*codex.*"},
+			},
+			"gemini_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"gemini", "-m", "{model}", "-p", "{prompt}"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{"^gemini-.*"},
+			},
+			"claude_code": {
+				Kind:        ExecutorKindClaudeCode,
+				Enforcement: EnforcementHint,
+				ModelPatterns: []string{"^claude-.*"},
+			},
+		},
+	}
+
+	resolver := NewResolver(policy)
+
+	tests := []struct {
+		name            string
+		model           string
+		executorProfile string // explicit profile (empty = inference)
+		wantProfile     string
+		wantKind        ExecutorKind
+	}{
+		{
+			name:        "gpt model infers codex_cli",
+			model:       "gpt-5.3-codex",
+			wantProfile: "codex_cli",
+			wantKind:    ExecutorKindExternalCLI,
+		},
+		{
+			name:        "o3 model infers codex_cli",
+			model:       "o3",
+			wantProfile: "codex_cli",
+			wantKind:    ExecutorKindExternalCLI,
+		},
+		{
+			name:        "codex suffix infers codex_cli",
+			model:       "some-codex-model",
+			wantProfile: "codex_cli",
+			wantKind:    ExecutorKindExternalCLI,
+		},
+		{
+			name:        "gemini model infers gemini_cli",
+			model:       "gemini-3-pro-preview",
+			wantProfile: "gemini_cli",
+			wantKind:    ExecutorKindExternalCLI,
+		},
+		{
+			name:        "claude model infers claude_code",
+			model:       "claude-sonnet-4.5",
+			wantProfile: "claude_code",
+			wantKind:    ExecutorKindClaudeCode,
+		},
+		{
+			name:        "claude opus infers claude_code",
+			model:       "claude-opus-4.6",
+			wantProfile: "claude_code",
+			wantKind:    ExecutorKindClaudeCode,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			profile, executor, err := resolver.resolveExecutorForModel(tt.model, tt.executorProfile)
+			if err != nil {
+				t.Fatalf("resolveExecutorForModel failed: %v", err)
+			}
+			if profile != tt.wantProfile {
+				t.Errorf("profile: got %q, want %q", profile, tt.wantProfile)
+			}
+			if executor.Kind != tt.wantKind {
+				t.Errorf("kind: got %q, want %q", executor.Kind, tt.wantKind)
+			}
+		})
+	}
+}
+
+// TestExplicitProfileWinsOverInference tests that explicit profile takes precedence
+func TestExplicitProfileWinsOverInference(t *testing.T) {
+	policy := &RuntimePolicy{
+		Version: "1",
+		Executors: map[string]RuntimeExecutor{
+			"codex_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"codex"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{"^gpt-.*"},
+			},
+			"gemini_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"gemini"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{"^gemini-.*"},
+			},
+			"claude_code": {
+				Kind:        ExecutorKindClaudeCode,
+				Enforcement: EnforcementHint,
+				ModelPatterns: []string{"^claude-.*"},
+			},
+		},
+	}
+
+	resolver := NewResolver(policy)
+
+	// Even though gpt-5.3-codex matches codex_cli pattern,
+	// explicit profile should win
+	profile, executor, err := resolver.resolveExecutorForModel("gpt-5.3-codex", "gemini_cli")
+	if err != nil {
+		t.Fatalf("resolveExecutorForModel failed: %v", err)
+	}
+	if profile != "gemini_cli" {
+		t.Errorf("explicit profile should win: got %q, want %q", profile, "gemini_cli")
+	}
+	if executor.Kind != ExecutorKindExternalCLI {
+		t.Errorf("kind: got %q, want %q", executor.Kind, ExecutorKindExternalCLI)
+	}
+}
+
+// TestDeterministicFallback tests deterministic fallback when no pattern matches
+func TestDeterministicFallback(t *testing.T) {
+	policy := &RuntimePolicy{
+		Version: "1",
+		Executors: map[string]RuntimeExecutor{
+			"codex_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"codex"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{"^gpt-.*"}, // Only matches gpt
+			},
+			"gemini_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"gemini"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{"^gemini-.*"}, // Only matches gemini
+			},
+			"claude_code": {
+				Kind:        ExecutorKindClaudeCode,
+				Enforcement: EnforcementHint,
+				// No model patterns - won't match anything
+			},
+		},
+	}
+
+	resolver := NewResolver(policy)
+
+	// Model that doesn't match any pattern should fall back to claude_code
+	// (as it's the default fallback in resolveExecutorForModel)
+	profile, _, err := resolver.resolveExecutorForModel("unknown-model-xyz", "")
+	if err != nil {
+		t.Fatalf("resolveExecutorForModel failed: %v", err)
+	}
+	// Should fall back to claude_code as the default
+	if profile != "claude_code" {
+		t.Errorf("unknown model should fall back to claude_code, got %q", profile)
+	}
+}
+
+// TestModelPatternPriority tests that patterns are checked in sorted order
+func TestModelPatternPriority(t *testing.T) {
+	policy := &RuntimePolicy{
+		Version: "1",
+		Executors: map[string]RuntimeExecutor{
+			"alpha_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"alpha"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{".*special.*"},
+			},
+			"beta_cli": {
+				Kind:            ExecutorKindExternalCLI,
+				CommandTemplate: []string{"beta"},
+				Enforcement:     EnforcementHard,
+				ModelPatterns:   []string{".*special.*"},
+			},
+			"claude_code": {
+				Kind:        ExecutorKindClaudeCode,
+				Enforcement: EnforcementHint,
+			},
+		},
+	}
+
+	resolver := NewResolver(policy)
+
+	// When multiple providers match, should use alphabetically first
+	profile, _, err := resolver.resolveExecutorForModel("special-model", "")
+	if err != nil {
+		t.Fatalf("resolveExecutorForModel failed: %v", err)
+	}
+	// alpha_cli comes before beta_cli alphabetically
+	if profile != "alpha_cli" {
+		t.Errorf("expected alphabetically first match alpha_cli, got %q", profile)
+	}
+}
