@@ -33,7 +33,7 @@
 
 | Task ID | Task Name | Status | Last Update |
 |---|---|---|---|
-| E1 | Config Schema: Shared Execution Isolation + Sync Gate | TODO | - |
+| E1 | Config Schema: Shared Execution Isolation + Sync Gate | DONE | 2026-03-05 02:21:40 CST |
 | E2 | Shared Isolation Policy Resolver | TODO | - |
 | E3 | Shared Git Worktree Runtime Manager | TODO | - |
 | E4 | Event-Driven Model Progress + Heartbeats | TODO | - |
@@ -46,7 +46,7 @@
 
 ### Task E1: Config Schema: Shared Execution Isolation + Sync Gate
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Runtime enforcement requires explicit config to avoid hardcoded behavior.

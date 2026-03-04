@@ -1,13 +1,14 @@
 package orchestration
 
 type Config struct {
-	Version       string                  `yaml:"version"`
-	MaxWorkers    int                     `yaml:"max_workers,omitempty"`
-	PhaseDefaults map[string]PhaseDefault `yaml:"phase_defaults,omitempty"`
-	RalphWiggum   RalphWiggumConfig       `yaml:"ralph_wiggum,omitempty"`
-	SkillTriggers map[string]SkillTrigger `yaml:"skill_triggers,omitempty"`
-	BenchmarkMode BenchmarkModeConfig     `yaml:"benchmark_mode,omitempty"`
-	SmartRouting  SmartRoutingConfig      `yaml:"smart_routing,omitempty"`
+	Version            string                   `yaml:"version"`
+	MaxWorkers         int                      `yaml:"max_workers,omitempty"`
+	PhaseDefaults      map[string]PhaseDefault  `yaml:"phase_defaults,omitempty"`
+	RalphWiggum        RalphWiggumConfig        `yaml:"ralph_wiggum,omitempty"`
+	SkillTriggers      map[string]SkillTrigger  `yaml:"skill_triggers,omitempty"`
+	ExecutionIsolation ExecutionIsolationConfig `yaml:"execution_isolation,omitempty"`
+	BenchmarkMode      BenchmarkModeConfig      `yaml:"benchmark_mode,omitempty"`
+	SmartRouting       SmartRoutingConfig       `yaml:"smart_routing,omitempty"`
 }
 
 type PhaseDefault struct {
@@ -28,14 +29,21 @@ type SkillTrigger struct {
 }
 
 type BenchmarkModeConfig struct {
-	Enabled              bool                          `yaml:"enabled"`
-	AsyncEnabled         bool                          `yaml:"async_enabled,omitempty"`
-	ForceAllModelsOnCode bool                          `yaml:"force_all_models_on_code,omitempty"`
-	JudgeModel           string                        `yaml:"judge_model,omitempty"`
-	CodeIntent           BenchmarkCodeIntentConfig     `yaml:"code_intent,omitempty"`
-	Storage              BenchmarkStorageConfig        `yaml:"storage,omitempty"`
-	Scoring              BenchmarkScoringConfig        `yaml:"scoring,omitempty"`
-	FaultTolerance       BenchmarkFaultToleranceConfig `yaml:"fault_tolerance,omitempty"`
+	Enabled              bool                            `yaml:"enabled"`
+	AsyncEnabled         bool                            `yaml:"async_enabled,omitempty"`
+	ForceAllModelsOnCode bool                            `yaml:"force_all_models_on_code,omitempty"`
+	JudgeModel           string                          `yaml:"judge_model,omitempty"`
+	ExecutionProfile     BenchmarkExecutionProfileConfig `yaml:"execution_profile,omitempty"`
+	CodeIntent           BenchmarkCodeIntentConfig       `yaml:"code_intent,omitempty"`
+	Storage              BenchmarkStorageConfig          `yaml:"storage,omitempty"`
+	Scoring              BenchmarkScoringConfig          `yaml:"scoring,omitempty"`
+	FaultTolerance       BenchmarkFaultToleranceConfig   `yaml:"fault_tolerance,omitempty"`
+}
+
+type BenchmarkExecutionProfileConfig struct {
+	Enabled           bool     `yaml:"enabled"`
+	RequireCodeIntent bool     `yaml:"require_code_intent,omitempty"`
+	CommandWhitelist  []string `yaml:"command_whitelist,omitempty"`
 }
 
 type BenchmarkCodeIntentConfig struct {
@@ -75,6 +83,19 @@ type SmartRoutingConfig struct {
 	Strategy                      string   `yaml:"strategy,omitempty"`
 	MinSamplesPerModel            int      `yaml:"min_samples_per_model,omitempty"`
 	MatchKeys                     []string `yaml:"match_keys,omitempty"`
+}
+
+type ExecutionIsolationConfig struct {
+	Enabled                  bool     `yaml:"enabled"`
+	CommandWhitelist         []string `yaml:"command_whitelist,omitempty"`
+	BranchPrefix             string   `yaml:"branch_prefix,omitempty"`
+	WorktreeRoot             string   `yaml:"worktree_root,omitempty"`
+	RepairRetryMax           int      `yaml:"repair_retry_max,omitempty"`
+	GlobalTimeoutMs          int      `yaml:"global_timeout_ms,omitempty"`
+	ProceedPolicy            string   `yaml:"proceed_policy,omitempty"`
+	MinCompletedModels       int      `yaml:"min_completed_models,omitempty"`
+	HeartbeatIntervalSeconds int      `yaml:"heartbeat_interval_seconds,omitempty"`
+	LogsSubdir               string   `yaml:"logs_subdir,omitempty"`
 }
 
 type AgentProfile struct {

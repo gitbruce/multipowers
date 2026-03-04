@@ -47,6 +47,7 @@ func LoadConfigFromProjectDir(projectDir string) (*Config, error) {
 	if cfg.SkillTriggers == nil {
 		cfg.SkillTriggers = map[string]SkillTrigger{}
 	}
+	applyExecutionIsolationDefaults(&cfg.ExecutionIsolation)
 	if cfg.SmartRouting.MinSamplesPerModel == 0 {
 		cfg.SmartRouting.MinSamplesPerModel = 10
 	}
@@ -62,6 +63,9 @@ func LoadConfigFromProjectDir(projectDir string) (*Config, error) {
 		return nil, err
 	}
 	if err := validateBenchmarkRoutingConfig(&cfg); err != nil {
+		return nil, err
+	}
+	if err := validateExecutionIsolationConfig(&cfg.ExecutionIsolation); err != nil {
 		return nil, err
 	}
 
@@ -98,6 +102,74 @@ func validateBenchmarkRoutingConfig(cfg *Config) error {
 		return &ConfigError{
 			Field:  "smart_routing.min_samples_per_model",
 			Reason: "must be >= 1",
+		}
+	}
+	return nil
+}
+
+func applyExecutionIsolationDefaults(cfg *ExecutionIsolationConfig) {
+	if cfg == nil {
+		return
+	}
+	if strings.TrimSpace(cfg.BranchPrefix) == "" {
+		cfg.BranchPrefix = "bench"
+	}
+	if strings.TrimSpace(cfg.WorktreeRoot) == "" {
+		cfg.WorktreeRoot = ".worktrees/bench"
+	}
+	if cfg.RepairRetryMax <= 0 {
+		cfg.RepairRetryMax = 1
+	}
+	if cfg.GlobalTimeoutMs <= 0 {
+		cfg.GlobalTimeoutMs = 120000
+	}
+	if strings.TrimSpace(cfg.ProceedPolicy) == "" {
+		cfg.ProceedPolicy = "all_or_timeout"
+	}
+	if cfg.MinCompletedModels <= 0 {
+		cfg.MinCompletedModels = 1
+	}
+	if cfg.HeartbeatIntervalSeconds <= 0 {
+		cfg.HeartbeatIntervalSeconds = 30
+	}
+	if strings.TrimSpace(cfg.LogsSubdir) == "" {
+		cfg.LogsSubdir = "logs"
+	}
+}
+
+func validateExecutionIsolationConfig(cfg *ExecutionIsolationConfig) error {
+	if cfg == nil {
+		return nil
+	}
+	policy := strings.TrimSpace(cfg.ProceedPolicy)
+	if policy != "all_done" && policy != "all_or_timeout" && policy != "majority_or_timeout" {
+		return &ConfigError{
+			Field:  "execution_isolation.proceed_policy",
+			Reason: "must be one of all_done, all_or_timeout, majority_or_timeout",
+		}
+	}
+	if cfg.GlobalTimeoutMs < 1 {
+		return &ConfigError{
+			Field:  "execution_isolation.global_timeout_ms",
+			Reason: "must be >= 1",
+		}
+	}
+	if cfg.MinCompletedModels < 1 {
+		return &ConfigError{
+			Field:  "execution_isolation.min_completed_models",
+			Reason: "must be >= 1",
+		}
+	}
+	if cfg.HeartbeatIntervalSeconds < 1 {
+		return &ConfigError{
+			Field:  "execution_isolation.heartbeat_interval_seconds",
+			Reason: "must be >= 1",
+		}
+	}
+	if cfg.RepairRetryMax < 0 {
+		return &ConfigError{
+			Field:  "execution_isolation.repair_retry_max",
+			Reason: "must be >= 0",
 		}
 	}
 	return nil
