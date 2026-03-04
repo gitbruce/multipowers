@@ -12,6 +12,8 @@
   - Status: planned
 - [ ] **Track: Go Orchestration Full-Flow Migration**
   - *Link: [./tracks/go_orchestration_20260304/](./tracks/go_orchestration_20260304/)*
+- [ ] **Track: Multi-Model Code Benchmarking System**
+  - *Link: [./tracks/model_benchmark_20260304/](./tracks/model_benchmark_20260304/)*
 
 ## Template
 - [ ] Txxx <track name>
