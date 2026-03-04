@@ -5,6 +5,8 @@ import (
 
 	"github.com/gitbruce/claude-octopus/internal/benchmark"
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
+	"github.com/gitbruce/claude-octopus/internal/isolation"
+	"github.com/gitbruce/claude-octopus/internal/orchestration"
 	"github.com/gitbruce/claude-octopus/internal/policy"
 	"github.com/gitbruce/claude-octopus/pkg/api"
 )
@@ -78,6 +80,7 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 		HasLLMSemantic:      false,
 		LLMDecisionPriority: true,
 	})
+	isolationMetadata := resolveExecutionIsolation(projectDir, workflowName, intent.CodeRelated)
 	resolver, err := policy.NewResolverFromProjectDir(projectDir)
 	if err != nil {
 		return map[string]any{
@@ -90,6 +93,7 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 				"source":       intent.Source,
 				"whitelist":    intent.WhitelistHits,
 			},
+			"execution_isolation": isolationMetadata,
 		}
 	}
 
@@ -101,6 +105,7 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 				"source":       intent.Source,
 				"whitelist":    intent.WhitelistHits,
 			},
+			"execution_isolation": isolationMetadata,
 		}
 	}
 
@@ -119,6 +124,7 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 				"source":       intent.Source,
 				"whitelist":    intent.WhitelistHits,
 			},
+			"execution_isolation": isolationMetadata,
 		}
 	}
 
@@ -138,6 +144,7 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 			"source":       intent.Source,
 			"whitelist":    intent.WhitelistHits,
 		},
+		"execution_isolation": isolationMetadata,
 	}
 }
 
@@ -201,4 +208,50 @@ func extractIntentWhitelistHits(prompt string) []string {
 		}
 	}
 	return hits
+}
+
+func resolveExecutionIsolation(projectDir, workflowName string, codeRelated bool) map[string]any {
+	cfg, err := orchestration.LoadConfigFromProjectDir(projectDir)
+	if err != nil {
+		return map[string]any{
+			"enforced": false,
+			"reason":   "config_load_error",
+			"error":    err.Error(),
+		}
+	}
+
+	decision := isolation.ResolveIsolationPolicy(isolation.IsolationPolicyInput{
+		IsolationEnabled: cfg.ExecutionIsolation.Enabled,
+		ExternalCommand:  strings.TrimSpace(workflowName) != "",
+		MayEditFiles:     mayEditFilesForWorkflow(workflowName),
+		CodeRelated:      codeRelated,
+		Command:          workflowName,
+		Whitelist:        cfg.ExecutionIsolation.CommandWhitelist,
+		BenchmarkProfile: isolation.BenchmarkProfileInput{
+			Enabled:           cfg.BenchmarkMode.ExecutionProfile.Enabled,
+			RequireCodeIntent: cfg.BenchmarkMode.ExecutionProfile.RequireCodeIntent,
+			CommandWhitelist:  cfg.BenchmarkMode.ExecutionProfile.CommandWhitelist,
+		},
+	})
+
+	return map[string]any{
+		"enforced":                decision.Enforced,
+		"reason":                  decision.Reason,
+		"shared_whitelist_match":  decision.SharedWhitelistMatch,
+		"profile_whitelist_match": decision.ProfileWhitelistMatch,
+		"command":                 strings.TrimSpace(workflowName),
+		"code_related":            codeRelated,
+		"may_edit_files":          mayEditFilesForWorkflow(workflowName),
+		"branch_prefix":           cfg.ExecutionIsolation.BranchPrefix,
+		"worktree_root":           cfg.ExecutionIsolation.WorktreeRoot,
+	}
+}
+
+func mayEditFilesForWorkflow(workflowName string) bool {
+	switch strings.ToLower(strings.TrimSpace(workflowName)) {
+	case "develop", "review", "embrace", "deliver", "debug", "tdd", "security":
+		return true
+	default:
+		return false
+	}
 }

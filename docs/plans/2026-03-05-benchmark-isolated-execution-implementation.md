@@ -34,7 +34,7 @@
 | Task ID | Task Name | Status | Last Update |
 |---|---|---|---|
 | E1 | Config Schema: Shared Execution Isolation + Sync Gate | DONE | 2026-03-05 02:21:40 CST |
-| E2 | Shared Isolation Policy Resolver | TODO | - |
+| E2 | Shared Isolation Policy Resolver | DONE | 2026-03-05 02:26:44 CST |
 | E3 | Shared Git Worktree Runtime Manager | TODO | - |
 | E4 | Event-Driven Model Progress + Heartbeats | TODO | - |
 | E5 | Sync Gate Collector with Timeout Degradation | TODO | - |
@@ -128,7 +128,7 @@ git commit -m "feat(config): add shared execution isolation and sync gate schema
 
 ### Task E2: Shared Isolation Policy Resolver
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Enforcement must be deterministic and auditable.
