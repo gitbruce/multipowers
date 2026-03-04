@@ -39,7 +39,7 @@
 | E4 | Event-Driven Model Progress + Heartbeats | DONE | 2026-03-05 02:33:06 CST |
 | E5 | Sync Gate Collector with Timeout Degradation | DONE | 2026-03-05 02:35:59 CST |
 | E6 | Critic Top-1 Deterministic Selection | DONE | 2026-03-05 02:37:46 CST |
-| E7 | Integration Branch + Same-Model Repair Retry | TODO | - |
+| E7 | Integration Branch + Same-Model Repair Retry | DONE | 2026-03-05 02:40:00 CST |
 | E8 | JSONL/Docs/E2E Verification | TODO | - |
 
 ---
@@ -471,7 +471,7 @@ git commit -m "feat(isolation): add deterministic critic top-1 selection"
 
 ### Task E7: Integration Branch + Same-Model Repair Retry
 
-**Status:** TODO
+**Status:** DONE
 
 **Why**
 - Top-1 merge/gate failures need deterministic automated recovery.

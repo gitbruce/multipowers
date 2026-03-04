@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gitbruce/claude-octopus/internal/benchmark"
+	"github.com/gitbruce/claude-octopus/internal/isolation"
 )
 
 func TestFinalSynthesis(t *testing.T) {
@@ -256,6 +257,39 @@ func TestBenchmarkQueueFailureDoesNotFailExecution(t *testing.T) {
 	}
 	if result.Completed != 1 {
 		t.Fatalf("completed = %d, want 1", result.Completed)
+	}
+}
+
+func TestIntegrationFlow_RepairRetryOnce(t *testing.T) {
+	mergeCalls := 0
+	repairCalls := 0
+	result := isolation.IntegrateTopCandidate(isolation.IntegrationInput{
+		TopCandidate:   isolation.CandidateScore{Model: "gpt-4o", Branch: "bench/run-7/gpt-4o"},
+		RepairRetryMax: 1,
+		MergeFn: func(candidate isolation.CandidateScore, integrationBranch string) error {
+			mergeCalls++
+			if mergeCalls == 1 {
+				return errors.New("merge failed")
+			}
+			return nil
+		},
+		RepairFn: func(model string, attempt int) error {
+			repairCalls++
+			return nil
+		},
+	})
+
+	if result.Status != isolation.IntegrationStatusRepairRetry {
+		t.Fatalf("status = %q, want %q", result.Status, isolation.IntegrationStatusRepairRetry)
+	}
+	if result.RepairRetryUsed != 1 {
+		t.Fatalf("repair_retry_used = %d, want 1", result.RepairRetryUsed)
+	}
+	if mergeCalls != 2 {
+		t.Fatalf("merge_calls = %d, want 2", mergeCalls)
+	}
+	if repairCalls != 1 {
+		t.Fatalf("repair_calls = %d, want 1", repairCalls)
 	}
 }
 
