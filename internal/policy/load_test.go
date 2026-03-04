@@ -178,3 +178,240 @@ agents:
 		}
 	})
 }
+
+// TestLoadWorkflowOrchestrationOverrides tests parsing orchestration override sections in workflows
+func TestLoadWorkflowOrchestrationOverrides(t *testing.T) {
+	t.Run("minimal workflow without overrides", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		workflowsYAML := `version: "1"
+workflows:
+  discover:
+    default:
+      model: gemini-3-pro-preview
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		discover := cfg.Workflows.Workflows["discover"]
+		if discover.Default.Orchestration != nil {
+			t.Error("orchestration should be nil when not specified")
+		}
+	})
+
+	t.Run("workflow with phase overrides", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		workflowsYAML := `version: "1"
+workflows:
+  discover:
+    default:
+      model: gemini-3-pro-preview
+      orchestration:
+        phases:
+          - name: probe
+            agent: researcher
+            max_workers: 3
+          - name: grasp
+            agent: architect
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		discover := cfg.Workflows.Workflows["discover"]
+		if discover.Default.Orchestration == nil {
+			t.Fatal("orchestration should be set")
+		}
+		if len(discover.Default.Orchestration.Phases) != 2 {
+			t.Fatalf("expected 2 phases, got %d", len(discover.Default.Orchestration.Phases))
+		}
+		if discover.Default.Orchestration.Phases[0].Agent != "researcher" {
+			t.Errorf("expected researcher, got %s", discover.Default.Orchestration.Phases[0].Agent)
+		}
+	})
+
+	t.Run("workflow with perspective overrides", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		workflowsYAML := `version: "1"
+workflows:
+  discover:
+    default:
+      model: gemini-3-pro-preview
+      orchestration:
+        perspectives:
+          - name: security
+            agent: security-auditor
+            model: claude-sonnet-4.5
+          - name: performance
+            agent: performance-engineer
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		discover := cfg.Workflows.Workflows["discover"]
+		if len(discover.Default.Orchestration.Perspectives) != 2 {
+			t.Fatalf("expected 2 perspectives, got %d", len(discover.Default.Orchestration.Perspectives))
+		}
+		if discover.Default.Orchestration.Perspectives[0].Model != "claude-sonnet-4.5" {
+			t.Errorf("expected claude-sonnet-4.5, got %s", discover.Default.Orchestration.Perspectives[0].Model)
+		}
+	})
+
+	t.Run("workflow with parallel config", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		enabled := true
+		workflowsYAML := `version: "1"
+workflows:
+  develop:
+    default:
+      model: gpt-5.3-codex
+      orchestration:
+        parallel:
+          enabled: true
+          max_workers: 5
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		develop := cfg.Workflows.Workflows["develop"]
+		if develop.Default.Orchestration.Parallel == nil {
+			t.Fatal("parallel config should be set")
+		}
+		if develop.Default.Orchestration.Parallel.MaxWorkers != 5 {
+			t.Errorf("expected max_workers 5, got %d", develop.Default.Orchestration.Parallel.MaxWorkers)
+		}
+		if *develop.Default.Orchestration.Parallel.Enabled != enabled {
+			t.Errorf("expected enabled true")
+		}
+	})
+
+	t.Run("workflow with synthesis config", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		progEnabled := true
+		finalEnabled := true
+		workflowsYAML := `version: "1"
+workflows:
+  discover:
+    default:
+      model: gemini-3-pro-preview
+      orchestration:
+        synthesis:
+          progressive:
+            enabled: true
+            min_completed: 2
+            min_bytes: 1000
+          final_enabled: true
+          model: claude-sonnet-4.5
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		discover := cfg.Workflows.Workflows["discover"]
+		if discover.Default.Orchestration.Synthesis == nil {
+			t.Fatal("synthesis config should be set")
+		}
+		if discover.Default.Orchestration.Synthesis.Model != "claude-sonnet-4.5" {
+			t.Errorf("expected model claude-sonnet-4.5, got %s", discover.Default.Orchestration.Synthesis.Model)
+		}
+		if *discover.Default.Orchestration.Synthesis.Progressive.Enabled != progEnabled {
+			t.Error("expected progressive enabled")
+		}
+		if discover.Default.Orchestration.Synthesis.Progressive.MinCompleted != 2 {
+			t.Errorf("expected min_completed 2, got %d", discover.Default.Orchestration.Synthesis.Progressive.MinCompleted)
+		}
+		if *discover.Default.Orchestration.Synthesis.FinalEnabled != finalEnabled {
+			t.Error("expected final_enabled true")
+		}
+	})
+
+	t.Run("task with orchestration overrides", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		workflowsYAML := `version: "1"
+workflows:
+  define:
+    default:
+      model: gpt-5.3-codex
+    tasks:
+      security-review:
+        model: claude-sonnet-4.5
+        orchestration:
+          perspectives:
+            - name: owasp
+              agent: security-auditor
+          parallel:
+            max_workers: 10
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		define := cfg.Workflows.Workflows["define"]
+		task := define.Tasks["security-review"]
+		if task.Orchestration == nil {
+			t.Fatal("task orchestration should be set")
+		}
+		if len(task.Orchestration.Perspectives) != 1 {
+			t.Errorf("expected 1 perspective, got %d", len(task.Orchestration.Perspectives))
+		}
+		if task.Orchestration.Parallel.MaxWorkers != 10 {
+			t.Errorf("expected max_workers 10, got %d", task.Orchestration.Parallel.MaxWorkers)
+		}
+	})
+
+	t.Run("no override node means fallback to global", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		workflowsYAML := `version: "1"
+workflows:
+  deliver:
+    default:
+      model: claude-sonnet-4.5
+`
+		if err := os.WriteFile(filepath.Join(tmpDir, "workflows.yaml"), []byte(workflowsYAML), 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		cfg, err := LoadSourceConfig(tmpDir)
+		if err != nil {
+			t.Fatalf("LoadSourceConfig failed: %v", err)
+		}
+
+		deliver := cfg.Workflows.Workflows["deliver"]
+		// No orchestration node means all settings fall back to global defaults
+		if deliver.Default.Orchestration != nil {
+			t.Error("orchestration should be nil when not specified")
+		}
+	})
+}
