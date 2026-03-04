@@ -3,6 +3,7 @@ package hooks
 import (
 	"strings"
 
+	"github.com/gitbruce/claude-octopus/internal/benchmark"
 	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
 	"github.com/gitbruce/claude-octopus/internal/policy"
 	"github.com/gitbruce/claude-octopus/pkg/api"
@@ -72,6 +73,11 @@ func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 // resolveModelRouting resolves model routing using the compiled policy resolver.
 func resolveModelRouting(projectDir, prompt string) map[string]any {
 	workflowName := extractWorkflowName(prompt)
+	intent := benchmark.ClassifyCodeIntent(benchmark.IntentRequest{
+		WhitelistHits:       extractIntentWhitelistHits(prompt),
+		HasLLMSemantic:      false,
+		LLMDecisionPriority: true,
+	})
 	resolver, err := policy.NewResolverFromProjectDir(projectDir)
 	if err != nil {
 		return map[string]any{
@@ -79,12 +85,22 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 			"model_routing": map[string]any{
 				"command": workflowName,
 			},
+			"benchmark_code_intent": map[string]any{
+				"code_related": intent.CodeRelated,
+				"source":       intent.Source,
+				"whitelist":    intent.WhitelistHits,
+			},
 		}
 	}
 
 	if workflowName == "" {
 		return map[string]any{
 			"model_routing_error": "workflow name missing from prompt",
+			"benchmark_code_intent": map[string]any{
+				"code_related": intent.CodeRelated,
+				"source":       intent.Source,
+				"whitelist":    intent.WhitelistHits,
+			},
 		}
 	}
 
@@ -97,6 +113,11 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 			"model_routing_error": err.Error(),
 			"model_routing": map[string]any{
 				"command": workflowName,
+			},
+			"benchmark_code_intent": map[string]any{
+				"code_related": intent.CodeRelated,
+				"source":       intent.Source,
+				"whitelist":    intent.WhitelistHits,
 			},
 		}
 	}
@@ -112,6 +133,11 @@ func resolveModelRouting(projectDir, prompt string) map[string]any {
 			"source":             contract.SourceRef,
 			"resolved_by_policy": true,
 		},
+		"benchmark_code_intent": map[string]any{
+			"code_related": intent.CodeRelated,
+			"source":       intent.Source,
+			"whitelist":    intent.WhitelistHits,
+		},
 	}
 }
 
@@ -126,4 +152,53 @@ func extractWorkflowName(prompt string) string {
 		return p[:i]
 	}
 	return p
+}
+
+func extractIntentWhitelistHits(prompt string) []string {
+	p := strings.ToLower(prompt)
+	hits := make([]string, 0, 8)
+	seen := map[string]struct{}{}
+
+	add := func(tag string) {
+		if _, ok := seen[tag]; ok {
+			return
+		}
+		seen[tag] = struct{}{}
+		hits = append(hits, tag)
+	}
+
+	for token, tag := range map[string]string{
+		"/mp:develop":  "task_type:develop",
+		"/mp:debug":    "task_type:debug",
+		"/mp:review":   "task_type:review",
+		"/mp:research": "task_type:research",
+		"/mp:plan":     "task_type:plan",
+		"go":           "language:go",
+		"python":       "language:python",
+		"typescript":   "language:typescript",
+		"javascript":   "language:javascript",
+		"java":         "language:java",
+		"rust":         "language:rust",
+		"react":        "framework:react",
+		"vue":          "framework:vue",
+		"angular":      "framework:angular",
+		"next.js":      "framework:nextjs",
+		"django":       "framework:django",
+		"flask":        "framework:flask",
+		"spring":       "framework:spring",
+		"api":          "tech:api",
+		"endpoint":     "tech:endpoint",
+		"database":     "tech:database",
+		"sql":          "tech:sql",
+		"schema":       "tech:schema",
+		"function":     "tech:function",
+		"class":        "tech:class",
+		"test":         "tech:test",
+		"benchmark":    "tech:benchmark",
+	} {
+		if strings.Contains(p, token) {
+			add(tag)
+		}
+	}
+	return hits
 }
