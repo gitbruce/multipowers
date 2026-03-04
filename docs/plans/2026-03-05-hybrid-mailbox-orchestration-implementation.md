@@ -47,7 +47,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | T4 | Mailbox Reader + Idempotent Processor | DONE | 2026-03-05 03:34 CST | pending |
 | T5 | Structural Conflict Monitor | DONE | 2026-03-05 03:36 CST | pending |
 | T6 | Mailbox Watcher + Control Events | DONE | 2026-03-05 03:39 CST | pending |
-| T7 | Deterministic Gate Engine | TODO | - | - |
+| T7 | Deterministic Gate Engine | DONE | 2026-03-05 03:41 CST | pending |
 | T8 | Worktree Slot Scheduler (Cap Backpressure) | TODO | - | - |
 | T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | TODO | - | - |
 | T10 | E2E Validation + Docs Sync | TODO | - | - |
@@ -232,7 +232,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T7: Deterministic Gate Engine
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Gate must apply mailbox/control inputs in strict priority to prevent race-condition behavior drift.
 
@@ -250,11 +250,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T7.1 Failing tests | TODO | lock priority behavior | add gate-order tests | construct mixed event inputs | deterministic action assertions | `go test ./internal/orchestration -run "TestGateDecision" -v` |
-| T7.2 Decision model | TODO | standardize control outputs | add decision/result structs | include action/reason/resume fields | explicit enums over strings where possible | compile |
-| T7.3 Evaluator impl | TODO | enforce deterministic order | implement EvaluateGate | process inputs in fixed sequence | no hidden side effects | gate tests |
-| T7.4 Resume resolver | TODO | prevent stale merges | implement stale handling | stale artifact => restart | explicit resume mode | gate tests |
-| T7.5 Commit + status update | TODO | maintain delivery quality | commit and board update | standard git flow | one commit task | clean diff |
+| T7.1 Failing tests | DONE | lock priority behavior | add gate-order tests | construct mixed event inputs | deterministic action assertions | `go test ./internal/orchestration -run "TestGateDecision" -v` |
+| T7.2 Decision model | DONE | standardize control outputs | add decision/result structs | include action/reason/resume fields | explicit enums over strings where possible | compile |
+| T7.3 Evaluator impl | DONE | enforce deterministic order | implement EvaluateGate | process inputs in fixed sequence | no hidden side effects | gate tests |
+| T7.4 Resume resolver | DONE | prevent stale merges | implement stale handling | stale artifact => restart | explicit resume mode | gate tests |
+| T7.5 Commit + status update | DONE | maintain delivery quality | commit and board update | standard git flow | one commit task | clean diff |
 
 ---
 
