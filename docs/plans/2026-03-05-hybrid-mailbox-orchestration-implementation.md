@@ -44,7 +44,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | T1 | Config Schema: Mailbox + Worktree Cap | DONE | 2026-03-05 03:23 CST | pending |
 | T2 | Plan Metadata: Dependency Graph + Resume Modes | DONE | 2026-03-05 03:27 CST | pending |
 | T3 | Mailbox Atomic Writer | DONE | 2026-03-05 03:31 CST | pending |
-| T4 | Mailbox Reader + Idempotent Processor | TODO | - | - |
+| T4 | Mailbox Reader + Idempotent Processor | DONE | 2026-03-05 03:34 CST | pending |
 | T5 | Structural Conflict Monitor | TODO | - | - |
 | T6 | Mailbox Watcher + Control Events | TODO | - | - |
 | T7 | Deterministic Gate Engine | TODO | - | - |
@@ -145,7 +145,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T4: Mailbox Reader + Idempotent Processor
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Deterministic ordering and idempotency are required to avoid duplicate or out-of-order control actions.
 
@@ -165,11 +165,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T4.1 Failing tests | TODO | Define ordering contract | Add order/idempotency tests | Seed multiple message files | Include tie on timestamp | `go test ./internal/mailbox -run "TestListInboxMessages|TestProcessOneMessage" -v` |
-| T4.2 Ordered listing | TODO | Deterministic gate behavior | Implement message listing | Parse + sort by timestamp/id | Ignore filename ordering | reader tests |
-| T4.3 Idempotent processing | TODO | Prevent duplicate effects | Implement processor | Move to `processed/` after success | no-op on duplicate message id | processor tests |
-| T4.4 Failure handling | TODO | Avoid message loss | Retry-safe error behavior | preserve message on handler failure | crash-safe semantics | tests |
-| T4.5 Commit + status update | TODO | Preserve progress visibility | Commit and board update | standard git flow | one task one commit | clean diff |
+| T4.1 Failing tests | DONE | Define ordering contract | Add order/idempotency tests | Seed multiple message files | Include tie on timestamp | `go test ./internal/mailbox -run "TestListInboxMessages|TestProcessOneMessage" -v` |
+| T4.2 Ordered listing | DONE | Deterministic gate behavior | Implement message listing | Parse + sort by timestamp/id | Ignore filename ordering | reader tests |
+| T4.3 Idempotent processing | DONE | Prevent duplicate effects | Implement processor | Move to `processed/` after success | no-op on duplicate message id | processor tests |
+| T4.4 Failure handling | DONE | Avoid message loss | Retry-safe error behavior | preserve message on handler failure | crash-safe semantics | tests |
+| T4.5 Commit + status update | DONE | Preserve progress visibility | Commit and board update | standard git flow | one task one commit | clean diff |
 
 ---
 
