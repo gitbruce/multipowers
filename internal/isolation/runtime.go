@@ -112,6 +112,19 @@ func (r RuntimeManager) CleanupModelSandbox(sandbox ModelSandbox) error {
 	return nil
 }
 
+// CleanupRunSandboxes removes run-scoped sandbox directory tree.
+func (r RuntimeManager) CleanupRunSandboxes(runID string) error {
+	runIDSeg := sanitizePathSegment(runID)
+	if runIDSeg == "" {
+		return fmt.Errorf("run id is required")
+	}
+	runPath := filepath.Join(r.projectDir, filepath.Clean(r.config.WorktreeRoot), runIDSeg)
+	if err := os.RemoveAll(runPath); err != nil {
+		return fmt.Errorf("remove run sandbox path: %w", err)
+	}
+	return nil
+}
+
 func defaultCommandRunner(dir string, name string, args ...string) ([]byte, error) {
 	cmd := exec.Command(name, args...)
 	cmd.Dir = dir

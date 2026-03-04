@@ -2,12 +2,15 @@ package orchestration
 
 import (
 	"context"
+
+	"github.com/gitbruce/claude-octopus/internal/isolation"
 )
 
 // WorkflowAdapter provides high-level workflow execution functions
 type WorkflowAdapter struct {
 	config    *Config
 	executor  *Executor
+	lifecycle *LifecycleManager
 }
 
 // NewWorkflowAdapter creates a new workflow adapter
@@ -15,9 +18,23 @@ func NewWorkflowAdapter(config *Config, dispatcher Dispatcher) *WorkflowAdapter 
 	executorConfig := ExecutorConfig{
 		MaxWorkers: getMaxWorkers(config),
 	}
+	executor := NewExecutor(executorConfig, dispatcher)
+	var lifecycle *LifecycleManager
+	if config != nil {
+		if config.ExecutionIsolation.ActiveWorktreeCap > 0 {
+			executor.SetWorktreeSlots(NewWorktreeSlots(config.ExecutionIsolation.ActiveWorktreeCap))
+		}
+		runtime := isolation.NewRuntimeManager(".", isolation.RuntimeConfig{
+			BranchPrefix: config.ExecutionIsolation.BranchPrefix,
+			WorktreeRoot: config.ExecutionIsolation.WorktreeRoot,
+			LogsSubdir:   config.ExecutionIsolation.LogsSubdir,
+		}, nil)
+		lifecycle = &LifecycleManager{Runtime: runtime}
+	}
 	return &WorkflowAdapter{
 		config:    config,
-		executor:  NewExecutor(executorConfig, dispatcher),
+		executor:  executor,
+		lifecycle: lifecycle,
 	}
 }
 
@@ -36,6 +53,9 @@ func (a *WorkflowAdapter) RunWorkflow(ctx context.Context, workflowName, prompt,
 
 	// Execute the plan
 	result := a.executor.ExecutePlan(ctx, plan)
+	if a.lifecycle != nil {
+		_ = a.lifecycle.SweepRun(ctx, workflowName)
+	}
 	return result
 }
 

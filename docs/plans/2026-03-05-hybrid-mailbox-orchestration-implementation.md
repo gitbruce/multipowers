@@ -49,7 +49,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 | T6 | Mailbox Watcher + Control Events | DONE | 2026-03-05 03:39 CST | pending |
 | T7 | Deterministic Gate Engine | DONE | 2026-03-05 03:41 CST | pending |
 | T8 | Worktree Slot Scheduler (Cap Backpressure) | DONE | 2026-03-05 03:45 CST | pending |
-| T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | TODO | - | - |
+| T9 | Lifecycle Manager (Promotion/Tombstone/Sweep) | DONE | 2026-03-05 03:49 CST | pending |
 | T10 | E2E Validation + Docs Sync | TODO | - | - |
 
 ---
@@ -290,7 +290,7 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 ### Task T9: Lifecycle Manager (Promotion/Tombstone/Sweep)
 
-**Status:** TODO
+**Status:** DONE
 
 **Why:** Delayed cleanup leaks worktrees and stale branches, causing drift and resource waste.
 
@@ -311,11 +311,11 @@ Do not execute a task/subtask unless those fields stay explicit and up to date.
 
 | Subtask | Status | Why | What | How | Key Design | Verification |
 |---|---|---|---|---|---|---|
-| T9.1 Failing tests | TODO | lock cleanup semantics | add lifecycle tests | accepted/aborted/sweep scenarios | deterministic cleanup actions | `go test ./internal/orchestration ./internal/isolation -run "TestLifecycle|TestIsolationRuntime" -v` |
-| T9.2 Lifecycle API | TODO | centralize cleanup logic | add manager methods | OnAccepted/OnAborted/SweepRun | clear ownership boundary | compile |
-| T9.3 Runtime extension | TODO | support sweep + tombstone | update runtime helper methods | remove worktree/branch safely | keep force cleanup explicit | runtime tests |
-| T9.4 Adapter integration | TODO | trigger final sweep on run end | wire lifecycle calls | hook into adapter close/finish path | no blocking main success path | orchestration tests |
-| T9.5 Commit + status update | TODO | preserve change isolation | commit and board update | standard git flow | one commit task | clean diff |
+| T9.1 Failing tests | DONE | lock cleanup semantics | add lifecycle tests | accepted/aborted/sweep scenarios | deterministic cleanup actions | `go test ./internal/orchestration ./internal/isolation -run "TestLifecycle|TestIsolationRuntime" -v` |
+| T9.2 Lifecycle API | DONE | centralize cleanup logic | add manager methods | OnAccepted/OnAborted/SweepRun | clear ownership boundary | compile |
+| T9.3 Runtime extension | DONE | support sweep + tombstone | update runtime helper methods | remove worktree/branch safely | keep force cleanup explicit | runtime tests |
+| T9.4 Adapter integration | DONE | trigger final sweep on run end | wire lifecycle calls | hook into adapter close/finish path | no blocking main success path | orchestration tests |
+| T9.5 Commit + status update | DONE | preserve change isolation | commit and board update | standard git flow | one commit task | clean diff |
 
 ---
 

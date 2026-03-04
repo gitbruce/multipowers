@@ -88,6 +88,25 @@ func TestIsolationRuntime_CleanupModelSandbox(t *testing.T) {
 	assertStringSliceEqual(t, calls[1].args, []string{"branch", "-D", sandbox.Branch})
 }
 
+func TestIsolationRuntime_CleanupRunSandboxes(t *testing.T) {
+	projectDir := t.TempDir()
+	runPath := filepath.Join(projectDir, ".worktrees/bench", "run-123")
+	if err := os.MkdirAll(filepath.Join(runPath, "gpt-4o"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	runtime := NewRuntimeManager(projectDir, RuntimeConfig{
+		WorktreeRoot: ".worktrees/bench",
+	}, nil)
+
+	if err := runtime.CleanupRunSandboxes("run-123"); err != nil {
+		t.Fatalf("CleanupRunSandboxes error = %v", err)
+	}
+	if _, err := os.Stat(runPath); !os.IsNotExist(err) {
+		t.Fatalf("run path should be removed, stat err = %v", err)
+	}
+}
+
 func assertStringSliceEqual(t *testing.T, got, want []string) {
 	t.Helper()
 	if len(got) != len(want) {
