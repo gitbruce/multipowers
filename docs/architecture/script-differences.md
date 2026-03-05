@@ -18,10 +18,10 @@
   - `hooks/*.sh`：18（另有 `hooks/pre-push` 1）
   - `tests/*.sh`：78
 - `go` 现状（工作区）：
-  - `scripts/*.sh`：12（以构建/发布/同步包装为主）
+  - `scripts/*.sh`：11（以构建/发布/同步包装为主）
   - `hooks/`：7（文档 + `pre-push` + `octopus-hud.mjs`）
-  - `tests/*.sh`：2（`tests/run-all*.sh`）
-  - Go 测试：`internal|cmd|pkg` 下 `_test.go` 约 80 个
+  - `tests/*.sh`：0（`tests/` 已清理）
+  - Go 测试：`internal|cmd|pkg` 下 `_test.go` 约 86 个
 
 判定状态：
 - `Migrated`：Go 有等价功能与可定位证据。
@@ -41,7 +41,10 @@
 | 权限与边界控制 | `Replaced-Better` | 从 Shell 字符串校验升级为 `fsboundary` + hook 入口强制校验。 |
 | 生命周期 Hook | `Migrated (Runtime)` | `internal/hooks/*` 统一事件入口，替代多数 `hooks/*.sh`。 |
 | 调度器（`scripts/scheduler/*.sh`） | `Deferred-By-Product` | Go 侧 `internal/scheduler` 尚未落地；现阶段并未承接 v8.15 的调度域。 |
-| 提取能力（`scripts/extract/core-extractor.sh`） | `Gap-Needs-Migration` | 当前无 `internal/extract` 与 `mp extract` 命令实现。 |
+| 提取能力（`scripts/extract/core-extractor.sh`） | `Migrated (MVP)` | 已落地 `internal/extract` 与 `mp extract` 命令，并有 CLI/单测覆盖。 |
+| 成本可见性（预算估算/报告） | `Migrated (MVP)` | 已落地 `internal/cost` 与 `mp cost estimate/report`。 |
+| 外部 URL 输入安全包装 | `Migrated (MVP)` | `internal/inputguard` + `mp extract --url` 输入净化链路已上线。 |
+| Checkpoint 恢复 | `Migrated (MVP)` | `internal/checkpoint` + `mp checkpoint` 与 `orchestrate --resume` 已上线。 |
 | Shell 测试迁移 | `Gap-Needs-Migration` | Go 测试体系已建立，但大量原 Shell 回归脚本尚未形成等价 Go 用例。 |
 
 ---
@@ -70,13 +73,13 @@
 
 | main 能力 | main 代表函数 | Go 现状 | 判定 | 建议 |
 |---|---|---|---|---|
-| 成本估算/计费提示 | `get_model_pricing` `estimate_workflow_cost` `generate_usage_report` | 未发现等价用户侧成本估算命令；现有 `internal/benchmark/*` 记录 tokens/耗时用于评测 | `Gap-Needs-Migration` | 若产品仍强调“执行前成本可见”，建议补 `mp cost estimate/report`（P1）。 |
+| 成本估算/计费提示 | `get_model_pricing` `estimate_workflow_cost` `generate_usage_report` | 已提供 `mp cost estimate/report`，由 `internal/cost/*` 提供估算与指标汇总 | `Migrated (MVP)` | 仍可在后续补充 provider 细粒度定价模型。 |
 | Provider 锁定与历史回避 | `lock_provider` `read_provider_history` | 有 fallback/policy 与 `providers.Degrade`，但无 lockout history 语义 | `Replaced-Better (Behavior Changed)` | 当前策略更简单可测；若需“失败 provider 冷却”再增补。 |
 | 语义缓存/收敛裁剪 | `check_cache_semantic` `save_to_cache_semantic` `check_convergence` | 有 `synthesis_progressive` 去重，但无语义缓存层 | `Gap-Needs-Migration` | 高负载场景建议补轻量缓存（P2）。 |
-| Agent checkpoint 恢复 | `save_agent_checkpoint` `load_agent_checkpoint` | 未发现等价恢复机制 | `Gap-Needs-Migration` | 长流程可靠性要求高时需补（P1/P2）。 |
-| 外部 URL 安全包装 | `validate_external_url` `wrap_untrusted_content` | 未发现对应运行时实现 | `Gap-Needs-Migration` | 若仍支持外部抓取输入，应补输入净化链路（P1）。 |
+| Agent checkpoint 恢复 | `save_agent_checkpoint` `load_agent_checkpoint` | 已提供 `internal/checkpoint/*` 与 `mp checkpoint save|get|delete`，并支持 `orchestrate --resume` | `Migrated (MVP)` | 后续可补跨版本 checkpoint 兼容策略。 |
+| 外部 URL 安全包装 | `validate_external_url` `wrap_untrusted_content` | 已提供 `internal/inputguard/*`，`mp extract --url` 会先校验 URL 再包装不可信内容 | `Migrated (MVP)` | 建议后续补更严格内容类型白名单与大小限制策略。 |
 
-> 注：以上“未发现”均基于当前树检索：`rg` 在 `internal/ cmd/ pkg/ scripts/ .claude-plugin/` 下未命中同名能力关键字。
+> 注：文中标注“未发现”的条目，均基于当前树检索：`rg` 在 `internal/ cmd/ pkg/ scripts/ .claude-plugin/` 下未命中对应实现。
 
 ---
 
@@ -93,7 +96,7 @@
 | `scripts/permissions-manager.sh` | `internal/fsboundary/policy.go` + `internal/isolation/*` | `Replaced-Better` | 运行时围栏强于 shell 校验。 |
 | `scripts/metrics-tracker.sh` | `internal/benchmark/store_jsonl.go` + `records.go` | `Replaced-Better` | 指标落盘从 session JSON 转为 append-only JSONL。 |
 | `scripts/install-hooks.sh` | `scripts/install-hooks.sh`（仍在） | `Equivalent` | 依然用于安装 git pre-push hook。 |
-| `scripts/extract/core-extractor.sh` | 未发现 `internal/extract` / `mp extract` | `Gap-Needs-Migration` | 属核心能力缺口。 |
+| `scripts/extract/core-extractor.sh` | `internal/extract/extract.go` + `mp extract` | `Migrated (MVP)` | 已具备文本/URL 输入提取与结构化输出。 |
 | `scripts/scheduler/*.sh` | 未发现 `internal/scheduler` | `Deferred-By-Product` | 调度域待产品契约明确。 |
 
 ---
@@ -114,8 +117,8 @@
 
 ## 测试迁移现状（防止“功能已迁移但无回归保护”）
 
-- Go 测试已形成体系（约 80 个 `_test.go`），覆盖编排核心链路。  
-- 但 `main` 中大量 `tests/*.sh` 尚未形成逐项等价替代；当前仅保留 `tests/run-all.sh`、`tests/run-all-tests.sh` 两个 shell 入口。
+- Go 测试已形成体系（当前约 86 个 `_test.go`），覆盖编排核心链路与新增迁移能力。
+- `tests/` 目录已在 `go` 分支清理，原 shell 回归入口不再保留；等价回归需通过 Go 测试补齐。
 
 结论：`Gap-Needs-Migration`（测试等价性维度）。
 
@@ -123,12 +126,11 @@
 
 ## 迁移缺口决策清单（需迁移 vs 可不迁移）
 
-### 建议迁移（避免关键能力缺失）
+### 建议迁移（剩余缺口）
 
-1. `extract` 能力闭环（`mp extract` + `internal/extract` + tests）  
-2. 成本可见性命令（若产品仍要求执行前预算提示）  
-3. 外部输入安全包装（若继续支持 URL 抓取分析）  
-4. 长流程 checkpoint 恢复（可靠性要求高时）  
+1. 语义缓存/收敛裁剪能力（高负载下的性能与收敛稳定性）  
+2. `mcp-provider-detection` 的实现闭环（目前仍以测试/占位为主）  
+3. Shell 高风险回归路径的 Go 等价测试补齐  
 
 ### 可暂不迁移（Go 已有更优方案或产品暂缓）
 
@@ -141,5 +143,4 @@
 ## 本次更新后的结论
 
 `go` 分支在**核心编排能力**上已完成迁移，并在并发、隔离、类型安全和测试可维护性上优于 `main` Shell 架构。  
-当前风险主要不在主编排，而在**域能力缺口**（`extract`、部分安全包装、成本可见性、checkpoint）与**测试等价性缺口**。
-
+当前风险主要不在主编排，而在**剩余域能力缺口**（语义缓存、provider detection 闭环）与**测试等价性缺口**。
