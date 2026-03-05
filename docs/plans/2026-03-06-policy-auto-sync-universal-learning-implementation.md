@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Deliver a Go-native Policy Auto Sync system that performs invisible policy learning, policy prompt injection (including external vibe coding tools), safe auto-activation, user-driven revoke/reset, and cross-project preference reuse for any target project.
+**Goal:** Deliver a Go-native Policy Auto Sync system that performs invisible policy learning, policy prompt injection (including external vibe coding tools), safe auto-activation, user-driven delete-or-skip confirmation on policy denial, and cross-project preference reuse for any target project.
 
-**Architecture:** Introduce a new `internal/autosync` domain composed of ingestion, detectors, scoring, overlay activation, feedback/revoke, fingerprint bootstrap, semantic reuse, and prompt injection. Integrate it with existing hooks/CLI/policy/doctor layers while preserving runtime safety boundaries and append-only governance logs.
+**Architecture:** Introduce a new `internal/autosync` domain composed of ingestion, detectors, scoring, overlay activation, feedback confirmation (`delete` vs `skip-this-session`), fingerprint bootstrap, semantic reuse, and prompt injection. Integrate it with existing hooks/CLI/policy/doctor layers while preserving runtime safety boundaries and append-only governance logs.
 
 **Tech Stack:** Go (`os`, `filepath`, `encoding/json`, `sync`, `time`), existing `internal/hooks`, `internal/cli`, `internal/policy`, `internal/doctor`, JSONL append-only logs under `.multipowers`, `go test`.
 
@@ -21,7 +21,7 @@
 | T3 | Multi-entry event emission wiring | pending | - | - |
 | T4 | Detector Registry + generic signals | pending | - | - |
 | T5 | Scoring engine + proposal lifecycle | pending | - | - |
-| T6 | Overlay activation + revoke/cooldown/reset | pending | - | - |
+| T6 | Overlay activation + deny-confirmation + revoke/cooldown/reset | pending | - | - |
 | T7 | `init-fingerprint` doc-aware bootstrap | pending | - | - |
 | T8 | Cross-project semantic preference reuse | pending | - | - |
 | T9 | PolicyContext snapshot + prompt injection | pending | - | - |
@@ -298,19 +298,20 @@ git commit -m "feat(autosync): add proposal scoring and lifecycle state machine"
 
 ---
 
-### Task 6: Add Overlay Activation, Revoke, Cooldown, and Data Reset
+### Task 6: Add Overlay Activation, Deny Confirmation, Revoke, Cooldown, and Data Reset
 
 **Why:** User trust requires immediate enforceability of corrections and hard reset on policy rejection.
 
-**What:** Implement overlay writer, applied ledger, revoke workflow, cooldown enforcement, and learning-data purge.
+**What:** Implement deny-confirmation workflow (`delete` vs `skip-this-session`), overlay writer, applied ledger, revoke workflow, cooldown enforcement, and learning-data purge.
 
-**How:** Add atomic overlay mutation APIs and purge selectors for proposal/sample/aggregate contributions.
+**How:** Add policy-denial decision handler that asks user choice, then branches into delete flow or session-only suppression flow.
 
-**Key Design:** Revoke keeps minimal audit line only; learned confidence/support restarts from zero after cooldown.
+**Key Design:** `delete` performs full revoke/reset path; `skip-this-session` only suppresses current-session injection and keeps persisted learning data untouched.
 
 **Files:**
 - Create: `internal/autosync/overlay/manager.go`
 - Create: `internal/autosync/overlay/cooldown.go`
+- Create: `internal/autosync/overlay/session_suppress.go`
 - Create: `internal/autosync/overlay/manager_test.go`
 - Modify: `internal/policy/resolve.go`
 
@@ -318,7 +319,9 @@ git commit -m "feat(autosync): add proposal scoring and lifecycle state machine"
 
 ```go
 func TestOverlay_AutoApplyWritesAtomicFile(t *testing.T) {}
+func TestOverlay_DenyAsksDeleteOrSkipSession(t *testing.T) {}
 func TestOverlay_RevokeDeletesLearningDataAndSetsCooldown(t *testing.T) {}
+func TestOverlay_SkipSessionSuppressesInjectionOnly(t *testing.T) {}
 func TestResolver_ExcludesRevokedOrCoolingRules(t *testing.T) {}
 ```
 
@@ -330,7 +333,9 @@ Expected: FAIL
 **Step 3: Write minimal implementation**
 
 - `ApplyProposal` -> writes `overlays.auto.json` atomically
-- `RevokeRule` -> remove overlay entry + purge related data + set cooldown + append audit
+- deny path asks question and requires explicit choice:
+  - `delete` -> remove overlay entry + purge related data + set cooldown + append audit
+  - `skip-this-session` -> write session suppression only (no purge, no global delete)
 - resolver merge precedence includes auto-learned overlay above session override
 
 **Step 4: Run tests to verify pass**
@@ -341,8 +346,8 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add internal/autosync/overlay/manager.go internal/autosync/overlay/cooldown.go internal/autosync/overlay/manager_test.go internal/policy/resolve.go
-git commit -m "feat(autosync): add overlay apply/revoke with cooldown and zero-baseline reset"
+git add internal/autosync/overlay/manager.go internal/autosync/overlay/cooldown.go internal/autosync/overlay/session_suppress.go internal/autosync/overlay/manager_test.go internal/policy/resolve.go
+git commit -m "feat(autosync): add deny confirmation with delete or session-skip flows"
 ```
 
 ---
@@ -455,7 +460,7 @@ git commit -m "feat(autosync): add cross-project semantic preference store with 
 
 **How:** Integrate injection in mp workflow path and external CLI dispatch adapters.
 
-**Key Design:** Injection references active rule IDs and excludes revoked/cooldown rules; failure is non-blocking but auditable.
+**Key Design:** Injection references active rule IDs and excludes revoked/cooldown/session-suppressed rules; failure is non-blocking but auditable.
 
 **Files:**
 - Create: `internal/autosync/context/snapshot.go`
@@ -469,6 +474,7 @@ git commit -m "feat(autosync): add cross-project semantic preference store with 
 ```go
 func TestPolicyContext_IncludesActiveRulesWithReferences(t *testing.T) {}
 func TestPolicyContext_ExcludesRevokedRules(t *testing.T) {}
+func TestPolicyContext_ExcludesSessionSuppressedRules(t *testing.T) {}
 func TestDispatchExternal_IncludesPolicyContextForPrompt(t *testing.T) {}
 ```
 
@@ -536,9 +542,9 @@ Expected: FAIL
   - `mp policy sync --ignore <id>`
   - `mp policy sync --rollback <id>`
   - `mp policy sync --revoke <id>`
-  - `mp policy stats`
-  - `mp policy gc`
-  - `mp policy tune --mode balanced|accuracy|storage`
+- `mp policy stats`
+- `mp policy gc`
+- `mp policy tune --mode balanced|accuracy|storage`
 
 **Step 4: Run tests to verify pass**
 
@@ -645,7 +651,9 @@ Expected: FAIL
   - cumulative reference count weight
   - tie-break by oldest timestamp
 - e2e flow:
-  - raw events -> proposal -> auto-apply -> prompt injection -> user revoke -> cooldown -> zero-baseline relearn
+  - raw events -> proposal -> auto-apply -> prompt injection
+  - user deny -> askquestion -> choose `skip-this-session` -> current-session injection suppression only
+  - user deny -> askquestion -> choose `delete` -> revoke + cooldown -> zero-baseline relearn
 - docs update with operational commands and troubleshooting
 
 **Step 4: Run verification suite**
@@ -677,7 +685,9 @@ git commit -m "feat(autosync): complete e2e learning loop, lru-refcount gc, and 
 4. Manual smoke:
    - run `/mp:*` command and verify policy context injection metadata,
    - run an external vibe coding tool path and verify injection adapter output,
-   - revoke one active auto policy and verify immediate removal + cooldown metadata.
+   - deny one active policy and verify askquestion branch:
+     - `skip-this-session` suppresses only this session
+     - `delete` removes rule and writes cooldown metadata.
 
 ## Rollback Plan
 

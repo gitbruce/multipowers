@@ -26,10 +26,12 @@ The current plugin runtime has strong static policy and hook guardrails, but lac
 4. Non-safety high-confidence proposals can auto-activate.
 5. Safety-critical rules never auto-activate and always require explicit confirmation.
 6. Users can implicitly refine policies via normal input; accepted changes persist directly to `auto-learned overlay`.
-7. User-negative feedback revokes policy immediately, deletes related learning data, applies cooldown, and restarts from zero after cooldown.
-8. Every plugin execution injects active policy context into prompt paths, including external vibe coding tool calls.
-9. Cross-project reuse stores only desensitized preference patterns, guarded by similarity threshold, cooldown, and rollback.
-10. Storage uses short-lived raw logs + long-lived aggregates with hard quota and adaptive degradation.
+7. User-negative feedback triggers ask-question confirmation with two actions: `delete` or `skip-this-session`.
+8. If user confirms `delete`, policy is revoked immediately, related learning data is deleted, cooldown is applied, and relearning restarts from zero after cooldown.
+9. If user confirms `skip-this-session`, rule is suppressed only for current session prompt injection.
+10. Every plugin execution injects active policy context into prompt paths, including external vibe coding tool calls.
+11. Cross-project reuse stores only desensitized preference patterns, guarded by similarity threshold, cooldown, and rollback.
+12. Storage uses short-lived raw logs + long-lived aggregates with hard quota and adaptive degradation.
 
 ## Architecture Overview
 
@@ -103,6 +105,7 @@ Execution ownership:
 - Injection payload is deterministic `PolicyContext` generated in Go:
   - active rules,
   - guardrails,
+  - session-suppressed exclusions,
   - revoked/cooldown exclusions,
   - rule references (`rule_id`) and precedence.
 - If external tool lacks direct prompt channel, adapter fallback uses context file/env mapping.
@@ -165,7 +168,12 @@ Evidence precedence:
 
 ### Negative Feedback (Revoke)
 
-When user denies a policy:
+When user denies a policy, runtime must first ask:
+
+- `delete policy`
+- `skip this session only`
+
+#### If user chooses `delete policy`
 
 1. remove active rule immediately from overlay,
 2. mark proposal as `revoked_by_user`,
@@ -177,6 +185,13 @@ When user denies a policy:
 4. write minimal audit line (timestamp, rule_id, reason),
 5. apply cooldown (`revoked_until`) during which auto-rebuild is blocked,
 6. after cooldown, relearn from zero with no inherited support/confidence.
+
+#### If user chooses `skip this session only`
+
+1. keep persisted overlay and learning data unchanged,
+2. write session-local suppression state,
+3. exclude suppressed rule from prompt injection for current session only,
+4. clear suppression automatically at session end.
 
 ## Monorepo Partition Strategy
 
@@ -268,6 +283,7 @@ User-facing default remains `/mp:*` and `mp`; `mp-devx` is maintainer/CI-focused
 1. Non-safety high-confidence rules auto-activate without user friction.
 2. Safety-critical rules never auto-activate.
 3. Every plugin execution path (including external vibe coding tool) receives policy injection.
-4. User revocation removes active rule immediately and resets relearning baseline after cooldown.
-5. Cross-project reuse remains local, desensitized, and guarded against negative transfer.
-6. Storage stays within quota using `LRU + cumulative reference count` cleanup.
+4. User-selected `delete` revokes rule immediately and resets relearning baseline after cooldown.
+5. User-selected `skip-this-session` suppresses only current-session injection and does not delete persisted learning data.
+6. Cross-project reuse remains local, desensitized, and guarded against negative transfer.
+7. Storage stays within quota using `LRU + cumulative reference count` cleanup.
