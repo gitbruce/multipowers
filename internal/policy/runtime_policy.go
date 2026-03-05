@@ -70,15 +70,6 @@ func (p *RuntimePolicy) ToJSON() ([]byte, error) {
 	return json.MarshalIndent(p, "", "  ")
 }
 
-// LoadRuntimePolicy loads a RuntimePolicy from JSON bytes
-func LoadRuntimePolicy(data []byte) (*RuntimePolicy, error) {
-	var p RuntimePolicy
-	if err := json.Unmarshal(data, &p); err != nil {
-		return nil, err
-	}
-	return &p, nil
-}
-
 // NewRuntimePolicy creates a new RuntimePolicy with initialized maps
 func NewRuntimePolicy() *RuntimePolicy {
 	return &RuntimePolicy{

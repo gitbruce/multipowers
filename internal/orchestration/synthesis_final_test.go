@@ -292,10 +292,3 @@ func TestIntegrationFlow_RepairRetryOnce(t *testing.T) {
 		t.Fatalf("repair_calls = %d, want 1", repairCalls)
 	}
 }
-
-// Mock error type for testing
-type contextDeadlineExceeded struct{}
-
-func (e contextDeadlineExceeded) Error() string {
-	return "context deadline exceeded"
-}

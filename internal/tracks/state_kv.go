@@ -1,9 +1,5 @@
 package tracks
 
-import (
-	"encoding/json"
-)
-
 // KVGet retrieves a single key value from state
 // Returns empty string if key doesn't exist
 func KVGet(projectDir, key string) (string, error) {
@@ -73,22 +69,4 @@ func KVDelete(projectDir, key string) error {
 	}
 	delete(s.Metrics, key)
 	return WriteState(projectDir, s)
-}
-
-// KVGetJSON returns the entire state as JSON bytes
-func KVGetJSON(projectDir string) ([]byte, error) {
-	s, err := ReadState(projectDir)
-	if err != nil {
-		return nil, err
-	}
-	return json.Marshal(s)
-}
-
-// KVUpdateFromJSON updates state from JSON bytes (atomic merge)
-func KVUpdateFromJSON(projectDir string, jsonData []byte) error {
-	var updates map[string]string
-	if err := json.Unmarshal(jsonData, &updates); err != nil {
-		return err
-	}
-	return KVUpdate(projectDir, updates)
 }

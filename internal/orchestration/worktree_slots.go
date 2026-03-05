@@ -35,17 +35,3 @@ func (s *WorktreeSlots) Release() {
 	default:
 	}
 }
-
-func (s *WorktreeSlots) InUse() int {
-	if s == nil {
-		return 0
-	}
-	return len(s.tokens)
-}
-
-func (s *WorktreeSlots) Cap() int {
-	if s == nil {
-		return 0
-	}
-	return cap(s.tokens)
-}

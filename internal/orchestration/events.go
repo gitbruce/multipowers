@@ -82,25 +82,3 @@ func (e *EventEmitter) Events() <-chan Event {
 func (e *EventEmitter) Close() {
 	close(e.events)
 }
-
-// NewEvent creates a new event with the current timestamp
-func NewEvent(eventType EventType, workflowName, phaseName, stepID, message string) Event {
-	return Event{
-		Type:         eventType,
-		Timestamp:    time.Now(),
-		WorkflowName: workflowName,
-		PhaseName:    phaseName,
-		StepID:       stepID,
-		Message:      message,
-	}
-}
-
-// EventWithStatus creates an event with status
-func EventWithStatus(eventType EventType, status string, message string) Event {
-	return Event{
-		Type:      eventType,
-		Timestamp: time.Now(),
-		Status:    status,
-		Message:   message,
-	}
-}

@@ -88,16 +88,6 @@ func (s *JSONLStore) Append(stream string, record any) (string, error) {
 	return path, nil
 }
 
-// AppendIsolationRun appends one isolation run record to the isolation stream.
-func (s *JSONLStore) AppendIsolationRun(record IsolationRunRecord) (string, error) {
-	return s.Append(StreamIsolationRuns, record)
-}
-
-// AppendAsyncJob appends one async job status record.
-func (s *JSONLStore) AppendAsyncJob(record AsyncJobRecord) (string, error) {
-	return s.Append(StreamAsyncJobs, record)
-}
-
 func fileLock(path string) *sync.Mutex {
 	lock, _ := jsonlFileLocks.LoadOrStore(path, &sync.Mutex{})
 	return lock.(*sync.Mutex)

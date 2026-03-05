@@ -531,8 +531,3 @@ func RunInitWithPrompt(projectDir, prompt string) (err error) {
 	}
 	return nil
 }
-
-func RunInit(projectDir string) error {
-	_ = projectDir
-	return fmt.Errorf("wizard input required: use RunInitWithPrompt with explicit prompt data")
-}

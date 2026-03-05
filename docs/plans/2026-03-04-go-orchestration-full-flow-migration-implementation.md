@@ -523,7 +523,7 @@ Expected: fail for missing parsing/default merge.
 #### Subtask T09-S01: E2E happy path for all 6 flows
 
 **Files:**
-- Create/Modify: `internal/orchestration/e2e_flow_test.go`
+- Create/Modify: `internal/orchestration/e2e_test.go`
 
 **Why:** Verify all flows run through orchestration runtime.
 
@@ -536,7 +536,7 @@ Expected: fail for missing parsing/default merge.
 #### Subtask T09-S02: E2E degraded path for all 6 flows
 
 **Files:**
-- Modify: `internal/orchestration/e2e_flow_test.go`
+- Modify: `internal/orchestration/e2e_test.go`
 
 **Why:** Must verify fallback and degraded contracts.
 
@@ -549,7 +549,7 @@ Expected: fail for missing parsing/default merge.
 #### Subtask T09-S03: Progressive synthesis E2E verification
 
 **Files:**
-- Modify: `internal/orchestration/e2e_flow_test.go`
+- Modify: `internal/orchestration/e2e_test.go`
 
 **Why:** Progressive synthesis is a core parity behavior.
 

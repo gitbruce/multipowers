@@ -18,14 +18,9 @@ type devxRunner interface {
 	RunParity(root string) error
 	BenchmarkPreflightP95(root string, iterations int) (time.Duration, error)
 	ValidateSHToGoMap(mapPath string) error
-	RunSyncUpstreamMain(opts devx.SyncOptions) error
-	RunSyncMainToGo(cfg devx.SyncRulesConfig, opts devx.SyncOptions) error
-	ValidateStructureParity(cfg devx.StructureRulesConfig, sourceRef, targetRef string) error
 }
 
 var runnerFactory = func() devxRunner { return devx.Runner{} }
-var loadSyncRulesFn = devx.LoadSyncRules
-var loadStructureRulesFn = devx.LoadStructureRules
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
@@ -36,17 +31,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 
 	suite := fs.String("suite", "unit", "test suite")
-	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|sync-upstream-main|sync-main-to-go|sync-all|validate-structure-parity|build-policy|build-runtime")
+	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime")
 	configDir := fs.String("config-dir", "config", "config directory for policy source")
 	outputDir := fs.String("output-dir", ".claude-plugin/runtime", "output directory for compiled artifacts")
 	mapPath := fs.String("map", "docs/plans/evidence/no-shell-runtime/mapping/sh-to-go-map.csv", "sh-to-go map path")
 	threshold := fs.Int64("threshold-ms", 50, "benchmark threshold p95 in milliseconds")
-	dryRun := fs.Bool("dry-run", false, "plan only, no push/commit")
-	push := fs.Bool("push", false, "push branch after successful sync")
-	rulesPath := fs.String("rules", "config/sync/main-to-go-rules.json", "sync rules path")
-	structureRulesPath := fs.String("structure-rules", "config/sync/claude-structure-rules.json", "structure parity rules path")
-	sourceRef := fs.String("source-ref", "main", "source git ref for structure parity")
-	targetRef := fs.String("target-ref", "go", "target git ref for structure parity")
 
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -87,46 +76,6 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		fmt.Fprintln(stdout, "sh->go map ok")
-	case "sync-upstream-main":
-		if err := r.RunSyncUpstreamMain(devx.SyncOptions{DryRun: *dryRun, Push: *push}); err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		fmt.Fprintln(stdout, "sync upstream->main ok")
-	case "sync-main-to-go":
-		cfg, err := loadSyncRulesFn(*rulesPath)
-		if err == nil {
-			err = r.RunSyncMainToGo(cfg, devx.SyncOptions{DryRun: *dryRun, Push: *push})
-		}
-		if err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		fmt.Fprintln(stdout, "sync main->go ok")
-	case "sync-all":
-		cfg, err := loadSyncRulesFn(*rulesPath)
-		if err == nil {
-			err = r.RunSyncUpstreamMain(devx.SyncOptions{DryRun: *dryRun, Push: *push})
-		}
-		if err == nil {
-			err = r.RunSyncMainToGo(cfg, devx.SyncOptions{DryRun: *dryRun, Push: *push})
-		}
-		if err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		fmt.Fprintln(stdout, "sync all ok")
-	case "validate-structure-parity":
-		cfg, err := loadStructureRulesFn(*structureRulesPath)
-		if err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		if err := r.ValidateStructureParity(cfg, *sourceRef, *targetRef); err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		fmt.Fprintln(stdout, "structure parity ok")
 	case "build-policy":
 		if err := runBuildPolicy(*configDir, *outputDir, stdout); err != nil {
 			fmt.Fprintln(stderr, err)

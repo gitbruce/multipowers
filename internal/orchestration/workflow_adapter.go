@@ -89,11 +89,6 @@ func (a *WorkflowAdapter) RunEmbrace(ctx context.Context, prompt string) *Execut
 	return a.RunWorkflow(ctx, "embrace", prompt, "")
 }
 
-// Events returns the event channel for progress monitoring
-func (a *WorkflowAdapter) Events() <-chan Event {
-	return a.executor.Events()
-}
-
 // Close cleans up adapter resources
 func (a *WorkflowAdapter) Close() {
 	a.executor.Close()

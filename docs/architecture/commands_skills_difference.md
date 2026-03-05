@@ -39,24 +39,6 @@
   - `skills (main-only)=2`
 - 本轮无需调整差异清单与决策快照，仅补充该校验结论。
 
-## 目录结构治理（当前生效）
-
-规则文件：`config/sync/claude-structure-rules.json`
-
-- `MUST_HOMOMORPHIC`：
-  - `.claude/commands` -> `.claude/commands`（共享子集）
-  - `.claude/skills` -> `.claude/skills`（共享子集）
-  - `.claude/references` -> `.claude/references`
-  - `.claude/state` -> `.claude/state`
-- `ALLOW_FORK`：
-  - `.claude/commands/init.md`
-  - `.claude/commands/mp.md`
-  - `.claude/commands/persona.md`
-  - `.claude/skills/skill-persona.md`
-  - 以及规则内显式 ignore 列表
-
-校验入口：`./scripts/validate-claude-structure.sh -dry-run`
-
 ## 当前差异清单（仅最新）
 
 main-only commands：

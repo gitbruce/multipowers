@@ -11,7 +11,7 @@
 
 状态定义：`equivalent` / `partial` / `missing` / `intentional-diff`
 
-决策（decision）取值：`MIGRATE_TO_GO`、`COPY_FROM_MAIN`、`KEEP_IN_GO`、`DEFER_WITH_CONDITION`、`EXCLUDE_WITH_REASON`
+决策（decision）取值：`MIGRATE_TO_GO`、`KEEP_IN_GO`、`DEFER_WITH_CONDITION`、`EXCLUDE_WITH_REASON`
 
 ## Evidence Legend
 
@@ -25,52 +25,30 @@
 | 指标 | 数量 |
 |---|---:|
 | `main` 脚本总数 (`*.sh`) | 135 |
-| `go` 脚本总数 (`*.sh`) | 21 |
+| `go` 脚本总数 (`*.sh`) | 15 |
 | shared | 14 |
 | main-only | 121 |
-| go-only | 7 |
+| go-only | 1 |
 
-覆盖策略统计（全量 142 行 = main 135 + go-only 7）：
+覆盖策略统计（全量 136 行 = main 135 + go-only 1）：
 - `需要覆盖=121`
-- `可不覆盖=21`（包含 go-only 7）
+- `可不覆盖=15`（包含 go-only 1）
 
-语义状态统计（全量 142 行）：
+语义状态统计（全量 136 行）：
 - `equivalent=14`
 - `partial=71`
 - `missing=50`
-- `intentional-diff=7`
+- `intentional-diff=1`
 
 ## 最新 go-only 脚本
 
 - `scripts/auto-push.sh`
 - `scripts/build.sh`
-- `scripts/sync-all.sh`
-- `scripts/sync-main-to-go.sh`
-- `scripts/sync-upstream-main.sh`
-- `scripts/validate-claude-structure.sh`
-- `scripts/verify-architecture-diff-docs.sh`
 
 ## `tmp/compare.md` 补充漏项（2026-03-03）
 
 - `.claude/hooks/visual-feedback.sh`：`main` 中存在、`go` 中已移除；当前应标记为 `partial`，决策为 `MIGRATE_TO_GO`。
   - 语义承接：`.claude/skills/skill-visual-feedback.md` 与 `internal/render/banner.go`。
-
-## `COPY_FROM_MAIN` 已落地清单（最新）
-
-- `.claude/hooks/pre-commit.sh`
-- `deploy.sh`
-- `install.sh`
-- `scripts/lib/common.sh`
-- `scripts/build-openclaw.sh`
-- `scripts/clean-deployment.sh`
-- `scripts/deploy.sh`
-- `scripts/install-hooks.sh`
-- `scripts/release.sh`
-- `scripts/fix-command-frontmatter.sh`
-- `scripts/integrate-v2.1.20-features.sh`
-- `scripts/migrate-todos.sh`
-- `tests/run-all-tests.sh`
-- `tests/run-all.sh`
 
 ## 核心域迁移快照（最新）
 

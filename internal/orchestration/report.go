@@ -49,14 +49,14 @@ type PhaseSummary struct {
 
 // AggregatedResults represents aggregated results from all phases
 type AggregatedResults struct {
-	TotalCompleted  int
-	TotalFailed     int
-	TotalDegraded   int
-	TotalBytes      int
-	AllOutputs      []StepOutput
-	AllErrors       []StepError
-	FallbackEvents  []FallbackEvent
-	PhaseSummaries  []PhaseSummary
+	TotalCompleted int
+	TotalFailed    int
+	TotalDegraded  int
+	TotalBytes     int
+	AllOutputs     []StepOutput
+	AllErrors      []StepError
+	FallbackEvents []FallbackEvent
+	PhaseSummaries []PhaseSummary
 }
 
 // AggregateResults aggregates results from all phases
@@ -87,12 +87,12 @@ func AggregateResults(phases []PhaseResult) AggregatedResults {
 		for _, step := range phase.Steps {
 			if (step.Status == StepStatusCompleted || step.Status == StepStatusDegraded) && step.Output != "" {
 				agg.AllOutputs = append(agg.AllOutputs, StepOutput{
-					StepID:    step.StepID,
-					Phase:     step.Phase,
-					Agent:     step.Agent,
-					Output:    step.Output,
-					Bytes:     step.Bytes,
-					Degraded:  step.Status == StepStatusDegraded,
+					StepID:   step.StepID,
+					Phase:    step.Phase,
+					Agent:    step.Agent,
+					Output:   step.Output,
+					Bytes:    step.Bytes,
+					Degraded: step.Status == StepStatusDegraded,
 				})
 				agg.TotalBytes += step.Bytes
 			}
@@ -105,7 +105,7 @@ func AggregateResults(phases []PhaseResult) AggregatedResults {
 				agg.AllErrors = append(agg.AllErrors, StepError{
 					StepID: step.StepID,
 					Phase:  step.Phase,
-					Agent: step.Agent,
+					Agent:  step.Agent,
 					Error:  errMsg,
 				})
 			}
@@ -217,38 +217,14 @@ func containsString(s, substr string) bool {
 	return false
 }
 
-// SynthesizeWithFallback attempts synthesis with fallback on failure
-func SynthesizeWithFallback(primaryModel, fallbackModel string, input SynthesisInput, dispatchFn func(model string, input SynthesisInput) (*SynthesisResult, error)) (*SynthesisResult, error) {
-	// Try primary model first
-	result, err := dispatchFn(primaryModel, input)
-	if err == nil && result != nil && result.Status == SynthesisStatusCompleted {
-		return result, nil
-	}
-
-	// Primary failed, try fallback
-	if fallbackModel != "" {
-		fallbackResult, fallbackErr := dispatchFn(fallbackModel, input)
-		if fallbackErr == nil && fallbackResult != nil && fallbackResult.Status == SynthesisStatusCompleted {
-			fallbackResult.Status = SynthesisStatusDegraded
-			return fallbackResult, nil
-		}
-	}
-
-	// Both failed, return degraded result
-	return &SynthesisResult{
-		Status: SynthesisStatusFailed,
-		Error:  err,
-	}, err
-}
-
 // SynthesisInput represents input for synthesis
 type SynthesisInput struct {
-	Prompt      string
-	Results     []StepOutput
-	Context     string
-	TotalBytes  int
-	Completed   int
-	Degraded    int
+	Prompt     string
+	Results    []StepOutput
+	Context    string
+	TotalBytes int
+	Completed  int
+	Degraded   int
 }
 
 // Report represents a structured execution report
