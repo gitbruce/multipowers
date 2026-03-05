@@ -54,6 +54,12 @@ When modifying or adding features in the `go` branch:
 2. **Deterministic Output**: All atomic `mp` commands MUST return a structured JSON contract (`status`, `action`, `data`, `message`) when the `--json` flag is provided.
 3. **Execution Isolation**: Operations that mutate code MUST leverage `internal/orchestration/worktree_slots.go` to ensure parallel agents do not corrupt the working directory.
 
+## Command Ownership Boundary
+
+- `mp` is runtime-only: user/agent execution paths.
+- `mp-devx` is ops/devx-only: test/coverage/validation/build/parity workflows.
+- Current migration baseline is tracked in `docs/architecture/command-ownership.md`.
+
 ## Testing & Parity
 
 Before submitting changes, ensure you validate the system using the `mp-devx` toolchain:
