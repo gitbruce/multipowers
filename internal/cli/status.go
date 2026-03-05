@@ -9,32 +9,42 @@ import (
 // RuntimeStatus represents the comprehensive runtime health status
 type RuntimeStatus struct {
 	// Context status
-	ContextComplete   bool     `json:"context_complete"`
-	ContextMissing    []string `json:"context_missing,omitempty"`
-	ContextPath       string   `json:"context_path,omitempty"`
+	ContextComplete bool     `json:"context_complete"`
+	ContextMissing  []string `json:"context_missing,omitempty"`
+	ContextPath     string   `json:"context_path,omitempty"`
 
 	// Provider status
 	ProvidersAvailable []string `json:"providers_available"`
 	ProvidersCount     int      `json:"providers_count"`
 
 	// Validation status
-	LastValidation     string `json:"last_validation,omitempty"`
-	ValidationStatus   string `json:"validation_status,omitempty"`
+	LastValidation   string `json:"last_validation,omitempty"`
+	ValidationStatus string `json:"validation_status,omitempty"`
 
 	// Hook status
-	HookReady          bool   `json:"hook_ready"`
-	HookEvents         []string `json:"hook_events,omitempty"`
+	HookReady  bool     `json:"hook_ready"`
+	HookEvents []string `json:"hook_events,omitempty"`
 
 	// Overall status
-	Status             string `json:"status"`
-	Ready              bool   `json:"ready"`
+	Status string `json:"status"`
+	Ready  bool   `json:"ready"`
 }
 
 // GetRuntimeStatus aggregates runtime health information
 func GetRuntimeStatus(projectDir string) RuntimeStatus {
 	status := RuntimeStatus{
-		Status:     "unknown",
-		HookEvents: []string{"SessionStart", "UserPromptSubmit", "PreToolUse", "PostToolUse", "Stop"},
+		Status: "unknown",
+		HookEvents: []string{
+			"SessionStart",
+			"EnterPlanMode",
+			"UserPromptSubmit",
+			"PreToolUse",
+			"PostToolUse",
+			"WorktreeCreate",
+			"WorktreeRemove",
+			"Stop",
+			"SubagentStop",
+		},
 	}
 
 	// Check context

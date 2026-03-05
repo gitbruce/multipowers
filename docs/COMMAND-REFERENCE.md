@@ -12,6 +12,7 @@ Complete reference for all Multipowers commands. All commands use the `/mp:` nam
 | `/mp:setup` | Check provider status (Codex, Gemini) and configuration. |
 | `/mp:status` | Show project progress dashboard and track state. |
 | `/mp:route` | Debug current intelligent routing logic for a specific intent. |
+| `/mp:doctor` | Run governance diagnostics (16 checks) through the shared doctor engine. |
 
 ---
 
@@ -36,8 +37,8 @@ These commands trigger the Go-native orchestration engine.
 | `/mp:debate` | Structured 3-way debates between Claude, Gemini, and Codex. |
 | `/mp:loop` | Ralph Wiggum iterative executor - loops until task is completed. |
 | `/mp:persona` | Run a specific agent persona directly. |
-| `/mp:test` | Run Go-native test suite and return structured results. |
-| `/mp:coverage` | Check project code coverage. |
+| `/mp:test` | Deprecated in `mp`; use `mp-devx --action suite`. |
+| `/mp:coverage` | Deprecated in `mp`; use `mp-devx --action coverage`. |
 
 ---
 
@@ -53,6 +54,19 @@ Reads the current track state and returns:
 - Completion percentage
 - Active blockers
 - Next recommended actions
+
+### `/mp:doctor`
+**Usage:** `/mp:doctor [--list|--check-id <id>|--timeout <duration>|--save|--verbose|--json]`
+
+Runs runtime governance checks using the same engine as:
+```bash
+mp-devx --action doctor ...
+```
+
+Key behavior:
+- `--list` prints `check_id/purpose/fail_capable`
+- default timeout: all checks `30s`, single check `45s`
+- non-zero exit only when one or more checks return `fail`
 
 ### `/mp:loop`
 **Usage:** `/mp:loop --agent <name> "<prompt>"`

@@ -175,3 +175,22 @@ func TestRun_ActionCostReport_Error(t *testing.T) {
 		t.Fatal("expected non-zero rc")
 	}
 }
+
+func TestRun_ActionDoctor_List(t *testing.T) {
+	var out strings.Builder
+	rc := run([]string{"-action", "doctor", "-list"}, &out, io.Discard)
+	if rc != 0 {
+		t.Fatalf("expected rc=0 got %d", rc)
+	}
+	text := out.String()
+	if !strings.Contains(text, "check_id") || !strings.Contains(text, "fail_capable") {
+		t.Fatalf("unexpected doctor list output: %s", text)
+	}
+}
+
+func TestRun_ActionDoctor_InvalidCheckID(t *testing.T) {
+	rc := run([]string{"-action", "doctor", "-check-id", "unknown"}, io.Discard, io.Discard)
+	if rc == 0 {
+		t.Fatal("expected non-zero rc for unknown check id")
+	}
+}

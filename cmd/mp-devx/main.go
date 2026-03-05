@@ -12,6 +12,7 @@ import (
 
 	"github.com/gitbruce/multipowers/internal/cost"
 	"github.com/gitbruce/multipowers/internal/devx"
+	"github.com/gitbruce/multipowers/internal/doctor"
 	"github.com/gitbruce/multipowers/internal/policy"
 	"github.com/gitbruce/multipowers/internal/validation"
 	"github.com/gitbruce/multipowers/internal/workflows"
@@ -38,13 +39,20 @@ func run(args []string, stdout, stderr io.Writer) int {
 	fs.SetOutput(stderr)
 
 	suite := fs.String("suite", "unit", "test suite")
-	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime")
+	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime|doctor")
+	projectDir := fs.String("dir", ".", "project directory")
 	configDir := fs.String("config-dir", "config", "config directory for policy source")
 	outputDir := fs.String("output-dir", ".claude-plugin/runtime", "output directory for compiled artifacts")
 	metricsDir := fs.String("metrics-dir", ".multipowers/metrics", "metrics directory for cost report")
 	mapPath := fs.String("map", "docs/plans/evidence/no-shell-runtime/mapping/sh-to-go-map.csv", "sh-to-go map path")
 	threshold := fs.Int64("threshold-ms", 50, "benchmark threshold p95 in milliseconds")
 	coverageThreshold := fs.Float64("coverage-threshold", 0, "coverage threshold percentage")
+	doctorCheckID := fs.String("check-id", "", "doctor check id")
+	doctorTimeout := fs.String("timeout", "", "doctor timeout duration (e.g. 30s)")
+	doctorList := fs.Bool("list", false, "list doctor checks")
+	doctorSave := fs.Bool("save", false, "save doctor report under .multipowers/doctor/reports")
+	doctorVerbose := fs.Bool("verbose", false, "show passing checks in human output")
+	asJSON := fs.Bool("json", false, "json output")
 
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -144,6 +152,59 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		fmt.Fprintln(stdout, "runtime build ok")
+	case "doctor":
+		var timeoutDur time.Duration
+		if *doctorTimeout != "" {
+			parsed, err := time.ParseDuration(*doctorTimeout)
+			if err != nil {
+				fmt.Fprintf(stderr, "invalid --timeout: %v\n", err)
+				return 2
+			}
+			timeoutDur = parsed
+		}
+
+		if *doctorList {
+			items := doctor.ListChecks()
+			if *asJSON {
+				enc := json.NewEncoder(stdout)
+				enc.SetIndent("", "  ")
+				if err := enc.Encode(items); err != nil {
+					fmt.Fprintln(stderr, err)
+					return 1
+				}
+				break
+			}
+			if err := doctor.WriteList(stdout, items); err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			break
+		}
+
+		report, err := doctor.Run(*projectDir, doctor.RunOptions{
+			CheckID: *doctorCheckID,
+			Timeout: timeoutDur,
+			Save:    *doctorSave,
+		})
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+
+		if *asJSON {
+			if err := doctor.WriteReportJSON(stdout, report); err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+		} else {
+			if err := doctor.WriteReportHuman(stdout, report, *doctorVerbose); err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+		}
+		if doctor.HasFail(report) {
+			return 1
+		}
 	default:
 		fmt.Fprintf(stderr, "unknown action: %s\n", *action)
 		return 1

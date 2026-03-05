@@ -42,10 +42,35 @@ func missingContextGuidance(rawPrompt string, missing []string) api.HookResult {
 	}
 }
 
+func handleEnterPlanMode(evt api.HookEvent) api.HookResult {
+	raw := ""
+	if evt.ToolInput != nil {
+		if s, ok := evt.ToolInput["prompt"].(string); ok {
+			raw = strings.TrimSpace(strings.ToLower(s))
+		}
+	}
+	if strings.HasPrefix(raw, "/mp:plan") {
+		return api.HookResult{
+			Decision: "allow",
+			Reason:   "plan-mode intent confirmed via /mp:plan",
+		}
+	}
+	return api.HookResult{
+		Decision:    "block",
+		Reason:      "plan mode requires explicit /mp:plan intent",
+		Remediation: "run /mp:plan <goal> before entering plan mode",
+		Metadata: map[string]any{
+			"required_command": "/mp:plan",
+		},
+	}
+}
+
 func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 	switch evt.Event {
 	case "SessionStart":
 		return api.HookResult{Decision: "allow", Metadata: SessionStartData(projectDir)}
+	case "EnterPlanMode":
+		return handleEnterPlanMode(evt)
 	case "UserPromptSubmit":
 		if isSpecPrompt(evt) && !ctxpkg.Complete(projectDir) {
 			raw, _ := evt.ToolInput["prompt"].(string)
@@ -65,8 +90,22 @@ func Handle(projectDir string, evt api.HookEvent) api.HookResult {
 		return PreToolUse(projectDir, evt)
 	case "PostToolUse":
 		return PostToolUse(projectDir, evt)
+	case "WorktreeCreate", "WorktreeRemove":
+		path, err := appendWorktreeEvent(projectDir, evt, nil)
+		if err != nil {
+			return api.HookResult{
+				Decision: "allow",
+				Reason:   "worktree event accepted (persistence failed)",
+				Metadata: map[string]any{"worktree_event_error": err.Error()},
+			}
+		}
+		return api.HookResult{
+			Decision: "allow",
+			Reason:   "worktree event persisted",
+			Metadata: map[string]any{"worktree_events_log": path},
+		}
 	case "Stop", "SubagentStop":
-		return StopDecision(ctxpkg.Complete(projectDir))
+		return StopDecision(projectDir, evt.Event, ctxpkg.Complete(projectDir))
 	default:
 		return api.HookResult{Decision: "allow"}
 	}

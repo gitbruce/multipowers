@@ -52,15 +52,37 @@ mp validate --type [workspace|no-shell|tdd-env|test-run|coverage]
 ```
 Runs specific architectural or environmental checks. Use `--type no-shell` to ensure no legacy Bash dependencies are present in the active path.
 
+Note:
+- `mp validate --type no-shell` has moved to `mp-devx --action validate-runtime`.
+
 ### 6. Interactive Loops
 ```bash
 mp loop --agent <agent_name> --prompt "instruction" --max-iterations 5
 ```
 Triggers a Ralph Wiggum loop that continues execution until the agent provides a "completion promise" or the iteration limit is reached.
 
-### 7. Lifecycle Hooks
+### 7. Runtime Doctor
 ```bash
-mp hook --event [UserPromptSubmit|PostToolUse|Stop] --prompt "..."
+mp doctor [--list] [--check-id <id>] [--timeout <duration>] [--save] [--verbose] [--json]
+mp-devx --action doctor [same flags]
+```
+
+Doctor runs 16 governance checks (9 upstream-compatible + 7 local).  
+Execution defaults:
+- all checks timeout: `30s`
+- single check timeout (`--check-id`): `45s`
+- explicit `--timeout` overrides defaults
+
+Exit code:
+- non-zero only when at least one check returns `fail`
+
+Save report:
+- `--save` writes `.multipowers/doctor/reports/doctor-YYYYMMDD-HHMMSS.json`
+- single check writes `.multipowers/doctor/reports/doctor-<check_id>-YYYYMMDD-HHMMSS.json`
+
+### 8. Lifecycle Hooks
+```bash
+mp hook --event [SessionStart|EnterPlanMode|UserPromptSubmit|PreToolUse|PostToolUse|WorktreeCreate|WorktreeRemove|Stop|SubagentStop] --prompt "..."
 ```
 Dispatches a lifecycle event to the Go hook handler. Returns `ok` or `blocked` based on current governance policies.
 

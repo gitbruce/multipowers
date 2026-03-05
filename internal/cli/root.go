@@ -3,11 +3,13 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -27,6 +29,11 @@ import (
 	"github.com/gitbruce/multipowers/internal/workflows"
 	"github.com/gitbruce/multipowers/pkg/api"
 )
+
+var lookPath = exec.LookPath
+var commandRunner = func(name string, args ...string) *exec.Cmd {
+	return exec.Command(name, args...)
+}
 
 func Run(args []string) int {
 	if len(args) == 0 {
@@ -63,6 +70,11 @@ func Run(args []string) int {
 	metricsDir := fs.String("metrics-dir", "", "metrics directory for cost report")
 	checkpointID := fs.String("checkpoint-id", "", "checkpoint identifier")
 	resume := fs.Bool("resume", false, "resume from checkpoint")
+	doctorCheckID := fs.String("check-id", "", "doctor check id")
+	doctorTimeout := fs.String("timeout", "", "doctor timeout duration")
+	doctorList := fs.Bool("list", false, "list doctor checks")
+	doctorSave := fs.Bool("save", false, "save doctor report")
+	doctorVerbose := fs.Bool("verbose", false, "show passing checks in doctor output")
 	if err := fs.Parse(rest); err != nil {
 		return 2
 	}
@@ -111,6 +123,27 @@ func Run(args []string) int {
 	}
 
 	switch cmd {
+	case "doctor":
+		proxyArgs := []string{"--action", "doctor", "--dir", absDir}
+		if strings.TrimSpace(*doctorCheckID) != "" {
+			proxyArgs = append(proxyArgs, "--check-id", strings.TrimSpace(*doctorCheckID))
+		}
+		if strings.TrimSpace(*doctorTimeout) != "" {
+			proxyArgs = append(proxyArgs, "--timeout", strings.TrimSpace(*doctorTimeout))
+		}
+		if *doctorList {
+			proxyArgs = append(proxyArgs, "--list")
+		}
+		if *doctorSave {
+			proxyArgs = append(proxyArgs, "--save")
+		}
+		if *doctorVerbose {
+			proxyArgs = append(proxyArgs, "--verbose")
+		}
+		if *asJSON {
+			proxyArgs = append(proxyArgs, "--json")
+		}
+		return runDoctorProxy(absDir, proxyArgs, os.Stdout, os.Stderr)
 	case "checkpoint":
 		switch sub {
 		case "save":
@@ -572,6 +605,55 @@ func Run(args []string) int {
 	default:
 		return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown command"})
 	}
+}
+
+func runDoctorProxy(projectDir string, args []string, stdout, stderr io.Writer) int {
+	bin, err := resolveMPDevxPath(projectDir)
+	if err != nil {
+		fmt.Fprintln(stderr, err.Error())
+		fmt.Fprintln(stderr, "remediation: build .claude-plugin/bin/mp-devx or place mp-devx in PATH")
+		return 1
+	}
+
+	cmd := commandRunner(bin, args...)
+	cmd.Dir = projectDir
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	if err := cmd.Run(); err != nil {
+		var ee *exec.ExitError
+		if errors.As(err, &ee) {
+			return ee.ExitCode()
+		}
+		fmt.Fprintln(stderr, err.Error())
+		return 1
+	}
+	return 0
+}
+
+func resolveMPDevxPath(projectDir string) (string, error) {
+	if env := strings.TrimSpace(os.Getenv("MP_DEVX_BIN")); env != "" {
+		if st, err := os.Stat(env); err == nil && !st.IsDir() {
+			return env, nil
+		}
+		return "", fmt.Errorf("mp-devx not found at MP_DEVX_BIN=%s", env)
+	}
+
+	candidates := make([]string, 0, 3)
+	if root := strings.TrimSpace(os.Getenv("CLAUDE_PLUGIN_ROOT")); root != "" {
+		candidates = append(candidates, filepath.Join(root, "bin", "mp-devx"))
+	}
+	candidates = append(candidates, filepath.Join(projectDir, ".claude-plugin", "bin", "mp-devx"))
+
+	for _, c := range candidates {
+		if st, err := os.Stat(c); err == nil && !st.IsDir() {
+			return c, nil
+		}
+	}
+
+	if p, err := lookPath("mp-devx"); err == nil {
+		return p, nil
+	}
+	return "", fmt.Errorf("mp-devx binary not found")
 }
 
 func fetchURL(rawURL string) (string, string, error) {

@@ -121,6 +121,7 @@
     "./.claude/commands/model-config.md",
     "./.claude/commands/validate.md",
     "./.claude/commands/status.md",
+    "./.claude/commands/doctor.md",
     "./.claude/commands/resume.md",
     "./.claude/commands/ship.md",
     "./.claude/commands/issues.md",

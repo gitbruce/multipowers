@@ -10,6 +10,16 @@
         ]
       }
     ],
+    "EnterPlanMode": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event EnterPlanMode --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
@@ -36,6 +46,26 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event PostToolUse --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event WorktreeCreate --dir \"${CLAUDE_PROJECT_DIR}\" --json"
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/mp hook --event WorktreeRemove --dir \"${CLAUDE_PROJECT_DIR}\" --json"
           }
         ]
       }

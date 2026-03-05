@@ -23,7 +23,7 @@ argument-hint: "[list|add|resolve|show] [description or ID]"
 
 ## Overview
 
-Cross-session issue tracking for persistent problem management. Issues are stored in `.octo/ISSUES.md` and survive across Claude Code sessions.
+Cross-session issue tracking for persistent problem management. Issues are stored in `.multipowers/ISSUES.md` and survive across Claude Code sessions.
 
 **Core principle:** Track → Resolve → Learn.
 
@@ -63,7 +63,7 @@ Show all open issues in table format:
 ```
 
 **Implementation:**
-1. Check if `.octo/ISSUES.md` exists
+1. Check if `.multipowers/ISSUES.md` exists
 2. If not, initialize from template
 3. Read and parse Open Issues section
 4. Display in table format
@@ -85,12 +85,14 @@ Add new issue with auto-generated ID.
 
 Please provide:
 1. **Severity** (critical/high/medium/low):
-2. **Additional context** (optional):
+2. **Category** (`logic-error`/`integration`/`quality-gate`/`security`/`performance`/`ux`/`architecture`):
+3. **Additional context** (optional):
 ```
 
-#### Step 2: Validate Severity
+#### Step 2: Validate Severity And Category
 
 Ensure severity is one of: `critical`, `high`, `medium`, `low`
+Ensure category is one of: `logic-error`, `integration`, `quality-gate`, `security`, `performance`, `ux`, `architecture`
 
 If invalid, ask again.
 
@@ -98,8 +100,8 @@ If invalid, ask again.
 
 ```bash
 # Check if STATE.md exists
-if [ -f .octo/STATE.md ]; then
-  grep "current_phase:" .octo/STATE.md
+if [ -f .multipowers/STATE.md ]; then
+  grep "current_phase:" .multipowers/STATE.md
 else
   echo "Unknown"
 fi
@@ -114,7 +116,7 @@ fi
 TODAY=$(date +%Y%m%d)
 
 # Find existing issues for today
-grep "ISS-${TODAY}-" .octo/ISSUES.md | tail -1
+grep "ISS-${TODAY}-" .multipowers/ISSUES.md | tail -1
 
 # Increment sequence number
 # If ISS-20260203-001 exists, next is ISS-20260203-002
@@ -157,7 +159,7 @@ Mark issue as resolved and move to Resolved section.
 
 ```bash
 # Check if issue ID exists in Open Issues
-grep "ISS-20260203-001" .octo/ISSUES.md
+grep "ISS-20260203-001" .multipowers/ISSUES.md
 ```
 
 If not found, show error:
@@ -259,20 +261,20 @@ Use `/mp:issues list` to see all open issues.
 
 ### Initialize ISSUES.md
 
-**When:** First time skill is used or `.octo/ISSUES.md` doesn't exist.
+**When:** First time skill is used or `.multipowers/ISSUES.md` doesn't exist.
 
 **Action:**
 
 ```bash
-# Create .octo directory if needed
-mkdir -p .octo
+# Create .multipowers directory if needed
+mkdir -p .multipowers
 
 # Copy template
-cp ${CLAUDE_PLUGIN_ROOT}/templates/ISSUES.md.template .octo/ISSUES.md
+cp ${CLAUDE_PLUGIN_ROOT}/templates/ISSUES.md.template .multipowers/ISSUES.md
 
 # Replace {{PROJECT_NAME}} with actual project name
 PROJECT_NAME=$(basename $(pwd))
-sed -i '' "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" .octo/ISSUES.md
+sed -i '' "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" .multipowers/ISSUES.md
 ```
 
 ### Preserve Existing Issues
@@ -283,14 +285,14 @@ sed -i '' "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" .octo/ISSUES.md
 
 ```bash
 # Read existing content
-EXISTING=$(cat .octo/ISSUES.md)
+EXISTING=$(cat .multipowers/ISSUES.md)
 
 # Modify specific section only
 # Append new issue to Open Issues table
 # OR move issue from Open to Resolved
 
 # Write back with all content preserved
-echo "$MODIFIED" > .octo/ISSUES.md
+echo "$MODIFIED" > .multipowers/ISSUES.md
 ```
 
 ---
@@ -310,7 +312,7 @@ echo "$MODIFIED" > .octo/ISSUES.md
 TODAY=$(date +%Y%m%d)
 
 # Find all issues created today
-TODAY_ISSUES=$(grep -o "ISS-${TODAY}-[0-9]\{3\}" .octo/ISSUES.md || echo "")
+TODAY_ISSUES=$(grep -o "ISS-${TODAY}-[0-9]\{3\}" .multipowers/ISSUES.md || echo "")
 
 if [ -z "$TODAY_ISSUES" ]; then
   # No issues today, start at 001

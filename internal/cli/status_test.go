@@ -47,10 +47,14 @@ func TestGetRuntimeStatus_HasHookEvents(t *testing.T) {
 	}
 	expectedEvents := map[string]bool{
 		"SessionStart":     true,
+		"EnterPlanMode":    true,
 		"UserPromptSubmit": true,
 		"PreToolUse":       true,
 		"PostToolUse":      true,
+		"WorktreeCreate":   true,
+		"WorktreeRemove":   true,
 		"Stop":             true,
+		"SubagentStop":     true,
 	}
 	for _, event := range status.HookEvents {
 		if !expectedEvents[event] {

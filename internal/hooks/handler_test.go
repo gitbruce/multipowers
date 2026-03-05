@@ -63,3 +63,28 @@ func TestPostToolUseWritesFaqAndTrack(t *testing.T) {
 		t.Fatalf("faq not written: %v", err)
 	}
 }
+
+func TestEnterPlanMode_BlocksWithoutPlanIntent(t *testing.T) {
+	d := t.TempDir()
+	r := Handle(d, api.HookEvent{
+		Event:     "EnterPlanMode",
+		ToolInput: map[string]any{"prompt": "/mp:develop implement x"},
+	})
+	if r.Decision != "block" {
+		t.Fatalf("expected block, got %+v", r)
+	}
+	if r.Remediation == "" {
+		t.Fatalf("expected remediation, got %+v", r)
+	}
+}
+
+func TestEnterPlanMode_AllowsPlanIntent(t *testing.T) {
+	d := t.TempDir()
+	r := Handle(d, api.HookEvent{
+		Event:     "EnterPlanMode",
+		ToolInput: map[string]any{"prompt": "/mp:plan design migration"},
+	})
+	if r.Decision != "allow" {
+		t.Fatalf("expected allow, got %+v", r)
+	}
+}
