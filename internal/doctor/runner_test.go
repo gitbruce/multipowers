@@ -73,8 +73,8 @@ func TestRunner_TimeoutMarksWarnTimedOut(t *testing.T) {
 
 func TestRunner_ListReturnsIDPurposeFailCapable(t *testing.T) {
 	items := ListChecks()
-	if len(items) != 16 {
-		t.Fatalf("len=%d want 16", len(items))
+	if len(items) != 18 {
+		t.Fatalf("len=%d want 18", len(items))
 	}
 	for i := 1; i < len(items); i++ {
 		if items[i-1].CheckID > items[i].CheckID {

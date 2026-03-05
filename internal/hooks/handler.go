@@ -3,6 +3,7 @@ package hooks
 import (
 	"strings"
 
+	"github.com/gitbruce/multipowers/internal/autosync"
 	"github.com/gitbruce/multipowers/internal/benchmark"
 	ctxpkg "github.com/gitbruce/multipowers/internal/context"
 	"github.com/gitbruce/multipowers/internal/isolation"
@@ -66,6 +67,10 @@ func handleEnterPlanMode(evt api.HookEvent) api.HookResult {
 }
 
 func Handle(projectDir string, evt api.HookEvent) api.HookResult {
+	_, _ = autosync.EmitRawEvent(projectDir, "hook", evt.Event, map[string]any{
+		"tool_name": evt.ToolName,
+	})
+
 	switch evt.Event {
 	case "SessionStart":
 		return api.HookResult{Decision: "allow", Metadata: SessionStartData(projectDir)}

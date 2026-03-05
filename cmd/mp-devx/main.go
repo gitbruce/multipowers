@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gitbruce/multipowers/internal/autosync"
+	"github.com/gitbruce/multipowers/internal/autosync/fingerprint"
 	"github.com/gitbruce/multipowers/internal/cost"
 	"github.com/gitbruce/multipowers/internal/devx"
 	"github.com/gitbruce/multipowers/internal/doctor"
@@ -34,12 +36,12 @@ func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
 }
 
-func run(args []string, stdout, stderr io.Writer) int {
+func run(args []string, stdout, stderr io.Writer) (rc int) {
 	fs := flag.NewFlagSet("mp-devx", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
 	suite := fs.String("suite", "unit", "test suite")
-	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime|doctor")
+	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime|doctor|init-fingerprint")
 	projectDir := fs.String("dir", ".", "project directory")
 	configDir := fs.String("config-dir", "config", "config directory for policy source")
 	outputDir := fs.String("output-dir", ".claude-plugin/runtime", "output directory for compiled artifacts")
@@ -57,6 +59,20 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if err := fs.Parse(args); err != nil {
 		return 2
 	}
+	_, _ = autosync.EmitRawEvent(*projectDir, "mp-devx", "action.start", map[string]any{
+		"action": *action,
+	})
+	defer func() {
+		status := "ok"
+		if rc != 0 {
+			status = "error"
+		}
+		_, _ = autosync.EmitRawEvent(*projectDir, "mp-devx", "action.finish", map[string]any{
+			"action":      *action,
+			"status":      status,
+			"status_code": rc,
+		})
+	}()
 
 	r := runnerFactory()
 	switch *action {
@@ -204,6 +220,20 @@ func run(args []string, stdout, stderr io.Writer) int {
 		}
 		if doctor.HasFail(report) {
 			return 1
+		}
+	case "init-fingerprint":
+		result, err := fingerprint.Scan(*projectDir)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if *asJSON {
+			if err := json.NewEncoder(stdout).Encode(result); err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+		} else {
+			fmt.Fprintf(stdout, "init-fingerprint ok: capabilities=%d\n", len(result.Capabilities))
 		}
 	default:
 		fmt.Fprintf(stderr, "unknown action: %s\n", *action)

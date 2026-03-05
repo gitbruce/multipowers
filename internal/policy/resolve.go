@@ -8,6 +8,9 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
+
+	"github.com/gitbruce/multipowers/internal/autosync"
 )
 
 // ResolutionScope indicates whether we're resolving for a workflow or agent
@@ -280,6 +283,28 @@ func (r *Resolver) resolveFallbackTarget(model, policyName string) string {
 	}
 
 	return ""
+}
+
+// ExcludeRevokedOrCoolingRules filters out rules that are currently in cooldown.
+func ExcludeRevokedOrCoolingRules(rules []autosync.OverlayRule, cooldown map[string]autosync.CooldownEntry, now time.Time) []autosync.OverlayRule {
+	if now.IsZero() {
+		now = time.Now().UTC()
+	}
+	if len(rules) == 0 {
+		return nil
+	}
+	out := make([]autosync.OverlayRule, 0, len(rules))
+	for _, rule := range rules {
+		if strings.TrimSpace(rule.RuleID) == "" {
+			continue
+		}
+		c, ok := cooldown[rule.RuleID]
+		if ok && !c.RevokedUntil.IsZero() && now.Before(c.RevokedUntil) {
+			continue
+		}
+		out = append(out, rule)
+	}
+	return out
 }
 
 // GetPolicy returns the underlying runtime policy

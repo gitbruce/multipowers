@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"github.com/gitbruce/multipowers/internal/app"
+	"github.com/gitbruce/multipowers/internal/autosync"
+	"github.com/gitbruce/multipowers/internal/autosync/ops"
 	"github.com/gitbruce/multipowers/internal/checkpoint"
 	ctxpkg "github.com/gitbruce/multipowers/internal/context"
 	"github.com/gitbruce/multipowers/internal/cost"
@@ -43,7 +45,7 @@ func Run(args []string) int {
 	cmd := args[0]
 	sub := ""
 	rest := args[1:]
-	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate" || cmd == "cost" || cmd == "checkpoint") && len(rest) > 0 {
+	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate" || cmd == "cost" || cmd == "checkpoint" || cmd == "policy") && len(rest) > 0 {
 		sub = rest[0]
 		rest = rest[1:]
 	}
@@ -75,6 +77,11 @@ func Run(args []string) int {
 	doctorList := fs.Bool("list", false, "list doctor checks")
 	doctorSave := fs.Bool("save", false, "save doctor report")
 	doctorVerbose := fs.Bool("verbose", false, "show passing checks in doctor output")
+	policyApply := fs.Bool("apply", false, "apply high-confidence policy proposals")
+	policyIgnoreID := fs.String("ignore-id", "", "ignore proposal id")
+	policyRollbackID := fs.String("rollback-id", "", "rollback proposal id")
+	policyRevokeID := fs.String("revoke-id", "", "revoke active rule id")
+	policyMode := fs.String("mode", "", "policy tune mode: balanced|accuracy|storage")
 	if err := fs.Parse(rest); err != nil {
 		return 2
 	}
@@ -83,8 +90,17 @@ func Run(args []string) int {
 		effectivePrompt = strings.Join(fs.Args(), " ")
 	}
 	absDir, _ := filepath.Abs(*dir)
+	_, _ = autosync.EmitRawEvent(absDir, "mp", "command.start", map[string]any{
+		"command": cmd,
+		"sub":     sub,
+	})
 
 	respond := func(r api.Response) int {
+		_, _ = autosync.EmitRawEvent(absDir, "mp", "command.finish", map[string]any{
+			"command": cmd,
+			"sub":     sub,
+			"status":  r.Status,
+		})
 		if *asJSON {
 			_ = json.NewEncoder(os.Stdout).Encode(r)
 		} else {
@@ -508,6 +524,11 @@ func Run(args []string) int {
 		} else {
 			fmt.Println(hr.Decision)
 		}
+		_, _ = autosync.EmitRawEvent(absDir, "mp", "command.finish", map[string]any{
+			"command": cmd,
+			"sub":     sub,
+			"status":  status,
+		})
 		if hr.Decision == "block" {
 			return 1
 		}
@@ -555,6 +576,43 @@ func Run(args []string) int {
 				"single_provider_mode": result.SingleProviderMode,
 			},
 		})
+	case "policy":
+		svc := ops.NewService(absDir)
+		switch sub {
+		case "sync":
+			res, err := svc.Sync(ops.SyncOptions{
+				Apply:      *policyApply,
+				IgnoreID:   *policyIgnoreID,
+				RollbackID: *policyRollbackID,
+				RevokeID:   *policyRevokeID,
+			})
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"policy_sync": res}})
+		case "stats":
+			res, err := svc.Stats()
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"policy_stats": res}})
+		case "gc":
+			res, err := svc.GC()
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"policy_gc": res}})
+		case "tune":
+			if strings.TrimSpace(*policyMode) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--mode is required"})
+			}
+			if err := svc.Tune(*policyMode); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"policy_tune_mode": *policyMode}})
+		default:
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown policy subcommand: use sync|stats|gc|tune"})
+		}
 	case "test":
 		if sub != "run" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown test subcommand: use run"})

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/gitbruce/multipowers/internal/autosync"
 	"github.com/gitbruce/multipowers/internal/faq"
 	"github.com/gitbruce/multipowers/internal/fsboundary"
 	"github.com/gitbruce/multipowers/internal/tracks"
@@ -11,6 +12,9 @@ import (
 )
 
 func PostToolUse(projectDir string, evt api.HookEvent) api.HookResult {
+	_, _ = autosync.EmitRawEvent(projectDir, "hook.post_tool_use", evt.ToolName, map[string]any{
+		"event": evt.Event,
+	})
 	faqFile := filepath.Join(projectDir, ".multipowers", "FAQ.md")
 	if err := fsboundary.ValidateArtifactPath(faqFile, projectDir); err != nil {
 		return api.HookResult{Decision: "block", Reason: err.Error()}

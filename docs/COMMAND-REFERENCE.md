@@ -13,6 +13,7 @@ Complete reference for all Multipowers commands. All commands use the `/mp:` nam
 | `/mp:status` | Show project progress dashboard and track state. |
 | `/mp:route` | Debug current intelligent routing logic for a specific intent. |
 | `/mp:doctor` | Run governance diagnostics (16 checks) through the shared doctor engine. |
+| `/mp:policy` | Operate autosync policy lifecycle (`sync/stats/gc/tune`). |
 
 ---
 
@@ -67,6 +68,15 @@ Key behavior:
 - `--list` prints `check_id/purpose/fail_capable`
 - default timeout: all checks `30s`, single check `45s`
 - non-zero exit only when one or more checks return `fail`
+
+### `/mp:policy`
+**Usage:** `/mp:policy <sync|stats|gc|tune> [flags]`
+
+Backed by `mp policy` runtime commands:
+- `mp policy sync [--apply] [--ignore-id <id>] [--rollback-id <id>] [--revoke-id <rule_id>]`
+- `mp policy stats`
+- `mp policy gc`
+- `mp policy tune --mode [balanced|accuracy|storage]`
 
 ### `/mp:loop`
 **Usage:** `/mp:loop --agent <name> "<prompt>"`

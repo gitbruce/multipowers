@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
+
+	autosyncctx "github.com/gitbruce/multipowers/internal/autosync/context"
 )
 
 // DispatchResult contains the result of executing an external executor
@@ -47,6 +49,8 @@ func (d *Dispatcher) Dispatch(contract *ExecutionContract, prompt, projectDir st
 
 // dispatchExternal executes an external CLI executor with hard enforcement
 func (d *Dispatcher) dispatchExternal(contract *ExecutionContract, prompt, projectDir string) (*DispatchResult, error) {
+	prompt = augmentPromptWithPolicyContext(projectDir, prompt, "")
+
 	// Render command template
 	args, err := renderCommandTemplate(contract.CommandTemplate, contract.RequestedModel, prompt, projectDir)
 	if err != nil {
@@ -218,4 +222,12 @@ func renderCommandTemplate(template []string, model, prompt, projectDir string) 
 		result[i] = arg
 	}
 	return result, nil
+}
+
+func augmentPromptWithPolicyContext(projectDir, prompt, sessionID string) string {
+	ctx, err := autosyncctx.BuildPolicyContext(projectDir, sessionID, time.Now().UTC())
+	if err != nil {
+		return prompt
+	}
+	return autosyncctx.Inject(prompt, ctx)
 }

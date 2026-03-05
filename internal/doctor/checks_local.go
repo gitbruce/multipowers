@@ -1,6 +1,7 @@
 package doctor
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -253,4 +254,79 @@ func checkRuntimeStatusConsistency(ctx CheckContext) CheckResult {
 	sort.Strings(extraInStatus)
 	detail := fmt.Sprintf("missing_in_status=%v extra_in_status=%v", missingInStatus, extraInStatus)
 	return warn("runtime status hook events drift detected", detail)
+}
+
+func checkAutoSyncDrift(ctx CheckContext) CheckResult {
+	path := filepath.Join(ctx.ProjectDir, ".multipowers", "policy", "autosync", "daily_stats.json")
+	if !fileExists(path) {
+		return info("autosync stats missing", "daily_stats.json not found")
+	}
+	var doc map[string]any
+	if err := readJSONFile(path, &doc); err != nil {
+		return warn("autosync stats parse failed", err.Error())
+	}
+	raw, ok := doc["drift_rate"]
+	if !ok {
+		return info("autosync drift_rate missing", path)
+	}
+	drift := 0.0
+	switch v := raw.(type) {
+	case float64:
+		drift = v
+	case int:
+		drift = float64(v)
+	}
+	if drift >= 0.3 {
+		return warn("autosync drift rate high", fmt.Sprintf("drift_rate=%.2f", drift))
+	}
+	return pass("autosync drift within threshold", fmt.Sprintf("drift_rate=%.2f", drift))
+}
+
+func checkAutoSyncUnresolvedHighConfidence(ctx CheckContext) CheckResult {
+	path := filepath.Join(ctx.ProjectDir, ".multipowers", "policy", "autosync", "proposals.jsonl")
+	if !fileExists(path) {
+		return info("autosync proposals missing", "proposals.jsonl not found")
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return warn("cannot read autosync proposals", err.Error())
+	}
+	defer f.Close()
+
+	type row struct {
+		RuleID     string  `json:"rule_id"`
+		Confidence float64 `json:"confidence"`
+		Status     string  `json:"status"`
+	}
+	resolved := map[string]struct{}{
+		"auto-applied":    {},
+		"manual-required": {},
+		"ignored":         {},
+		"revoked":         {},
+		"rolled-back":     {},
+		"expired":         {},
+	}
+	unresolved := 0
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		line := strings.TrimSpace(s.Text())
+		if line == "" {
+			continue
+		}
+		var r row
+		if err := json.Unmarshal([]byte(line), &r); err != nil {
+			continue
+		}
+		if r.Confidence < 0.95 {
+			continue
+		}
+		if _, ok := resolved[strings.ToLower(strings.TrimSpace(r.Status))]; ok {
+			continue
+		}
+		unresolved++
+	}
+	if unresolved > 0 {
+		return warn("unresolved high-confidence autosync proposals", fmt.Sprintf("count=%d", unresolved))
+	}
+	return pass("no unresolved high-confidence autosync proposals", path)
 }

@@ -12,22 +12,22 @@
 
 ## Status Bar
 
-**Overall:** `0/12 tasks complete (0%)`
+**Overall:** `12/12 tasks complete (100%)`
 
 | Task ID | Task Name | Status | Last Updated | Notes |
 |---|---|---|---|---|
-| T1 | Autosync contracts and paths | pending | - | - |
-| T2 | Raw EventSink + dedup + rotation | pending | - | - |
-| T3 | Multi-entry event emission wiring | pending | - | - |
-| T4 | Detector Registry + generic signals | pending | - | - |
-| T5 | Scoring engine + proposal lifecycle | pending | - | - |
-| T6 | Overlay activation + deny-confirmation + revoke/cooldown/reset | pending | - | - |
-| T7 | `init-fingerprint` doc-aware bootstrap | pending | - | - |
-| T8 | Cross-project semantic preference reuse | pending | - | - |
-| T9 | PolicyContext snapshot + prompt injection | pending | - | - |
-| T10 | `mp policy` command surface | pending | - | - |
-| T11 | Hook/Doctor governance integration | pending | - | - |
-| T12 | E2E verification + docs hardening | pending | - | - |
+| T1 | Autosync contracts and paths | done | 2026-03-06 | tests: `go test ./internal/autosync -run TestDefaultPaths_AreStable -v` |
+| T2 | Raw EventSink + dedup + rotation | done | 2026-03-06 | tests: `go test ./internal/autosync/store -run TestRawSink_ -v` |
+| T3 | Multi-entry event emission wiring | done | 2026-03-06 | tests: `go test ./internal/autosync ./internal/hooks ./internal/cli -run Test.*RawStream -v` |
+| T4 | Detector Registry + generic signals | done | 2026-03-06 | tests: `go test ./internal/autosync/detector -run TestRegistry_ -v` |
+| T5 | Scoring engine + proposal lifecycle | done | 2026-03-06 | tests: `go test ./internal/autosync/proposal -run TestProposal_ -v` |
+| T6 | Overlay activation + deny-confirmation + revoke/cooldown/reset | done | 2026-03-06 | tests: `go test ./internal/autosync/overlay ./internal/policy -run 'TestOverlay_|TestResolver_ExcludesRevokedOrCoolingRules' -v` |
+| T7 | `init-fingerprint` doc-aware bootstrap | done | 2026-03-06 | tests: `go test ./internal/autosync/fingerprint ./cmd/mp-devx -run 'TestFingerprint_|TestMPDevx_InitFingerprintAction' -v` |
+| T8 | Cross-project semantic preference reuse | done | 2026-03-06 | tests: `go test ./internal/autosync/semantic -run TestSemantic -v` |
+| T9 | PolicyContext snapshot + prompt injection | done | 2026-03-06 | tests: `go test ./internal/autosync/context ./internal/policy -run 'TestPolicyContext_|TestDispatchExternal_IncludesPolicyContextForPrompt' -v` |
+| T10 | `mp policy` command surface | done | 2026-03-06 | tests: `go test ./internal/cli ./internal/autosync/ops -run TestPolicy -v` |
+| T11 | Hook/Doctor governance integration | done | 2026-03-06 | tests: `go test ./internal/doctor ./internal/hooks -run 'TestDoctor_AutoSync|TestHook_HardSafetyRuleStillBlocks|TestDoctor_UnhandledHighConfidenceProposalWarns' -v` |
+| T12 | E2E verification + docs hardening | done | 2026-03-06 | tests: `go test ./internal/autosync/... -v && go test ./internal/policy ./internal/hooks ./internal/doctor ./internal/cli -v && go test ./cmd/mp ./cmd/mp-devx -v` |
 
 ### Status Update Rules
 

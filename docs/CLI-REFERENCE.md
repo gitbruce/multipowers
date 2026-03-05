@@ -86,6 +86,15 @@ mp hook --event [SessionStart|EnterPlanMode|UserPromptSubmit|PreToolUse|PostTool
 ```
 Dispatches a lifecycle event to the Go hook handler. Returns `ok` or `blocked` based on current governance policies.
 
+### 9. Policy Autosync Operations
+```bash
+mp policy sync [--apply] [--ignore-id <id>] [--rollback-id <id>] [--revoke-id <rule_id>]
+mp policy stats
+mp policy gc
+mp policy tune --mode [balanced|accuracy|storage]
+```
+Manages autosync policy lifecycle, observability, garbage-collection, and tuning profiles.
+
 ---
 
 ## Debugging

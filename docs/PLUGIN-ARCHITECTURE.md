@@ -89,6 +89,15 @@ The Go-native engine replaces legacy shell shims with a robust three-layer pipel
 2. **Executor**: Concurrent execution with bounded `Worktree Slots`.
 3. **Synthesizer**: Multi-perspective aggregation and Progressive Synthesis.
 
+### 5. Policy Auto Sync (internal/autosync)
+
+Policy Auto Sync adds an append-only learning layer:
+
+- Raw events: `.multipowers/policy/autosync/events.raw.*.jsonl`
+- Proposal lifecycle: advisory/shadow/auto-candidate/auto-applied
+- User deny confirmation flow: `delete` vs `skip-this-session`
+- Prompt injection: active policy context also injected for external vibe coding tool execution
+
 ---
 
 ## See Also

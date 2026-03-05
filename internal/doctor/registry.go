@@ -9,6 +9,8 @@ func DefaultRegistry() []CheckSpec {
 	checks := []CheckSpec{
 		{ID: "agents", Purpose: "Validate agent catalog and orchestration alignment", FailCapable: false, Run: checkAgents},
 		{ID: "auth", Purpose: "Validate provider authentication readiness", FailCapable: true, Run: checkAuth},
+		{ID: "autosync-drift", Purpose: "Warn when autosync drift rate is high", FailCapable: false, Run: checkAutoSyncDrift},
+		{ID: "autosync-unresolved-high-confidence", Purpose: "Warn on unresolved high-confidence autosync proposals", FailCapable: false, Run: checkAutoSyncUnresolvedHighConfidence},
 		{ID: "checkpoint-health", Purpose: "Validate checkpoint JSON integrity under .multipowers", FailCapable: false, Run: checkCheckpointHealth},
 		{ID: "command-boundary", Purpose: "Validate mp/mp-devx command ownership boundaries", FailCapable: true, Run: checkCommandBoundary},
 		{ID: "config", Purpose: "Validate plugin/runtime governance config, including CodeRabbit", FailCapable: true, Run: checkConfig},

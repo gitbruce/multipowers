@@ -8,3 +8,8 @@ Multipowers customization docs are now located at:
 Use scripts from:
 
 - `custom/scripts/`
+
+Policy Auto Sync runtime/implementation docs:
+
+- `docs/plans/2026-03-06-policy-auto-sync-universal-learning-design.md`
+- `docs/plans/2026-03-06-policy-auto-sync-universal-learning-implementation.md`

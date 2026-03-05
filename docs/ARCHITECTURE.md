@@ -76,6 +76,16 @@ For isolated external-command runs, orchestration also supports a filesystem-bac
 4. **Resume Modes**: Requeue decisions explicitly choose `RESUME_IN_PLACE` or `RESTART_FROM_SCRATCH`; stale artifacts force restart.
 5. **Resource Guardrail**: Active worktree slots are capped (`active_worktree_cap`) to prevent unbounded sandbox growth.
 
+### Policy Auto Sync Control Loop (v8.2+)
+
+Runtime now includes a Go-native policy learning loop:
+
+1. Multi-entry raw event ingestion to `.multipowers/policy/autosync/events.raw.*.jsonl`.
+2. Universal detector mapping (`branching/workspace/command_contract/risk_profile`).
+3. Proposal scoring with confidence/conflict/session gates.
+4. Overlay activation with revoke + cooldown controls.
+5. Deterministic policy context injection into `/mp:*` and external CLI prompt paths.
+
 ---
 
 ## Execution Flow by Workflow (v8.0+)
