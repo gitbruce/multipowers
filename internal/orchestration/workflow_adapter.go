@@ -3,7 +3,7 @@ package orchestration
 import (
 	"context"
 
-	"github.com/gitbruce/claude-octopus/internal/isolation"
+	"github.com/gitbruce/multipowers/internal/isolation"
 )
 
 // WorkflowAdapter provides high-level workflow execution functions

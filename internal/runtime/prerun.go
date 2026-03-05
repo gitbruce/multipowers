@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/execx"
+	"github.com/gitbruce/multipowers/internal/execx"
 )
 
 func matchAny(tags []string, candidates []string) bool {

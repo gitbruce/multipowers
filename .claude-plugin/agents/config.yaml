@@ -32,7 +32,7 @@ phase_defaults:
 
 # v8.9.0: Phase-to-model routing baseline for Codex agents.
 # Runtime source of truth is select_codex_model_for_context() in scripts/mp,
-# with user overrides in ~/.claude-octopus/config/providers.json -> phase_routing.
+# with user overrides in ~/.multipowers/config/providers.json -> phase_routing.
 # Keep this block aligned as the repository policy baseline.
 phase_model_routing:
   probe:   gpt-5.3-codex           # Deep research needs max reasoning

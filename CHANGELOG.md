@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Claude Octopus will be documented in this file.
+All notable changes to Multipowers will be documented in this file.
 
 ## [8.12.0] - 2026-02-14
 
@@ -159,7 +159,7 @@ All notable changes to Claude Octopus will be documented in this file.
 - `parse_task_metrics()` extracts `speed` attribute alongside existing token/duration fields
 <<<<<<< HEAD
 =======
-- Install instructions changed from `nyldn/claude-octopus` shorthand to full HTTPS URL
+- Install instructions changed from `nyldn/multipowers` shorthand to full HTTPS URL
 >>>>>>> e84f3ac (Update plugin submodule to v8.9.0 - contextual Codex model routing)
 
 ---
@@ -189,7 +189,7 @@ All notable changes to Claude Octopus will be documented in this file.
 
 **Agent Teams Bridge** (P2):
 
-- **`agent-teams-bridge.sh`** unified task-ledger at `~/.claude-octopus/bridge/task-ledger.json`
+- **`agent-teams-bridge.sh`** unified task-ledger at `~/.multipowers/bridge/task-ledger.json`
 - Lockfile-based atomic concurrent access (`bridge_atomic_ledger_update()`)
 - Task lifecycle: `bridge_register_task()`, `bridge_mark_task_complete()`, `bridge_check_phase_complete()`
 - Quality gates: `bridge_inject_gate_task()`, `bridge_evaluate_gate()`
@@ -336,13 +336,13 @@ All notable changes to Claude Octopus will be documented in this file.
 
 - **TeammateIdle hook** (`hooks/teammate-idle-hook.md` + `hooks/teammate-idle-dispatch.sh`)
   - Reactive agent scheduling - assigns queued tasks to idle agents
-  - Reads `~/.claude-octopus/session.json` for agent queue state
-  - Writes idle event metrics to `~/.claude-octopus/metrics/idle-events.jsonl`
+  - Reads `~/.multipowers/session.json` for agent queue state
+  - Writes idle event metrics to `~/.multipowers/metrics/idle-events.jsonl`
 
 - **TaskCompleted hook** (`hooks/task-completed-hook.md` + `hooks/task-completed-transition.sh`)
   - Automatic phase transitions (probe → grasp → tangle → ink → complete)
   - Supports supervised/semi-autonomous/autonomous autonomy modes
-  - Records completion metrics to `~/.claude-octopus/metrics/completion-events.jsonl`
+  - Records completion metrics to `~/.multipowers/metrics/completion-events.jsonl`
   - Writes phase completion records to results directory
 
 - **Memory frontmatter** on all 29 agent personas
@@ -368,7 +368,7 @@ All notable changes to Claude Octopus will be documented in this file.
 
 - **Event-driven phase transitions** in `embrace_full_workflow()`
   - Exports `OCTOPUS_WORKFLOW_PHASE`, `OCTOPUS_WORKFLOW_TYPE`, `OCTOPUS_TASK_GROUP`
-  - Writes `~/.claude-octopus/session.json` at each phase boundary
+  - Writes `~/.multipowers/session.json` at each phase boundary
   - Phase map in session state for hooks to read
   - Clean env var cleanup on workflow completion
 
@@ -463,7 +463,7 @@ All notable changes to Claude Octopus will be documented in this file.
   - 4-tier precedence: env vars > overrides > config > defaults
   - `/mp:model-config` command for easy management
   - `OCTOPUS_CODEX_MODEL` and `OCTOPUS_GEMINI_MODEL` environment variables
-  - Persistent configuration in `~/.claude-octopus/config/providers.json`
+  - Persistent configuration in `~/.multipowers/config/providers.json`
   - Per-project or per-session model customization
   - Issue: #16
 
@@ -536,7 +536,7 @@ All notable changes to Claude Octopus will be documented in this file.
 - **Enhanced State Persistence**: Resilient to context clearing
   - `skill-resume-enhanced.md` with auto-reload protocol
   - State survives native plan mode's `ExitPlanMode` context clearing
-  - Workflows auto-restore from `.claude-octopus/state.json`
+  - Workflows auto-restore from `.multipowers/state.json`
   - Seamless multi-day project continuity
 
 - **Migration Tools**: Smooth transition path
@@ -571,9 +571,9 @@ All notable changes to Claude Octopus will be documented in this file.
 **Migrating from v7.22.x:**
 
 1. **Backup existing todos**: `cp .claude-plugin/.claude/todos.md .claude-plugin/.claude/todos.md.backup`
-2. **Run migration**: `~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh`
+2. **Run migration**: `~/.claude/plugins/cache/multipowers-plugins/multipowers/7.23.0/scripts/migrate-todos.sh`
 3. **Verify tasks**: `/tasks` command shows migrated tasks
-4. **Optional**: Set `use_native_tasks: false` in `.claude-plugin/.claude/claude-octopus.local.md` for legacy behavior
+4. **Optional**: Set `use_native_tasks: false` in `.claude-plugin/.claude/multipowers.local.md` for legacy behavior
 
 See MIGRATION-7.23.0.md for complete migration guide.
 
@@ -869,7 +869,7 @@ This release fixes critical systemic issues with multi-AI coordination that caus
 #### **P2 - Quality of Life Improvements** 🟢
 
 **P2.1 - Enhanced Log Management**
-- **Issue**: 100+ log files in `~/.claude-octopus/logs`, no cleanup
+- **Issue**: 100+ log files in `~/.multipowers/logs`, no cleanup
 - **Fix**:
   - Age-based cleanup (default 30 days, configurable)
   - Clean up both .log and .log.*.gz files
@@ -1090,7 +1090,7 @@ New state management system tracks decisions, context, and metrics across sessio
 **New Files:**
 - `scripts/state-manager.sh` - State persistence utilities (390 lines)
 - `.claude-plugin/.claude/state/state-manager.md` - Comprehensive documentation (280 lines)
-- `.claude-octopus/state.json` - Persistent state file
+- `.multipowers/state.json` - Persistent state file
 
 **Example State:**
 ```json
@@ -1725,7 +1725,7 @@ Added three safety functions to prevent race conditions and enable graceful degr
 
 ### ✨ New Features
 
-#### Configurable Codex Sandbox Mode ([#9](https://github.com/nyldn/claude-octopus/issues/9))
+#### Configurable Codex Sandbox Mode ([#9](https://github.com/gitbruce/multipowers/issues/9))
 - Add `OCTOPUS_CODEX_SANDBOX` environment variable for sandbox configuration
 - Supports three modes: `workspace-write` (default), `read-only`, `danger-full-access`
 - Enables workflows on mounted filesystems (SSHFS, NFS, FUSE)
@@ -1830,7 +1830,7 @@ Added three safety functions to prevent race conditions and enable graceful degr
 
 Existing users should:
 1. Upgrade Claude Code to v2.1.16+: `claude update`
-2. Update plugin: `/plugin update claude-octopus`
+2. Update plugin: `/plugin update multipowers`
 3. Run setup: `/mp:setup`
 4. See `MIGRATION-7.13.0.md` for full details
 
@@ -2135,7 +2135,7 @@ All 4 core flow skills now include v2.1.12+ metadata:
 ### 📚 Documentation
 
 - Updated README version badge to 7.9.6
-- Ensured plugin name consistency as "claude-octopus" for marketplace installation
+- Ensured plugin name consistency as "multipowers" for marketplace installation
 
 ---
 
@@ -2187,7 +2187,7 @@ All 4 core flow skills now include v2.1.12+ metadata:
 - **Default Behavior**: Fixed `/mp:km` default behavior when no arguments provided
 - **Plugin Naming**: Resolved plugin naming convention issues
   - Set plugin.json name to 'octo' for correct `/mp:*` command prefixes
-  - Marketplace name remains 'claude-octopus' for installation
+  - Marketplace name remains 'multipowers' for installation
   - Added pre-push validation to prevent incorrect frontmatter prefixes
 
 ### 📚 Documentation
@@ -2217,7 +2217,7 @@ All 4 core flow skills now include v2.1.12+ metadata:
   ```
   ❌ NO AI PROVIDERS FOUND
 
-  Claude Octopus needs at least ONE external AI provider.
+  Multipowers needs at least ONE external AI provider.
 
   Option 1: Install Codex CLI (OpenAI)
     npm install -g @openai/codex
@@ -2238,7 +2238,7 @@ All 4 core flow skills now include v2.1.12+ metadata:
 **Solution:** Three-source version checking with transparent sync status:
 
 ```
-🐙 Claude Octopus Update Check
+🐙 Multipowers Update Check
 ==============================
 
 📦 Your version:     v7.8.15
@@ -2798,7 +2798,7 @@ Write AI-optimized PRDs with automatic quality scoring:
 - Multi-phase PRD generation workflow
 - Self-scoring against 100-point framework
 - Templates for lightweight, standard, and comprehensive PRDs
-- Integration with Claude Octopus research and debate workflows
+- Integration with Multipowers research and debate workflows
 
 #### Enhanced: `product-writer` Persona
 
@@ -2868,7 +2868,7 @@ The `km` command now supports three modes:
 
 ### Added - Context-Aware Detection
 
-**No more manual mode switching!** Claude Octopus now auto-detects whether you're working in a Dev Context (code-focused) or Knowledge Context (research/strategy-focused).
+**No more manual mode switching!** Multipowers now auto-detects whether you're working in a Dev Context (code-focused) or Knowledge Context (research/strategy-focused).
 
 #### How It Works
 
@@ -2922,8 +2922,8 @@ If auto-detection gets it wrong:
 ## [7.7.4] - 2026-01-19
 
 ### Added
-- **Visual Indicators Protocol** - Mandatory visual feedback when Claude Octopus workflows are active
-  - 🐙 Claude Octopus multi-AI mode active
+- **Visual Indicators Protocol** - Mandatory visual feedback when Multipowers workflows are active
+  - 🐙 Multipowers multi-AI mode active
   - 🔴 Codex CLI executing (OpenAI API)
   - 🟡 Gemini CLI executing (Google API)
   - 🔵 Claude subagent processing
@@ -2940,7 +2940,7 @@ If auto-detection gets it wrong:
 - Created `CLAUDE.md` with visual indicator instructions (for development in this repo)
 - Created `docs/ARCHITECTURE.md` explaining models, providers, and execution flow
 - Created `docs/COMMAND-REFERENCE.md` with complete command documentation
-- Fixed remaining `/claude-octopus:` namespace references in skill files
+- Fixed remaining `/multipowers:` namespace references in skill files
 
 ### Why Visual Indicators?
 Users need to understand:
@@ -2968,7 +2968,7 @@ If upgrading from v7.7.2 or earlier:
 - All other `/mp:*` commands → `/mp:*`
 
 ### Why This Change?
-- "Octo" is now THE way to invoke Claude Octopus (both prefix and namespace)
+- "Octo" is now THE way to invoke Multipowers (both prefix and namespace)
 - Reduces confusion - one keyword to remember
 - Better discoverability - typing "octo" in autocomplete shows everything
 
@@ -2986,7 +2986,7 @@ If upgrading from v7.7.2 or earlier:
 
 ### Fixed
 - **Natural language trigger conflicts** - Common words like "research" may conflict with Claude's base behaviors (e.g., WebSearch)
-  - Solution: Added unique "octo" prefix that reliably triggers Claude Octopus workflows
+  - Solution: Added unique "octo" prefix that reliably triggers Multipowers workflows
   - Skills now list "PRIORITY TRIGGERS" that always invoke the skill
 
 ### Changed
@@ -3165,8 +3165,8 @@ If upgrading from v7.7.2 or earlier:
 ## [7.6.0] - 2026-01-18
 
 ### Changed
-- **Shorter command namespace**: Changed plugin name from `claude-octopus` to `co`
-  - All commands now use `/mp:` prefix instead of `/claude-octopus:`
+- **Shorter command namespace**: Changed plugin name from `multipowers` to `co`
+  - All commands now use `/mp:` prefix instead of `/multipowers:`
   - Example: `/mp:setup`, `/mp:debate`, `/mp:review`
   - Much faster to type and easier to remember
   - Backward compatible - existing installations just see new namespace
@@ -3194,7 +3194,7 @@ If upgrading from v7.7.2 or earlier:
 ## [7.5.6] - 2026-01-18
 
 ### Fixed
-- **Update check plugin detection**: Fixed `/claude-octopus:update` command to properly detect installed plugin
+- **Update check plugin detection**: Fixed `/multipowers:update` command to properly detect installed plugin
   - Changed from checking `.claude-plugin/plugin.json` in current directory to using `claude plugin list --json`
   - Now works correctly from any directory, not just the plugin source repository
   - Properly detects marketplace-installed plugins in `~/.claude/plugins/cache/`
@@ -3203,7 +3203,7 @@ If upgrading from v7.7.2 or earlier:
 
 **Root cause**: Command was looking for `.claude-plugin/plugin.json` in the current working directory, which only exists when running from the plugin source repo. Marketplace-installed plugins are stored in `~/.claude/plugins/cache/` and should be detected via `claude plugin list --json`.
 
-**Impact**: The `/claude-octopus:update` command now correctly detects the installed plugin version from any directory and won't incorrectly report that the plugin is not installed when it actually is.
+**Impact**: The `/multipowers:update` command now correctly detects the installed plugin version from any directory and won't incorrectly report that the plugin is not installed when it actually is.
 
 ---
 
@@ -3212,19 +3212,19 @@ If upgrading from v7.7.2 or earlier:
 ### Fixed
 - **Command YAML frontmatter**: Fixed YAML frontmatter in all command files
   - Changed `name:` to `command:` in YAML frontmatter (required by Claude Code)
-  - Updated all command descriptions to use `/claude-octopus:` namespace (not `/mp:`)
+  - Updated all command descriptions to use `/multipowers:` namespace (not `/mp:`)
   - All 7 commands now properly discovered:
-    - `/claude-octopus:sys-setup`
-    - `/claude-octopus:sys-update`
-    - `/claude-octopus:skill-knowledge-mode`
-    - `/claude-octopus:setup` (shortcut)
-    - `/claude-octopus:update` (shortcut)
-    - `/claude-octopus:check-update` (shortcut)
-    - `/claude-octopus:km` (shortcut)
+    - `/multipowers:sys-setup`
+    - `/multipowers:sys-update`
+    - `/multipowers:skill-knowledge-mode`
+    - `/multipowers:setup` (shortcut)
+    - `/multipowers:update` (shortcut)
+    - `/multipowers:check-update` (shortcut)
+    - `/multipowers:km` (shortcut)
 
 **Root cause**: Command files used `name:` field in YAML frontmatter, but Claude Code requires `command:` field for command discovery. The v7.5.4 fix (explicit registration in plugin.json) was correct, but the command files themselves had incorrect frontmatter.
 
-**Impact**: Commands now appear in autocomplete when typing `/claude-octopus:` or `/claude` without needing to memorize command names.
+**Impact**: Commands now appear in autocomplete when typing `/multipowers:` or `/claude` without needing to memorize command names.
 
 ---
 
@@ -3242,7 +3242,7 @@ If upgrading from v7.7.2 or earlier:
 ## [7.5.3] - 2026-01-18
 
 ### Enhanced
-- **Auto-update with error recovery**: `/claude-octopus:update --update` now provides:
+- **Auto-update with error recovery**: `/multipowers:update --update` now provides:
   - Automatic version checking against GitHub releases
   - One-command auto-install with user confirmation
   - Comprehensive error debugging for all failure modes
@@ -3253,24 +3253,24 @@ If upgrading from v7.7.2 or earlier:
   - Manual installation fallback instructions
   - Common issue diagnostics (manifest errors, network failures, permissions)
 
-**Impact**: Users can now update Claude Octopus with a single command and get guided troubleshooting if anything goes wrong.
+**Impact**: Users can now update Multipowers with a single command and get guided troubleshooting if anything goes wrong.
 
 ---
 
 ## [7.5.2] - 2026-01-18
 
 ### Fixed
-- **Plugin namespace**: Reverted to `claude-octopus` for stability and familiarity
+- **Plugin namespace**: Reverted to `multipowers` for stability and familiarity
 - **Removed unsupported field**: Removed `dependencies` field from plugin.json (caused validation errors)
-- **Marketplace registration**: Simplified to single `claude-octopus` entry
+- **Marketplace registration**: Simplified to single `multipowers` entry
 
 ### Retained from v7.5.0
 - ✅ **All categorization**: sys-, flow-, skill- naming scheme preserved
 - ✅ **All shortcuts**: 15 shortcut aliases still work
-- ✅ **Command structure**: `/claude-octopus:sys-setup`, `/claude-octopus:flow-probe`, etc.
-- ✅ **Power user shortcuts**: `/claude-octopus:setup`, `/claude-octopus:probe`, etc.
+- ✅ **Command structure**: `/multipowers:sys-setup`, `/multipowers:flow-probe`, etc.
+- ✅ **Power user shortcuts**: `/multipowers:setup`, `/multipowers:probe`, etc.
 
-**Impact**: Commands now appear as `/claude-octopus:sys-setup` instead of `/mp:sys-setup`, but all categorization and shortcuts are preserved. This provides the UX improvements of v7.5.0 with the stability of the familiar namespace.
+**Impact**: Commands now appear as `/multipowers:sys-setup` instead of `/mp:sys-setup`, but all categorization and shortcuts are preserved. This provides the UX improvements of v7.5.0 with the stability of the familiar namespace.
 
 ---
 
@@ -3281,10 +3281,10 @@ If upgrading from v7.7.2 or earlier:
 **Major UX Enhancement**: 60% shorter commands with categorized naming and shortcuts!
 
 #### Plugin Namespace Change
-- **New namespace**: Plugin registered as `co` (short for Claude Octopus)
-- **Dual registration**: Both `co` and `claude-octopus` namespaces work (zero breaking changes)
+- **New namespace**: Plugin registered as `co` (short for Multipowers)
+- **Dual registration**: Both `co` and `multipowers` namespaces work (zero breaking changes)
 - **Example**:
-  - Old: `/claude-octopus:setup` (still works)
+  - Old: `/multipowers:setup` (still works)
   - New: `/mp:sys-setup` (recommended)
   - Shortcut: `/mp:setup` (power user)
 
@@ -3346,8 +3346,8 @@ Frequent commands get 1-2 word shortcuts:
 - Other skills: All prefixed with `skill-*` (+ 7 shortcuts)
 
 ### Changed
-- **plugin.json**: Updated namespace from `claude-octopus` to `co`, version 7.4.2 → 7.5.0
-- **marketplace.json**: Dual registration (`co` + `claude-octopus`) for backward compatibility
+- **plugin.json**: Updated namespace from `multipowers` to `co`, version 7.4.2 → 7.5.0
+- **marketplace.json**: Dual registration (`co` + `multipowers`) for backward compatibility
 - **All skill paths**: Updated to reflect new categorized naming
 - **README.md**: Updated all examples to use `/mp:` prefix, added v7.5 section
 - **Installation command**: Now `/plugin install co@multipowers-plugins` (old command still works)
@@ -3360,12 +3360,12 @@ Frequent commands get 1-2 word shortcuts:
 
 ### Backward Compatibility
 - ✅ **Zero breaking changes** - All old commands still work
-- ✅ **Dual namespace** - Both `/mp:` and `/claude-octopus:` are registered
+- ✅ **Dual namespace** - Both `/mp:` and `/multipowers:` are registered
 - ✅ **Natural language triggers** - Unchanged, continue to work
 - ✅ **Existing scripts** - No updates required
 
 ### Benefits
-- 🚀 **60% shorter** - `/mp:setup` vs `/claude-octopus:setup`
+- 🚀 **60% shorter** - `/mp:setup` vs `/multipowers:setup`
 - 📂 **Better organization** - Clear categories (sys, flow, skill)
 - ⚡ **Power user shortcuts** - 15 shortcuts for common commands
 - 🔍 **Easy discovery** - Type `/mp:flow-` to see all workflows
@@ -3385,18 +3385,18 @@ See `docs/MIGRATION-v7.5.md` for:
 ## [7.4.2] - 2026-01-18
 
 ### Changed
-- **Command rename** - Renamed `/claude-octopus:check-updates` to `/claude-octopus:check-update` (singular) for consistency with other commands
-  - Old: `/claude-octopus:check-updates --update`
-  - New: `/claude-octopus:check-update --update`
-  - Both check for updates to Claude Code AND claude-octopus
+- **Command rename** - Renamed `/multipowers:check-updates` to `/multipowers:check-update` (singular) for consistency with other commands
+  - Old: `/multipowers:check-updates --update`
+  - New: `/multipowers:check-update --update`
+  - Both check for updates to Claude Code AND multipowers
   - Auto-update support unchanged
 
 ## [7.4.1] - 2026-01-18
 
 ### Enhanced
-- **Auto-update support in `/claude-octopus:check-updates`** - Command now supports `--update` flag to automatically update claude-octopus when a new version is available. No more manual reinstall steps!
-  - `/claude-octopus:check-updates` - Check for updates only
-  - `/claude-octopus:check-updates --update` - Check and auto-update if available
+- **Auto-update support in `/multipowers:check-updates`** - Command now supports `--update` flag to automatically update multipowers when a new version is available. No more manual reinstall steps!
+  - `/multipowers:check-updates` - Check for updates only
+  - `/multipowers:check-updates --update` - Check and auto-update if available
   - Fetches latest version from GitHub releases API
   - Automatically runs reinstall sequence (uninstall → marketplace update → install)
   - Shows clear status messages and reminds user to restart Claude Code
@@ -3410,7 +3410,7 @@ See `docs/MIGRATION-v7.5.md` for:
 ### Added
 - **Marketplace version sync test** - Test suite now validates marketplace.json version matches plugin.json and appears at start of description (50 tests total)
 - **Release process documentation** - Added comprehensive docs/RELEASE-PROCESS.md guide with step-by-step checklist and common issues
-- **Setup command branding** - `/claude-octopus:setup` now shows 🐙 emoji indicator so users know it's Claude Octopus responding
+- **Setup command branding** - `/multipowers:setup` now shows 🐙 emoji indicator so users know it's Multipowers responding
 
 ## [7.4.0] - 2026-01-18
 
@@ -3433,26 +3433,26 @@ See `docs/MIGRATION-v7.5.md` for:
 - Automatic synthesis generation (consensus, disagreements, recommendations)
 - Token-efficient context management (only injects previous round responses)
 
-**Claude-Octopus Enhancement Layer** (debate-integration.md)
-- Session-aware storage: `~/.claude-octopus/debates/${SESSION_ID}/`
+**Multipowers Enhancement Layer** (debate-integration.md)
+- Session-aware storage: `~/.multipowers/debates/${SESSION_ID}/`
 - Quality gates for debate responses:
   - Metrics: length, citations, code examples, engagement
   - Thresholds: >= 75 proceed, 50-74 warn, < 50 re-prompt
 - Cost tracking and analytics integration:
   - Per-advisor token usage and cost breakdown
   - Real-time cost estimation (typical: $0.02-$0.50 per debate)
-  - Analytics logging to `~/.claude-octopus/analytics/`
+  - Analytics logging to `~/.multipowers/analytics/`
 - Document export integration (via document-delivery skill v7.3.0):
   - Export debates to PPTX/DOCX/PDF
   - Professional formatting for stakeholder presentations
 - Knowledge mode deliberation workflow:
-  - `/claude-octopus:km on` + `/debate` = strategic decision-making
+  - `/multipowers:km on` + `/debate` = strategic decision-making
   - Maps knowledge personas (ux-researcher, strategy-analyst, research-synthesizer)
 
 **New Commands**
 - `/debate <question>` - Basic debate invocation
 - `/debate -r N -d STYLE <question>` - With rounds and style
-- `/claude-octopus:deliberate <question>` - Alias for debate command
+- `/multipowers:deliberate <question>` - Alias for debate command
 - `/debate-export <id> --format pptx` - Export debate results (via integration)
 - `/debate-quality <id>` - Show quality scores (via integration)
 - `/debate-cost <id>` - Show cost breakdown (via integration)
@@ -3477,7 +3477,7 @@ See `docs/MIGRATION-v7.5.md` for:
   └── skills/debate.md           ← Original skill (read-only reference)
 .claude-plugin/.claude/skills/
   └── debate-integration.md      ← Claude-octopus enhancements
-~/.claude-octopus/debates/       ← Session-aware debate storage
+~/.multipowers/debates/       ← Session-aware debate storage
 ```
 
 **Submodule Management**
@@ -3623,7 +3623,7 @@ Providers:
 - Integration: Git submodule (read-only reference)
 
 **Enhancement Layer**: Claude-octopus integration
-- Repository: https://github.com/nyldn/claude-octopus
+- Repository: https://github.com/gitbruce/multipowers
 - License: MIT
 - Approach: Hybrid (reference original + add enhancements)
 
@@ -3647,8 +3647,8 @@ Both projects are open source. Generic improvements to debate functionality shou
 
 **Enhanced Knowledge Mode**
 - Document delivery capability documented in knowledge-work-mode skill
-- Command alias: `/claude-octopus:deliver-docs` for discoverability
-- Also available as: `/claude-octopus:export-docs` and `/claude-octopus:create-docs`
+- Command alias: `/multipowers:deliver-docs` for discoverability
+- Also available as: `/multipowers:export-docs` and `/multipowers:create-docs`
 - Works seamlessly with document-skills@anthropic-agent-skills plugin
 
 **Skill Features**
@@ -3691,11 +3691,11 @@ Both projects are open source. Generic improvements to debate functionality shou
 - All 19 value proposition checks passing consistently
 
 **Command Execution**
-- Fixed `/claude-octopus:knowledge-mode` and `/claude-octopus:km` commands
+- Fixed `/multipowers:knowledge-mode` and `/multipowers:km` commands
 - Commands now execute and show current mode status (not just documentation)
 - Added bash execution blocks to both command files
 - Output shows: current mode, optimization focus, workflows, toggle instructions
-- Matches behavior of other working commands like `/claude-octopus:setup`
+- Matches behavior of other working commands like `/multipowers:setup`
 
 ### Improved - Documentation
 
@@ -3759,7 +3759,7 @@ Both projects are open source. Generic improvements to debate functionality shou
   - DOCX document creation/editing
   - PPTX presentation generation
   - XLSX spreadsheet handling
-- Non-intrusive: shown only once using flag file `~/.claude-octopus/.knowledge-mode-setup-done`
+- Non-intrusive: shown only once using flag file `~/.multipowers/.knowledge-mode-setup-done`
 - User can delete flag to see recommendation again
 
 **Enhanced Documentation**
@@ -3822,8 +3822,8 @@ Both projects are open source. Generic improvements to debate functionality shou
 
 #### Quick Knowledge Mode Toggle
 **Native Claude Code Integration for Mode Switching**
-- New `/claude-octopus:knowledge-mode` command for instant mode switching
-- Short alias `/claude-octopus:km` for quick access
+- New `/multipowers:knowledge-mode` command for instant mode switching
+- Short alias `/multipowers:km` for quick access
 - Natural language detection: "switch to knowledge mode", "back to dev mode"
 - Enhanced `toggle_knowledge_work_mode()` function with explicit `on/off/status` support
 - Visual status display showing current mode, routing behavior, and available workflows
@@ -3835,7 +3835,7 @@ Both projects are open source. Generic improvements to debate functionality shou
 - `km on` / `knowledge-mode on` - Enable knowledge work mode
 - `km off` / `knowledge-mode off` - Enable development mode
 - `km toggle` / `knowledge-toggle` - Toggle between modes
-- Persistent across sessions via `~/.claude-octopus/.user-config`
+- Persistent across sessions via `~/.multipowers/.user-config`
 
 **User Experience Improvements**
 - Clear emoji indicators: 🔧 Development Mode, 🎓 Knowledge Work Mode
@@ -3903,7 +3903,7 @@ Total: 11/11 test suites passing
 
 **Session-Aware Workflow Directories**
 - Session ID integration via `${CLAUDE_SESSION_ID}` for cross-session tracking
-- New directory structure: `~/.claude-octopus/results/${SESSION_ID}/`
+- New directory structure: `~/.multipowers/results/${SESSION_ID}/`
 - Session-specific subdirectories: tasks/, agents/, quality/, costs/
 - `init_session_workspace()` function creates session-isolated workspace
 - Enables correlation of work across Claude Code sessions
@@ -3944,7 +3944,7 @@ Total: 11/11 test suites passing
 This release integrates Claude Code 2.1.10 features for session-aware workflows and adds five discipline skills. The session-aware directory structure enables better tracking and isolation of work across Claude Code sessions.
 
 **Migration from v7.0.0:**
-- Update plugin: `/plugin update claude-octopus`
+- Update plugin: `/plugin update multipowers`
 - Restart Claude Code
 - Session-aware features activate automatically
 - New skills available immediately after update
@@ -4050,7 +4050,7 @@ None - all fixes are internal improvements maintaining API compatibility.
 
 ### Added - Knowledge Work Mode for Researchers, Consultants, and Product Managers
 
-This release extends Claude Octopus beyond code to support knowledge workers. Whether you're synthesizing user research, developing business strategy, or writing literature reviews, the octopus's knowledge tentacles are ready to help.
+This release extends Multipowers beyond code to support knowledge workers. Whether you're synthesizing user research, developing business strategy, or writing literature reviews, the octopus's knowledge tentacles are ready to help.
 
 #### New Knowledge Worker Workflows
 
@@ -4156,7 +4156,7 @@ This release implements competitive research recommendations to dramatically imp
 **Privacy-Preserving Usage Analytics**
 - **New `log_agent_usage()` function** - Automatic usage tracking
 - Logs agent, phase, timestamp, prompt hash (not full prompt), and prompt length
-- CSV format: `~/.claude-octopus/analytics/agent-usage.csv`
+- CSV format: `~/.multipowers/analytics/agent-usage.csv`
 - Privacy-first: No PII, no full prompts, no API keys logged
 
 **Analytics Reporting**
@@ -4211,7 +4211,7 @@ This release implements competitive research recommendations to dramatically imp
 
 ### Notes
 
-This major release (v5.0) represents a fundamental improvement to the Claude Octopus user experience. By implementing research-backed discoverability enhancements, we've made it significantly easier for users to find the right agent for their task.
+This major release (v5.0) represents a fundamental improvement to the Multipowers user experience. By implementing research-backed discoverability enhancements, we've made it significantly easier for users to find the right agent for their task.
 
 The three-phase approach (Documentation → Guidance → Analytics) ensures both immediate wins (catalog, quick reference) and long-term optimization (usage analytics, monthly reviews).
 
@@ -4221,7 +4221,7 @@ The three-phase approach (Documentation → Guidance → Analytics) ensures both
 - From "intuition-based" → "data-driven optimization"
 
 **Migration from v4.9.5:**
-- Existing users: Update plugin with `/plugin update claude-octopus`
+- Existing users: Update plugin with `/plugin update multipowers`
 - No breaking changes to existing workflows
 - New features are additive and backward-compatible
 - Analytics logging starts automatically after update
@@ -4240,7 +4240,7 @@ The three-phase approach (Documentation → Guidance → Analytics) ensures both
 ### Fixed
 
 #### Setup Command Path Resolution (Critical)
-- **Fixed `/claude-octopus:setup` command failing with "no such file or directory" error**
+- **Fixed `/multipowers:setup` command failing with "no such file or directory" error**
 - Updated `.claude-plugin/.claude/commands/setup.md` to use `/scripts/mp` instead of relative paths
 - Works correctly when plugin installed via marketplace (versioned cache directory)
 - Applied fix to all 3 script invocations in setup command (detect-providers, verify, help)
@@ -4263,7 +4263,7 @@ The three-phase approach (Documentation → Guidance → Analytics) ensures both
 - **New "Recommended Companion Skills" section in README.md**
 - Organized by category: Testing & Validation, Customization & Extension, Integration, Design & Frontend
 - Recommended skills: webapp-testing, skill-creator, mcp-builder, frontend-design, artifacts-builder
-- Added "How Skills Work with Claude Octopus" explanation
+- Added "How Skills Work with Multipowers" explanation
 - Clarifies that skills are available to Claude (orchestrator), not spawned agents
 
 #### Test Infrastructure Validation
@@ -4283,10 +4283,10 @@ The three-phase approach (Documentation → Guidance → Analytics) ensures both
 
 ### Notes
 
-This release focuses on removing installation friction and fixing the critical setup command issue. The 2-command installation process (`/plugin marketplace add` + `/plugin install`) makes Claude Octopus as easy to install as official plugins. The `${CLAUDE_PLUGIN_ROOT}` fix ensures the setup command works correctly regardless of installation method.
+This release focuses on removing installation friction and fixing the critical setup command issue. The 2-command installation process (`/plugin marketplace add` + `/plugin install`) makes Multipowers as easy to install as official plugins. The `${CLAUDE_PLUGIN_ROOT}` fix ensures the setup command works correctly regardless of installation method.
 
 **Migration from v4.9.4:**
-- Existing users: Update plugin with `/plugin update claude-octopus`
+- Existing users: Update plugin with `/plugin update multipowers`
 - Restart Claude Code after updating
 - Setup command will now work correctly
 
@@ -4299,19 +4299,19 @@ This release focuses on removing installation friction and fixing the critical s
 #### Installer Marketplace Configuration
 - **Fixed critical bug** preventing Claude Code startup after installation
 - Removed creation of "local" marketplace entry that caused "Marketplace configuration file is corrupted" error
-- Changed to use `claude-octopus-marketplace` as marketplace identifier (doesn't require marketplace to exist)
+- Changed to use `multipowers-marketplace` as marketplace identifier (doesn't require marketplace to exist)
 - Added cleanup of broken "local" marketplace entries from previous installation attempts
-- Plugin now registers as `claude-octopus@claude-octopus-marketplace`
+- Plugin now registers as `multipowers@multipowers-marketplace`
 
 ### Known Issues
 
 The curl-based installer in v4.9.3 and v4.9.4 still does not work reliably due to Claude Code's marketplace architecture requirements. Users should install using the official plugin manager:
 
 ```bash
-claude plugin marketplace add nyldn/claude-octopus
-claude plugin install claude-octopus@multipowers-plugins --scope user
-claude plugin enable claude-octopus --scope user
-claude plugin update claude-octopus --scope user
+claude plugin marketplace add nyldn/multipowers
+claude plugin install multipowers@multipowers-plugins --scope user
+claude plugin enable multipowers --scope user
+claude plugin update multipowers --scope user
 ```
 
 See README.md for updated installation instructions. The install.sh script will be updated in a future release to use these commands.
@@ -4324,7 +4324,7 @@ See README.md for updated installation instructions. The install.sh script will 
 - **Fast provider detection** - Completes in <1 second, non-blocking
 - **Parseable output** - Clear status codes (CODEX_STATUS=ok/missing, CODEX_AUTH=oauth/api-key/none)
 - **Smart guidance** - Provides targeted next steps based on detection results
-- **Cache support** - Writes results to `~/.claude-octopus/.provider-cache` (1 hour TTL)
+- **Cache support** - Writes results to `~/.multipowers/.provider-cache` (1 hour TTL)
 - **Conversational examples** - Shows what users can do naturally in Claude Code
 
 #### Fifth User Role: Researcher UX/UI Design
@@ -4347,7 +4347,7 @@ See README.md for updated installation instructions. The install.sh script will 
 - **Prominent upgrade warnings** - Shows clear update instructions if outdated
 - **Installation-specific guidance** - Provides commands for npm, Homebrew, and direct download
 - **Parseable output** - Returns `CLAUDE_CODE_VERSION`, `CLAUDE_CODE_STATUS` (ok/outdated/unknown), `CLAUDE_CODE_MINIMUM`
-- **Integrated into setup flow** - Runs automatically in `/claude-octopus:setup` and `detect-providers`
+- **Integrated into setup flow** - Runs automatically in `/multipowers:setup` and `detect-providers`
 - **Skill routing** - skill.md documents Scenario 0 for outdated version handling (stops execution until updated)
 - **Restart reminder** - Explicitly tells users to restart Claude Code after updating
 
@@ -4358,7 +4358,7 @@ See README.md for updated installation instructions. The install.sh script will 
 - Previous: Both Codex AND Gemini required
 - New: Choose either based on preference (Codex for code gen, Gemini for analysis)
 - Graceful degradation: Multi-provider tasks adapt to single provider
-- Clear messaging: "You only need ONE provider to use Claude Octopus"
+- Clear messaging: "You only need ONE provider to use Multipowers"
 
 #### Updated Prerequisites Check (skill.md)
 - **Automatic fast detection** - Non-blocking provider check replaces manual status command
@@ -4380,7 +4380,7 @@ See README.md for updated installation instructions. The install.sh script will 
 - Simplified from confusing to clear 3-step process
 - Step 2 emphasis: "You only need ONE provider to get started"
 - Shows both OAuth and API key options upfront
-- Removed "Configure Claude Octopus" step (no longer needed)
+- Removed "Configure Multipowers" step (no longer needed)
 - Optional verification step moved to end
 
 ### Deprecated
@@ -4423,7 +4423,7 @@ This is a major UX release that redesigns the entire setup experience to align w
 - **Prerequisites Check Section** - Automatic configuration detection before command execution
   - Step 1: Status check to verify configuration completeness
   - Step 2: Detection of missing API keys or unconfigured providers
-  - Step 3: Auto-prompt user to run `/claude-octopus:setup` when needed
+  - Step 3: Auto-prompt user to run `/multipowers:setup` when needed
   - Step 4: Verification after configuration completes
   - Step 5: Proceed with original task after setup
 - **First-use notice** in skill description - "Automatically detects if configuration is needed and guides setup"
@@ -4438,11 +4438,11 @@ This is a major UX release that redesigns the entire setup experience to align w
 #### Command Registration (Critical)
 - **Changed commands field** from array to directory path: `"./commands/"`
 - Commands now properly register with Claude Code and appear in `/` menu
-- Commands available as `/claude-octopus:setup` and `/claude-octopus:check-updates`
+- Commands available as `/multipowers:setup` and `/multipowers:check-updates`
 - Matches official plugin pattern (vercel, plugin-dev, figma, etc.)
 - **Removed `name` field** from command frontmatter (name derived from filename)
-  - `commands/setup.md` → `/claude-octopus:setup`
-  - `commands/check-updates.md` → `/claude-octopus:check-updates`
+  - `commands/setup.md` → `/multipowers:setup`
+  - `commands/check-updates.md` → `/multipowers:check-updates`
 
 #### Plugin Validation (Critical)
 - **Fixed Claude Code v2.1.9 schema validation errors**
@@ -4457,7 +4457,7 @@ This is a major UX release that redesigns the entire setup experience to align w
 - Added explicit exclusions in skill description for `/plugin`, `/init`, `/help`, `/commit`, etc.
 - Added "IMPORTANT: When NOT to Use This Skill" section in skill instructions
 - Skill now properly ignores:
-  - Built-in Claude Code commands (anything starting with `/` except `/parallel-agents` or `/claude-octopus:*`)
+  - Built-in Claude Code commands (anything starting with `/` except `/parallel-agents` or `/multipowers:*`)
   - Plugin management and Claude Code configuration tasks
   - Simple file operations, git commands, and terminal tasks
 - Fixes issue where skill was incorrectly triggered on `/plugin` commands
@@ -4558,7 +4558,7 @@ This release includes both UX improvements (auto-configuration check) and critic
 - Step 7: OpenRouter configuration (optional fallback)
 
 #### New Configuration
-- `~/.claude-octopus/.providers-config` (v2.0 format)
+- `~/.multipowers/.providers-config` (v2.0 format)
 - Subscription tiers: free, plus, pro, max, workspace, api-only
 - Cost tiers: free, bundled, low, medium, high, pay-per-use
 

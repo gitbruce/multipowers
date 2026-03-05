@@ -2,7 +2,7 @@ package workflows
 
 import (
 	"context"
-	"github.com/gitbruce/claude-octopus/internal/orchestration"
+	"github.com/gitbruce/multipowers/internal/orchestration"
 )
 
 // runWorkflowHelper is a common helper for all workflow entrypoints

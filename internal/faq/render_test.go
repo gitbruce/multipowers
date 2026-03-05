@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
 )
 
 func TestWriteFAQ(t *testing.T) {

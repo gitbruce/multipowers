@@ -4,10 +4,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gitbruce/claude-octopus/internal/faq"
-	"github.com/gitbruce/claude-octopus/internal/fsboundary"
-	"github.com/gitbruce/claude-octopus/internal/tracks"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/internal/faq"
+	"github.com/gitbruce/multipowers/internal/fsboundary"
+	"github.com/gitbruce/multipowers/internal/tracks"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func PostToolUse(projectDir string, evt api.HookEvent) api.HookResult {

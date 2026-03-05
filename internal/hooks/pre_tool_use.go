@@ -2,8 +2,8 @@ package hooks
 
 import (
 	"fmt"
-	"github.com/gitbruce/claude-octopus/internal/fsboundary"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/internal/fsboundary"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func PreToolUse(projectDir string, evt api.HookEvent) api.HookResult {

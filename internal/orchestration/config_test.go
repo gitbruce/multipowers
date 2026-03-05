@@ -185,7 +185,7 @@ func TestLoadOrchestrationConfig_MailboxAndCap(t *testing.T) {
 execution_isolation:
   enabled: true
   active_worktree_cap: 12
-  mailbox_root: "~/.claude-octopus/runs"
+  mailbox_root: "~/.multipowers/runs"
   mailbox_poll_interval_ms: 200
 `
 	if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(data), 0o644); err != nil {
@@ -199,8 +199,8 @@ execution_isolation:
 	if cfg.ExecutionIsolation.ActiveWorktreeCap != 12 {
 		t.Fatalf("active_worktree_cap = %d, want 12", cfg.ExecutionIsolation.ActiveWorktreeCap)
 	}
-	if cfg.ExecutionIsolation.MailboxRoot != "~/.claude-octopus/runs" {
-		t.Fatalf("mailbox_root = %q, want ~/.claude-octopus/runs", cfg.ExecutionIsolation.MailboxRoot)
+	if cfg.ExecutionIsolation.MailboxRoot != "~/.multipowers/runs" {
+		t.Fatalf("mailbox_root = %q, want ~/.multipowers/runs", cfg.ExecutionIsolation.MailboxRoot)
 	}
 	if cfg.ExecutionIsolation.MailboxPollIntervalMs != 200 {
 		t.Fatalf("mailbox_poll_interval_ms = %d, want 200", cfg.ExecutionIsolation.MailboxPollIntervalMs)

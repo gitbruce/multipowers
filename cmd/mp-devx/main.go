@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/gitbruce/claude-octopus/internal/devx"
-	"github.com/gitbruce/claude-octopus/internal/policy"
+	"github.com/gitbruce/multipowers/internal/devx"
+	"github.com/gitbruce/multipowers/internal/policy"
 )
 
 type devxRunner interface {

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gitbruce/claude-octopus/internal/mailbox"
+	"github.com/gitbruce/multipowers/internal/mailbox"
 )
 
 // MailboxWatcher polls mailbox inboxes and emits high-priority control events.

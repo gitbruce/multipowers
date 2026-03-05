@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/internal/policy"
+	"github.com/gitbruce/multipowers/internal/policy"
 )
 
 // findProjectRoot walks up from current directory to find the project root

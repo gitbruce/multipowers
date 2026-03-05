@@ -1,4 +1,4 @@
-# Claude Octopus - Safeguards & Critical Configuration
+# Multipowers - Safeguards & Critical Configuration
 
 This document outlines critical configuration that must NOT be changed without careful consideration and extensive testing.
 
@@ -18,7 +18,7 @@ This document outlines critical configuration that must NOT be changed without c
 ```json
 // package.json
 {
-  "name": "claude-octopus"  // This is different and correct
+  "name": "multipowers"  // This is different and correct
 }
 ```
 
@@ -27,22 +27,22 @@ This document outlines critical configuration that must NOT be changed without c
 | File | Name | Purpose | Command Format |
 |------|------|---------|----------------|
 | `.claude-plugin/plugin.json` | `"mp"` | Command prefix in Claude Code | `/mp:discover`, `/mp:debate` |
-| `package.json` | `"claude-octopus"` | Package/marketplace identity | N/A (npm/git) |
+| `package.json` | `"multipowers"` | Package/marketplace identity | N/A (npm/git) |
 
 ### What Happens If You Change It
 
-❌ **Changing plugin name from `"mp"` to `"claude-octopus"`:**
+❌ **Changing plugin name from `"mp"` to `"multipowers"`:**
 
 ```diff
 // .claude-plugin/plugin.json
 {
 - "name": "mp"
-+ "name": "claude-octopus"  // ❌ BREAKS ALL COMMANDS
++ "name": "multipowers"  // ❌ BREAKS ALL COMMANDS
 }
 ```
 
 **Impact:**
-- All commands change from `/mp:*` to `/claude-octopus:*`
+- All commands change from `/mp:*` to `/multipowers:*`
 - Existing documentation becomes incorrect
 - User workflows break
 - Skills/commands referencing `/mp:*` stop working
@@ -56,7 +56,7 @@ This configuration was broken and fixed multiple times:
 
 | Commit | Change | Result |
 |--------|--------|--------|
-| `3ebb189` | Set plugin name to `claude-octopus` | ❌ Broke command prefixes |
+| `3ebb189` | Set plugin name to `multipowers` | ❌ Broke command prefixes |
 | `d9e8354` | Reverted to `mp` | ✅ Fixed commands |
 | `57ce38c` | Removed namespace prefix from frontmatter | ✅ Correct format |
 
@@ -125,7 +125,7 @@ Files:
 
 As of Claude Code v2.1.38, sandbox mode explicitly blocks writes to the `.claude-plugin/.claude/skills` directory. This is a security hardening measure to prevent untrusted code from modifying skill definitions.
 
-### Impact on Claude Octopus
+### Impact on Multipowers
 
 - **Installation:** The `install.sh` script and plugin manager handle skill installation outside sandbox mode, so normal installation is unaffected.
 - **Dynamic skill generation:** Any workflow or hook that attempts to create or modify files in `.claude-plugin/.claude/skills` at runtime will fail silently in sandboxed environments.
@@ -134,7 +134,7 @@ As of Claude Code v2.1.38, sandbox mode explicitly blocks writes to the `.claude
 ### What to Do
 
 1. **Never generate skills dynamically** at runtime — all skills should be pre-defined in the plugin package
-2. **Use `~/.claude-octopus/` for runtime artifacts** — this directory is outside the sandbox boundary
+2. **Use `~/.multipowers/` for runtime artifacts** — this directory is outside the sandbox boundary
 3. **Test in sandbox mode** before releasing — run `make test-smoke` with sandbox enabled to catch write failures early
 
 ### Detection

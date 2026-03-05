@@ -1,12 +1,12 @@
 # Architecture: Models, Providers, and Execution Flow
 
-This document explains how Claude Octopus orchestrates multiple AI providers and the execution flow of each workflow.
+This document explains how Multipowers orchestrates multiple AI providers and the execution flow of each workflow.
 
 ---
 
 ## Overview
 
-Claude Octopus coordinates **three AI providers** to give you multi-perspective analysis:
+Multipowers coordinates **three AI providers** to give you multi-perspective analysis:
 
 ```
     +------------------+
@@ -14,7 +14,7 @@ Claude Octopus coordinates **three AI providers** to give you multi-perspective 
     +--------+---------+
              |
     +--------v---------+
-    | Claude Octopus   |  <-- Plugin coordinates providers
+    | Multipowers   |  <-- Plugin coordinates providers
     +--------+---------+
              |
      +-------+-------+
@@ -131,7 +131,7 @@ User Request
      |
      v
 +--------------------+
-|   Claude Octopus   |
+|   Multipowers   |
 +---------+----------+
           |
           v
@@ -177,7 +177,7 @@ User Request
      |
      v
 +--------------------+
-|   Claude Octopus   |
+|   Multipowers   |
 +---------+----------+
           |
     +-----+-----+
@@ -234,7 +234,7 @@ User Request
      |
      v
 +--------------------+
-|   Claude Octopus   |
+|   Multipowers   |
 +---------+----------+
           |
     +-----+-----+
@@ -291,7 +291,7 @@ User Question
      |
      v
 +--------------------+
-|   Claude Octopus   |
+|   Multipowers   |
 +---------+----------+
           |
      Round 1
@@ -403,7 +403,7 @@ All four phases run sequentially. Each phase uses the output of the previous pha
 
 ## Provider Detection
 
-Claude Octopus auto-detects which providers are available:
+Multipowers auto-detects which providers are available:
 
 ```bash
 # Check status
@@ -432,7 +432,7 @@ When multi-AI mode is active, you'll see these indicators:
 
 | Indicator | Meaning |
 |-----------|---------|
-| 🐙 | Claude Octopus orchestration active |
+| 🐙 | Multipowers orchestration active |
 | 🔴 | Codex CLI executing (OpenAI) |
 | 🟡 | Gemini CLI executing (Google) |
 | 🔵 | Claude subagent processing |

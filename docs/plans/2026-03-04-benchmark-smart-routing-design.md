@@ -72,7 +72,7 @@ benchmark_mode:
     llm_decision_priority: true
   storage:
     type: jsonl
-    root: "~/.claude-octopus/metrics"
+    root: "~/.multipowers/metrics"
     partition: daily
   scoring:
     scale: "1-5"
@@ -107,7 +107,7 @@ smart_routing:
 
 ## JSONL Data Model
 
-Root path: `~/.claude-octopus/metrics`
+Root path: `~/.multipowers/metrics`
 
 Daily files:
 

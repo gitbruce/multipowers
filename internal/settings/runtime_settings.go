@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"github.com/gitbruce/claude-octopus/internal/tracks"
+	"github.com/gitbruce/multipowers/internal/tracks"
 )
 
 const (

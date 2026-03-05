@@ -1,6 +1,6 @@
 # Double Diamond Workflow Methodology
 
-This file contains workflow-specific instructions for Claude Octopus.
+This file contains workflow-specific instructions for Multipowers.
 
 ## What is the Double Diamond?
 

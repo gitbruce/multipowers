@@ -119,7 +119,7 @@ cp .claude-plugin/.claude/todos.md .claude-plugin/.claude/todos.md.backup
 
 **Step 2: Run Migration**
 ```bash
-~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/multipowers/7.23.0/scripts/migrate-todos.sh
 ```
 
 **Step 3: Verify**
@@ -324,18 +324,18 @@ All tests passing. No known issues at this time.
 
 ### Getting Help
 
-- **Issues:** https://github.com/nyldn/claude-octopus/issues
-- **Discussions:** https://github.com/nyldn/claude-octopus/discussions
+- **Issues:** https://github.com/gitbruce/multipowers/issues
+- **Discussions:** https://github.com/gitbruce/multipowers/discussions
 - **Documentation:** See docs/NATIVE-INTEGRATION.md
 
 ### Reporting Bugs
 
 Include:
 - Claude Code version (`/version`)
-- claude-octopus version
+- multipowers version
 - Steps to reproduce
 - Expected vs actual behavior
-- Logs from `~/.claude-octopus/logs/`
+- Logs from `~/.multipowers/logs/`
 
 ---
 

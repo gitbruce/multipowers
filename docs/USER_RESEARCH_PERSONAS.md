@@ -63,7 +63,7 @@
 
 | Stage | Actions | Thinking / Feeling | Pain Points & Opportunities |
 | :--- | :--- | :--- | :--- |
-| **1. Setup & Config** | Runs `claude-octopus`. Selects "Refactoring" intent in **Smart Setup**. | *Thinking:* "I hope this doesn't mess up my existing config. Just give me the power tools." | **Pain:** Setup friction if manual steps are needed.<br>**High:** "Smart Setup" correctly guesses intent (Efficiency). |
+| **1. Setup & Config** | Runs `multipowers`. Selects "Refactoring" intent in **Smart Setup**. | *Thinking:* "I hope this doesn't mess up my existing config. Just give me the power tools." | **Pain:** Setup friction if manual steps are needed.<br>**High:** "Smart Setup" correctly guesses intent (Efficiency). |
 | **2. Task Initiation** | Enters command: `refactor auth/login.ts to use OAuth2`. | *Feeling:* Cautious. Worried about token costs and time. | **Opportunity:** **Token-Aware Cost** estimate provides reassurance here. |
 | **3. Execution (The Wait)** | The agent starts analyzing files. Logs stream by. | *Thinking:* "Is it stuck? What is it actually changing? Did it see the `auth-provider` file?" | **Pain (Critical):** **Operational "Blindness"**. Needs a TUI/Visual status bar.<br>**Gap:** Wants to see the "Plan" before execution. |
 | **4. Moment of Truth** | Agent proposes changes. **Human-in-the-Loop** prompt appears. | *Feeling:* **Relief & Control.** "Okay, it waited for me. Let me check the diff." | **High (Critical):** Trust is built here. The ability to Approve/Reject is the #1 feature for Alex. |

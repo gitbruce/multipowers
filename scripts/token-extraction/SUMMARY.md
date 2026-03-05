@@ -388,7 +388,7 @@ Automatic token type detection using:
 
 ### NPM Package
 ```bash
-npm install @claude-octopus/token-extraction
+npm install @multipowers/token-extraction
 ```
 
 ### CLI Tool
@@ -398,7 +398,7 @@ npx token-extraction --project ./my-app
 
 ### Library Import
 ```typescript
-import { runTokenExtraction } from '@claude-octopus/token-extraction';
+import { runTokenExtraction } from '@multipowers/token-extraction';
 ```
 
 ### CI/CD Integration
@@ -460,7 +460,7 @@ Areas particularly welcome:
 
 ### Installation
 ```bash
-cd /Users/chris/git/claude-octopus/plugin/scripts/token-extraction
+cd /Users/chris/git/multipowers/plugin/scripts/token-extraction
 npm install
 ```
 
@@ -491,10 +491,10 @@ console.log(`Extracted ${result.tokens.length} tokens`);
 
 All files located in:
 ```
-/Users/chris/git/claude-octopus/plugin/scripts/token-extraction/
+/Users/chris/git/multipowers/plugin/scripts/token-extraction/
 ```
 
-Ready for immediate use or integration into the Claude Octopus plugin ecosystem.
+Ready for immediate use or integration into the Multipowers plugin ecosystem.
 
 ## Conclusion
 

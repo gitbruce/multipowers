@@ -1,18 +1,18 @@
-# Claude Octopus - System Instructions
+# Multipowers - System Instructions
 
-> **Note:** This file provides context when working directly in the claude-octopus repository.
+> **Note:** This file provides context when working directly in the multipowers repository.
 > For deployed plugins, visual indicator instructions are embedded in each skill file
 > (flow-discover.md, flow-define.md, flow-develop.md, flow-deliver.md, skill-debate.md).
 
 ## Visual Indicators (MANDATORY)
 
-When executing Claude Octopus workflows, you MUST display visual indicators so users know which AI providers are active and what costs they're incurring.
+When executing Multipowers workflows, you MUST display visual indicators so users know which AI providers are active and what costs they're incurring.
 
 ### Indicator Reference
 
 | Indicator | Meaning | Cost Source |
 |-----------|---------|-------------|
-| 🐙 | Claude Octopus multi-AI mode active | Multiple APIs |
+| 🐙 | Multipowers multi-AI mode active | Multiple APIs |
 | 🔴 | Codex CLI executing | User's OPENAI_API_KEY |
 | 🟡 | Gemini CLI executing | User's GEMINI_API_KEY |
 | 🔵 | Claude subagent processing | Included with Claude Code |
@@ -293,12 +293,12 @@ All future mp runtime-based skills should follow this pattern.
 
 ## Modular Configuration (Claude Code v2.1.20+)
 
-Claude Octopus uses a modular CLAUDE.md structure for better organization and context management.
+Multipowers uses a modular CLAUDE.md structure for better organization and context management.
 
 ### Directory Structure
 
 ```
-claude-octopus/
+multipowers/
 ├── CLAUDE.md                    # Main instructions (this file)
 ├── config/
 │   ├── providers/

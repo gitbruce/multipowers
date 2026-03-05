@@ -196,15 +196,15 @@ This is NOT a two-way debate you observe. It's a **three-way debate you particip
 
 ---
 
-## Claude-Octopus Enhancements
+## Multipowers Enhancements
 
-When running debates in claude-octopus, the following enhancements are automatically applied:
+When running debates in multipowers, the following enhancements are automatically applied:
 
 ### 1. Session-Aware Storage
 
 **Enhanced behavior** (when `CLAUDE_CODE_SESSION` is set):
 ```
-~/.claude-octopus/debates/${SESSION_ID}/
+~/.multipowers/debates/${SESSION_ID}/
 └── NNN-topic-slug/
     ├── context.md
     ├── state.json
@@ -216,7 +216,7 @@ When running debates in claude-octopus, the following enhancements are automatic
 - Debates organized by Claude Code session
 - Easy to find debates from specific conversations
 - Automatic cleanup when sessions expire
-- Integration with claude-octopus analytics
+- Integration with multipowers analytics
 
 ### 2. Quality Gates for Debate Responses
 
@@ -238,7 +238,7 @@ When running debates in claude-octopus, the following enhancements are automatic
 
 ### 3. Cost Tracking & Analytics
 
-Track token usage and cost for each debate, integrated with claude-octopus analytics.
+Track token usage and cost for each debate, integrated with multipowers analytics.
 
 ### 4. Document Export
 
@@ -338,7 +338,7 @@ ADVISORS="gemini,codex"
 ### Step 4: Setup Debate Folder
 ```bash
 # Create debate directory structure
-DEBATE_BASE_DIR="${HOME}/.claude-octopus/debates/${CLAUDE_CODE_SESSION:-./debates}"
+DEBATE_BASE_DIR="${HOME}/.multipowers/debates/${CLAUDE_CODE_SESSION:-./debates}"
 DEBATE_ID="042-redis-vs-memcached"
 DEBATE_DIR="${DEBATE_BASE_DIR}/${DEBATE_ID}"
 
@@ -415,7 +415,7 @@ cat > "${DEBATE_DIR}/rounds/r001_claude.md" <<EOF
 EOF
 ```
 
-#### 5.4: Quality Gates (Claude-Octopus Enhancement)
+#### 5.4: Quality Gates (Multipowers Enhancement)
 After each advisor responds, evaluate response quality:
 ```bash
 evaluate_response_quality() {
@@ -517,7 +517,7 @@ IMPORTANT: The deliverable is a PROPOSAL. Never auto-apply changes without user 
 User: /debate Should we use Redis or in-memory cache?
 
 Claude:
-1. Creates debate folder at ~/.claude-octopus/debates/${SESSION_ID}/042-redis-vs-memcached/
+1. Creates debate folder at ~/.multipowers/debates/${SESSION_ID}/042-redis-vs-memcached/
 2. Writes context.md with question
 3. Round 1:
    - Calls printf '%s' "Should we use Redis..." | gemini -p "" -o text --approval-mode yolo
@@ -560,7 +560,7 @@ Before completing a debate, ensure:
 - [ ] Your independent analysis written for each round (not just summaries)
 - [ ] Synthesis.md includes all perspectives
 - [ ] Quality scores recorded for advisor responses
-- [ ] Cost tracking updated (if in claude-octopus context)
+- [ ] Cost tracking updated (if in multipowers context)
 - [ ] Results presented to user in chat
 - [ ] Debate folder path provided to user
 
@@ -590,7 +590,7 @@ Knowledge mode "deliberate" phase → Run /debate to get multiple perspectives
 - **Version**: v4.7
 - **Repository**: https://github.com/wolverin0/claude-skills
 - **License**: MIT
-- **Enhancements**: Claude-Octopus integration (session-aware storage, quality gates, cost tracking, document export)
+- **Enhancements**: Multipowers integration (session-aware storage, quality gates, cost tracking, document export)
 
 ---
 

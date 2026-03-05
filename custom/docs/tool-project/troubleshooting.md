@@ -9,4 +9,4 @@
   - `/plugin install mp@multipowers-plugins --scope user`
 - If marketplace entry is corrupted, remove and re-add:
   - `/plugin marketplace remove multipowers-plugins`
-  - `/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json`
+  - `/plugin marketplace add /mnt/f/src/ai/multipowers/.claude-plugin/marketplace.json`

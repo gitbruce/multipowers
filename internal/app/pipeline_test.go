@@ -3,7 +3,7 @@ package app
 import (
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func TestPipelineMissingContextBlocks(t *testing.T) {

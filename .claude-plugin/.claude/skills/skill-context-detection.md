@@ -19,8 +19,8 @@ If user has explicitly set mode via `/mp:km on` or `/mp:km off`, respect that se
 
 ```bash
 # Check if knowledge mode is explicitly set
-if [[ -f ~/.claude-octopus/config/knowledge-mode ]]; then
-  EXPLICIT_MODE=$(cat ~/.claude-octopus/config/knowledge-mode)
+if [[ -f ~/.multipowers/config/knowledge-mode ]]; then
+  EXPLICIT_MODE=$(cat ~/.multipowers/config/knowledge-mode)
   if [[ "$EXPLICIT_MODE" == "on" ]]; then
     echo "knowledge"
     exit 0
@@ -168,7 +168,7 @@ When this skill activates:
 1. **Detect context**
    - Analyze user's prompt for knowledge vs dev indicators
    - Check project type (code repo vs doc-heavy)
-   - Check for explicit override (~/.claude-octopus/config/knowledge-mode)
+   - Check for explicit override (~/.multipowers/config/knowledge-mode)
    - Determine: "dev" or "knowledge" with confidence level
 
 2. **Show context-aware banner**

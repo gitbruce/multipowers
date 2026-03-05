@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/internal/tracks"
+	"github.com/gitbruce/multipowers/internal/tracks"
 )
 
 func TestShowModelRoutingSetting(t *testing.T) {

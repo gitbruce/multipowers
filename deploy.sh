@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude Octopus - Deployment Validation Script
+# Multipowers - Deployment Validation Script
 # Ensures repository is clean and ready for public deployment before pushing
 
 set -euo pipefail
@@ -17,7 +17,7 @@ cd "$SCRIPT_DIR"
 
 echo -e "${CYAN}╔══════════════════════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║                                                          ║${NC}"
-echo -e "${CYAN}║        Claude Octopus - Deployment Validation            ║${NC}"
+echo -e "${CYAN}║        Multipowers - Deployment Validation            ║${NC}"
 echo -e "${CYAN}║                                                          ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════════════════════╝${NC}"
 echo ""
@@ -197,7 +197,7 @@ if [ $CHECKS_FAILED -eq 0 ]; then
     echo "Next steps:"
     echo "  1. git push origin main"
     echo "  2. Verify GitHub Actions (if configured)"
-    echo "  3. Test plugin installation: /plugin install claude-octopus@nyldn-plugins"
+    echo "  3. Test plugin installation: /plugin install multipowers@nyldn-plugins"
     echo ""
     exit 0
 else

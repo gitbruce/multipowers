@@ -71,7 +71,7 @@ A background `MailboxWatcher` goroutine monitors reviewer/orchestrator inbox eve
 ### Runtime Layout
 
 ```text
-~/.claude-octopus/runs/<run_id>/
+~/.multipowers/runs/<run_id>/
   mailbox/
     inbox-m1/
     inbox-m2/

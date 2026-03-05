@@ -1,6 +1,6 @@
 # Debug Mode
 
-Enable detailed debug logging for troubleshooting Claude Octopus issues.
+Enable detailed debug logging for troubleshooting Multipowers issues.
 
 ## Usage
 
@@ -42,8 +42,8 @@ $ OCTOPUS_DEBUG=1 ./.claude-plugin/bin/mp detect-providers
 [DEBUG] ═══ MP runtime starting ═══
 [DEBUG] COMMAND=detect-providers
 [DEBUG] OCTOPUS_DEBUG=1
-[DEBUG] WORKSPACE_DIR=/Users/chris/.claude-octopus
-[DEBUG] PROJECT_ROOT=/Users/chris/git/claude-octopus
+[DEBUG] WORKSPACE_DIR=/Users/chris/.multipowers
+[DEBUG] PROJECT_ROOT=/Users/chris/git/multipowers
 [DEBUG] Arguments:
 
 [DEBUG] ═══ Detecting AI providers ═══

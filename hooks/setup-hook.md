@@ -1,6 +1,6 @@
 ---
 event: Setup
-description: Auto-initialize Claude Octopus workspace and verify providers on --init
+description: Auto-initialize Multipowers workspace and verify providers on --init
 ---
 
 # Setup Hook (Claude Code v2.1.10)
@@ -32,16 +32,16 @@ ${CLAUDE_PLUGIN_ROOT}/bin/mp detect-providers
 
 On successful setup:
 ```
-Claude Octopus workspace initialized
+Multipowers workspace initialized
 Session: ${CLAUDE_SESSION_ID}
-Results: ~/.claude-octopus/results/${CLAUDE_SESSION_ID}/
-Plans: ~/.claude-octopus/plans/${CLAUDE_SESSION_ID}/
+Results: ~/.multipowers/results/${CLAUDE_SESSION_ID}/
+Plans: ~/.multipowers/plans/${CLAUDE_SESSION_ID}/
 ```
 
 ## Workspace Structure
 
 ```
-~/.claude-octopus/
+~/.multipowers/
 ├── results/
 │   └── ${SESSION_ID}/           # Session-specific results
 │       ├── .session-id

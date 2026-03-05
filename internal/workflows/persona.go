@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/policy"
+	"github.com/gitbruce/multipowers/internal/policy"
 )
 
 type Persona struct {

@@ -1,8 +1,8 @@
-# Product: Claude Octopus Tool Project
+# Product: Multipowers Tool Project
 
 ## Mission
 
-Claude Octopus provides structured, multi-provider AI orchestration for Claude Code through reproducible workflows, explicit quality gates, and role-aware execution.
+Multipowers provides structured, multi-provider AI orchestration for Claude Code through reproducible workflows, explicit quality gates, and role-aware execution.
 
 ## Users and Scope
 

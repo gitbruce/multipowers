@@ -1,6 +1,6 @@
 # Tool Project Maintainer Guide
 
-Audience: maintainers of this repository (`claude-octopus` fork), not end users.
+Audience: maintainers of this repository (`multipowers` fork), not end users.
 
 ## Naming Baseline
 
@@ -16,8 +16,8 @@ Audience: maintainers of this repository (`claude-octopus` fork), not end users.
 4. Regular sync path: `upstream/main -> main -> multipowers`.
 
 Primary runbook:
-- [upstream-sync-playbook.md](/mnt/f/src/ai/claude-octopus/custom/docs/sync/upstream-sync-playbook.md)
-- [conflict-resolution.md](/mnt/f/src/ai/claude-octopus/custom/docs/sync/conflict-resolution.md)
+- [upstream-sync-playbook.md](/mnt/f/src/ai/multipowers/custom/docs/sync/upstream-sync-playbook.md)
+- [conflict-resolution.md](/mnt/f/src/ai/multipowers/custom/docs/sync/conflict-resolution.md)
 
 ## Customization Architecture
 
@@ -40,7 +40,7 @@ go test ./...
 Install / refresh:
 
 ```text
-/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json
+/plugin marketplace add /mnt/f/src/ai/multipowers/.claude-plugin/marketplace.json
 /plugin install mp@multipowers-plugins --scope user
 ```
 
@@ -61,14 +61,14 @@ Uninstall / remove:
 
 ## Reference Docs
 
-- [config-schema.md](/mnt/f/src/ai/claude-octopus/custom/docs/reference/config-schema.md)
-- [compatibility.md](/mnt/f/src/ai/claude-octopus/custom/docs/reference/compatibility.md)
-- [conductor-context.md](/mnt/f/src/ai/claude-octopus/custom/docs/customizations/conductor-context.md)
-- [troubleshooting.md](/mnt/f/src/ai/claude-octopus/custom/docs/tool-project/troubleshooting.md)
+- [config-schema.md](/mnt/f/src/ai/multipowers/custom/docs/reference/config-schema.md)
+- [compatibility.md](/mnt/f/src/ai/multipowers/custom/docs/reference/compatibility.md)
+- [conductor-context.md](/mnt/f/src/ai/multipowers/custom/docs/customizations/conductor-context.md)
+- [troubleshooting.md](/mnt/f/src/ai/multipowers/custom/docs/tool-project/troubleshooting.md)
 
 ## Tool Project Conductor Notes
 
 Legacy tool-project Conductor context docs are stored at:
-- [product-vision.md](/mnt/f/src/ai/claude-octopus/custom/docs/tool-project/product-vision.md)
-- [product.md](/mnt/f/src/ai/claude-octopus/custom/docs/tool-project/product.md)
-- [tech-stack.md](/mnt/f/src/ai/claude-octopus/custom/docs/tool-project/tech-stack.md)
+- [product-vision.md](/mnt/f/src/ai/multipowers/custom/docs/tool-project/product-vision.md)
+- [product.md](/mnt/f/src/ai/multipowers/custom/docs/tool-project/product.md)
+- [tech-stack.md](/mnt/f/src/ai/multipowers/custom/docs/tool-project/tech-stack.md)

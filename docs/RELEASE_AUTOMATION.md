@@ -1,10 +1,10 @@
 # Release Automation Guide
 
-This document explains the automated release process for Claude Octopus and how to ensure GitHub releases are never missed.
+This document explains the automated release process for Multipowers and how to ensure GitHub releases are never missed.
 
 ## 🚀 Automated Release Process
 
-Claude Octopus has a fully automated release workflow that ensures consistency and prevents missing releases.
+Multipowers has a fully automated release workflow that ensures consistency and prevents missing releases.
 
 ### Components
 
@@ -48,7 +48,7 @@ The script performs 10 validation checks:
 
 | Check | What It Validates | Severity |
 |-------|------------------|----------|
-| 1. Plugin Names | `plugin.json` name = "octo", `marketplace.json` name = "claude-octopus" | 🔴 Critical |
+| 1. Plugin Names | `plugin.json` name = "octo", `marketplace.json` name = "multipowers" | 🔴 Critical |
 | 2. Version Sync | All manifests have same version | 🔴 Critical |
 | 3. Command Registration | All commands registered in plugin.json | 🔴 Critical |
 | 4. Command Frontmatter | No namespace prefix in command frontmatter | 🔴 Critical |

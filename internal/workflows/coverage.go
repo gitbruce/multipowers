@@ -80,7 +80,7 @@ func parseCoverageOutput(result CoverageResult, output []byte) CoverageResult {
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Parse lines like: "ok  	github.com/gitbruce/claude-octopus/internal/cli	0.005s	coverage: 45.2% of statements"
+		// Parse lines like: "ok  	github.com/gitbruce/multipowers/internal/cli	0.005s	coverage: 45.2% of statements"
 		// or: "coverage: 45.2% of statements"
 		if strings.Contains(line, "coverage:") {
 			// Extract coverage percentage

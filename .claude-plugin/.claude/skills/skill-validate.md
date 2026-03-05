@@ -299,7 +299,7 @@ Parse debate outputs and extract concrete issues. Categorize by severity:
 
 **You MUST generate comprehensive validation report:**
 
-Create a report at `~/.claude-octopus/validation/<timestamp>/VALIDATION_REPORT.md`:
+Create a report at `~/.multipowers/validation/<timestamp>/VALIDATION_REPORT.md`:
 
 ```markdown
 # Validation Report
@@ -471,7 +471,7 @@ Create a report at `~/.claude-octopus/validation/<timestamp>/VALIDATION_REPORT.m
 **Validation Tool**: Claude Octopus v7.24.0
 ```
 
-**Also create**: `~/.claude-octopus/validation/<timestamp>/ISSUES.md` with just the issues list for easy reference.
+**Also create**: `~/.multipowers/validation/<timestamp>/ISSUES.md` with just the issues list for easy reference.
 
 **Validation Gate**: Both files must be created and user must be shown the summary.
 
@@ -498,8 +498,8 @@ Overall Score: <X>/100 - <PASS ✅ / FAIL ❌>
   🟠 Medium:    <count>
   🔵 Low:       <count>
 
-📄 Full Report: ~/.claude-octopus/validation/<timestamp>/VALIDATION_REPORT.md
-📋 Issues List: ~/.claude-octopus/validation/<timestamp>/ISSUES.md
+📄 Full Report: ~/.multipowers/validation/<timestamp>/VALIDATION_REPORT.md
+📋 Issues List: ~/.multipowers/validation/<timestamp>/ISSUES.md
 
 <If PASS>
 ✅ Code meets quality standards. Ready for deployment.
@@ -530,7 +530,7 @@ What would you like to do next?
 ❌ **CANNOT SKIP** issue extraction (Step 4)
 ❌ **CANNOT SKIP** report generation (Step 5)
 ❌ **CANNOT** mark as complete without validation gates passing
-❌ **CANNOT** create temporary files in plugin directory (use ~/.claude-octopus/validation/)
+❌ **CANNOT** create temporary files in plugin directory (use ~/.multipowers/validation/)
 
 ---
 
@@ -569,7 +569,7 @@ What would you like to do next?
 
 - **Pass threshold**: 75/100 (configurable in future versions)
 - **Debate rounds**: 1 round (fast validation, can increase for deeper analysis)
-- **Report storage**: `~/.claude-octopus/validation/<timestamp>/`
+- **Report storage**: `~/.multipowers/validation/<timestamp>/`
 - **Export options**: Use `/mp:docs` to export validation report to PPTX/PDF
 - **Re-validation**: Run again after addressing issues to verify fixes
 - **Cost awareness**: Uses all 3 AI providers (Codex, Gemini, Claude) - approximately $0.03-0.10 per validation

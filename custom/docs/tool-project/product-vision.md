@@ -1,8 +1,8 @@
-# Product Vision: Claude Octopus (Go Branch)
+# Product Vision: Multipowers (Go Branch)
 
 ## Vision
 
-Claude Octopus is a workflow-first orchestration plugin for Claude Code that makes multi-provider AI execution reliable, transparent, and repeatable via a **no-shell hybrid runtime**.
+Multipowers is a workflow-first orchestration plugin for Claude Code that makes multi-provider AI execution reliable, transparent, and repeatable via a **no-shell hybrid runtime**.
 
 The goal is to provide consistent, high-quality decisions through structured Go-based orchestration, explicit quality gates, and role-specialized execution, while keeping reasoning in high-level Markdown skills.
 

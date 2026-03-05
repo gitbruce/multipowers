@@ -87,7 +87,7 @@ python3 -c "
 import json
 m = json.load(open('.claude-plugin/marketplace.json'))
 for plugin in m.get('plugins', []):
-    if plugin.get('name') == 'claude-octopus':
+    if plugin.get('name') == 'multipowers':
         plugin['version'] = '${VERSION}'
         plugin['description'] = 'v${VERSION} - ${SUMMARY}. ' + plugin['description'].split('. ', 1)[-1] if '. ' in plugin['description'] else 'v${VERSION} - ${SUMMARY}.'
 json.dump(m, open('.claude-plugin/marketplace.json', 'w'), indent=2)
@@ -201,17 +201,17 @@ gh release create "v${VERSION}" \
     --notes "### Changed
 - ${SUMMARY}
 
-**Full Changelog**: https://github.com/nyldn/claude-octopus/compare/v${CURRENT}...v${VERSION}" \
+**Full Changelog**: https://github.com/gitbruce/multipowers/compare/v${CURRENT}...v${VERSION}" \
     --quiet 2>/dev/null || \
 gh release create "v${VERSION}" \
     --title "v${VERSION} — ${SUMMARY}" \
     --notes "### Changed
 - ${SUMMARY}
 
-**Full Changelog**: https://github.com/nyldn/claude-octopus/compare/v${CURRENT}...v${VERSION}"
+**Full Changelog**: https://github.com/gitbruce/multipowers/compare/v${CURRENT}...v${VERSION}"
 
 echo "   Merged PR #${PR_NUM}"
-echo "   Release: https://github.com/nyldn/claude-octopus/releases/tag/v${VERSION}"
+echo "   Release: https://github.com/gitbruce/multipowers/releases/tag/v${VERSION}"
 echo ""
 
 # --- 7. Update submodule (if in dev repo) ---

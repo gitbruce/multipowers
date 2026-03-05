@@ -243,7 +243,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh embrace "Implement [feature] per pl
 Claude Octopus uses session-aware plan storage. Plans are automatically saved to:
 
 ```
-~/.claude-octopus/plans/${CLAUDE_SESSION_ID}/YYYY-MM-DD-feature-name.md
+~/.multipowers/plans/${CLAUDE_SESSION_ID}/YYYY-MM-DD-feature-name.md
 ```
 
 This integrates with Claude Code's `plansDirectory` setting. To customize:
@@ -251,7 +251,7 @@ This integrates with Claude Code's `plansDirectory` setting. To customize:
 ```json
 // settings.json
 {
-  "plansDirectory": "~/.claude-octopus/plans"
+  "plansDirectory": "~/.multipowers/plans"
 }
 ```
 

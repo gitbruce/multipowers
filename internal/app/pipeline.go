@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/internal/runtime"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/runtime"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 type ExecFunc func() api.Response

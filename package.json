@@ -1,7 +1,7 @@
 {
-  "name": "claude-octopus",
+  "name": "multipowers",
   "version": "9.1.9",
-  "description": "Claude Octopus - Multi-agent orchestration with /mp:deck slide deck generator, outline approval gate, and PPTX export via document-skills",
+  "description": "Multipowers - Multi-agent orchestration with /mp:deck slide deck generator, outline approval gate, and PPTX export via document-skills",
   "main": ".claude-plugin/bin/mp",
   "scripts": {
     "test": "make test",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nyldn/claude-octopus.git"
+    "url": "https://github.com/gitbruce/multipowers.git"
   },
   "keywords": [
     "claude",

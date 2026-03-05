@@ -3,13 +3,13 @@
 **Version:** v7.23.0+
 **Last Updated:** February 2026
 
-This guide explains how claude-octopus integrates with native Claude Code features introduced in v2.1.20+.
+This guide explains how multipowers integrates with native Claude Code features introduced in v2.1.20+.
 
 ---
 
 ## Overview
 
-claude-octopus v7.23.0+ uses a **hybrid approach** that combines:
+multipowers v7.23.0+ uses a **hybrid approach** that combines:
 
 1. **Native Claude Code features** (where beneficial)
 2. **Claude-octopus orchestration** (where multi-AI needed)
@@ -20,11 +20,11 @@ claude-octopus v7.23.0+ uses a **hybrid approach** that combines:
 
 ## Feature Comparison
 
-| Feature | Native Claude Code | Claude-Octopus | When to Use |
+| Feature | Native Claude Code | Multipowers | When to Use |
 |---------|-------------------|----------------|-------------|
 | **Task Management** | TaskCreate/TaskUpdate/TaskList | (v7.23.0+) Uses native tools | Always use native (v7.23.0+) |
 | **Planning** | EnterPlanMode/ExitPlanMode | /mp:plan with intent contracts | Simple: native, Complex: octopus |
-| **State Persistence** | Context summarization | .claude-octopus/state.json | Multi-session projects: octopus |
+| **State Persistence** | Context summarization | .multipowers/state.json | Multi-session projects: octopus |
 | **Multi-AI Orchestration** | Not available | Codex + Gemini + Claude | When diverse perspectives needed |
 | **Workflows** | Single-phase | Double Diamond (4-phase) | Complex features: octopus |
 
@@ -54,7 +54,7 @@ See [MIGRATION-7.23.0.md](../MIGRATION-7.23.0.md) for complete migration guide.
 cp .claude/todos.md .claude/todos.md.backup
 
 # Run migration
-~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/multipowers/7.23.0/scripts/migrate-todos.sh
 
 # Verify tasks
 /tasks
@@ -116,7 +116,7 @@ TaskCreate({
 
 ### Hybrid Planning Approach
 
-claude-octopus v7.24.0+ uses **intelligent routing** between native plan mode and octopus workflows.
+multipowers v7.24.0+ uses **intelligent routing** between native plan mode and octopus workflows.
 
 #### When to Use Native EnterPlanMode
 
@@ -179,7 +179,7 @@ IF decision_between_alternatives:
 - `ExitPlanMode` clears/summarizes context to save tokens
 
 **How octopus handles this:**
-- State persists in `.claude-octopus/state.json`
+- State persists in `.multipowers/state.json`
 - Workflows auto-detect context clearing
 - Auto-reload state from files
 - No information loss
@@ -199,7 +199,7 @@ Native plan mode's `ExitPlanMode` **clears Claude's memory** to save tokens. Thi
 **File-based state management:**
 
 ```
-.claude-octopus/
+.multipowers/
 ├── state.json              # Main state (decisions, metrics, context)
 ├── context/                # Phase outputs
 │   ├── discover-context.md
@@ -210,7 +210,7 @@ Native plan mode's `ExitPlanMode` **clears Claude's memory** to save tokens. Thi
 ```
 
 **What survives context clearing:**
-- ✅ `.claude-octopus/state.json`
+- ✅ `.multipowers/state.json`
 - ✅ Phase context files
 - ✅ Native tasks (TaskList)
 - ✅ Git commits and WIP checkpoints
@@ -228,7 +228,7 @@ Native plan mode's `ExitPlanMode` **clears Claude's memory** to save tokens. Thi
 
 ```bash
 # Check if state exists but memory doesn't
-if [[ -f .claude-octopus/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]]; then
+if [[ -f .multipowers/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]]; then
     echo "🔄 Reloading prior session context..."
 
     # Load state
@@ -294,7 +294,7 @@ fi
 ```bash
 /mp:embrace "Build authentication system"
 → Runs discover, define phases
-→ Saves state to .claude-octopus/state.json
+→ Saves state to .multipowers/state.json
 → User ends session
 ```
 
@@ -312,7 +312,7 @@ fi
 
 ## 4. Multi-AI Orchestration
 
-**This is exclusive to claude-octopus** (not available in native Claude Code).
+**This is exclusive to multipowers** (not available in native Claude Code).
 
 ### What It Does
 
@@ -321,7 +321,7 @@ Runs Codex + Gemini + Claude **in parallel**, then synthesizes perspectives:
 ```
 User: "Research authentication patterns"
 
-Claude-Octopus:
+Multipowers:
 ├─ 🔴 Codex CLI → Technical implementation analysis
 ├─ 🟡 Gemini CLI → Ecosystem and community research
 └─ 🔵 Claude → Strategic synthesis
@@ -363,7 +363,7 @@ Claude-Octopus:
 
 ## 5. Double Diamond Workflows
 
-**This is exclusive to claude-octopus** (not available in native Claude Code).
+**This is exclusive to multipowers** (not available in native Claude Code).
 
 ### What It Is
 
@@ -446,7 +446,7 @@ Each phase includes validation:
 # Day 1
 /mp:embrace "Build feature X"
 → Completes discover, define
-→ State saved to .claude-octopus/state.json
+→ State saved to .multipowers/state.json
 
 # Day 2 (new session, context cleared)
 /mp:resume  # or just continue
@@ -477,7 +477,7 @@ Each phase includes validation:
 **Solution:**
 ```bash
 # Run migration
-~/.claude/plugins/cache/multipowers-plugins/claude-octopus/7.23.0/scripts/migrate-todos.sh
+~/.claude/plugins/cache/multipowers-plugins/multipowers/7.23.0/scripts/migrate-todos.sh
 
 # View native tasks
 /tasks
@@ -493,7 +493,7 @@ Each phase includes validation:
 "${CLAUDE_PLUGIN_ROOT}/scripts/mp state" init_state
 
 # Verify file exists
-ls .claude-octopus/state.json
+ls .multipowers/state.json
 ```
 
 ---
@@ -571,7 +571,7 @@ const task = TaskGet({ taskId: "1" })
 
 ---
 
-**Questions?** Open an issue: https://github.com/nyldn/claude-octopus/issues
+**Questions?** Open an issue: https://github.com/gitbruce/multipowers/issues
 
 ---
 

@@ -1,7 +1,7 @@
 package workflows
 
 import (
-	"github.com/gitbruce/claude-octopus/internal/providers"
+	"github.com/gitbruce/multipowers/internal/providers"
 )
 
 // Debate executes the debate workflow using the orchestration engine

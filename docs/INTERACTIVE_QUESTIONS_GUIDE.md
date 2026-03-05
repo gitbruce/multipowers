@@ -1,6 +1,6 @@
 # Interactive Questions Guide for Command Development
 
-This guide provides best practices for creating interactive AskUserQuestion flows in Claude Octopus commands.
+This guide provides best practices for creating interactive AskUserQuestion flows in Multipowers commands.
 
 ---
 

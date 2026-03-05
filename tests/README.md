@@ -1,6 +1,6 @@
-# Claude Octopus Test Suite
+# Multipowers Test Suite
 
-This directory contains automated tests for the Claude Octopus plugin.
+This directory contains automated tests for the Multipowers plugin.
 
 ## Running Tests
 
@@ -144,4 +144,4 @@ go test ./... && echo "Pass" || echo "Fail"
 
 ---
 
-**Questions or issues?** See main README or file an issue at https://github.com/nyldn/claude-octopus/issues
+**Questions or issues?** See main README or file an issue at https://github.com/gitbruce/multipowers/issues

@@ -1,6 +1,6 @@
-# Plugin Architecture - How Claude Octopus Works
+# Plugin Architecture - How Multipowers Works
 
-This guide explains the internal architecture of Claude Octopus for contributors and advanced users.
+This guide explains the internal architecture of Multipowers for contributors and advanced users.
 
 ---
 
@@ -10,7 +10,7 @@ This guide explains the internal architecture of Claude Octopus for contributors
 ┌─────────────────────────────────────────────────────────────┐
 │                      Claude Code                             │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │            Claude Octopus Plugin                        │ │
+│  │            Multipowers Plugin                        │ │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │ │
 │  │  │    Skills    │  │    Hooks     │  │   Commands   │ │ │
 │  │  └──────────────┘  └──────────────┘  └──────────────┘ │ │
@@ -39,7 +39,7 @@ This guide explains the internal architecture of Claude Octopus for contributors
 
 ```json
 {
-  "name": "claude-octopus",
+  "name": "multipowers",
   "version": "7.4.0",
   "description": "Multi-tentacled orchestrator...",
   "skills": [
@@ -244,7 +244,7 @@ mp runtime
 probe() {
   local prompt="$1"
   local session_id="${CLAUDE_CODE_SESSION:-default}"
-  local output_dir="${HOME}/.claude-octopus/results/${session_id}"
+  local output_dir="${HOME}/.multipowers/results/${session_id}"
 
   # Step 1: Call Codex CLI
   codex exec "${prompt}" > "${output_dir}/probe_codex.md"
@@ -279,10 +279,10 @@ EOF
 
 #### Session-Aware Storage
 
-Claude Octopus uses `CLAUDE_CODE_SESSION` environment variable to organize results by session:
+Multipowers uses `CLAUDE_CODE_SESSION` environment variable to organize results by session:
 
 ```
-~/.claude-octopus/
+~/.multipowers/
 ├── results/
 │   ├── abc-123-session-id/
 │   │   ├── probe-synthesis-20260118-143022.md
@@ -352,7 +352,7 @@ fi
 **Why wrapper?**
 - Original submodule is read-only (don't modify upstream)
 - Wrapper adds Claude Code-specific YAML frontmatter
-- Enhancement layer adds claude-octopus features
+- Enhancement layer adds multipowers features
 - Maintains clear separation: original + enhancements
 
 ---
@@ -434,7 +434,7 @@ evaluate_quality() {
 ## File Structure
 
 ```
-claude-octopus/
+multipowers/
 ├── .claude-plugin/
 │   ├── plugin.json                 # Plugin manifest
 │   └── hooks.json                  # Hook definitions
@@ -592,7 +592,7 @@ detect_providers() {
 
 **Implementation:**
 - Sessions older than 30 days auto-deleted
-- Configurable via `~/.claude-octopus/config.json`
+- Configurable via `~/.multipowers/config.json`
 - Runs on SessionStart hook
 
 ---

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/internal/tracks"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/internal/tracks"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 // AtomicContractTestCase defines a test case for atomic command contracts

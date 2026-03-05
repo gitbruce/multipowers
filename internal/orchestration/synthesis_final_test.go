@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gitbruce/claude-octopus/internal/benchmark"
-	"github.com/gitbruce/claude-octopus/internal/isolation"
+	"github.com/gitbruce/multipowers/internal/benchmark"
+	"github.com/gitbruce/multipowers/internal/isolation"
 )
 
 func TestFinalSynthesis(t *testing.T) {

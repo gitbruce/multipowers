@@ -1,6 +1,6 @@
 # Command Reference
 
-Complete reference for all Claude Octopus commands.
+Complete reference for all Multipowers commands.
 
 ---
 
@@ -78,7 +78,7 @@ Restore context from previous session.
 **Usage:** `/mp:resume`
 
 **Behavior:**
-1. Reads `.claude-octopus/state.json` for current position
+1. Reads `.multipowers/state.json` for current position
 2. Loads context using adaptive tier
 3. Shows restoration summary
 4. Suggests next action
@@ -154,7 +154,7 @@ Check setup status and configure AI providers.
 
 **Example output:**
 ```
-Claude Octopus Setup Status
+Multipowers Setup Status
 
 Providers:
   Codex CLI: ready
@@ -434,7 +434,7 @@ Document delivery with export options.
 
 ## Visual Indicators
 
-When Claude Octopus activates external CLIs, you'll see visual indicators:
+When Multipowers activates external CLIs, you'll see visual indicators:
 
 | Indicator | Meaning | Provider |
 |-----------|---------|----------|

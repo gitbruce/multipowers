@@ -6,7 +6,7 @@ This guide explains how to configure Codex sandbox mode for advanced use cases l
 
 By default, Codex agents run in `workspace-write` sandbox mode, which restricts filesystem access to the current workspace. This prevents access to mounted filesystems (SSHFS, NFS, FUSE) and other paths outside the workspace.
 
-**Added in:** v7.13.1 (addressing [Issue #9](https://github.com/nyldn/claude-octopus/issues/9))
+**Added in:** v7.13.1 (addressing [Issue #9](https://github.com/gitbruce/multipowers/issues/9))
 
 ## When You Need This
 
@@ -115,7 +115,7 @@ script:
 sshfs user@server:/repos /mnt/repos -o ro,noexec
 ```
 
-6. **Output isolation**: Octopus only writes to `~/.claude-octopus/results/` by design
+6. **Output isolation**: Octopus only writes to `~/.multipowers/results/` by design
 
 ### Recommended Configuration
 
@@ -173,7 +173,7 @@ OCTOPUS_LOG_LEVEL=ERROR OCTOPUS_CODEX_SANDBOX=danger-full-access mp research ...
 - CLI flag: `--codex-sandbox MODE`
 - Integration with `/mp:setup` wizard
 
-See [Issue #9](https://github.com/nyldn/claude-octopus/issues/9) for roadmap.
+See [Issue #9](https://github.com/gitbruce/multipowers/issues/9) for roadmap.
 
 ## Examples
 
@@ -221,7 +221,7 @@ jobs:
 
 ## See Also
 
-- [Issue #9](https://github.com/nyldn/claude-octopus/issues/9) - Original feature request
+- [Issue #9](https://github.com/gitbruce/multipowers/issues/9) - Original feature request
 - [Codex CLI Documentation](https://github.com/openai/codex) - Sandbox mode reference
 - [SSHFS Guide](https://github.com/libfuse/sshfs) - Mounting remote filesystems
 
@@ -232,9 +232,9 @@ If you're experiencing issues with sandbox configuration:
 1. Check your Codex version: `codex --version`
 2. Verify mount accessibility: `ls -la /your/mount/path`
 3. Test with simple command: `codex exec --sandbox danger-full-access "ok"`
-4. Open an issue: https://github.com/nyldn/claude-octopus/issues
+4. Open an issue: https://github.com/gitbruce/multipowers/issues
 
 ---
 
 **Last Updated:** v7.13.1
-**Related Issue:** [#9](https://github.com/nyldn/claude-octopus/issues/9)
+**Related Issue:** [#9](https://github.com/gitbruce/multipowers/issues/9)

@@ -6,11 +6,11 @@ description: Validates quality gates before file modifications during tangle/ink
 
 # Quality Gate PreToolUse Hook
 
-This hook enforces quality gates before allowing file modifications in Claude Octopus workflows.
+This hook enforces quality gates before allowing file modifications in Multipowers workflows.
 
 ## Purpose
 
-When Claude Code executes tools that modify files (Bash, Write, Edit) during an active claude-octopus workflow, this hook:
+When Claude Code executes tools that modify files (Bash, Write, Edit) during an active multipowers workflow, this hook:
 
 1. Checks for active tangle/ink phase execution
 2. Reads the quality gate status from validation reports
@@ -19,14 +19,14 @@ When Claude Code executes tools that modify files (Bash, Write, Edit) during an 
 ## Trigger Conditions
 
 - Tool is Bash, Write, or Edit
-- Active claude-octopus workflow detected (session file exists)
+- Active multipowers workflow detected (session file exists)
 - Current phase is `tangle` or `ink`
 
 ## Validation Logic
 
 ```bash
 # Check for quality gate file
-VALIDATION_FILE=$(ls -t ~/.claude-octopus/results/tangle-validation-*.md 2>/dev/null | head -1)
+VALIDATION_FILE=$(ls -t ~/.multipowers/results/tangle-validation-*.md 2>/dev/null | head -1)
 
 if [[ -f "$VALIDATION_FILE" ]]; then
     # Parse quality gate status
@@ -53,8 +53,8 @@ This hook leverages the `additionalContext` feature (v2.1.9+) to inject workflow
   },
   "session": {
     "id": "claude-abc123",
-    "results_dir": "~/.claude-octopus/results/claude-abc123/",
-    "plans_dir": "~/.claude-octopus/plans/claude-abc123/"
+    "results_dir": "~/.multipowers/results/claude-abc123/",
+    "plans_dir": "~/.multipowers/plans/claude-abc123/"
   },
   "providers": {
     "codex": "available",
@@ -82,6 +82,6 @@ When `CI_MODE=true` (detected via `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` or `CI`
 
 ## Related Files
 
-- `~/.claude-octopus/results/tangle-validation-*.md` - Quality gate reports
-- `~/.claude-octopus/session.json` - Current session state
+- `~/.multipowers/results/tangle-validation-*.md` - Quality gate reports
+- `~/.multipowers/session.json` - Current session state
 - `.claude-plugin/bin/mp` - Main orchestration script

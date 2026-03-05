@@ -197,7 +197,7 @@ const tokens = merger.applyCustomStrategy(allTokens, customStrategy);
         "$value": "#3b82f6",
         "$description": "Primary brand color",
         "$extensions": {
-          "com.claude-octopus": {
+          "com.multipowers": {
             "source": "tailwind.config",
             "originalKey": "colors.primary.500"
           }

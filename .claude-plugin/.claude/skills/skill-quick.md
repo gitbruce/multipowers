@@ -79,7 +79,7 @@ User Request → Direct Implementation → Atomic Commit → Summary
 **What Quick Mode KEEPS:**
 - ✅ State tracking (records in state.json)
 - ✅ Atomic commits (git commit with description)
-- ✅ Summary generation (stored in .claude-octopus/quick/)
+- ✅ Summary generation (stored in .multipowers/quick/)
 - ✅ Change documentation
 
 ---
@@ -167,9 +167,9 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 ```bash
 # Create quick task summary
-mkdir -p .claude-octopus/quick
+mkdir -p .multipowers/quick
 
-summary_file=".claude-octopus/quick/$(date +%Y%m%d-%H%M%S)-summary.md"
+summary_file=".multipowers/quick/$(date +%Y%m%d-%H%M%S)-summary.md"
 
 cat > "$summary_file" <<EOF
 # Quick Task: $(git log -1 --pretty=%s)
@@ -234,14 +234,14 @@ echo "📝 Summary saved to: $summary_file"
 
 5. **Generate summary**
    ```bash
-   Created: .claude-octopus/quick/20260129-143045-summary.md
+   Created: .multipowers/quick/20260129-143045-summary.md
    ```
 
 6. **Report to user**
    ```
    ✅ Fixed typo in README.md
    📝 Commit: abc123f
-   📋 Summary: .claude-octopus/quick/20260129-143045-summary.md
+   📋 Summary: .multipowers/quick/20260129-143045-summary.md
    ```
 
 ---
@@ -304,7 +304,7 @@ Would you like me to switch to a full workflow?
 Quick mode creates summaries in a dedicated directory:
 
 ```
-.claude-octopus/
+.multipowers/
 └── quick/
     ├── 20260129-143045-summary.md
     ├── 20260129-150122-summary.md

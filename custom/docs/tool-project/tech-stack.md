@@ -1,4 +1,4 @@
-# Tech Stack: Claude Octopus
+# Tech Stack: Multipowers
 
 ## Runtime and Languages
 

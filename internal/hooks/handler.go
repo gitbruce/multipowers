@@ -3,12 +3,12 @@ package hooks
 import (
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/benchmark"
-	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/internal/isolation"
-	"github.com/gitbruce/claude-octopus/internal/orchestration"
-	"github.com/gitbruce/claude-octopus/internal/policy"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/internal/benchmark"
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/isolation"
+	"github.com/gitbruce/multipowers/internal/orchestration"
+	"github.com/gitbruce/multipowers/internal/policy"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func isSpecPrompt(evt api.HookEvent) bool {

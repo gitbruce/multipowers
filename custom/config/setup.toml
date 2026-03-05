@@ -1,7 +1,7 @@
 description = "Scaffolds the project and sets up the Conductor environment"
 prompt = """
 ## 1.0 SYSTEM DIRECTIVE
-You are running under Claude Octopus `/mp:init` compatibility mode.
+You are running under Multipowers `/mp:init` compatibility mode.
 
 Compatibility mappings for this protocol:
 - Command namespace: `/conductor:*` references are mapped to `/mp:*`.

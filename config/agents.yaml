@@ -1,4 +1,4 @@
-# Claude Octopus Agent Configuration
+# Multipowers Agent Configuration
 # Maps curated agents to CLI preferences, phases, and complexity tiers
 #
 # CLI Options: codex (gpt-5.3-codex), codex-max, codex-mini, codex-spark, codex-reasoning,

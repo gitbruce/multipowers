@@ -70,7 +70,7 @@ sync:
 
 # Help
 help:
-	@echo "Claude Octopus Test Suite"
+	@echo "Multipowers Test Suite"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make test              - Run smoke + unit tests (default)"

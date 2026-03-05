@@ -37,7 +37,7 @@ Current project policy (aligned with `agents/config.yaml`, `workflows/embrace.ya
   - Light/lower-token -> Codex
 
 Important scope note:
-- `/mp:model-config` configures Codex/Gemini models in `~/.claude-octopus/config/providers.json`.
+- `/mp:model-config` configures Codex/Gemini models in `~/.multipowers/config/providers.json`.
 - Claude model family selection is primarily controlled by routing (`claude` vs `claude-opus`) and your Claude Code defaults (`ANTHROPIC_DEFAULT_*`), not by this command.
 
 ## Usage
@@ -77,10 +77,10 @@ Models are selected using a 5-tier precedence system:
    - Task hints still exist in runtime, but with your setup Codex stays on `gpt-5.3-codex`
 
 3. **Phase routing config** (per-phase model selection)
-   - Stored in `~/.claude-octopus/config/providers.json` → `phase_routing`
+   - Stored in `~/.multipowers/config/providers.json` → `phase_routing`
 
 4. **Config file defaults / session overrides**
-   - Stored in `~/.claude-octopus/config/providers.json` → `providers` / `overrides`
+   - Stored in `~/.multipowers/config/providers.json` → `providers` / `overrides`
 
 5. **Hard-coded defaults** (lowest priority)
    - Codex: `gpt-5.3-codex`
@@ -159,7 +159,7 @@ Requires `OPENROUTER_API_KEY` to be set. These are automatically selected when O
 
 ## Configuration File
 
-Location: `~/.claude-octopus/config/providers.json`
+Location: `~/.multipowers/config/providers.json`
 
 ```json
 {
@@ -231,8 +231,8 @@ When the user invokes `/mp:model-config`, you MUST:
    env | grep OCTOPUS_
 
    # Show config file contents
-   if [[ -f ~/.claude-octopus/config/providers.json ]]; then
-     cat ~/.claude-octopus/config/providers.json
+   if [[ -f ~/.multipowers/config/providers.json ]]; then
+     cat ~/.multipowers/config/providers.json
    else
      echo "No configuration file found (using defaults)"
    fi
@@ -245,13 +245,13 @@ When the user invokes `/mp:model-config`, you MUST:
    set_provider_model <provider> <model> [--session]
 
    # Show updated configuration
-   cat ~/.claude-octopus/config/providers.json
+   cat ~/.multipowers/config/providers.json
    ```
 
 4. **Set Phase Routing** (`phase <phase> <model>`):
    ```bash
    # Update phase_routing in config file
-   local config_file="${HOME}/.claude-octopus/config/providers.json"
+   local config_file="${HOME}/.multipowers/config/providers.json"
    python3 - "$config_file" "$phase" "$model" <<'PY'
 import json, sys
 cfg, phase, model = sys.argv[1], sys.argv[2], sys.argv[3]
@@ -266,7 +266,7 @@ PY
    echo "✓ Set phase routing: $phase → $model"
    python3 - <<'PY'
 import json, os
-cfg=os.path.expanduser("~/.claude-octopus/config/providers.json")
+cfg=os.path.expanduser("~/.multipowers/config/providers.json")
 with open(cfg, "r", encoding="utf-8") as f:
     print(json.dumps(json.load(f).get("phase_routing", {}), indent=2, ensure_ascii=False))
 PY
@@ -282,7 +282,7 @@ PY
    # For all: reset both providers and phase routing
 
    # Show updated configuration
-   cat ~/.claude-octopus/config/providers.json
+   cat ~/.multipowers/config/providers.json
    ```
 
 6. **Provide guidance** on:

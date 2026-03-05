@@ -101,7 +101,7 @@ ${CLAUDE_PLUGIN_ROOT}/bin/mp [workflow] "<user's request>"
 
 ```bash
 # Find the latest synthesis/output file (created within last 10 minutes)
-OUTPUT_FILE=$(find ~/.claude-octopus/results -name "[workflow]-*-*.md" -mmin -10 2>/dev/null | head -n1)
+OUTPUT_FILE=$(find ~/.multipowers/results -name "[workflow]-*-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$OUTPUT_FILE" ]]; then
   echo "❌ VALIDATION FAILED: No output file found"
@@ -114,7 +114,7 @@ echo "✅ VALIDATION PASSED: Output file exists at $OUTPUT_FILE"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with presenting results
 4. DO NOT substitute with direct work
 
@@ -161,32 +161,32 @@ Different workflows produce different artifacts:
 
 ### Research Workflows (probe, research)
 ```bash
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "probe-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "probe-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Definition Workflows (grasp, define)
 ```bash
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "grasp-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "grasp-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Implementation Workflows (tangle, develop)
 ```bash
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "tangle-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "tangle-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Validation Workflows (ink, deliver)
 ```bash
-VALIDATION_FILE=$(find ~/.claude-octopus/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
+VALIDATION_FILE=$(find ~/.multipowers/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Debate Workflows
 ```bash
-DEBATE_FILE=$(find ~/.claude-octopus/results -name "debate-*.md" -mmin -10 2>/dev/null | head -n1)
+DEBATE_FILE=$(find ~/.multipowers/results -name "debate-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Code Review Workflows
 ```bash
-REVIEW_FILE=$(find ~/.claude-octopus/results -name "code-review-*.md" -mmin -10 2>/dev/null | head -n1)
+REVIEW_FILE=$(find ~/.multipowers/results -name "code-review-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ## Language Patterns
@@ -237,7 +237,7 @@ ${CLAUDE_PLUGIN_ROOT}/bin/mp code-review "<commit range or files>"
 
 Validate:
 ```bash
-REVIEW_FILE=$(find ~/.claude-octopus/results -name "code-review-*.md" -mmin -10 2>/dev/null | head -n1)
+REVIEW_FILE=$(find ~/.multipowers/results -name "code-review-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Architecture Skill
@@ -256,7 +256,7 @@ ${CLAUDE_PLUGIN_ROOT}/bin/mp architecture "<system design prompt>"
 
 Validate:
 ```bash
-ARCH_FILE=$(find ~/.claude-octopus/results -name "architecture-*.md" -mmin -10 2>/dev/null | head -n1)
+ARCH_FILE=$(find ~/.multipowers/results -name "architecture-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ### Security Audit Skill
@@ -275,7 +275,7 @@ ${CLAUDE_PLUGIN_ROOT}/bin/mp security-audit "<scope>"
 
 Validate:
 ```bash
-SECURITY_FILE=$(find ~/.claude-octopus/results -name "security-audit-*.md" -mmin -10 2>/dev/null | head -n1)
+SECURITY_FILE=$(find ~/.multipowers/results -name "security-audit-*.md" -mmin -10 2>/dev/null | head -n1)
 ```
 
 ## Migration Checklist
@@ -307,7 +307,7 @@ After adding validation gates, test:
 # Should see Bash tool invocation in transcript
 
 # 4. Verify synthesis file created
-ls -la ~/.claude-octopus/results/
+ls -la ~/.multipowers/results/
 # Should see recent file matching pattern
 
 # 5. Verify results include attribution

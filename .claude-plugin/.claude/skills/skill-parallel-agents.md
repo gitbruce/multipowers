@@ -373,7 +373,7 @@ You do NOT need both providers to proceed. One is sufficient for most tasks.
 
 ### Step 4: Cache Results (Optional Optimization)
 
-The detect-providers command writes results to `~/.claude-octopus/.provider-cache` with a timestamp. This cache is valid for 1 hour.
+The detect-providers command writes results to `~/.multipowers/.provider-cache` with a timestamp. This cache is valid for 1 hour.
 
 If the cache exists and is fresh (<1 hour old), you can skip re-detection.
 
@@ -667,7 +667,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh setup
 ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh status
 ```
 
-Configuration file: `~/.claude-octopus/.providers-config`
+Configuration file: `~/.multipowers/.providers-config`
 
 ```yaml
 version: "2.0"
@@ -707,7 +707,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh setup
 ## Workspace Structure
 
 ```
-~/.claude-octopus/
+~/.multipowers/
 ├── results/
 │   ├── probe-synthesis-*.md      # Research findings
 │   ├── grasp-consensus-*.md      # Problem definitions
@@ -727,7 +727,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh probe "Authentication patterns for 
 
 # 2. Define the approach (with probe context)
 ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh grasp "OAuth2 with JWT for our API" \
-  --context ~/.claude-octopus/results/probe-synthesis-*.md
+  --context ~/.multipowers/results/probe-synthesis-*.md
 
 # 3. Implement with validation
 ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh tangle "Implement OAuth2 authentication"
@@ -769,7 +769,7 @@ ${CLAUDE_PLUGIN_ROOT}/scripts/orchestrate.sh preflight
 Tangle phase requires 75% success rate. If failing:
 - Break task into smaller subtasks
 - Increase timeout with `-t 600`
-- Check individual agent logs in `~/.claude-octopus/logs/`
+- Check individual agent logs in `~/.multipowers/logs/`
 
 ### Reset workspace
 ```bash

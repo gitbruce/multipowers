@@ -376,7 +376,7 @@ TaskCreate({
 
 **Opt-out for users who prefer old system:**
 
-Create `.claude/claude-octopus.local.md` with:
+Create `.claude/multipowers.local.md` with:
 
 ```yaml
 ---

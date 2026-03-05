@@ -1,25 +1,31 @@
-# Project State
+# Track State
 
 > Last Updated: {{LAST_UPDATED}}
 >
 > Status enum values: ready, planned, planning, building, in_progress, complete, complete_with_gaps, shipped, blocked, paused
 
-## Current Position
+## Track Context
+
+**Track ID:** {{TRACK_ID}}
+**Target Branch:** `go`
+**Status:** {{STATUS}}
+
+## Current Progress
 
 **Phase:** {{CURRENT_PHASE}}
 **Position:** {{PHASE_POSITION}}
-**Status:** {{STATUS}}
+**Completion:** {{PROGRESS_PERCENTAGE}}%
 
-## Blockers
+## Blockers & Gaps
 
 {{BLOCKERS_PLACEHOLDER}}
 
-## Next Actions
+## Next Implementation Steps
 
 - [ ] {{NEXT_ACTION}}
 
-## History
+## History (Audit Trail)
 
-| Timestamp | Phase | Action | Notes |
-|-----------|-------|--------|-------|
-| {{TIMESTAMP}} | {{PHASE}} | initialized | Project created |
+| Timestamp | Phase | Action | Result / Evidence |
+|-----------|-------|--------|-------------------|
+| {{TIMESTAMP}} | {{PHASE}} | initialized | Track created from template |

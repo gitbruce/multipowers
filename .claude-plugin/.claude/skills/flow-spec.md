@@ -150,7 +150,7 @@ Incorporate the user's answers from Step 1 into the probe query to focus the res
 
 ```bash
 # Find the latest synthesis file (created within last 10 minutes)
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "probe-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "probe-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$SYNTHESIS_FILE" ]]; then
   echo "VALIDATION FAILED: No synthesis file found"
@@ -164,7 +164,7 @@ cat "$SYNTHESIS_FILE"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with generating NLSpec
 4. DO NOT substitute with direct research
 

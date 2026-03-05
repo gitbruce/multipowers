@@ -139,7 +139,7 @@ func applyExecutionIsolationDefaults(cfg *ExecutionIsolationConfig) {
 		cfg.ActiveWorktreeCap = 12
 	}
 	if strings.TrimSpace(cfg.MailboxRoot) == "" {
-		cfg.MailboxRoot = "~/.claude-octopus/runs"
+		cfg.MailboxRoot = "~/.multipowers/runs"
 	}
 	if cfg.MailboxPollIntervalMs == 0 {
 		cfg.MailboxPollIntervalMs = 200

@@ -220,7 +220,7 @@ These spinner verb updates happen automatically - orchestrate.sh calls `update_t
 
 ```bash
 # Find the latest synthesis file (created within last 10 minutes)
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "tangle-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "tangle-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$SYNTHESIS_FILE" ]]; then
   echo "❌ VALIDATION FAILED: No synthesis file found"
@@ -234,7 +234,7 @@ cat "$SYNTHESIS_FILE"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with presenting results
 4. DO NOT substitute with direct implementation
 
@@ -443,7 +443,7 @@ The tangle phase includes automatic quality validation:
 
 Results are saved to:
 ```
-~/.claude-octopus/results/${SESSION_ID}/tangle-synthesis-<timestamp>.md
+~/.multipowers/results/${SESSION_ID}/tangle-synthesis-<timestamp>.md
 ```
 
 ### Step 5: Implement Solution

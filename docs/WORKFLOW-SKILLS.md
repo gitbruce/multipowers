@@ -1,6 +1,6 @@
 # Workflow Skills: Quick Access to Octopus Patterns
 
-Claude Octopus includes **workflow skills** - lightweight wrappers that auto-invoke common multi-AI workflows. These activate automatically when you use certain phrases.
+Multipowers includes **workflow skills** - lightweight wrappers that auto-invoke common multi-AI workflows. These activate automatically when you use certain phrases.
 
 ## 🔍 Quick Code Review (`/mp:review`)
 
@@ -82,7 +82,7 @@ User: "Security audit the authentication module"
 
 Understanding the distinction:
 
-**Claude Octopus = Orchestrator (Complex Workflows)**
+**Multipowers = Orchestrator (Complex Workflows)**
 - Multi-agent coordination
 - Quality gates and validation
 - Session recovery
@@ -108,7 +108,7 @@ Understanding the distinction:
    → Triggers discover workflow (orchestrator)
 
 2. User: "mp build authentication module"
-   → Claude Octopus orchestrates embrace workflow
+   → Multipowers orchestrates embrace workflow
    → Agents generate implementation
 
 3. User: "Test the authentication"

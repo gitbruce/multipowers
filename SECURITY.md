@@ -1,8 +1,8 @@
-# Security Policy for Claude Octopus
+# Security Policy for Multipowers
 
 ## Threat Model
 
-Claude Octopus orchestrates external AI CLI tools (Codex CLI, Gemini CLI) with user-provided prompts. This creates the following threat surfaces:
+Multipowers orchestrates external AI CLI tools (Codex CLI, Gemini CLI) with user-provided prompts. This creates the following threat surfaces:
 
 ### Trust Boundaries
 
@@ -120,7 +120,7 @@ Before submitting PRs, verify:
 
 ## Audit Logging
 
-Claude Octopus logs security-relevant events to `~/.claude-octopus/audit.log`:
+Multipowers logs security-relevant events to `~/.multipowers/audit.log`:
 
 ```json
 {
@@ -136,7 +136,7 @@ Claude Octopus logs security-relevant events to `~/.claude-octopus/audit.log`:
 
 ## Dependencies
 
-Claude Octopus depends on:
+Multipowers depends on:
 - **Codex CLI** (`@openai/codex-cli`)
 - **Gemini CLI** (`@anthropic-ai/gemini-cli`)
 - **python3** (JSON processing)

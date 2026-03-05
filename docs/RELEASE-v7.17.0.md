@@ -1,4 +1,4 @@
-# Claude Octopus v7.17.0 Release Summary
+# Multipowers v7.17.0 Release Summary
 
 **Release Date:** January 29, 2026
 **Version:** 7.17.0 (from 7.16.1)
@@ -206,7 +206,7 @@ All 5 planned phases implemented, tested, and committed:
 ### New State Directory
 
 ```
-.claude-octopus/
+.multipowers/
 ├── state.json                 # Session state
 ├── state.json.backup          # Automatic backup
 ├── context/                   # Phase context files
@@ -338,7 +338,7 @@ All 4 Double Diamond flows now include:
 5. Quick mode available via `/mp:quick`
 
 **Optional migration steps:**
-1. Review `.claude-octopus/state.json` after workflows
+1. Review `.multipowers/state.json` after workflows
 2. Use phase discussion to capture intent
 3. Try quick mode for simple tasks
 4. Check stub detection in reviews
@@ -402,7 +402,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
 
 **Integration Pattern Source:**
 - Inspired by future-focused workflow patterns
-- Adapted for Claude Octopus architecture
+- Adapted for Multipowers architecture
 - Enhanced with multi-AI orchestration
 
 **Implementation:**
@@ -437,7 +437,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for detailed release notes.
 
 **For users:**
 1. Update to v7.17.0
-2. Run workflows and check `.claude-octopus/state.json`
+2. Run workflows and check `.multipowers/state.json`
 3. Try `/mp:quick` for simple tasks
 4. Review stub detection in code reviews
 

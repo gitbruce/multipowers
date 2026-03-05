@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/social-preview.jpg" alt="Claude Octopus - Multi-tentacled orchestrator for Claude Code" width="640">
+  <img src="assets/social-preview.jpg" alt="Multipowers - Multi-tentacled orchestrator for Claude Code" width="640">
 </p>
 
 <p align="center">
@@ -10,7 +10,7 @@
   <img src="https://img.shields.io/badge/Claude_Code-v2.1.34+-blueviolet" alt="Requires Claude Code v2.1.34+">
 </p>
 
-# Claude Octopus
+# Multipowers
 
 **Multi-AI orchestration plugin for Claude Code** - Run Codex, Gemini, and Claude simultaneously with 29 expert personas, Double Diamond workflows, and 44 specialized skills.
 
@@ -23,7 +23,7 @@
 Inside Claude Code, run:
 
 ```
-/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json
+/plugin marketplace add /mnt/f/src/ai/multipowers/.claude-plugin/marketplace.json
 /plugin install mp@multipowers-plugins --scope user
 ```
 
@@ -84,7 +84,7 @@ The router parses your intent and selects the right workflow. Above 80% confiden
 
 ### Multi-AI Orchestration
 
-Claude Octopus coordinates three AI providers - Codex, Gemini, and Claude - running them in parallel across every workflow. This isn't just a debate feature. Multi-AI orchestration powers the entire plugin:
+Multipowers coordinates three AI providers - Codex, Gemini, and Claude - running them in parallel across every workflow. This isn't just a debate feature. Multi-AI orchestration powers the entire plugin:
 
 - **`/mp:embrace`** runs a full 4-phase lifecycle where Codex and Gemini research independently in the Discover phase, build consensus in Define, propose competing implementations in Develop, then cross-review in Deliver
 - **`/mp:extract`** uses Codex to analyze code structure while Gemini maps the design system, with Claude synthesizing tokens, components, and architecture into exportable formats
@@ -163,7 +163,7 @@ thought-partner, mermaid-expert, context-manager
 
 ### Context-Aware Intelligence
 
-Claude Octopus auto-detects whether you're doing development work or knowledge work and adapts everything: research sources, output formats, review criteria, and persona selection.
+Multipowers auto-detects whether you're doing development work or knowledge work and adapts everything: research sources, output formats, review criteria, and persona selection.
 
 **Dev mode** (activates in code repositories): Research targets libraries and patterns. Output is code and tests. Reviews check security and performance.
 
@@ -369,10 +369,10 @@ Skills are the engine behind commands and personas. They activate automatically 
 
 ## Project Lifecycle
 
-Track state across sessions with the `.claude-octopus/` directory:
+Track state across sessions with the `.multipowers/` directory:
 
 ```
-.claude-octopus/
+.multipowers/
 ├── PROJECT.md      # Vision and requirements
 ├── ROADMAP.md      # Phase breakdown
 ├── STATE.md        # Current position and history
@@ -403,7 +403,7 @@ Supports runtime model selection with 4-tier precedence:
 
 For premium tasks, complexity-based routing automatically upgrades to Opus 4.6.
 
-Optional proxy settings for Codex/Gemini can be added in `~/.claude-octopus/config/providers.json`:
+Optional proxy settings for Codex/Gemini can be added in `~/.multipowers/config/providers.json`:
 
 ```json
 {
@@ -458,7 +458,7 @@ smart_routing:
 
 Behavior:
 - `execution_isolation.enabled=true`: any external command flow that may edit files is executed in isolated `worktree + branch` sandboxes (shared runtime, benchmark and non-benchmark paths).
-- `benchmark_mode.enabled=true`: code-related `/mp:*` requests can fan out to all available models and write daily JSONL records under `~/.claude-octopus/metrics`.
+- `benchmark_mode.enabled=true`: code-related `/mp:*` requests can fan out to all available models and write daily JSONL records under `~/.multipowers/metrics`.
 - `benchmark_mode.execution_profile`: optional benchmark-specific gate layered on shared isolation policy (code intent + benchmark whitelist).
 - `smart_routing.enabled=false`: no history override is applied.
 - `smart_routing.enabled=true`: override is applied only when a similar-scenario model has at least `min_samples_per_model` judged samples.
@@ -499,7 +499,7 @@ Works without external providers too - you still get 29 personas, all workflows,
 No. One external provider (Codex or Gemini) plus the built-in Claude gives you multi-AI features. Both external providers gives maximum diversity. No external providers still gives you personas, workflows, and skills.
 
 **Will this break my existing Claude Code setup?**
-No. Claude Octopus only activates with the `mp` prefix or `/mp:*` commands. Results are stored separately in `~/.claude-octopus/`. Uninstalls cleanly with no residual configuration changes.
+No. Multipowers only activates with the `mp` prefix or `/mp:*` commands. Results are stored separately in `~/.multipowers/`. Uninstalls cleanly with no residual configuration changes.
 
 **Can I use it without external AIs?**
 Yes. You get all 29 personas, structured workflows, context intelligence, task management, and every skill. Multi-AI features (parallel analysis, debate, consensus) won't activate without external providers.
@@ -510,19 +510,19 @@ The workflow continues with available providers. If Codex fails, Gemini and Clau
 **What's the difference between `/mp:quick` and full workflows?**
 `/mp:quick` skips the structured phases and quality gates - it's a fast path for ad-hoc tasks that don't need the full Double Diamond treatment. Use it for simple tasks; use `/mp:embrace` for complex features.
 
-**Can I share `.claude-octopus/` state across a team?**
-Yes. The `.claude-octopus/` directory is designed to be committed to your repository. Team members can use `/mp:resume` to pick up where others left off. ISSUES.md and LESSONS.md provide cross-session continuity.
+**Can I share `.multipowers/` state across a team?**
+Yes. The `.multipowers/` directory is designed to be committed to your repository. Team members can use `/mp:resume` to pick up where others left off. ISSUES.md and LESSONS.md provide cross-session continuity.
 
 **Does this work offline?**
 Partially. Claude (via Claude Code) works with your subscription. External providers (Codex, Gemini) require internet access. All personas and workflow logic run locally.
 
 **How do I see what's happening under the hood?**
-Visual indicators show active providers in real-time. For deeper debugging, check logs in `~/.claude-octopus/logs/` or enable debug mode.
+Visual indicators show active providers in real-time. For deeper debugging, check logs in `~/.multipowers/logs/` or enable debug mode.
 
 **How do I update?**
 Run `/plugin` > Installed > update, or reinstall:
 ```
-/plugin uninstall claude-octopus@multipowers-plugins
+/plugin uninstall multipowers@multipowers-plugins
 /plugin install mp@multipowers-plugins --scope user
 ```
 
@@ -549,9 +549,9 @@ Run `/plugin` > Installed > update, or reinstall:
 
 ## Contributing
 
-1. [Report Issues](https://github.com/nyldn/claude-octopus/issues)
+1. [Report Issues](https://github.com/gitbruce/multipowers/issues)
 2. Submit PRs following existing code style
-3. Development: `git clone --recursive https://github.com/nyldn/claude-octopus.git && make test`
+3. Development: `git clone --recursive https://github.com/gitbruce/multipowers.git && make test`
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
@@ -562,5 +562,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 MIT - see [LICENSE](LICENSE)
 
 <p align="center">
-  <a href="https://github.com/nyldn">nyldn</a> | MIT License | <a href="https://github.com/nyldn/claude-octopus/issues">Report Issues</a>
+  <a href="https://github.com/nyldn">nyldn</a> | MIT License | <a href="https://github.com/gitbruce/multipowers/issues">Report Issues</a>
 </p>

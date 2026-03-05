@@ -5,7 +5,7 @@ trigger: |
   AUTOMATICALLY ACTIVATE when:
   - User runs /debate command
   - AI Debate Hub (.dependencies/claude-skills/skills/debate.md) is present
-  - Running in claude-octopus context
+  - Running in multipowers context
 
   Provides enhancements without modifying the original skill.
 execution_mode: enforced
@@ -32,9 +32,9 @@ This skill provides **enhancements only**. The core debate functionality comes f
 
 ---
 
-## Claude-Octopus Enhancements
+## Multipowers Enhancements
 
-When running debates in claude-octopus, the following enhancements are automatically applied:
+When running debates in multipowers, the following enhancements are automatically applied:
 
 ### 1. Session-Aware Storage
 
@@ -49,7 +49,7 @@ debates/
 
 **Enhanced behavior** (when `CLAUDE_CODE_SESSION` is set):
 ```
-~/.claude-octopus/debates/${SESSION_ID}/
+~/.multipowers/debates/${SESSION_ID}/
 └── NNN-topic-slug/
     ├── context.md
     ├── state.json
@@ -61,13 +61,13 @@ debates/
 - Debates organized by Claude Code session
 - Easy to find debates from specific conversations
 - Automatic cleanup when sessions expire
-- Integration with claude-octopus analytics
+- Integration with multipowers analytics
 
 **Implementation**:
 ```bash
 # Detect session context
 if [[ -n "${CLAUDE_CODE_SESSION:-}" ]]; then
-    DEBATE_BASE_DIR="${HOME}/.claude-octopus/debates/${CLAUDE_CODE_SESSION}"
+    DEBATE_BASE_DIR="${HOME}/.multipowers/debates/${CLAUDE_CODE_SESSION}"
 else
     DEBATE_BASE_DIR="./debates"  # Fallback to original behavior
 fi
@@ -140,7 +140,7 @@ fi
 
 ### 3. Cost Tracking & Analytics
 
-**Enhancement**: Track token usage and cost for each debate, integrated with claude-octopus analytics.
+**Enhancement**: Track token usage and cost for each debate, integrated with multipowers analytics.
 
 **Cost Breakdown**:
 ```json
@@ -182,7 +182,7 @@ fi
 
 **Analytics Integration**:
 ```bash
-# Append to ~/.claude-octopus/analytics/${DATE}.log
+# Append to ~/.multipowers/analytics/${DATE}.log
 # Format: timestamp|type|topic|rounds|total_tokens|cost_usd|session_id
 
 record_debate_analytics() {
@@ -195,7 +195,7 @@ record_debate_analytics() {
 
     local timestamp=$(date +%s)
     local date_str=$(date +%Y-%m-%d)
-    local analytics_file="${HOME}/.claude-octopus/analytics/${date_str}.log"
+    local analytics_file="${HOME}/.multipowers/analytics/${date_str}.log"
 
     echo "$timestamp|debate|$topic|$rounds|$total_tokens|$total_cost|$session_id" >> "$analytics_file"
 }
@@ -262,7 +262,7 @@ record_debate_analytics() {
 
 ### 5. Enhanced Viewer Integration
 
-**Enhancement**: Integrate debate viewer with claude-octopus session tracking.
+**Enhancement**: Integrate debate viewer with multipowers session tracking.
 
 **Original Viewer**: `.dependencies/claude-skills/viewer.html`
 
@@ -271,7 +271,7 @@ record_debate_analytics() {
 - Quality score badges (show response quality scores)
 - Cost breakdown chart (visualize token usage and costs)
 - Export buttons (quick export to PPTX/DOCX/PDF)
-- Link to claude-octopus analytics
+- Link to multipowers analytics
 
 **Access**:
 ```bash
@@ -380,7 +380,7 @@ Open enhanced debate viewer:
 
 ---
 
-## Integration with Claude-Octopus Workflows
+## Integration with Multipowers Workflows
 
 ### Scenario 1: Optional Debate Phase in Double Diamond
 
@@ -448,7 +448,7 @@ CLAUDE_CODE_SESSION="session-uuid"
 CLAUDE_OCTOPUS_DEBATE_MODE="true"
 
 # Session-aware debate directory (computed)
-DEBATE_BASE_DIR="${HOME}/.claude-octopus/debates/${CLAUDE_CODE_SESSION}"
+DEBATE_BASE_DIR="${HOME}/.multipowers/debates/${CLAUDE_CODE_SESSION}"
 
 # Quality gate threshold (default: 50)
 DEBATE_QUALITY_THRESHOLD="${DEBATE_QUALITY_THRESHOLD:-50}"
@@ -461,10 +461,10 @@ DEBATE_COST_WARNING="${DEBATE_COST_WARNING:-0.30}"
 
 ## File Structure
 
-When running debates in claude-octopus:
+When running debates in multipowers:
 
 ```
-~/.claude-octopus/
+~/.multipowers/
 ├── debates/${SESSION_ID}/
 │   └── NNN-topic-slug/
 │       ├── context.md              # Initial configuration
@@ -555,7 +555,7 @@ Monitor debate analytics:
 
 ```bash
 # Monthly debate costs
-grep "^.*|debate|" ~/.claude-octopus/analytics/2026-01-*.log | \
+grep "^.*|debate|" ~/.multipowers/analytics/2026-01-*.log | \
   awk -F'|' '{sum+=$6} END {print "Total: $"sum}'
 ```
 
@@ -569,7 +569,7 @@ grep "^.*|debate|" ~/.claude-octopus/analytics/2026-01-*.log | \
 
 **Solution**:
 ```bash
-cd /path/to/claude-octopus
+cd /path/to/multipowers
 git submodule update --init --recursive
 ```
 
@@ -597,7 +597,7 @@ export DEBATE_COST_WARNING=0.50  # Warn only if > $0.50
 
 **Solution**: Check debate base directory
 ```bash
-ls -la ~/.claude-octopus/debates/${CLAUDE_CODE_SESSION}/
+ls -la ~/.multipowers/debates/${CLAUDE_CODE_SESSION}/
 # If empty, check original location:
 ls -la ./debates/
 ```
@@ -606,7 +606,7 @@ ls -la ./debates/
 
 ## Contributing Enhancements Upstream
 
-This integration layer is claude-octopus specific, but **generic improvements** should be contributed to wolverin0/claude-skills:
+This integration layer is multipowers specific, but **generic improvements** should be contributed to wolverin0/claude-skills:
 
 **Upstream Contributions** (submit to wolverin0):
 - Atomic state writes (file locking)
@@ -615,9 +615,9 @@ This integration layer is claude-octopus specific, but **generic improvements** 
 - Session timeout improvements
 - Bug fixes
 
-**Claude-Octopus Specific** (keep in this layer):
+**Multipowers Specific** (keep in this layer):
 - Session-aware storage paths
-- Integration with claude-octopus quality gates
+- Integration with multipowers quality gates
 - Document-delivery skill export
 - Knowledge mode persona mapping
 - Analytics integration
@@ -636,7 +636,7 @@ This integration layer is claude-octopus specific, but **generic improvements** 
 | Component | Version | Compatibility |
 |-----------|---------|---------------|
 | **AI Debate Hub** | v4.7 | ✅ Fully compatible |
-| **claude-octopus** | v7.4.0 | ✅ This version |
+| **multipowers** | v7.4.0 | ✅ This version |
 | **document-delivery** | v7.3.0+ | ✅ Required for export |
 | **knowledge-mode** | v7.2.0+ | ✅ Required for deliberate |
 | **Claude Code** | v2.1.10+ | ✅ Required for session IDs |
@@ -651,13 +651,13 @@ This integration layer is claude-octopus specific, but **generic improvements** 
 - Repository: https://github.com/wolverin0/claude-skills
 
 **Integration Layer**:
-- Claude-Octopus by nyldn
+- Multipowers by nyldn
 - License: MIT
-- Repository: https://github.com/nyldn/claude-octopus
+- Repository: https://github.com/gitbruce/multipowers
 
 Both components are open source and contributions are welcome.
 
 ---
 
-*AI Debate Hub Integration for claude-octopus v7.4.0+*
+*AI Debate Hub Integration for multipowers v7.4.0+*
 *Original skill by wolverin0 - Enhanced for production workflows*

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func TestUserPromptSubmitBlocksMissingContext(t *testing.T) {

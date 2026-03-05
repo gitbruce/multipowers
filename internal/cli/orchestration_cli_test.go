@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func TestCLI_OrchestrateSelectAgent(t *testing.T) {

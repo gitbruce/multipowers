@@ -13,10 +13,10 @@
 - timestamp_utc: 2026-03-04T10:02:29Z
 
 ```text
-ok   github.com/gitbruce/claude-octopus/internal/orchestration  0.312s
-ok   github.com/gitbruce/claude-octopus/internal/policy         0.034s
-ok   github.com/gitbruce/claude-octopus/internal/workflows      0.585s
-ok   github.com/gitbruce/claude-octopus/internal/cli            0.069s
+ok   github.com/gitbruce/multipowers/internal/orchestration  0.312s
+ok   github.com/gitbruce/multipowers/internal/policy         0.034s
+ok   github.com/gitbruce/multipowers/internal/workflows      0.585s
+ok   github.com/gitbruce/multipowers/internal/cli            0.069s
 ```
 
 ### 2) Full repository regression suite
@@ -26,24 +26,24 @@ ok   github.com/gitbruce/claude-octopus/internal/cli            0.069s
 - timestamp_utc: 2026-03-04T10:02:29Z
 
 ```text
-?    github.com/gitbruce/claude-octopus/cmd/mp                                                 [no test files]
-ok   github.com/gitbruce/claude-octopus/cmd/mp-devx                                            (cached)
-ok   github.com/gitbruce/claude-octopus/internal/app                                            (cached)
-ok   github.com/gitbruce/claude-octopus/internal/cli                                            (cached)
-ok   github.com/gitbruce/claude-octopus/internal/context                                        (cached)
-ok   github.com/gitbruce/claude-octopus/internal/devx                                           (cached)
-ok   github.com/gitbruce/claude-octopus/internal/faq                                            (cached)
-ok   github.com/gitbruce/claude-octopus/internal/fsboundary                                     (cached)
-ok   github.com/gitbruce/claude-octopus/internal/hooks                                          (cached)
-ok   github.com/gitbruce/claude-octopus/internal/modelroute                                     (cached)
-ok   github.com/gitbruce/claude-octopus/internal/orchestration                                  (cached)
-ok   github.com/gitbruce/claude-octopus/internal/policy                                         (cached)
-ok   github.com/gitbruce/claude-octopus/internal/providers                                      (cached)
-ok   github.com/gitbruce/claude-octopus/internal/settings                                       (cached)
-ok   github.com/gitbruce/claude-octopus/internal/tracks                                         (cached)
-ok   github.com/gitbruce/claude-octopus/internal/validation                                     (cached)
-ok   github.com/gitbruce/claude-octopus/internal/workflows                                      (cached)
-ok   github.com/gitbruce/claude-octopus/pkg/api                                                 (cached)
+?    github.com/gitbruce/multipowers/cmd/mp                                                 [no test files]
+ok   github.com/gitbruce/multipowers/cmd/mp-devx                                            (cached)
+ok   github.com/gitbruce/multipowers/internal/app                                            (cached)
+ok   github.com/gitbruce/multipowers/internal/cli                                            (cached)
+ok   github.com/gitbruce/multipowers/internal/context                                        (cached)
+ok   github.com/gitbruce/multipowers/internal/devx                                           (cached)
+ok   github.com/gitbruce/multipowers/internal/faq                                            (cached)
+ok   github.com/gitbruce/multipowers/internal/fsboundary                                     (cached)
+ok   github.com/gitbruce/multipowers/internal/hooks                                          (cached)
+ok   github.com/gitbruce/multipowers/internal/modelroute                                     (cached)
+ok   github.com/gitbruce/multipowers/internal/orchestration                                  (cached)
+ok   github.com/gitbruce/multipowers/internal/policy                                         (cached)
+ok   github.com/gitbruce/multipowers/internal/providers                                      (cached)
+ok   github.com/gitbruce/multipowers/internal/settings                                       (cached)
+ok   github.com/gitbruce/multipowers/internal/tracks                                         (cached)
+ok   github.com/gitbruce/multipowers/internal/validation                                     (cached)
+ok   github.com/gitbruce/multipowers/internal/workflows                                      (cached)
+ok   github.com/gitbruce/multipowers/pkg/api                                                 (cached)
 ```
 
 ## Result

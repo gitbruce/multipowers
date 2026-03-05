@@ -14,7 +14,7 @@
 
 - Command prefix: `/mp:discover`, `/mp:debate`, etc.
 - Changing this breaks all existing commands and user workflows
-- Package name (`claude-octopus` in `package.json`) is different and correct
+- Package name (`multipowers` in `package.json`) is different and correct
 
 ### More Information
 

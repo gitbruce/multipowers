@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/internal/isolation"
+	"github.com/gitbruce/multipowers/internal/isolation"
 )
 
 type lifecycleRuntimeStub struct {

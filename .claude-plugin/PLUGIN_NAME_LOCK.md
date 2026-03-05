@@ -16,7 +16,7 @@ The plugin name in `plugin.json` **MUST remain "mp"**.
 ```json
 // ❌ WRONG - DO NOT DO THIS
 {
-  "name": "claude-octopus"  // This produces /claude-octopus:discover (too long!)
+  "name": "multipowers"  // This produces /multipowers:discover (too long!)
 }
 ```
 
@@ -26,7 +26,7 @@ These are **different** and serve **different purposes**:
 
 | File | Name | Purpose |
 |------|------|---------|
-| `package.json` | `"claude-octopus"` | Marketplace/repository identity |
+| `package.json` | `"multipowers"` | Marketplace/repository identity |
 | `.claude-plugin/plugin.json` | `"mp"` | Command prefix (`/mp:*`) |
 
 ### Command Path Formation
@@ -34,7 +34,7 @@ These are **different** and serve **different purposes**:
 Command paths are formed as: `/[plugin-name]:[command-name]`
 
 - plugin name: `"mp"` + Command: `discover` = `/mp:discover` ✅
-- Plugin name: `"claude-octopus"` + Command: `discover` = `/claude-octopus:discover` ❌
+- Plugin name: `"multipowers"` + Command: `discover` = `/multipowers:discover` ❌
 
 ### Historical Context
 

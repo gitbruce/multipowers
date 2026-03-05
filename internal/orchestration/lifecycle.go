@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/isolation"
+	"github.com/gitbruce/multipowers/internal/isolation"
 )
 
 // SandboxLifecycleRuntime is the runtime contract needed by lifecycle manager.

@@ -9,7 +9,7 @@ trigger: |
   AUTOMATICALLY ACTIVATE when:
   - User says "resume", "continue", "pick up where we left off"
   - User asks "what was I working on", "where did we leave off"
-  - Detecting .claude-octopus/state.json exists but no prior context in memory
+  - Detecting .multipowers/state.json exists but no prior context in memory
 ---
 
 # Enhanced Session Resume (v7.25.0+)
@@ -22,14 +22,14 @@ Resilient session resumption that survives context clearing from native plan mod
 
 **New in v7.25.0:**
 - Automatic detection of context clearing
-- State reload from `.claude-octopus/state.json`
+- State reload from `.multipowers/state.json`
 - Task state restoration
 - Decision history replay
 - Seamless multi-day project continuity
 
 **Enhanced in v8.8.0:**
 - Session auto-naming: workflows auto-generate descriptive session names (e.g., "embrace: auth-system-redesign") for easier discovery when resuming
-- Session names stored in `~/.claude-octopus/sessions/session.json` as `session_name` field
+- Session names stored in `~/.multipowers/sessions/session.json` as `session_name` field
 - Claude Code v2.1.41+ `/rename` integration for session list readability
 
 ---
@@ -40,7 +40,7 @@ Resilient session resumption that survives context clearing from native plan mod
 
 ```bash
 # Check if state exists but memory doesn't
-if [[ -f .claude-octopus/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]]; then
+if [[ -f .multipowers/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]]; then
     echo "⚠️  Context was cleared (likely by native plan mode ExitPlanMode)"
     echo "   Reloading state from persistent storage..."
     NEEDS_RESUME=true
@@ -50,11 +50,11 @@ fi
 ### State Persistence Across Context Clearing
 
 **What survives context clearing:**
-- ✅ `.claude-octopus/state.json` (decisions, context, metrics)
-- ✅ `.claude-octopus/context/*.md` (phase outputs)
+- ✅ `.multipowers/state.json` (decisions, context, metrics)
+- ✅ `.multipowers/context/*.md` (phase outputs)
 - ✅ Native tasks (TaskList still works)
 - ✅ Git commits and WIP checkpoints
-- ✅ Multi-AI synthesis files in `~/.claude-octopus/results/`
+- ✅ Multi-AI synthesis files in `~/.multipowers/results/`
 
 **What gets cleared:**
 - ❌ Claude's memory of prior conversations
@@ -228,7 +228,7 @@ All Double Diamond workflows should check for prior state:
 # At start of flow-discover.md, flow-define.md, etc.
 
 # Check if context needs reloading
-if [[ -f .claude-octopus/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]]; then
+if [[ -f .multipowers/state.json ]] && [[ -z "${WORKFLOW_CONTEXT_LOADED}" ]]; then
     echo "🔄 Reloading prior session context..."
 
     # Call resume skill
@@ -246,7 +246,7 @@ fi
 
 ```bash
 # When they return to octopus workflow
-if [[ -f .claude-octopus/state.json ]]; then
+if [[ -f .multipowers/state.json ]]; then
     echo "⚠️  Detected prior octopus session"
     echo "   Native plan mode may have cleared context"
     echo "   Reloading from persistent state..."
@@ -268,7 +268,7 @@ fi
 User: "Let's build an auth system"
 
 # Octopus runs discover phase
-→ Saves findings to .claude-octopus/state.json
+→ Saves findings to .multipowers/state.json
 → context.discover = "Researched OAuth patterns, recommend JWT with PKCE"
 
 # Octopus runs define phase
@@ -288,7 +288,7 @@ User: "Save progress for tomorrow"
 User: "Resume where we left off"
 
 # Resume skill activates
-→ Detects .claude-octopus/state.json exists
+→ Detects .multipowers/state.json exists
 → Loads prior context:
   - Discover findings
   - Define scope
@@ -322,7 +322,7 @@ User: "Continue"
 "${CLAUDE_PLUGIN_ROOT}/scripts/state-manager.sh" init_state
 
 # Check for prior state
-if [[ -f .claude-octopus/state.json ]]; then
+if [[ -f .multipowers/state.json ]]; then
     # Resume if needed
 fi
 ```
@@ -383,13 +383,13 @@ export WORKFLOW_CONTEXT_LOADED=true
 **Solution:**
 ```bash
 # Check state validity
-jq empty .claude-octopus/state.json
+jq empty .multipowers/state.json
 
 # View raw state
-cat .claude-octopus/state.json | jq .
+cat .multipowers/state.json | jq .
 
 # If corrupted, restore from backup
-cp .claude-octopus/state.json.backup .claude-octopus/state.json
+cp .multipowers/state.json.backup .multipowers/state.json
 ```
 
 ### Issue: "Tasks not showing in resume"
@@ -485,7 +485,7 @@ Files outlive memory. Always.
 ### Migration from v7.24.0
 
 No migration needed. Enhanced resume is automatic:
-- Existing `.claude-octopus/state.json` files work as-is
+- Existing `.multipowers/state.json` files work as-is
 - Auto-detects context clearing
 - Backward compatible with all workflows
 

@@ -81,7 +81,7 @@ echo "✅ VALIDATION PASSED: Architecture design completed"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with presenting results
 4. DO NOT substitute with direct design
 

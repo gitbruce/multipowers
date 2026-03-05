@@ -1,14 +1,14 @@
-# Contributing to Claude Octopus
+# Contributing to Multipowers
 
-Thanks for your interest in contributing to Claude Octopus! This document provides guidelines for contributing.
+Thanks for your interest in contributing to Multipowers! This document provides guidelines for contributing.
 
 ## Getting Started
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/claude-octopus.git
-   cd claude-octopus
+   git clone https://github.com/gitbruce/multipowers.git
+   cd multipowers
    ```
 3. **Make scripts executable**:
    ```bash

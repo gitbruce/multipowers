@@ -147,7 +147,7 @@ command -v gemini &> /dev/null && gemini_status="Available" || gemini_status="No
 
 ```bash
 # Find the latest validation file
-VALIDATION_FILE=$(find ~/.claude-octopus/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
+VALIDATION_FILE=$(find ~/.multipowers/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$VALIDATION_FILE" ]]; then
     echo "AUDIT FAILED: No validation file found"

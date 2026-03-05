@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const defaultMetricsRootName = ".claude-octopus/metrics"
+const defaultMetricsRootName = ".multipowers/metrics"
 
 const (
 	StreamRuns           = "runs"

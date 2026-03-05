@@ -1,6 +1,6 @@
 package hooks
 
-import "github.com/gitbruce/claude-octopus/pkg/api"
+import "github.com/gitbruce/multipowers/pkg/api"
 
 func StopDecision(canStop bool) api.HookResult {
 	if canStop {

@@ -75,7 +75,7 @@ fi
 
 ## Native Plan Mode Compatibility (v7.23.0+)
 
-**IMPORTANT:** claude-octopus workflows are designed to persist across context clearing.
+**IMPORTANT:** multipowers workflows are designed to persist across context clearing.
 
 ### Detecting Native Plan Mode
 
@@ -86,7 +86,7 @@ Check if native plan mode is active:
 if [[ -n "${PLAN_MODE_ACTIVE}" ]] || claude-code plan status 2>/dev/null | grep -q "active"; then
     echo "⚠️  Native plan mode detected"
     echo ""
-    echo "   Claude Octopus uses file-based state (.claude-octopus/)"
+    echo "   Claude Octopus uses file-based state (.multipowers/)"
     echo "   State will persist across plan mode context clears"
     echo "   Multi-AI orchestration will continue normally"
     echo ""
@@ -97,7 +97,7 @@ fi
 
 **How it works:**
 - Native plan mode may clear Claude's memory via `ExitPlanMode`
-- claude-octopus state persists in `.claude-octopus/state.json`
+- multipowers state persists in `.multipowers/state.json`
 - Each workflow phase reads prior state at startup
 - Context is automatically restored from files
 
@@ -250,7 +250,7 @@ These spinner verb updates happen automatically - orchestrate.sh calls `update_t
 
 ```bash
 # Find the latest synthesis file (created within last 10 minutes)
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "probe-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "probe-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$SYNTHESIS_FILE" ]]; then
   echo "❌ VALIDATION FAILED: No synthesis file found"
@@ -264,7 +264,7 @@ cat "$SYNTHESIS_FILE"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with presenting results
 4. DO NOT substitute with direct research
 
@@ -485,7 +485,7 @@ background_task(agent="librarian", prompt="Research external documentation for [
 
 Results are saved to:
 ```
-~/.claude-octopus/results/${SESSION_ID}/discover-synthesis-<timestamp>.md
+~/.multipowers/results/${SESSION_ID}/discover-synthesis-<timestamp>.md
 ```
 
 ### Step 4: Present Synthesis
@@ -642,7 +642,7 @@ Based on multi-provider analysis, the recommended approach for React apps in 202
 - Trade-offs between different approaches
 - Integration with existing React patterns
 
-Full research saved to: ~/.claude-octopus/results/abc-123/probe-synthesis-20250118-143022.md
+Full research saved to: ~/.multipowers/results/abc-123/probe-synthesis-20250118-143022.md
 ```
 
 ### Example 2: Technology Comparison

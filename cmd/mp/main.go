@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/gitbruce/claude-octopus/internal/cli"
+	"github.com/gitbruce/multipowers/internal/cli"
 )
 
 func main() {

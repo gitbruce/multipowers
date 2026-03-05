@@ -27,7 +27,7 @@ The state manager enables:
 
 ## State File Structure
 
-State is stored in `.claude-octopus/state.json`:
+State is stored in `.multipowers/state.json`:
 
 ```json
 {
@@ -97,10 +97,10 @@ Before running any workflow:
 ```
 
 This creates:
-- `.claude-octopus/state.json` (state file)
-- `.claude-octopus/context/` (phase context files)
-- `.claude-octopus/summaries/` (execution summaries)
-- `.claude-octopus/quick/` (quick mode outputs)
+- `.multipowers/state.json` (state file)
+- `.multipowers/context/` (phase context files)
+- `.multipowers/summaries/` (execution summaries)
+- `.multipowers/quick/` (quick mode outputs)
 
 **Safe to run multiple times** - validates existing state or recreates if corrupted.
 
@@ -311,8 +311,8 @@ The state manager includes built-in safety:
 - Graceful degradation if state missing
 
 ### Recovery
-- Backup saved to `.claude-octopus/state.json.backup`
-- Corrupted files moved to `.claude-octopus/state.json.corrupt.<timestamp>`
+- Backup saved to `.multipowers/state.json.backup`
+- Corrupted files moved to `.multipowers/state.json.corrupt.<timestamp>`
 - Can reinitialize at any time
 
 ## Best Practices
@@ -336,7 +336,7 @@ The state manager includes built-in safety:
 
 ### Check if state exists:
 ```bash
-if [ -f .claude-octopus/state.json ]; then
+if [ -f .multipowers/state.json ]; then
   echo "State file exists"
 else
   echo "State file missing - run init_state"
@@ -345,7 +345,7 @@ fi
 
 ### Validate state JSON:
 ```bash
-if jq empty .claude-octopus/state.json 2>/dev/null; then
+if jq empty .multipowers/state.json 2>/dev/null; then
   echo "State file is valid JSON"
 else
   echo "State file is corrupted"
@@ -354,12 +354,12 @@ fi
 
 ### View raw state:
 ```bash
-cat .claude-octopus/state.json | jq .
+cat .multipowers/state.json | jq .
 ```
 
 ### Reset state:
 ```bash
-rm -rf .claude-octopus
+rm -rf .multipowers
 "${CLAUDE_PLUGIN_ROOT}/scripts/mp state" init_state
 ```
 
@@ -442,7 +442,7 @@ echo "Resuming from phase: $current_phase"
 State management creates this directory structure:
 
 ```
-.claude-octopus/
+.multipowers/
 ├── state.json                    # Main state file
 ├── state.json.backup             # Backup before last write
 ├── context/                      # Phase context files
@@ -476,7 +476,7 @@ See `mp state help` for full command reference.
 ### State file corrupted
 ```bash
 # State manager auto-recovers, but you can manually restore:
-cp .claude-octopus/state.json.backup .claude-octopus/state.json
+cp .multipowers/state.json.backup .multipowers/state.json
 ```
 
 ### State file missing
@@ -488,10 +488,10 @@ cp .claude-octopus/state.json.backup .claude-octopus/state.json
 ### Invalid JSON in state
 ```bash
 # Check validity:
-jq empty .claude-octopus/state.json
+jq empty .multipowers/state.json
 
 # If invalid, look for backups:
-ls -la .claude-octopus/*.backup .claude-octopus/*.corrupt.*
+ls -la .multipowers/*.backup .multipowers/*.corrupt.*
 ```
 
 ## Conclusion

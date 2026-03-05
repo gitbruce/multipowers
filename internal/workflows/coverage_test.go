@@ -33,8 +33,8 @@ func TestParseCoverageOutput_Empty(t *testing.T) {
 }
 
 func TestParseCoverageOutput_WithCoverage(t *testing.T) {
-	output := `ok  	github.com/gitbruce/claude-octopus/internal/cli	0.005s	coverage: 45.2% of statements
-ok  	github.com/gitbruce/claude-octopus/internal/validation	0.003s	coverage: 60.5% of statements`
+	output := `ok  	github.com/gitbruce/multipowers/internal/cli	0.005s	coverage: 45.2% of statements
+ok  	github.com/gitbruce/multipowers/internal/validation	0.003s	coverage: 60.5% of statements`
 	result := CoverageResult{}
 	result = parseCoverageOutput(result, []byte(output))
 

@@ -1,6 +1,6 @@
 # Visual Indicators Guide
 
-Claude Octopus uses **visual indicators** (emojis) to show you exactly which AI provider is responding at any given moment. This helps you understand whether you're using external CLI tools (which cost money and use your API quotas) or built-in Claude Code capabilities.
+Multipowers uses **visual indicators** (emojis) to show you exactly which AI provider is responding at any given moment. This helps you understand whether you're using external CLI tools (which cost money and use your API quotas) or built-in Claude Code capabilities.
 
 ## The Indicator System
 
@@ -245,7 +245,7 @@ If you're not seeing visual indicators when you expect them:
 ```
 /plugin list
 ```
-Look for `claude-octopus@multipowers-plugins` in the installed list.
+Look for `multipowers@multipowers-plugins` in the installed list.
 
 ### Check 2: Provider Configuration
 ```

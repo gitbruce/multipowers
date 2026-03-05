@@ -2,7 +2,7 @@
 
 This guide documents direct CLI usage of mp runtime for advanced users and automation scenarios.
 
-**Note:** For plugin users, natural language triggers (documented in [TRIGGERS.md](./TRIGGERS.md)) are the recommended way to use Claude Octopus. This CLI reference is for:
+**Note:** For plugin users, natural language triggers (documented in [TRIGGERS.md](./TRIGGERS.md)) are the recommended way to use Multipowers. This CLI reference is for:
 - Automation scripts
 - CI/CD pipelines
 - Direct command-line usage outside Claude Code
@@ -133,7 +133,7 @@ Parallel research from multiple perspectives - problem space, existing solutions
 
 **Output:**
 - Research synthesis from Codex, Gemini, and Claude
-- Saved to `~/.claude-octopus/results/${SESSION_ID}/discover-synthesis-*.md`
+- Saved to `~/.multipowers/results/${SESSION_ID}/discover-synthesis-*.md`
 
 ### Phase 2: DEFINE (alias: grasp)
 
@@ -145,7 +145,7 @@ Multi-AI consensus on problem definition, success criteria, and constraints.
 
 **Output:**
 - Problem definition with requirements
-- Saved to `~/.claude-octopus/results/${SESSION_ID}/define-synthesis-*.md`
+- Saved to `~/.multipowers/results/${SESSION_ID}/define-synthesis-*.md`
 
 ### Phase 3: DEVELOP (alias: tangle)
 
@@ -158,7 +158,7 @@ Enhanced map-reduce with 75% quality gate threshold.
 **Output:**
 - Implementation approaches from multiple providers
 - Quality gate evaluation
-- Saved to `~/.claude-octopus/results/${SESSION_ID}/develop-synthesis-*.md`
+- Saved to `~/.multipowers/results/${SESSION_ID}/develop-synthesis-*.md`
 
 ### Phase 4: DELIVER (alias: ink)
 
@@ -171,7 +171,7 @@ Validation and final deliverable generation.
 **Output:**
 - Validation report with quality scores
 - Go/no-go recommendation
-- Saved to `~/.claude-octopus/results/${SESSION_ID}/deliver-validation-*.md`
+- Saved to `~/.multipowers/results/${SESSION_ID}/deliver-validation-*.md`
 
 ### Full Workflow: EMBRACE
 
@@ -231,7 +231,7 @@ Using: codex:gpt-5.3-codex
 
 ## Context Detection (v7.8.0+)
 
-Claude Octopus **auto-detects** whether you're working in a **Dev context** (code-focused) or **Knowledge context** (research/strategy-focused) and adjusts workflow behavior accordingly.
+Multipowers **auto-detects** whether you're working in a **Dev context** (code-focused) or **Knowledge context** (research/strategy-focused) and adjusts workflow behavior accordingly.
 
 ### How It Works
 
@@ -332,7 +332,7 @@ Round 3: Synthesis determines winner + final implementation
 
 ## Provider-Aware Routing
 
-Claude Octopus intelligently routes tasks based on your subscription tiers and costs.
+Multipowers intelligently routes tasks based on your subscription tiers and costs.
 
 ### CLI Flags
 
@@ -490,7 +490,7 @@ Quality gates ensure minimum standards before delivery:
 
 All workflow results are saved to:
 ```
-~/.claude-octopus/results/${SESSION_ID}/
+~/.multipowers/results/${SESSION_ID}/
 ├── discover-synthesis-20260118-143022.md
 ├── define-synthesis-20260118-144530.md
 ├── develop-synthesis-20260118-145800.md
@@ -501,7 +501,7 @@ All workflow results are saved to:
 
 Debates are stored in session-aware folders:
 ```
-~/.claude-octopus/debates/${SESSION_ID}/
+~/.multipowers/debates/${SESSION_ID}/
 └── 042-redis-vs-memcached/
     ├── context.md
     ├── state.json
@@ -596,11 +596,11 @@ ls -la ./.claude-plugin/bin/mp
 
 ```bash
 # Verify session directory exists
-ls -la ~/.claude-octopus/
+ls -la ~/.multipowers/
 
 # Create if missing
-mkdir -p ~/.claude-octopus/results
-mkdir -p ~/.claude-octopus/debates
+mkdir -p ~/.multipowers/results
+mkdir -p ~/.multipowers/debates
 ```
 
 ### Timeout Errors
@@ -620,7 +620,7 @@ mkdir -p ~/.claude-octopus/debates
 ### GitHub Actions Example
 
 ```yaml
-name: Code Review with Claude Octopus
+name: Code Review with Multipowers
 
 on: [pull_request]
 
@@ -644,7 +644,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const results = fs.readFileSync('~/.claude-octopus/results/latest/deliver-validation.md', 'utf8');
+            const results = fs.readFileSync('~/.multipowers/results/latest/deliver-validation.md', 'utf8');
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -664,4 +664,4 @@ jobs:
 
 ---
 
-**For plugin users:** The natural language interface (documented in [TRIGGERS.md](./TRIGGERS.md)) is the recommended way to use Claude Octopus. Use this CLI reference for automation, CI/CD, or advanced power-user scenarios.
+**For plugin users:** The natural language interface (documented in [TRIGGERS.md](./TRIGGERS.md)) is the recommended way to use Multipowers. Use this CLI reference for automation, CI/CD, or advanced power-user scenarios.

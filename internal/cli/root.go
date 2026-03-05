@@ -9,16 +9,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/app"
-	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/internal/hooks"
-	"github.com/gitbruce/claude-octopus/internal/orchestration"
-	"github.com/gitbruce/claude-octopus/internal/providers"
-	"github.com/gitbruce/claude-octopus/internal/settings"
-	"github.com/gitbruce/claude-octopus/internal/tracks"
-	"github.com/gitbruce/claude-octopus/internal/validation"
-	"github.com/gitbruce/claude-octopus/internal/workflows"
-	"github.com/gitbruce/claude-octopus/pkg/api"
+	"github.com/gitbruce/multipowers/internal/app"
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/hooks"
+	"github.com/gitbruce/multipowers/internal/orchestration"
+	"github.com/gitbruce/multipowers/internal/providers"
+	"github.com/gitbruce/multipowers/internal/settings"
+	"github.com/gitbruce/multipowers/internal/tracks"
+	"github.com/gitbruce/multipowers/internal/validation"
+	"github.com/gitbruce/multipowers/internal/workflows"
+	"github.com/gitbruce/multipowers/pkg/api"
 )
 
 func Run(args []string) int {

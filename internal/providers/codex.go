@@ -1,6 +1,6 @@
 package providers
 
-import "github.com/gitbruce/claude-octopus/internal/execx"
+import "github.com/gitbruce/multipowers/internal/execx"
 
 type Codex struct{}
 

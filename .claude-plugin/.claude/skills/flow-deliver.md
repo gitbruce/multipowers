@@ -224,7 +224,7 @@ These spinner verb updates happen automatically - orchestrate.sh calls `update_t
 
 ```bash
 # Find the latest validation file (created within last 10 minutes)
-VALIDATION_FILE=$(find ~/.claude-octopus/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
+VALIDATION_FILE=$(find ~/.multipowers/results -name "ink-validation-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$VALIDATION_FILE" ]]; then
   echo "❌ VALIDATION FAILED: No validation file found"
@@ -238,7 +238,7 @@ cat "$VALIDATION_FILE"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with presenting results
 4. DO NOT substitute with direct review
 
@@ -442,7 +442,7 @@ The ink phase includes automatic quality validation via PostToolUse hook:
 
 Results are saved to:
 ```
-~/.claude-octopus/results/${SESSION_ID}/ink-validation-<timestamp>.md
+~/.multipowers/results/${SESSION_ID}/ink-validation-<timestamp>.md
 ```
 
 ### Step 5: Present Validation Report
@@ -682,7 +682,7 @@ const JWT_SECRET = 'my-secret-key-123'; // Should be process.env.JWT_SECRET
    - Implement "remember me" functionality
    - Add comprehensive logging and monitoring
 
-Full validation report saved to: ~/.claude-octopus/results/abc-123/ink-validation-20250118-145600.md
+Full validation report saved to: ~/.multipowers/results/abc-123/ink-validation-20250118-145600.md
 ```
 
 ### Example 2: Validate API Endpoints

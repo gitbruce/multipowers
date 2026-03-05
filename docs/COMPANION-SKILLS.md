@@ -1,11 +1,11 @@
 # Recommended Companion Skills
 
-Claude Octopus focuses on multi-AI orchestration. These official Claude Code skills extend its capabilities for specific domains.
+Multipowers focuses on multi-AI orchestration. These official Claude Code skills extend its capabilities for specific domains.
 
 ## For Testing & Validation 🧪
 
 **`webapp-testing`** - Automated UI testing with Playwright
-- Complements Claude Octopus's `ink` (deliver) phase
+- Complements Multipowers's `ink` (deliver) phase
 - Test web apps automatically after development
 - Install: `/plugin install webapp-testing`
 
@@ -58,15 +58,15 @@ Claude Octopus focuses on multi-AI orchestration. These official Claude Code ski
 
 **Browse all skills:** [Awesome Claude Skills](https://github.com/travisvn/awesome-claude-skills)
 
-## How Skills Work with Claude Octopus
+## How Skills Work with Multipowers
 
-**Important:** Installed skills are available to **Claude (the orchestrator)**, not to the individual agents (Codex/Gemini CLIs) spawned by Claude Octopus.
+**Important:** Installed skills are available to **Claude (the orchestrator)**, not to the individual agents (Codex/Gemini CLIs) spawned by Multipowers.
 
 **Typical workflow:**
 ```
 1. User requests a task
    ↓
-2. Claude (has all skills) uses Claude Octopus for multi-AI orchestration
+2. Claude (has all skills) uses Multipowers for multi-AI orchestration
    ↓
 3. Octopus spawns Codex/Gemini agents (separate CLIs without skills)
    ↓

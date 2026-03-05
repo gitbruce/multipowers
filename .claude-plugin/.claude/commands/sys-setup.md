@@ -249,5 +249,5 @@ Add the export statement to your shell profile (~/.zshrc or ~/.bashrc) so it loa
 
 If you encounter issues:
 1. Run `"$MP_BIN" preflight` for a detailed system check (use the same resolved path logic above)
-2. Check the logs in `~/.claude-octopus/logs/`
-3. Report issues at: https://github.com/nyldn/claude-octopus/issues
+2. Check the logs in `~/.multipowers/logs/`
+3. Report issues at: https://github.com/gitbruce/multipowers/issues

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Claude Octopus Enhanced HUD - METRICC-Inspired Statusline
+// Multipowers Enhanced HUD - METRICC-Inspired Statusline
 // Requires Claude Code v2.1.33+ (statusline API with context_window data)
 // ═══════════════════════════════════════════════════════════════════════════════
 //
@@ -20,8 +20,8 @@ import { homedir } from 'os';
 import { join } from 'path';
 
 const HOME = homedir();
-const SESSION_FILE = join(HOME, '.claude-octopus', 'session.json');
-const CACHE_DIR = join(HOME, '.claude-octopus', '.hud-cache');
+const SESSION_FILE = join(HOME, '.multipowers', 'session.json');
+const CACHE_DIR = join(HOME, '.multipowers', '.hud-cache');
 const VERSION_CACHE = join(CACHE_DIR, 'version-check.json');
 
 // ANSI colors

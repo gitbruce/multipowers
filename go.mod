@@ -1,4 +1,4 @@
-module github.com/gitbruce/claude-octopus
+module github.com/gitbruce/multipowers
 
 go 1.22
 

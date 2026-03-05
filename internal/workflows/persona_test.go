@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gitbruce/claude-octopus/internal/policy"
+	"github.com/gitbruce/multipowers/internal/policy"
 )
 
 func TestPersonaList_OneLineWithModelAndDescription(t *testing.T) {

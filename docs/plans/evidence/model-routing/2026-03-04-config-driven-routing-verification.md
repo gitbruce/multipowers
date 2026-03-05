@@ -39,12 +39,12 @@ go test ./internal/policy ./internal/hooks ./internal/cli ./internal/workflows .
 
 Output:
 ```
-ok      github.com/gitbruce/claude-octopus/internal/policy      0.069s
-ok      github.com/gitbruce/claude-octopus/internal/hooks       0.010s
-ok      github.com/gitbruce/claude-octopus/internal/cli         0.150s
-ok      github.com/gitbruce/claude-octopus/internal/workflows   0.912s
-ok      github.com/gitbruce/claude-octopus/internal/validation  0.067s
-ok      github.com/gitbruce/claude-octopus/cmd/mp-devx          0.006s
+ok      github.com/gitbruce/multipowers/internal/policy      0.069s
+ok      github.com/gitbruce/multipowers/internal/hooks       0.010s
+ok      github.com/gitbruce/multipowers/internal/cli         0.150s
+ok      github.com/gitbruce/multipowers/internal/workflows   0.912s
+ok      github.com/gitbruce/multipowers/internal/validation  0.067s
+ok      github.com/gitbruce/multipowers/cmd/mp-devx          0.006s
 ```
 
 ### 3. Verify Policy Compilation

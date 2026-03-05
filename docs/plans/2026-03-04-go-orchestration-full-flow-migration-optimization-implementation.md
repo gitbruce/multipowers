@@ -247,7 +247,7 @@ No subtask may be claimed complete without both updates.
 #### Subtask O05-S02: Structured step lifecycle logs
 **Why:** Raw logs are not machine-analyzable during incidents.
 **What:** Emit `started/completed/failed/fallback` events with JSON fields.
-**How:** Reuse/extend `events.go` and add writer hook to `.claude-octopus/logs`.
+**How:** Reuse/extend `events.go` and add writer hook to `.multipowers/logs`.
 **Key Design:** Never log prompt raw body by default; include hashes/lengths only.
 
 **Files:**

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gitbruce/claude-octopus/internal/benchmark"
+	"github.com/gitbruce/multipowers/internal/benchmark"
 )
 
 func SelectAgent(cfg *Config, agents map[string]AgentProfile, phase, prompt string) (string, string, []string) {

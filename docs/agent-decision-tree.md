@@ -201,7 +201,7 @@ What kind of review?
 
 ## When In Doubt
 
-**Just describe what you need!** Claude Octopus auto-routes based on keywords:
+**Just describe what you need!** Multipowers auto-routes based on keywords:
 
 ```
 "Build user authentication with OAuth"

@@ -1,6 +1,6 @@
 # Migration Guide: v7.12.x → v7.13.0
 
-This guide helps you upgrade Claude Octopus from v7.12.x to v7.13.0, which integrates Claude Code v2.1.16-v2.1.20 features.
+This guide helps you upgrade Multipowers from v7.12.x to v7.13.0, which integrates Claude Code v2.1.16-v2.1.20 features.
 
 ## Breaking Changes
 
@@ -136,9 +136,9 @@ claude --add-dir=config/workflows          # Double Diamond methodology
    claude --version  # Verify v2.1.16 or higher
    ```
 
-2. **Update Claude Octopus:**
+2. **Update Multipowers:**
    ```bash
-   /plugin update claude-octopus
+   /plugin update multipowers
    ```
 
 3. **Verify Installation:**
@@ -202,8 +202,8 @@ Set autonomy mode in `/mp:setup`:
 If you need to rollback to v7.12.1:
 
 ```bash
-/plugin uninstall claude-octopus
-/plugin install claude-octopus@7.12.1
+/plugin uninstall multipowers
+/plugin install multipowers@7.12.1
 ```
 
 **Warning:** You'll lose access to new features:
@@ -215,11 +215,11 @@ If you need to rollback to v7.12.1:
 ## Support
 
 Issues? Report them at:
-https://github.com/nyldn/claude-octopus/issues
+https://github.com/gitbruce/multipowers/issues
 
 Include:
 - Claude Code version (`claude --version`)
-- Claude Octopus version (`/plugin list`)
+- Multipowers version (`/plugin list`)
 - Error message or unexpected behavior
 - Steps to reproduce
 

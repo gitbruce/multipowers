@@ -1,5 +1,5 @@
 #!/bin/bash
-# Pre-push hook for claude-octopus
+# Pre-push hook for multipowers
 # Runs Go validation before pushing
 
 set -e

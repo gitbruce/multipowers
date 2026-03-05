@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
 )
 
 type Result struct {

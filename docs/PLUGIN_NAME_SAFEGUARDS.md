@@ -3,8 +3,8 @@
 ## What Was Broken
 
 Commands were breaking because the plugin name kept getting changed:
-- Changed: `"multipowers"` → `"claude-octopus"` ❌
-- Commands became: `/claude-octopus:discover` (too long, broke workflows)
+- Changed: `"multipowers"` → `"multipowers"` ❌
+- Commands became: `/multipowers:discover` (too long, broke workflows)
 - Should be: `/mp:discover` ✅
 
 ## What's Protected Now
@@ -75,7 +75,7 @@ Expected output:
 | Purpose | File | Name |
 |---------|------|------|
 | Command prefix | `.claude-plugin/plugin.json` | `"multipowers"` |
-| Marketplace ID | `package.json` | `"claude-octopus"` |
+| Marketplace ID | `package.json` | `"multipowers"` |
 
 Both are correct and serve different purposes.
 

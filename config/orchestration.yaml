@@ -74,7 +74,7 @@ execution_isolation:
   heartbeat_interval_seconds: 30
   logs_subdir: "logs"
   active_worktree_cap: 12
-  mailbox_root: "~/.claude-octopus/runs"
+  mailbox_root: "~/.multipowers/runs"
   mailbox_poll_interval_ms: 200
 
 # Async benchmark and smart routing controls
@@ -100,7 +100,7 @@ benchmark_mode:
     llm_decision_priority: true
   storage:
     type: jsonl
-    root: "~/.claude-octopus/metrics"
+    root: "~/.multipowers/metrics"
     partition: daily
   scoring:
     scale: "1-5"

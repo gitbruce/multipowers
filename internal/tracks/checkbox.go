@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/gitbruce/claude-octopus/internal/fsboundary"
+	"github.com/gitbruce/multipowers/internal/fsboundary"
 )
 
 func WriteTracking(projectDir, id, content string) error {

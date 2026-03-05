@@ -349,7 +349,7 @@ git tag --sort=-creatordate | head -5
 git branch --sort=-committerdate | head -5
 
 # Recent orchestration results (if any)
-ls -lt ~/.claude-octopus/results/ 2>/dev/null | head -10
+ls -lt ~/.multipowers/results/ 2>/dev/null | head -10
 ```
 
 #### Step 2: Summarize Activity

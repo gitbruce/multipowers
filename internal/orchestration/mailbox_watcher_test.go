@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gitbruce/claude-octopus/internal/mailbox"
+	"github.com/gitbruce/multipowers/internal/mailbox"
 )
 
 func TestMailboxWatcher_EmitsSemanticAbortControlEvent(t *testing.T) {

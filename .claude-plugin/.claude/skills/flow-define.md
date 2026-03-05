@@ -212,7 +212,7 @@ create_templated_context \
   "Implementation of requested feature" \
   "$out_of_scope"
 
-echo "📋 Context captured and saved to .claude-octopus/context/define-context.md"
+echo "📋 Context captured and saved to .multipowers/context/define-context.md"
 ```
 
 **This context will be used to:**
@@ -264,7 +264,7 @@ These spinner verb updates happen automatically - orchestrate.sh calls `update_t
 
 ```bash
 # Find the latest synthesis file (created within last 10 minutes)
-SYNTHESIS_FILE=$(find ~/.claude-octopus/results -name "grasp-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
+SYNTHESIS_FILE=$(find ~/.multipowers/results -name "grasp-synthesis-*.md" -mmin -10 2>/dev/null | head -n1)
 
 if [[ -z "$SYNTHESIS_FILE" ]]; then
   echo "❌ VALIDATION FAILED: No synthesis file found"
@@ -278,7 +278,7 @@ cat "$SYNTHESIS_FILE"
 
 **If validation fails:**
 1. Report error to user
-2. Show logs from `~/.claude-octopus/logs/`
+2. Show logs from `~/.multipowers/logs/`
 3. DO NOT proceed with presenting results
 4. DO NOT substitute with direct analysis
 
@@ -449,7 +449,7 @@ The orchestrate.sh script will:
 
 Results are saved to:
 ```
-~/.claude-octopus/results/${SESSION_ID}/grasp-synthesis-<timestamp>.md
+~/.multipowers/results/${SESSION_ID}/grasp-synthesis-<timestamp>.md
 ```
 
 ### Step 4: Present Problem Definition
@@ -653,7 +653,7 @@ Claude:
 
 Ready to proceed to implementation?
 
-Full problem definition saved to: ~/.claude-octopus/results/abc-123/grasp-synthesis-20250118-144530.md
+Full problem definition saved to: ~/.multipowers/results/abc-123/grasp-synthesis-20250118-144530.md
 ```
 
 ### Example 2: Clarify Feature Scope

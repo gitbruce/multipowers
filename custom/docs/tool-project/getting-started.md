@@ -34,7 +34,7 @@ go build -o .claude-plugin/bin/mp-devx ./cmd/mp-devx
 Install:
 
 ```text
-/plugin marketplace add /mnt/f/src/ai/claude-octopus/.claude-plugin/marketplace.json
+/plugin marketplace add /mnt/f/src/ai/multipowers/.claude-plugin/marketplace.json
 /plugin install mp@multipowers-plugins --scope user
 ```
 

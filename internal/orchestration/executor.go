@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gitbruce/claude-octopus/internal/benchmark"
+	"github.com/gitbruce/multipowers/internal/benchmark"
 )
 
 // Dispatcher interface for step execution

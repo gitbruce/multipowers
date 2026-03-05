@@ -1,6 +1,6 @@
 # Async Task Management & Tmux Visualization
 
-Claude Octopus includes **async task management** and **tmux visualization** for better performance and transparency during multi-agent workflows.
+Multipowers includes **async task management** and **tmux visualization** for better performance and transparency during multi-agent workflows.
 
 ## Async Mode
 
@@ -61,7 +61,7 @@ Watch agents work in real-time with tmux panes:
 **Attaching to session:**
 ```bash
 # If session created in background
-tmux attach -t claude-octopus-<pid>
+tmux attach -t multipowers-<pid>
 ```
 
 ## Environment Variables

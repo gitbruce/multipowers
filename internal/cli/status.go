@@ -1,9 +1,9 @@
 package cli
 
 import (
-	ctxpkg "github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/internal/providers"
-	"github.com/gitbruce/claude-octopus/internal/validation"
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/providers"
+	"github.com/gitbruce/multipowers/internal/validation"
 )
 
 // RuntimeStatus represents the comprehensive runtime health status

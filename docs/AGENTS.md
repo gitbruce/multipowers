@@ -1,4 +1,4 @@
-# Claude Octopus Agent Catalog
+# Multipowers Agent Catalog
 
 > *37 specialized tentacles, infinite possibilities. But which one grabs YOUR problem?* 🐙
 
@@ -27,7 +27,7 @@
 | Create exec summaries | `exec-communicator` | Boardroom whisperer 🆕 |
 | Write PRDs/user stories | `product-writer` | Requirements master 🆕 |
 
-**Still unsure?** Just describe what you need - Claude Octopus auto-routes to the right tentacle! 🦑
+**Still unsure?** Just describe what you need - Multipowers auto-routes to the right tentacle! 🦑
 
 > 🆕 **New in v6.0:** Knowledge Worker agents for researchers, consultants, and product managers. [See Knowledge Workers Guide →](KNOWLEDGE-WORKERS.md)
 
@@ -48,7 +48,7 @@
 
 ## By Development Phase
 
-Claude Octopus follows the **Double Diamond** methodology:
+Multipowers follows the **Double Diamond** methodology:
 
 ```
      DISCOVER         DEFINE         DEVELOP          DELIVER

@@ -225,7 +225,7 @@ git commit -m "feat(benchmark): add bounded non-blocking async queue"
 - Product requirement changed from DB to local JSONL cross-project storage.
 
 **What**
-- Persist benchmark streams into `~/.claude-octopus/metrics/<stream>.<YYYY-MM-DD>.jsonl`.
+- Persist benchmark streams into `~/.multipowers/metrics/<stream>.<YYYY-MM-DD>.jsonl`.
 - Define all event schemas.
 
 **How**

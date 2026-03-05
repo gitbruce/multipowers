@@ -1,8 +1,8 @@
 package hooks
 
 import (
-	"github.com/gitbruce/claude-octopus/internal/context"
-	"github.com/gitbruce/claude-octopus/internal/policy"
+	"github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/policy"
 )
 
 func SessionStartData(projectDir string) map[string]any {
