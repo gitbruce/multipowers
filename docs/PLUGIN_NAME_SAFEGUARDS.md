@@ -1,86 +1,39 @@
 # Plugin Name Safeguards - Quick Reference
 
-## What Was Broken
+## The Core Constraint
 
-Commands were breaking because the plugin name kept getting changed:
-- Changed: `"multipowers"` → `"multipowers"` ❌
-- Commands became: `/multipowers:discover` (too long, broke workflows)
-- Should be: `/mp:discover` ✅
+Commands depend on a consistent plugin namespace.
+- **Plugin Name**: `"mp"` ✅
+- **Commands**: `/mp:discover`, `/mp:debate`, `/mp:status`, etc.
 
-## What's Protected Now
+## Safeguards in Place
 
-✅ **Plugin name locked to `"multipowers"` with 4 layers of protection:**
+✅ **Plugin name is locked to `"mp"` with multiple layers of protection:**
 
-### Layer 1: Documentation Warnings
-```
-.claude-plugin/plugin.json        ← In-file comment
-.claude-plugin/PLUGIN_NAME_LOCK.md ← Detailed explanation
-.claude-plugin/README.md           ← Quick warning
-SAFEGUARDS.md                      ← Comprehensive reference
-```
+### Layer 1: Manifest Protection
+The `.claude-plugin/plugin.json` file contains explicit comments warning against changing the `name` field.
 
-### Layer 2: Automated Tests
+### Layer 2: Go-Native Validation
+Validation is now integrated into the **`mp-devx`** toolchain.
 ```bash
-make test-plugin-name              # Runs validation
-./tests/validate-plugin-name.sh    # Direct validation
+# Verify plugin structure and name parity
+./mp-devx -action parity
 ```
 
 ### Layer 3: CI/CD Integration
-- ✅ GitHub Actions validates on every PR
-- ✅ Smoke tests include plugin name validation
-- ✅ Pre-commit hook validates before commit
+The GitHub Actions workflow runs the `mp-devx` parity check on every Pull Request to ensure the command namespace hasn't drifted.
 
-### Layer 4: Make Target Integration
-```makefile
-test-smoke: test-plugin-name       # Smoke tests depend on validation
-```
+## If It Breaks
 
-## Quick Validation
+1. **Verify `plugin.json`**:
+   Ensure `"name": "mp"` is set in `.claude-plugin/plugin.json`.
 
-Run this to verify everything is correct:
-
-```bash
-make test-plugin-name
-```
-
-Expected output:
-```
-🔍 Validating plugin name...
-✅ Plugin name is correct: "multipowers"
-   Commands will work as: /mp:discover, /mp:debate, etc.
-```
-
-## If It Breaks Again
-
-1. Check the plugin name:
+2. **Run Parity Check**:
    ```bash
-   grep '"name"' .claude-plugin/plugin.json
-   # Should show: "name": "mp"
+   ./mp-devx -action parity
    ```
-
-2. If wrong, fix it immediately:
-   ```json
-   {
-     "name": "mp"  // ← Must be exactly this
-   }
-   ```
-
-3. Run validation:
-   ```bash
-   make test-plugin-name
-   ```
-
-## Why Plugin Name ≠ Package Name
-
-| Purpose | File | Name |
-|---------|------|------|
-| Command prefix | `.claude-plugin/plugin.json` | `"multipowers"` |
-| Marketplace ID | `package.json` | `"multipowers"` |
-
-Both are correct and serve different purposes.
 
 ---
 
-**Status:** ✅ All safeguards active
-**Last Verified:** 2026-01-21
-**Commands Working:** `/mp:discover`, `/mp:debate`, `/mp:embrace`, etc.
+**Status:** ✅ All safeguards active (Go-native parity)
+**Last Verified:** March 2026

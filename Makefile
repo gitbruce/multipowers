@@ -64,10 +64,6 @@ clean-tests:
 	@rm -f /tmp/test_*.log
 	@echo "Test artifacts cleaned"
 
-# Sync fork main with upstream and rebase custom branch
-sync:
-	@echo "sync moved to go runtime; use project docs for upstream sync workflow"
-
 # Help
 help:
 	@echo "Multipowers Test Suite"
@@ -85,7 +81,6 @@ help:
 	@echo "  make test-coverage     - Generate coverage report"
 	@echo "  make test-verbose      - Run all tests with verbose output"
 	@echo "  make clean-tests       - Clean test artifacts"
-	@echo "  make sync              - Sync main from upstream and rebase custom branch"
 	@echo "  make help              - Show this help message"
 	@echo ""
 	@echo "For more details, see tests/README.md"

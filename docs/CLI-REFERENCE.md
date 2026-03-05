@@ -1,667 +1,80 @@
 # CLI Reference - Direct mp runtime Usage
 
-This guide documents direct CLI usage of mp runtime for advanced users and automation scenarios.
-
-**Note:** For plugin users, natural language triggers (documented in [TRIGGERS.md](./TRIGGERS.md)) are the recommended way to use Multipowers. This CLI reference is for:
-- Automation scripts
-- CI/CD pipelines
-- Direct command-line usage outside Claude Code
-- Advanced power users
+This guide documents the direct CLI usage of the Go-native `mp` runtime for advanced users and automation scenarios.
 
 ---
 
-## Quick Reference
+## Global Options
 
-```bash
-# Execute from repository root
-./.claude-plugin/bin/mp <command> [options] "<prompt>"
-```
+The following flags are available for almost all commands:
 
-### Core Commands
-
-| Command | Alias | What It Does |
-|---------|-------|--------------|
-| `auto <prompt>` | | Smart routing - picks best workflow automatically |
-| `embrace <prompt>` | | Full 4-phase Double Diamond workflow |
-| `discover <prompt>` | `probe` | Research phase - parallel exploration |
-| `define <prompt>` | `grasp` | Define phase - problem clarification |
-| `develop <prompt>` | `tangle` | Development phase - parallel implementation |
-| `deliver <prompt>` | `ink` | Delivery phase - validation and QA |
-| `grapple <prompt>` | | Adversarial debate between AI models |
-| `squeeze <prompt>` | `red-team` | Red team security review |
-| `persona list` | | List configured personas |
-| `persona <name> <prompt>` | | Run explicit persona and show provider:model |
-| `octopus-configure` | `setup` | Interactive configuration wizard |
-| `preflight` | | Verify all dependencies |
-| `status` | | Show provider status and running agents |
-| `detect-providers` | | Fast provider detection (< 1 second) |
-
-**v7.8.0+**: Commands now auto-detect **Dev vs Knowledge context** and adjust behavior accordingly. See [Context Detection](#context-detection) section.
+- `--dir <path>`: Specify the target project directory (default: `.`)
+- `--prompt "<text>"`: The primary input text or JSON context
+- `--json`: Format the output as a machine-readable JSON response
+- `--auto-init`: Whether to automatically initialize track context (default: `true`)
 
 ---
 
-## Installation & Setup
+## Core Commands
 
-### Provider Installation
-
-You need at least ONE AI provider (not both):
-
-#### Option A: OpenAI Codex CLI (Best for code generation)
+### 1. Project & Track Initialization
 ```bash
-npm install -g @openai/codex
-codex login  # OAuth recommended
-
-# OR use API key
-export OPENAI_API_KEY="sk-..."  # Get from https://platform.openai.com/api-keys
+mp init --prompt '{"project_name": "...", "tech_stack": "..."}'
 ```
+Runs the initialization wizard or applies a pre-filled JSON prompt to bootstrap the `.multipowers/` governance directory.
 
-#### Option B: Google Gemini CLI (Best for analysis)
+### 2. State & KV Management
 ```bash
-npm install -g @google/gemini-cli
-gemini  # OAuth recommended
-
-# OR use API key
-export GEMINI_API_KEY="AIza..."  # Get from https://aistudio.google.com/app/apikey
+mp state get --key <key_name>
+mp state set --key <key_name> --value <value>
+mp state update --data '{"key": "value"}'
 ```
+Performs atomic read/write operations on the track state. Useful for CI/CD status tracking.
 
-### Making API Keys Permanent
+### 3. Workflow Execution (The Double Diamond)
+- **Discover**: `mp discover "research topic"`
+- **Define**: `mp define "problem criteria"`
+- **Develop**: `mp develop "implementation plan"`
+- **Deliver**: `mp deliver "final review"`
+- **Embrace**: `mp embrace "full feature flow"`
 
-To make API keys available in every terminal session:
+These commands trigger the Go orchestration engine, resolving the execution plan via `internal/orchestration`.
 
+### 4. Intelligent Routing
 ```bash
-# For zsh (macOS default)
-echo 'export OPENAI_API_KEY="sk-..."' >> ~/.zshrc
-source ~/.zshrc
-
-# For bash (Linux default)
-echo 'export OPENAI_API_KEY="sk-..."' >> ~/.bashrc
-source ~/.bashrc
+mp route --intent [discover|define|develop|deliver]
 ```
+Checks which AI providers (Codex, Gemini, Claude) are available and how the current routing policy would distribute the workload.
 
-### Verify Setup
-
+### 5. Validation & Guardrails
 ```bash
-# Check provider status
-./.claude-plugin/bin/mp detect-providers
-
-# Run full preflight check
-./.claude-plugin/bin/mp preflight
-
-# Show current status
-./.claude-plugin/bin/mp status
+mp validate --type [workspace|no-shell|tdd-env|test-run|coverage]
 ```
+Runs specific architectural or environmental checks. Use `--type no-shell` to ensure no legacy Bash dependencies are present in the active path.
 
-### Go Branch Sync Playbook (Root `.claude` Deleted)
-
-When `go` keeps root `.claude` deleted but `main` remains read-only with legacy layout, use this sequence after merging:
-
+### 6. Interactive Loops
 ```bash
-git fetch upstream --prune
-git merge upstream/main -X theirs
-./scripts/sync-main-claude-into-plugin.sh
-go test ./internal/validation -count=1
-go test ./internal/devx -count=1
+mp loop --agent <agent_name> --prompt "instruction" --max-iterations 5
 ```
+Triggers a Ralph Wiggum loop that continues execution until the agent provides a "completion promise" or the iteration limit is reached.
 
-This refreshes `main:.claude` into `.claude-plugin/.claude` and re-applies the `go` layout invariant.
+### 7. Lifecycle Hooks
+```bash
+mp hook --event [UserPromptSubmit|PostToolUse|Stop] --prompt "..."
+```
+Dispatches a lifecycle event to the Go hook handler. Returns `ok` or `blocked` based on current governance policies.
 
 ---
 
-## Double Diamond Workflows
+## Debugging
 
-```
-     DISCOVER         DEFINE          DEVELOP          DELIVER
-       (probe)        (grasp)         (tangle)           (ink)
-
-    \         /     \         /     \         /     \         /
-     \   *   /       \   *   /       \   *   /       \   *   /
-      \ * * /         \     /         \ * * /         \     /
-       \   /           \   /           \   /           \   /
-        \ /             \ /             \ /             \ /
-
-   Diverge then      Converge to      Diverge with     Converge to
-    converge          problem          solutions        delivery
-```
-
-### Phase 1: DISCOVER (alias: probe)
-
-Parallel research from multiple perspectives - problem space, existing solutions, edge cases, technical feasibility.
-
+Enable verbose Go runtime debugging:
 ```bash
-./.claude-plugin/bin/mp discover "What are the best approaches for real-time notifications?"
-```
-
-**Output:**
-- Research synthesis from Codex, Gemini, and Claude
-- Saved to `~/.multipowers/results/${SESSION_ID}/discover-synthesis-*.md`
-
-### Phase 2: DEFINE (alias: grasp)
-
-Multi-AI consensus on problem definition, success criteria, and constraints.
-
-```bash
-./.claude-plugin/bin/mp define "Define requirements for notification system"
-```
-
-**Output:**
-- Problem definition with requirements
-- Saved to `~/.multipowers/results/${SESSION_ID}/define-synthesis-*.md`
-
-### Phase 3: DEVELOP (alias: tangle)
-
-Enhanced map-reduce with 75% quality gate threshold.
-
-```bash
-./.claude-plugin/bin/mp develop "Implement notification service"
-```
-
-**Output:**
-- Implementation approaches from multiple providers
-- Quality gate evaluation
-- Saved to `~/.multipowers/results/${SESSION_ID}/develop-synthesis-*.md`
-
-### Phase 4: DELIVER (alias: ink)
-
-Validation and final deliverable generation.
-
-```bash
-./.claude-plugin/bin/mp deliver "Deliver notification system"
-```
-
-**Output:**
-- Validation report with quality scores
-- Go/no-go recommendation
-- Saved to `~/.multipowers/results/${SESSION_ID}/deliver-validation-*.md`
-
-### Full Workflow: EMBRACE
-
-Run all four phases in sequence:
-
-```bash
-./.claude-plugin/bin/mp embrace "Create a complete user dashboard feature"
-```
-
-**Executes:**
-1. Probe - Research dashboard patterns
-2. Grasp - Define dashboard requirements
-3. Tangle - Implement dashboard
-4. Ink - Validate dashboard implementation
-
----
-
-## Smart Auto-Routing
-
-The `auto` command detects intent and routes to the appropriate workflow:
-
-| Intent Keywords | Routes To | Example |
-|----------------|-----------|---------|
-| research, explore, investigate | `discover` | "research caching best practices" |
-| define, clarify, scope | `define` | "define caching requirements" |
-| develop, build, implement | `develop` → `deliver` | "build the caching layer" |
-| qa, test, validate, review | `deliver` | "review the caching implementation" |
-| adversarial, debate | `grapple` | "adversarial review of cache design" |
-| security audit, red team | `squeeze` | "security audit the auth module" |
-
-**Usage:**
-```bash
-./.claude-plugin/bin/mp auto "research OAuth patterns"           # -> discover
-./.claude-plugin/bin/mp auto "build user login"                  # -> develop + deliver
-./.claude-plugin/bin/mp auto "security audit auth.ts"            # -> squeeze
-```
-
----
-
-## Explicit Persona Routing
-
-Use `persona` when you want to force a specific configured persona instead of intent-based auto-selection.
-
-```bash
-./.claude-plugin/bin/mp persona list
-./.claude-plugin/bin/mp persona backend-architect "Design a resilient webhook pipeline"
-./.claude-plugin/bin/mp persona security-auditor "Review auth module for OWASP risks"
-```
-
-Before execution, Octopus prints the selected lane in verbose format, for example:
-
-```text
-Using: codex:gpt-5.3-codex
-```
-
----
-
-## Context Detection (v7.8.0+)
-
-Multipowers **auto-detects** whether you're working in a **Dev context** (code-focused) or **Knowledge context** (research/strategy-focused) and adjusts workflow behavior accordingly.
-
-### How It Works
-
-Context is detected from:
-1. **Prompt content** (strongest signal) - Technical terms → Dev, Business terms → Knowledge
-2. **Project type** (secondary signal) - Has `package.json` → Dev, Mostly docs → Knowledge
-
-**Dev Context Indicators:**
-- Technical: "API", "endpoint", "database", "function", "class", "module"
-- Actions: "implement", "debug", "refactor", "test", "deploy", "build"
-
-**Knowledge Context Indicators:**
-- Business/strategy: "market", "ROI", "stakeholders", "strategy", "competitive"
-- Research: "literature", "synthesis", "academic", "papers"
-- UX: "personas", "user research", "journey map"
-
-### Context-Aware Behavior
-
-| Phase | Dev Context | Knowledge Context |
-|-------|-------------|-------------------|
-| **Discover** | Technical patterns, library comparison | Market analysis, competitive research |
-| **Develop** | Code generation, tests | PRDs, strategy docs, presentations |
-| **Deliver** | Code review, security audit | Document review, argument strength |
-
-### Override Context
-
-When auto-detection is wrong, use the knowledge mode toggle:
-
-```bash
-./.claude-plugin/bin/mp km on     # Force Knowledge context
-./.claude-plugin/bin/mp km off    # Force Dev context
-./.claude-plugin/bin/mp km auto   # Return to auto-detection
-./.claude-plugin/bin/mp km        # Show current status
-```
-
----
-
-## Adversarial Review (Crossfire)
-
-Different AI models have different blind spots. Crossfire forces models to critique each other.
-
-### Grapple - Adversarial Debate
-
-```bash
-./.claude-plugin/bin/mp grapple "implement password reset API"
-./.claude-plugin/bin/mp grapple --principles security "implement JWT auth"
-```
-
-**How it works:**
-```
-Round 1: Codex proposes → Gemini proposes (parallel)
-Round 2: Gemini critiques Codex → Codex critiques Gemini
-Round 3: Synthesis determines winner + final implementation
-```
-
-**Constitutional Principles:**
-
-| Principle | Focus |
-|-----------|-------|
-| `general` | Overall quality (default) |
-| `security` | OWASP Top 10, secure coding |
-| `performance` | N+1 queries, caching, async |
-| `maintainability` | Clean code, testability |
-
-**Examples:**
-```bash
-# General quality review
-./.claude-plugin/bin/mp grapple "implement user registration"
-
-# Security-focused review
-./.claude-plugin/bin/mp grapple --principles security "implement JWT auth"
-
-# Performance-focused review
-./.claude-plugin/bin/mp grapple --principles performance "implement API caching"
-```
-
-### Squeeze - Red Team Security Review
-
-```bash
-./.claude-plugin/bin/mp squeeze "implement user login form"
-```
-
-**How it works:**
-
-| Phase | Team | Action |
-|-------|------|--------|
-| 1 | Blue Team (Codex) | Implements secure solution |
-| 2 | Red Team (Gemini) | Finds vulnerabilities |
-| 3 | Remediation | Fixes all issues |
-| 4 | Validation | Verifies all fixed |
-
-**Example:**
-```bash
-./.claude-plugin/bin/mp squeeze "review auth.ts for vulnerabilities"
-```
-
----
-
-## Provider-Aware Routing
-
-Multipowers intelligently routes tasks based on your subscription tiers and costs.
-
-### CLI Flags
-
-```bash
---provider <name>     # Force provider: codex, gemini, claude, openrouter
---cost-first          # Prefer cheapest capable provider
---quality-first       # Prefer highest-tier provider
---openrouter-nitro    # Use fastest OpenRouter routing
---openrouter-floor    # Use cheapest OpenRouter routing
-```
-
-### Cost Optimization Strategies
-
-| Strategy | Description |
-|----------|-------------|
-| `balanced` (default) | Smart mix of cost and quality |
-| `cost-first` | Prefer cheapest capable provider |
-| `quality-first` | Prefer highest-tier provider |
-
-### Provider Tiers
-
-The configuration wizard sets your subscription tier for each provider:
-
-| Provider | Tiers | Cost Behavior |
-|----------|-------|---------------|
-| Codex/OpenAI | free, plus, pro, api-only | Routes based on tier |
-| Gemini | free, google-one, workspace, api-only | Workspace = bundled (free) |
-| Claude | pro, max-5x, max-20x, api-only | Conserves Opus for complex tasks |
-| OpenRouter | pay-per-use | 400+ models as fallback |
-
-**Example:** If you have Google Workspace (bundled Gemini), the system prefers Gemini for heavy analysis since it's "free" with your work account.
-
-**Usage:**
-```bash
-# Check current provider status
-./.claude-plugin/bin/mp status
-
-# Force cost-first routing
-./.claude-plugin/bin/mp --cost-first auto "research best practices"
-
-# Force specific provider
-./.claude-plugin/bin/mp --provider gemini probe "research OAuth patterns"
-
-# Quality-first for critical tasks
-./.claude-plugin/bin/mp --quality-first tangle "implement authentication"
-```
-
----
-
-## Common Options
-
-| Option | Description | Example |
-|--------|-------------|---------|
-| `-n`, `--dry-run` | Show what would execute without running | `--dry-run probe "test"` |
-| `-v`, `--verbose` | Enable verbose logging | `-v tangle "build feature"` |
-| `-t <seconds>`, `--timeout <seconds>` | Set timeout in seconds | `-t 600 probe "research"` |
-| `--cost-first` | Prefer cheapest provider | `--cost-first auto "task"` |
-| `--quality-first` | Prefer highest-tier provider | `--quality-first tangle "critical"` |
-| `--provider <name>` | Force specific provider | `--provider gemini probe "research"` |
-
-**Examples:**
-```bash
-# Dry run to preview execution
-./.claude-plugin/bin/mp -n probe "research caching"
-
-# Verbose mode for debugging
-./.claude-plugin/bin/mp -v tangle "implement auth"
-
-# Extended timeout for complex tasks
-./.claude-plugin/bin/mp -t 1200 embrace "build complete dashboard"
-
-# Cost-optimized research
-./.claude-plugin/bin/mp --cost-first probe "research microservices"
-```
-
----
-
-## Quality Gates
-
-Quality gates ensure minimum standards before delivery:
-
-| Score | Status | Behavior |
-|-------|--------|----------|
-| >= 90% | PASSED | Proceed to ink |
-| 75-89% | WARNING | Proceed with caution |
-| < 75% | FAILED | Flags for review |
-
-**Quality Dimensions:**
-- **Code Quality** (25%): Complexity, maintainability, documentation
-- **Security** (35%): OWASP compliance, auth, input validation
-- **Best Practices** (20%): Error handling, logging, testing
-- **Completeness** (20%): Feature completeness, edge cases
-
-**Example:**
-```bash
-# Tangle phase includes automatic quality gates
-./.claude-plugin/bin/mp tangle "implement user authentication"
-
-# Output includes quality score:
-# Quality Score: 82/100 (WARNING - below 90%)
-# - Code Quality: 85/100
-# - Security: 78/100 ⚠️
-# - Best Practices: 80/100
-# - Completeness: 85/100
-```
-
----
-
-## Configuration
-
-### Interactive Configuration Wizard
-
-```bash
-./.claude-plugin/bin/mp octopus-configure
-```
-
-**Configures:**
-- Provider detection and setup
-- Subscription tier for each provider
-- Cost optimization strategy
-- Quality thresholds
-- Session storage locations
-
-### Preflight Checks
-
-```bash
-./.claude-plugin/bin/mp preflight
-```
-
-**Verifies:**
-- ✅ All required dependencies installed
-- ✅ Providers configured correctly
-- ✅ API keys valid
-- ✅ File permissions correct
-- ✅ Session directories writable
-
-### Status
-
-```bash
-./.claude-plugin/bin/mp status
-```
-
-**Shows:**
-- Provider availability
-- Current configuration
-- Running agents
-- Recent activity
-- Cost tracking (if enabled)
-
----
-
-## Output and Results
-
-### Result Storage
-
-All workflow results are saved to:
-```
-~/.multipowers/results/${SESSION_ID}/
-├── discover-synthesis-20260118-143022.md
-├── define-synthesis-20260118-144530.md
-├── develop-synthesis-20260118-145800.md
-└── deliver-validation-20260118-150200.md
-```
-
-### Debate Storage
-
-Debates are stored in session-aware folders:
-```
-~/.multipowers/debates/${SESSION_ID}/
-└── 042-redis-vs-memcached/
-    ├── context.md
-    ├── state.json
-    ├── synthesis.md
-    └── rounds/
-        ├── r001_gemini.md
-        ├── r001_codex.md
-        └── r001_claude.md
-```
-
----
-
-## Examples
-
-### Research and Implement a Feature
-
-```bash
-# Phase 1: Research authentication patterns
-./.claude-plugin/bin/mp discover "authentication best practices for React apps"
-
-# Phase 2: Define requirements
-./.claude-plugin/bin/mp define "define requirements for JWT authentication"
-
-# Phase 3: Implement
-./.claude-plugin/bin/mp develop "implement JWT authentication system"
-
-# Phase 4: Validate
-./.claude-plugin/bin/mp deliver "validate authentication implementation"
-```
-
-### Or use embrace for all phases:
-```bash
-./.claude-plugin/bin/mp embrace "build complete JWT authentication system"
-```
-
-### Security Audit
-
-```bash
-# Red team security review
-./.claude-plugin/bin/mp squeeze "audit auth.ts for security vulnerabilities"
-
-# Adversarial security-focused debate
-./.claude-plugin/bin/mp grapple --principles security "review login implementation"
-```
-
-### Cost-Optimized Research
-
-```bash
-# Use cheapest provider for research
-./.claude-plugin/bin/mp --cost-first discover "research React state management"
-
-# Use quality-first for critical implementation
-./.claude-plugin/bin/mp --quality-first develop "implement payment processing"
-```
-
----
-
-## Troubleshooting
-
-### Provider Not Found
-
-```bash
-# Check provider status
-./.claude-plugin/bin/mp detect-providers
-
-# Expected output:
-# CODEX_STATUS=ready
-# GEMINI_STATUS=ready
-```
-
-**If missing:**
-```bash
-# Install provider
-npm install -g @openai/codex
-codex login
-
-# Or set API key
-export OPENAI_API_KEY="sk-..."
-```
-
-### Permission Denied
-
-```bash
-# Make mp runtime executable
-chmod +x ./.claude-plugin/bin/mp
-
-# Check file permissions
-ls -la ./.claude-plugin/bin/mp
-```
-
-### Session Directory Not Found
-
-```bash
-# Verify session directory exists
-ls -la ~/.multipowers/
-
-# Create if missing
-mkdir -p ~/.multipowers/results
-mkdir -p ~/.multipowers/debates
-```
-
-### Timeout Errors
-
-```bash
-# Increase timeout for complex tasks
-./.claude-plugin/bin/mp -t 1200 embrace "complex feature"
-
-# Default timeout is 120 seconds (2 minutes)
-# Maximum timeout is 1800 seconds (30 minutes)
-```
-
----
-
-## Integration with CI/CD
-
-### GitHub Actions Example
-
-```yaml
-name: Code Review with Multipowers
-
-on: [pull_request]
-
-jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install providers
-        run: |
-          npm install -g @openai/codex
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
-
-      - name: Run code review
-        run: |
-          ./.claude-plugin/bin/mp ink "review changes in this PR"
-
-      - name: Post results
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const results = fs.readFileSync('~/.multipowers/results/latest/deliver-validation.md', 'utf8');
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              body: results
-            });
+MP_DEBUG=1 mp <command>
 ```
 
 ---
 
 ## See Also
-
-- **[Visual Indicators Guide](./VISUAL-INDICATORS.md)** - Understanding what's running in plugin mode
-- **[Triggers Guide](./TRIGGERS.md)** - Natural language triggers for plugin users
-- **[Plugin Architecture](./PLUGIN-ARCHITECTURE.md)** - How the plugin works internally
-- **[README](../README.md)** - Main documentation
-
----
-
-**For plugin users:** The natural language interface (documented in [TRIGGERS.md](./TRIGGERS.md)) is the recommended way to use Multipowers. Use this CLI reference for automation, CI/CD, or advanced power-user scenarios.
+- [Command Reference (Plugin UI)](./COMMAND-REFERENCE.md)
+- [Architecture Overview](./ARCHITECTURE.md)

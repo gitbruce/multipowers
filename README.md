@@ -76,7 +76,7 @@ Don't remember the exact command? Just describe what you need:
 /mp compare Redis vs DynamoDB            -> routes to debate
 ```
 
-The router parses your intent and selects the right workflow. Above 80% confidence it auto-routes; between 70-80% it confirms; below 70% it asks for clarification.
+The router parses your intent and selects the right workflow.
 
 ---
 
@@ -87,9 +87,8 @@ The router parses your intent and selects the right workflow. Above 80% confiden
 Multipowers coordinates three AI providers - Codex, Gemini, and Claude - running them in parallel across every workflow. This isn't just a debate feature. Multi-AI orchestration powers the entire plugin:
 
 - **`/mp:embrace`** runs a full 4-phase lifecycle where Codex and Gemini research independently in the Discover phase, build consensus in Define, propose competing implementations in Develop, then cross-review in Deliver
-- **`/mp:extract`** uses Codex to analyze code structure while Gemini maps the design system, with Claude synthesizing tokens, components, and architecture into exportable formats
-- **`/mp:research`** sends the same question to all providers simultaneously, then synthesizes three independent analyses into one report
-- **`/mp:review`** has Codex check code quality and patterns while Gemini scans for security and edge cases, with Claude producing the final assessment
+- **`/mp:discover`** sends the same question to all providers simultaneously, then synthesizes three independent analyses into one report
+- **`/mp:deliver`** has Codex check code quality and patterns while Gemini scans for security and edge cases, with Claude producing the final assessment
 - **`/mp:debate`** structures a formal multi-round argument where each provider takes and defends a position
 
 | Provider | Powered By | Role Across Workflows |
@@ -173,102 +172,22 @@ Auto-detection uses file signatures - `package.json` triggers dev mode, business
 
 ---
 
-## Developer Workflows
+## Key Capabilities
 
-### Code Review
-
-```
-/mp:review
-```
-
+### Code Review (`/mp:deliver`)
 Multi-perspective code review combining Codex (code quality, patterns), Gemini (security, edge cases), and Claude (synthesis, recommendations). Checks architecture, security vulnerabilities, performance bottlenecks, and maintainability.
 
-### Test-Driven Development
+### Test-Driven Development (`/mp:develop`)
+Enforces red-green-refactor discipline. Write failing tests first, implement minimally to pass, then refactor with confidence.
 
-```
-/mp:tdd
-```
+### Systematic Debugging (`/mp:loop`)
+Use the iterative executor for systematic debugging. Provide a goal, and the system will iteratively investigate, form hypotheses, implement fixes, and verify until tests pass.
 
-Enforces red-green-refactor discipline. Write failing tests first, implement minimally to pass, then refactor with confidence. The TDD orchestrator prevents skipping steps.
+### Security Audit (`/mp:debate`)
+Trigger an adversarial security review. One model acts as the Red Team (finding vulnerabilities), another as the Blue Team (reviewing defenses), and Claude synthesizes the final risk assessment.
 
-### Debugging
-
-```
-/mp:debug
-```
-
-Systematic 4-phase debugging: Investigate (gather evidence), Analyze (form hypotheses), Hypothesize (rank causes), Implement (fix and verify). No more random `console.log` scattering.
-
-### Security Audit
-
-```
-/mp:security
-```
-
-OWASP Top 10 compliance checking, vulnerability detection, dependency scanning, and adversarial security testing. The security-auditor persona brings specialized knowledge of attack vectors.
-
-### Design System Extraction
-
-```
-/mp:extract ./my-app                                    # Interactive mode
-/mp:extract ./my-app --mode design --storybook true     # Design system with Storybook
-/mp:extract ./my-app --depth deep --multi-ai force      # Deep analysis, all providers
-/mp:extract https://example.com --mode design           # From live website
-```
-
-Reverse-engineers design tokens (W3C format), components (React/Vue/Svelte), architecture (service boundaries, API contracts), and features. Outputs JSON, CSS, Markdown, CSV.
-
----
-
-## Knowledge Worker Workflows
-
-### Deep Research
-
-```
-/mp:research competitor landscape for B2B SaaS tools
-```
-
-Multi-source synthesis combining Codex (technical analysis), Gemini (ecosystem research), and Claude (strategic synthesis). The research skill asks 3 clarifying questions (depth, focus, format) before execution, so you get exactly what you need.
-
-### PRD Writing
-
-```
-/mp:prd
-```
-
-Write AI-optimized PRDs scored against a 100-point framework. Structures requirements in sequential phases with P0/P1/P2 priority levels and explicit boundary definitions. Score existing PRDs with `/mp:prd-score`.
-
-### AI Debate
-
-```
-/mp:debate build vs buy for analytics platform
-```
-
-Structured three-way debate between Codex, Gemini, and Claude. Each takes a position, provides evidence, and responds to counterarguments. Multiple styles: quick (1 round), thorough (2-3 rounds), adversarial (active critique), or collaborative (build on ideas).
-
-### Brainstorming
-
-```
-/mp:brainstorm
-```
-
-Creative thought partner session using Pattern Spotting, Paradox Hunting, Naming the Unnamed, and Contrast Creation techniques. Helps surface hidden insights and unexpected connections.
-
-### Document Delivery
-
-```
-/mp:docs
-```
-
-Export your work to PPTX, DOCX, or PDF. Converts markdown deliverables into professional document formats ready for stakeholder review.
-
-### Content Analysis
-
-```
-/mp:pipeline https://example.com/article
-```
-
-Multi-stage content analysis pipeline. Reverse-engineers article anatomy, extracts recreatable patterns and frameworks, identifies psychological techniques and structural elements.
+### Deep Research (`/mp:discover`)
+Multi-source synthesis combining Codex (technical analysis), Gemini (ecosystem research), and Claude (strategic synthesis). 
 
 ---
 
@@ -282,62 +201,25 @@ Multi-stage content analysis pipeline. Reverse-engineers article anatomy, extrac
 | `/mp:define` | Definition phase - requirements and scope |
 | `/mp:develop` | Development phase - implementation with quality gates |
 | `/mp:deliver` | Delivery phase - review and validation |
-| `/mp:research` | Deep research with multi-source synthesis |
 
-### Development
-| Command | Description |
-|---------|-------------|
-| `/mp:tdd` | Test-driven development (red-green-refactor) |
-| `/mp:debug` | Systematic debugging with methodical investigation |
-| `/mp:review` | Expert code review with security analysis |
-| `/mp:security` | OWASP compliance and vulnerability detection |
-| `/mp:quick` | Fast execution without full workflow overhead |
-
-### AI & Decisions
+### Utility & Analysis
 | Command | Description |
 |---------|-------------|
 | `/mp:debate` | Structured three-way AI debate |
 | `/mp:loop` | Iterate until exit criteria pass |
-| `/mp:brainstorm` | Creative thought partner session |
-| `/mp:meta-prompt` | Generate optimized prompts |
-| `/mp:multi` | Force multi-provider execution (manual override) |
-
-### Planning & Docs
-| Command | Description |
-|---------|-------------|
-| `/mp:prd` | AI-optimized PRD writing |
-| `/mp:prd-score` | Score PRDs against 100-point framework |
-| `/mp:plan` | Strategic plan builder (doesn't execute) |
-| `/mp:docs` | Export to PPTX, DOCX, PDF |
-| `/mp:pipeline` | Content analysis and pattern extraction |
-| `/mp:extract` | Design system and product reverse-engineering |
+| `/mp:test` | Run tests and get structured output |
 
 ### Project Lifecycle
 | Command | Description |
 |---------|-------------|
 | `/mp:status` | Project progress dashboard |
-| `/mp:resume` | Restore context from previous session |
-| `/mp:ship` | Finalize with multi-AI validation |
-| `/mp:issues` | Cross-session issue tracking |
-| `/mp:rollback` | Checkpoint recovery (git tags) |
 
-### Mode & Configuration
+### Configuration
 | Command | Description |
 |---------|-------------|
-| `/mp:km` | Toggle Knowledge Work mode |
-| `/mp:dev` | Switch to Dev Work mode |
-| `/mp:model-config` | Configure AI provider models at runtime |
-| `/mp:persona` | Run a specific persona or list configured personas |
+| `/mp:route` | Debug smart routing decisions |
+| `/mp:persona` | Run a specific persona |
 | `/mp:setup` | Provider setup wizard |
-| `/mp:sys-setup` | System configuration status |
-
-### Phase Aliases
-| Command | Same as |
-|---------|---------|
-| `/mp:probe` | `/mp:discover` |
-| `/mp:grasp` | `/mp:define` |
-| `/mp:tangle` | `/mp:develop` |
-| `/mp:ink` | `/mp:deliver` |
 
 ---
 
@@ -534,8 +416,7 @@ Run `/plugin` > Installed > update, or reinstall:
 - [Command Reference](docs/COMMAND-REFERENCE.md) - All commands in detail
 - [Architecture](docs/ARCHITECTURE.md) - How it works internally
 - [Plugin Architecture](docs/PLUGIN-ARCHITECTURE.md) - Plugin structure
-- [Native Integration](docs/NATIVE-INTEGRATION.md) - Claude Code TaskCreate/TaskUpdate
-- [Debug Mode](docs/DEBUG_MODE.md) - Troubleshooting workflows
+- [Debug Mode](docs/CLI-REFERENCE.md#debugging) - Troubleshooting workflows
 - [Full Changelog](CHANGELOG.md) - Complete version history
 
 ---
@@ -562,5 +443,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 MIT - see [LICENSE](LICENSE)
 
 <p align="center">
-  <a href="https://github.com/nyldn">nyldn</a> | MIT License | <a href="https://github.com/gitbruce/multipowers/issues">Report Issues</a>
+  <a href="https://github.com/gitbruce">gitbruce</a> | MIT License | <a href="https://github.com/gitbruce/multipowers/issues">Report Issues</a>
 </p>
