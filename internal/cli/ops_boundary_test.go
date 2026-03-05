@@ -16,6 +16,8 @@ func TestMPShowsDeprecationForTestCoverageAndNoShellValidate(t *testing.T) {
 		{name: "test", args: []string{"test", "run", "--dir", d, "--json"}, hint: "mp-devx --action suite"},
 		{name: "coverage", args: []string{"coverage", "check", "--dir", d, "--json"}, hint: "mp-devx --action coverage"},
 		{name: "validate_no_shell", args: []string{"validate", "--type", "no-shell", "--dir", d, "--json"}, hint: "mp-devx --action validate-runtime"},
+		{name: "validate_strict_no_shell", args: []string{"validate", "--strict-no-shell", "--dir", d, "--json"}, hint: "mp-devx --action validate-runtime"},
+		{name: "cost_report", args: []string{"cost", "report", "--dir", d, "--json"}, hint: "mp-devx --action cost-report"},
 	}
 
 	for _, tc := range cases {

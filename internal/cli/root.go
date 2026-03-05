@@ -174,15 +174,8 @@ func Run(args []string) int {
 			rep := cost.EstimateFromPrompt(effectivePrompt)
 			return respond(api.Response{Status: "ok", Data: map[string]any{"estimate": rep}})
 		case "report":
-			dirToRead := strings.TrimSpace(*metricsDir)
-			if dirToRead == "" {
-				dirToRead = filepath.Join(absDir, ".multipowers", "metrics")
-			}
-			rep, err := cost.BuildReport(dirToRead)
-			if err != nil {
-				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
-			}
-			return respond(api.Response{Status: "ok", Data: map[string]any{"report": rep}})
+			_ = metricsDir
+			return migrationBlocked("mp cost report moved to mp-devx --action cost-report")
 		default:
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown cost subcommand: use estimate|report"})
 		}

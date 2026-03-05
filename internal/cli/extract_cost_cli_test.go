@@ -3,7 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/gitbruce/multipowers/pkg/api"
@@ -41,19 +41,14 @@ func TestExtractCommandFromPrompt(t *testing.T) {
 
 func TestCostReportCommand(t *testing.T) {
 	d := t.TempDir()
-	metricsDir := filepath.Join(d, "metrics")
-	if err := os.MkdirAll(metricsDir, 0o755); err != nil {
-		t.Fatal(err)
+	code, resp := runCLIJSON(t, []string{"cost", "report", "--dir", d, "--json"})
+	if code == 0 {
+		t.Fatalf("expected non-zero exit, got %d", code)
 	}
-	file := filepath.Join(metricsDir, "model_outputs.2026-03-05.jsonl")
-	if err := os.WriteFile(file, []byte("{\"model\":\"gpt-5.3-codex\",\"tokens_input\":10,\"tokens_output\":5}\n"), 0o644); err != nil {
-		t.Fatal(err)
+	if resp.Status != "blocked" {
+		t.Fatalf("expected status blocked, got %s", resp.Status)
 	}
-	code, resp := runCLIJSON(t, []string{"cost", "report", "--dir", d, "--metrics-dir", metricsDir, "--json"})
-	if code != 0 {
-		t.Fatalf("expected zero exit, got %d (msg=%s)", code, resp.Message)
-	}
-	if resp.Status != "ok" {
-		t.Fatalf("expected status ok, got %s", resp.Status)
+	if !strings.Contains(resp.Message, "mp-devx --action cost-report") {
+		t.Fatalf("expected migration message, got %q", resp.Message)
 	}
 }
