@@ -10,6 +10,10 @@ import (
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/gitbruce/multipowers/internal/cost"
+	"github.com/gitbruce/multipowers/internal/validation"
+	"github.com/gitbruce/multipowers/internal/workflows"
 )
 
 type Runner struct {
@@ -114,6 +118,18 @@ func (r Runner) BenchmarkPreflightP95(root string, iterations int) (time.Duratio
 	sort.Slice(durations, func(i, j int) bool { return durations[i] < durations[j] })
 	p95Idx := int(float64(len(durations)-1) * 0.95)
 	return time.Duration(durations[p95Idx]) * time.Millisecond, nil
+}
+
+func (r Runner) Coverage(root string, threshold float64) workflows.CoverageResult {
+	return workflows.CoverageCheck(root, threshold)
+}
+
+func (r Runner) ValidateRuntimeNoShell(root string) (validation.NoShellRuntimeResult, error) {
+	return validation.ScanNoShellRuntime(root)
+}
+
+func (r Runner) CostReport(metricsDir string) (cost.Report, error) {
+	return cost.BuildReport(metricsDir)
 }
 
 func WriteBenchmarkReport(path string, p95 time.Duration, thresholdMs int64) error {

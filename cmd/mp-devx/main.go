@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -9,8 +10,11 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gitbruce/multipowers/internal/cost"
 	"github.com/gitbruce/multipowers/internal/devx"
 	"github.com/gitbruce/multipowers/internal/policy"
+	"github.com/gitbruce/multipowers/internal/validation"
+	"github.com/gitbruce/multipowers/internal/workflows"
 )
 
 type devxRunner interface {
@@ -18,6 +22,9 @@ type devxRunner interface {
 	RunParity(root string) error
 	BenchmarkPreflightP95(root string, iterations int) (time.Duration, error)
 	ValidateSHToGoMap(mapPath string) error
+	Coverage(root string, threshold float64) workflows.CoverageResult
+	ValidateRuntimeNoShell(root string) (validation.NoShellRuntimeResult, error)
+	CostReport(metricsDir string) (cost.Report, error)
 }
 
 var runnerFactory = func() devxRunner { return devx.Runner{} }
@@ -34,8 +41,10 @@ func run(args []string, stdout, stderr io.Writer) int {
 	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime")
 	configDir := fs.String("config-dir", "config", "config directory for policy source")
 	outputDir := fs.String("output-dir", ".claude-plugin/runtime", "output directory for compiled artifacts")
+	metricsDir := fs.String("metrics-dir", ".multipowers/metrics", "metrics directory for cost report")
 	mapPath := fs.String("map", "docs/plans/evidence/no-shell-runtime/mapping/sh-to-go-map.csv", "sh-to-go map path")
 	threshold := fs.Int64("threshold-ms", 50, "benchmark threshold p95 in milliseconds")
+	coverageThreshold := fs.Float64("coverage-threshold", 0, "coverage threshold percentage")
 
 	if err := fs.Parse(args); err != nil {
 		return 2
@@ -76,6 +85,47 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		fmt.Fprintln(stdout, "sh->go map ok")
+	case "coverage":
+		res := r.Coverage(".", *coverageThreshold)
+		if err := json.NewEncoder(stdout).Encode(map[string]any{
+			"status":       res.Status,
+			"coverage_pct": res.CoveragePct,
+			"threshold":    res.Threshold,
+			"error":        res.Error,
+		}); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if res.Status == "failed" || res.Status == "error" {
+			return 1
+		}
+	case "validate-runtime":
+		res, err := r.ValidateRuntimeNoShell(".")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if err := json.NewEncoder(stdout).Encode(map[string]any{
+			"valid":         res.Valid,
+			"checked_files": res.CheckedFiles,
+			"violations":    res.Violations,
+		}); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if !res.Valid {
+			return 1
+		}
+	case "cost-report":
+		rep, err := r.CostReport(*metricsDir)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if err := json.NewEncoder(stdout).Encode(rep); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
 	case "build-policy":
 		if err := runBuildPolicy(*configDir, *outputDir, stdout); err != nil {
 			fmt.Fprintln(stderr, err)
