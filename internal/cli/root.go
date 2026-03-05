@@ -87,6 +87,16 @@ func Run(args []string) int {
 		return 0
 	}
 
+	migrationBlocked := func(msg string) int {
+		return respond(api.Response{
+			Status:      "blocked",
+			Action:      "ask_user_questions",
+			ErrorCode:   app.ErrInvalidArgument,
+			Message:     msg,
+			Remediation: "use mp-devx for ops/devx commands",
+		})
+	}
+
 	exec := func(name string, fn func(string) map[string]any) int {
 		r := app.RunSpecPipeline(absDir, *autoInit, []string{name, "all"}, func() api.Response {
 			st := providers.Degrade(name, providers.AvailableProviders())
@@ -281,14 +291,7 @@ func Run(args []string) int {
 				}
 				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "workspace", "valid": true}})
 			case "no-shell":
-				res, err := validation.ScanNoShellRuntime(absDir)
-				if err != nil {
-					return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
-				}
-				if !res.Valid {
-					return respond(api.Response{Status: "blocked", ErrorCode: app.ErrInvalidArgument, Message: "no-shell validation failed", Data: map[string]any{"no_shell": res}})
-				}
-				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "no-shell", "valid": true}})
+				return migrationBlocked("mp validate --type no-shell moved to mp-devx --action validate-runtime")
 			case "tdd-env":
 				// TDD environment validation
 				return respond(api.Response{Status: "ok", Data: map[string]any{"validation_type": "tdd-env", "valid": true, "message": "tdd-env validation not yet implemented"}})
@@ -301,14 +304,7 @@ func Run(args []string) int {
 			}
 		}
 		if *strictNoShell {
-			res, err := validation.ScanNoShellRuntime(absDir)
-			if err != nil {
-				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
-			}
-			if !res.Valid {
-				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "strict no-shell validation failed", Data: map[string]any{"strict_no_shell": res}})
-			}
-			return respond(api.Response{Status: "ok", Data: map[string]any{"strict_no_shell": res}})
+			return migrationBlocked("mp validate --strict-no-shell moved to mp-devx --action validate-runtime")
 		}
 		res := validation.EnsureTargetWorkspace(absDir)
 		if !res.Valid {
@@ -537,50 +533,12 @@ func Run(args []string) int {
 		if sub != "run" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown test subcommand: use run"})
 		}
-		// Run tests and return structured result
-		result := workflows.TestRun(absDir)
-		status := "ok"
-		if result.Status == "failed" {
-			status = "blocked"
-		} else if result.Status == "error" {
-			status = "error"
-		}
-		return respond(api.Response{
-			Status:    status,
-			Message:   result.Status,
-			ErrorCode: result.Error,
-			Data: map[string]any{
-				"command":      result.Command,
-				"status":       result.Status,
-				"passed":       result.Passed,
-				"failed":       result.Failed,
-				"skipped":      result.Skipped,
-				"total":        result.Total,
-				"failed_tests": result.FailedTests,
-			},
-		})
+		return migrationBlocked("mp test run moved to mp-devx --action suite")
 	case "coverage":
 		if sub != "check" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown coverage subcommand: use check"})
 		}
-		// Check coverage and return structured result
-		result := workflows.CoverageCheck(absDir, 0)
-		status := "ok"
-		if result.Status == "failed" {
-			status = "blocked"
-		} else if result.Status == "error" {
-			status = "error"
-		}
-		return respond(api.Response{
-			Status:    status,
-			Message:   result.Status,
-			ErrorCode: result.Error,
-			Data: map[string]any{
-				"command":      result.Command,
-				"coverage_pct": result.CoveragePct,
-				"packages":     result.Packages,
-			},
-		})
+		return migrationBlocked("mp coverage check moved to mp-devx --action coverage")
 	case "config":
 		switch sub {
 		case "show-model-routing":
