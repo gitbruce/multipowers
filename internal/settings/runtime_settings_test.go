@@ -45,16 +45,6 @@ func TestShowModelRoutingSetting(t *testing.T) {
 		}
 	})
 
-	t.Run("load runtime settings", func(t *testing.T) {
-		if err := SetShowModelRouting(tmpDir, false); err != nil {
-			t.Fatal(err)
-		}
-		s := LoadRuntimeSettings(tmpDir)
-		if s.ShowModelRouting {
-			t.Error("expected ShowModelRouting to be false")
-		}
-	})
-
 	t.Run("all settings map", func(t *testing.T) {
 		if err := SetShowModelRouting(tmpDir, true); err != nil {
 			t.Fatal(err)

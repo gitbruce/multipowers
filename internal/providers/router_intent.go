@@ -4,17 +4,17 @@ import "fmt"
 
 // IntentRoutingResult represents the result of intent-based provider routing
 type IntentRoutingResult struct {
-	Intent              string   `json:"intent"`
-	ProviderPolicy      string   `json:"provider_policy,omitempty"`
-	Mode                string   `json:"mode"`
-	AvailableProviders  []string `json:"available_providers"`
-	SelectedProviders   []string `json:"selected_providers"`
-	MinimumForSuccess   int      `json:"minimum_for_success"`
-	Warnings            []string `json:"warnings,omitempty"`
-	Error               string   `json:"error,omitempty"`
-	Reason              string   `json:"reason,omitempty"`
-	FallbackEnabled     bool     `json:"fallback_enabled"`
-	SingleProviderMode  bool     `json:"single_provider_mode"`
+	Intent             string   `json:"intent"`
+	ProviderPolicy     string   `json:"provider_policy,omitempty"`
+	Mode               string   `json:"mode"`
+	AvailableProviders []string `json:"available_providers"`
+	SelectedProviders  []string `json:"selected_providers"`
+	MinimumForSuccess  int      `json:"minimum_for_success"`
+	Warnings           []string `json:"warnings,omitempty"`
+	Error              string   `json:"error,omitempty"`
+	Reason             string   `json:"reason,omitempty"`
+	FallbackEnabled    bool     `json:"fallback_enabled"`
+	SingleProviderMode bool     `json:"single_provider_mode"`
 }
 
 // RouteIntent routes to appropriate providers based on intent
@@ -88,34 +88,4 @@ func formatProviders(providers []string) string {
 		result += p
 	}
 	return result
-}
-
-// IsValidIntent checks if an intent is recognized
-func IsValidIntent(intent string) bool {
-	validIntents := map[string]bool{
-		"discover": true,
-		"research": true,
-		"define":   true,
-		"plan":     true,
-		"develop":  true,
-		"build":    true,
-		"deliver":  true,
-		"review":   true,
-		"debate":   true,
-		"embrace":  true,
-		"multi":    true,
-	}
-	return validIntents[intent]
-}
-
-// AllValidIntents returns all recognized intents
-func AllValidIntents() []string {
-	return []string{
-		"discover", "research",
-		"define", "plan",
-		"develop", "build",
-		"deliver", "review",
-		"debate",
-		"embrace", "multi",
-	}
 }

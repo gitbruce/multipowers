@@ -82,25 +82,6 @@ func TestValidateByType_InvalidType(t *testing.T) {
 	}
 }
 
-func TestAllValidationTypes(t *testing.T) {
-	types := AllValidationTypes()
-	if len(types) != 5 {
-		t.Errorf("expected 5 validation types, got %d", len(types))
-	}
-	expected := map[ValidationType]bool{
-		TypeWorkspace: true,
-		TypeNoShell:   true,
-		TypeTDDEnv:    true,
-		TypeTestRun:   true,
-		TypeCoverage:  true,
-	}
-	for _, vt := range types {
-		if !expected[vt] {
-			t.Errorf("unexpected validation type: %s", vt)
-		}
-	}
-}
-
 func TestTypedResult_HasDetails(t *testing.T) {
 	d := t.TempDir()
 	res := ValidateByType(d, TypeTDDEnv)

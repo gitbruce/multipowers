@@ -37,7 +37,7 @@ func TestJSONLStore(t *testing.T) {
 		t.Fatalf("path = %q, want %q", path, wantPath)
 	}
 
-	if err := store.AppendOnly("runs", map[string]any{"run_id": "run-2"}); err != nil {
+	if _, err := store.Append("runs", map[string]any{"run_id": "run-2"}); err != nil {
 		t.Fatalf("append second line: %v", err)
 	}
 

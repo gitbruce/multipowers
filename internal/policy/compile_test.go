@@ -224,13 +224,13 @@ func TestCompileGoldenFile(t *testing.T) {
 		}
 	}
 
-	policy, err := Compile(cfg)
+	compiled, err := Compile(cfg)
 	if err != nil {
 		t.Fatalf("Compile failed: %v", err)
 	}
 
 	// Generate JSON
-	jsonBytes, err := policy.ToJSON()
+	jsonBytes, err := compiled.ToJSON()
 	if err != nil {
 		t.Fatalf("ToJSON failed: %v", err)
 	}
@@ -282,7 +282,7 @@ func TestCompileGoldenFile(t *testing.T) {
 	}
 }
 
-func TestCompileToJSON(t *testing.T) {
+func TestCompileAndToJSON(t *testing.T) {
 	cfg := &SourceConfig{
 		Workflows: &WorkflowsSourceConfig{
 			Version: "1",
@@ -306,22 +306,26 @@ func TestCompileToJSON(t *testing.T) {
 		},
 	}
 
-	jsonBytes, err := CompileToJSON(cfg)
+	compiled, err := Compile(cfg)
 	if err != nil {
-		t.Fatalf("CompileToJSON failed: %v", err)
+		t.Fatalf("Compile failed: %v", err)
+	}
+	jsonBytes, err := compiled.ToJSON()
+	if err != nil {
+		t.Fatalf("ToJSON failed: %v", err)
 	}
 
 	// Verify it's valid JSON
-	var policy RuntimePolicy
-	if err := json.Unmarshal(jsonBytes, &policy); err != nil {
+	var runtimePolicy RuntimePolicy
+	if err := json.Unmarshal(jsonBytes, &runtimePolicy); err != nil {
 		t.Fatalf("invalid JSON output: %v", err)
 	}
 
 	// Verify content
-	if policy.Version != "1" {
-		t.Errorf("expected version 1, got %s", policy.Version)
+	if runtimePolicy.Version != "1" {
+		t.Errorf("expected version 1, got %s", runtimePolicy.Version)
 	}
-	if len(policy.Workflows) != 1 {
-		t.Errorf("expected 1 workflow, got %d", len(policy.Workflows))
+	if len(runtimePolicy.Workflows) != 1 {
+		t.Errorf("expected 1 workflow, got %d", len(runtimePolicy.Workflows))
 	}
 }

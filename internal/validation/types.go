@@ -98,8 +98,8 @@ func validateTDDEnv(projectDir string) TypedResult {
 		}
 	}
 	return TypedResult{
-		Type:   TypeTDDEnv,
-		Valid:  true,
+		Type:  TypeTDDEnv,
+		Valid: true,
 		Details: map[string]any{
 			"test_framework":  "go test",
 			"coverage_tool":   "go tool cover",
@@ -119,8 +119,8 @@ func validateTestRun(projectDir string) TypedResult {
 		}
 	}
 	return TypedResult{
-		Type:   TypeTestRun,
-		Valid:  true,
+		Type:  TypeTestRun,
+		Valid: true,
 		Details: map[string]any{
 			"command": "go test ./...",
 			"status":  "ready",
@@ -139,22 +139,11 @@ func validateCoverage(projectDir string) TypedResult {
 		}
 	}
 	return TypedResult{
-		Type:   TypeCoverage,
-		Valid:  true,
+		Type:  TypeCoverage,
+		Valid: true,
 		Details: map[string]any{
 			"command": "go test -cover ./...",
 			"status":  "ready",
 		},
-	}
-}
-
-// AllValidationTypes returns all supported validation types
-func AllValidationTypes() []ValidationType {
-	return []ValidationType{
-		TypeWorkspace,
-		TypeNoShell,
-		TypeTDDEnv,
-		TypeTestRun,
-		TypeCoverage,
 	}
 }

@@ -33,13 +33,6 @@ type RuntimeSettings struct {
 	ShowModelRouting bool `json:"show_model_routing"`
 }
 
-// LoadRuntimeSettings loads all runtime settings from state
-func LoadRuntimeSettings(projectDir string) RuntimeSettings {
-	return RuntimeSettings{
-		ShowModelRouting: ShowModelRouting(projectDir),
-	}
-}
-
 // AllSettings returns all settings as a map for metadata
 func AllSettings(projectDir string) map[string]any {
 	return map[string]any{

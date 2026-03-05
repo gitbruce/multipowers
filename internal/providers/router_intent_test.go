@@ -69,29 +69,6 @@ func TestRouteIntent_ProviderPolicy(t *testing.T) {
 	}
 }
 
-func TestIsValidIntent(t *testing.T) {
-	validIntents := []string{"discover", "develop", "deliver", "debate", "embrace"}
-	for _, intent := range validIntents {
-		if !IsValidIntent(intent) {
-			t.Errorf("expected %s to be valid intent", intent)
-		}
-	}
-
-	invalidIntents := []string{"unknown", "invalid", ""}
-	for _, intent := range invalidIntents {
-		if IsValidIntent(intent) {
-			t.Errorf("expected %s to be invalid intent", intent)
-		}
-	}
-}
-
-func TestAllValidIntents(t *testing.T) {
-	intents := AllValidIntents()
-	if len(intents) == 0 {
-		t.Error("expected non-empty list of valid intents")
-	}
-}
-
 func TestFormatProviders(t *testing.T) {
 	tests := []struct {
 		providers []string

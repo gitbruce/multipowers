@@ -2,6 +2,7 @@ package orchestration
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -188,33 +189,17 @@ func classifyError(err error) string {
 
 	errMsg := err.Error()
 	switch {
-	case containsString(errMsg, "timeout") || containsString(errMsg, "deadline"):
+	case strings.Contains(errMsg, "timeout") || strings.Contains(errMsg, "deadline"):
 		return "timeout"
-	case containsString(errMsg, "rate limit") || containsString(errMsg, "429"):
+	case strings.Contains(errMsg, "rate limit") || strings.Contains(errMsg, "429"):
 		return "rate_limit"
-	case containsString(errMsg, "context canceled") || containsString(errMsg, "canceled"):
+	case strings.Contains(errMsg, "context canceled") || strings.Contains(errMsg, "canceled"):
 		return "canceled"
-	case containsString(errMsg, "connection") || containsString(errMsg, "network"):
+	case strings.Contains(errMsg, "connection") || strings.Contains(errMsg, "network"):
 		return "network"
 	default:
 		return "unknown"
 	}
-}
-
-// containsString checks if s contains substr
-func containsString(s, substr string) bool {
-	if len(substr) == 0 {
-		return true
-	}
-	if len(s) < len(substr) {
-		return false
-	}
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
 
 // SynthesisInput represents input for synthesis

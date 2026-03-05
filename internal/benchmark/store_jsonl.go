@@ -42,12 +42,6 @@ func NewJSONLStore(root string, now func() time.Time) *JSONLStore {
 	}
 }
 
-// AppendOnly appends one JSON object to <stream>.<YYYY-MM-DD>.jsonl.
-func (s *JSONLStore) AppendOnly(stream string, record any) error {
-	_, err := s.Append(stream, record)
-	return err
-}
-
 // Append appends one JSON object and returns the target file path.
 func (s *JSONLStore) Append(stream string, record any) (string, error) {
 	if s == nil {

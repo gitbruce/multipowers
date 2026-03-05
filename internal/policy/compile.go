@@ -94,15 +94,6 @@ func Compile(cfg *SourceConfig) (*RuntimePolicy, error) {
 	return policy, nil
 }
 
-// CompileToJSON compiles and returns JSON bytes
-func CompileToJSON(cfg *SourceConfig) ([]byte, error) {
-	policy, err := Compile(cfg)
-	if err != nil {
-		return nil, err
-	}
-	return policy.ToJSON()
-}
-
 // computeChecksum generates a deterministic checksum of the policy content
 func computeChecksum(policy *RuntimePolicy) (string, error) {
 	// Create a deterministic representation for hashing

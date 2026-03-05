@@ -66,21 +66,3 @@ func TestCoverageCheck_ThresholdCheck(t *testing.T) {
 		t.Error("expected failed status when coverage below threshold")
 	}
 }
-
-func TestCoverageSimple_ReturnsMap(t *testing.T) {
-	// Skip in short mode to avoid actually running tests
-	if testing.Short() {
-		t.Skip("skipping test that runs actual tests in short mode")
-	}
-	// This test just verifies the function returns a valid map structure
-	result := CoverageSimple(".")
-	if result == nil {
-		t.Error("expected non-nil result")
-	}
-	if _, ok := result["command"]; !ok {
-		t.Error("expected 'command' key in result")
-	}
-	if _, ok := result["coverage_pct"]; !ok {
-		t.Error("expected 'coverage_pct' key in result")
-	}
-}

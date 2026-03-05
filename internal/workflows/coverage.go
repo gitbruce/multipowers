@@ -125,15 +125,3 @@ func parseCoverageOutput(result CoverageResult, output []byte) CoverageResult {
 
 	return result
 }
-
-// CoverageSimple returns a simple coverage result (for placeholder use)
-func CoverageSimple(projectDir string) map[string]any {
-	result := CoverageCheck(projectDir, 0)
-	return map[string]any{
-		"command":      result.Command,
-		"status":       result.Status,
-		"coverage_pct": result.CoveragePct,
-		"packages":     result.Packages,
-		"error":        result.Error,
-	}
-}
