@@ -66,7 +66,7 @@
 | `status.md` | `.../commands/status.md` | `Equivalent` | - |
 | `summarize.md` | `.../commands/summarize.md` | `Equivalent` | - |
 | `task.md` | `.../commands/task.md` | `Equivalent` | - |
-| `test.md` | `.../commands/test.md` | `Go-Customized (Hook)` | 集成了 `run-all` 与 Go 的覆盖率统计。 |
+| `test.md` | `.../commands/test.md` | `Go-Customized (Hook)` | 运行时入口弱化，测试/覆盖率执行收敛至 `mp-devx` 运维命令。 |
 | `trace.md` | `.../commands/trace.md` | `Equivalent` | - |
 
 ---

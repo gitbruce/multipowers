@@ -58,7 +58,9 @@ Mutating commands (Develop, Deliver) MUST use `internal/orchestration/worktree_s
 Before releasing a new version:
 - [ ] Run `make test` - Ensure all Go unit tests pass.
 - [ ] Run `make parity` - Verify plugin namespace is still `"mp"`.
-- [ ] Run `make test-coverage` - Verify code coverage hasn't regressed.
+- [ ] Run `go run ./cmd/mp-devx -action coverage` - Verify coverage gate status.
+- [ ] Run `go run ./cmd/mp-devx -action validate-runtime` - Verify no-shell runtime references.
+- [ ] Run `go run ./cmd/mp-devx -action cost-report -metrics-dir .multipowers/metrics` - Verify metrics report can be generated.
 - [ ] Check version sync in `plugin.json` and `package.json`.
 
 ---

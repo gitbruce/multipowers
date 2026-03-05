@@ -42,7 +42,7 @@
 | 生命周期 Hook | `Migrated (Runtime)` | `internal/hooks/*` 统一事件入口，替代多数 `hooks/*.sh`。 |
 | 调度器（`scripts/scheduler/*.sh`） | `Deferred-By-Product` | Go 侧 `internal/scheduler` 尚未落地；现阶段并未承接 v8.15 的调度域。 |
 | 提取能力（`scripts/extract/core-extractor.sh`） | `Migrated (MVP)` | 已落地 `internal/extract` 与 `mp extract` 命令，并有 CLI/单测覆盖。 |
-| 成本可见性（预算估算/报告） | `Migrated (MVP)` | 已落地 `internal/cost` 与 `mp cost estimate/report`。 |
+| 成本可见性（预算估算/报告） | `Migrated (MVP)` | 已落地 `internal/cost`，运行时保留 `mp cost estimate`，运维报表迁移到 `mp-devx --action cost-report`。 |
 | 外部 URL 输入安全包装 | `Migrated (MVP)` | `internal/inputguard` + `mp extract --url` 输入净化链路已上线。 |
 | Checkpoint 恢复 | `Migrated (MVP)` | `internal/checkpoint` + `mp checkpoint` 与 `orchestrate --resume` 已上线。 |
 | Shell 测试迁移 | `Gap-Needs-Migration` | Go 测试体系已建立，但大量原 Shell 回归脚本尚未形成等价 Go 用例。 |
@@ -73,7 +73,7 @@
 
 | main 能力 | main 代表函数 | Go 现状 | 判定 | 建议 |
 |---|---|---|---|---|
-| 成本估算/计费提示 | `get_model_pricing` `estimate_workflow_cost` `generate_usage_report` | 已提供 `mp cost estimate/report`，由 `internal/cost/*` 提供估算与指标汇总 | `Migrated (MVP)` | 仍可在后续补充 provider 细粒度定价模型。 |
+| 成本估算/计费提示 | `get_model_pricing` `estimate_workflow_cost` `generate_usage_report` | 已提供 `mp cost estimate`（运行时）与 `mp-devx --action cost-report`（运维报表），由 `internal/cost/*` 提供能力 | `Migrated (MVP)` | 仍可在后续补充 provider 细粒度定价模型。 |
 | Provider 锁定与历史回避 | `lock_provider` `read_provider_history` | 有 fallback/policy 与 `providers.Degrade`，但无 lockout history 语义 | `Replaced-Better (Behavior Changed)` | 当前策略更简单可测；若需“失败 provider 冷却”再增补。 |
 | 语义缓存/收敛裁剪 | `check_cache_semantic` `save_to_cache_semantic` `check_convergence` | 有 `synthesis_progressive` 去重，但无语义缓存层 | `Gap-Needs-Migration` | 高负载场景建议补轻量缓存（P2）。 |
 | Agent checkpoint 恢复 | `save_agent_checkpoint` `load_agent_checkpoint` | 已提供 `internal/checkpoint/*` 与 `mp checkpoint save|get|delete`，并支持 `orchestrate --resume` | `Migrated (MVP)` | 后续可补跨版本 checkpoint 兼容策略。 |
