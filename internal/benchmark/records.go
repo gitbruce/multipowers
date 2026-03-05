@@ -43,6 +43,7 @@ type TaskFingerprintRecord struct {
 type JudgeScoreRecord struct {
 	RunID             string         `json:"run_id"`
 	JudgedModel       string         `json:"judged_model"`
+	Signature         string         `json:"signature,omitempty"`
 	JudgeModel        string         `json:"judge_model"`
 	DimensionScores   map[string]int `json:"dimension_scores"`
 	WeightedScore     float64        `json:"weighted_score"`

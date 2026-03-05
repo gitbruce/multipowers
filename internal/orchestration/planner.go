@@ -3,7 +3,10 @@ package orchestration
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
+
+	"github.com/gitbruce/multipowers/internal/benchmark"
 )
 
 // FlowPhaseMapping maps workflow names to their phase sequences
@@ -37,11 +40,42 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 	// Build phase plans
 	phasePlans := make([]PhasePlan, 0, len(phases))
 	var sourceRefs []ConfigSourceRef
+	codeIntent := benchmark.ClassifyCodeIntent(benchmark.IntentRequest{
+		WhitelistHits:       extractCodeIntentHits(prompt, global.BenchmarkMode.CodeIntent.Whitelist),
+		HasLLMSemantic:      false,
+		LLMDecisionPriority: true,
+	})
+	benchmarkActive := shouldApplyBenchmarkProfile(global, workflowName, codeIntent.CodeRelated)
+	similaritySignature := benchmark.BuildSimilaritySignature(workflowName, codeIntent.WhitelistHits, "", "")
+	historyOverrideModel := ""
+	historyOverrideSamples := 0
+	if global.SmartRouting.Enabled && global.SmartRouting.OverrideExistingRoutingWhenOn {
+		historyRecords, err := benchmark.LoadHistoryJudgeRecords(global.BenchmarkMode.Storage.Root)
+		if err == nil {
+			if model, samples, ok := benchmark.SelectBestModelByHistory(historyRecords, similaritySignature, global.SmartRouting.MinSamplesPerModel); ok {
+				historyOverrideModel = model
+				historyOverrideSamples = samples
+			}
+		}
+	}
+	availableModels := collectConfiguredModels(global)
 
 	for _, phaseName := range phases {
 		phaseDefault, hasDefault := global.PhaseDefaults[phaseName]
 		if !hasDefault {
 			phaseDefault = PhaseDefault{Primary: "default-agent"}
+		}
+		if historyOverrideModel != "" {
+			phaseDefault = PhaseDefault{Primary: historyOverrideModel, Agents: []string{historyOverrideModel}}
+		}
+
+		candidates := defaultCandidatesForPhase(phaseDefault)
+		if benchmarkActive {
+			resolvedCandidates, _, _ := ResolveModelCandidates(global, candidates, availableModels, codeIntent.CodeRelated)
+			if len(resolvedCandidates) > 0 {
+				phaseDefault.Agents = resolvedCandidates
+				phaseDefault.Primary = resolvedCandidates[0]
+			}
 		}
 
 		// Check for workflow override
@@ -74,6 +108,9 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 		}
 
 		phasePlan := BuildPhasePlan(phaseName, phaseDefault, override, prompt, taskOverride...)
+		for i := range phasePlan.Steps {
+			phasePlan.Steps[i].BenchmarkSignature = similaritySignature
+		}
 		phasePlans = append(phasePlans, phasePlan)
 
 		// Track source ref
@@ -116,8 +153,105 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 			SourceRefs:     sourceRefs,
 		},
 	}
+	plan.Metadata.SourceRefs = append(plan.Metadata.SourceRefs,
+		ConfigSourceRef{Field: "benchmark_mode.execution_profile", Source: "global"},
+		ConfigSourceRef{Field: "smart_routing.enabled", Source: "global"},
+	)
+	_ = historyOverrideSamples // retained for future metadata expansion without changing behavior
 
 	return plan, nil
+}
+
+func collectConfiguredModels(global *Config) []string {
+	if global == nil {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 32)
+	appendModel := func(v string) {
+		norm := strings.TrimSpace(v)
+		if norm == "" {
+			return
+		}
+		if _, ok := seen[norm]; ok {
+			return
+		}
+		seen[norm] = struct{}{}
+		out = append(out, norm)
+	}
+	for _, phase := range global.PhaseDefaults {
+		appendModel(phase.Primary)
+		for _, a := range phase.Agents {
+			appendModel(a)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+func defaultCandidatesForPhase(phaseDefault PhaseDefault) []string {
+	if len(phaseDefault.Agents) > 0 {
+		return append([]string{}, phaseDefault.Agents...)
+	}
+	if strings.TrimSpace(phaseDefault.Primary) != "" {
+		return []string{phaseDefault.Primary}
+	}
+	return nil
+}
+
+func shouldApplyBenchmarkProfile(cfg *Config, workflowName string, codeRelated bool) bool {
+	if cfg == nil || !cfg.BenchmarkMode.Enabled || !cfg.BenchmarkMode.ExecutionProfile.Enabled {
+		return false
+	}
+	if cfg.BenchmarkMode.ExecutionProfile.RequireCodeIntent && !codeRelated {
+		return false
+	}
+	whitelist := cfg.BenchmarkMode.ExecutionProfile.CommandWhitelist
+	if len(whitelist) == 0 {
+		return true
+	}
+	for _, c := range whitelist {
+		if strings.EqualFold(strings.TrimSpace(c), strings.TrimSpace(workflowName)) {
+			return true
+		}
+	}
+	return false
+}
+
+func extractCodeIntentHits(prompt string, cfg BenchmarkCodeIntentWhitelist) []string {
+	text := strings.ToLower(prompt)
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 8)
+	add := func(v string) {
+		if _, ok := seen[v]; ok {
+			return
+		}
+		seen[v] = struct{}{}
+		out = append(out, v)
+	}
+
+	combined := append([]string{}, cfg.TaskTypes...)
+	combined = append(combined, cfg.TechFeatures...)
+	combined = append(combined, cfg.Frameworks...)
+	combined = append(combined, cfg.Languages...)
+	for _, token := range combined {
+		norm := strings.ToLower(strings.TrimSpace(token))
+		if norm == "" {
+			continue
+		}
+		if strings.Contains(text, norm) {
+			add(norm)
+		}
+	}
+
+	// Built-in fallback vocabulary for code intent.
+	fallback := []string{"code", "bug", "fix", "test", "refactor", "api", "golang", "go ", "python", "typescript", "build"}
+	for _, token := range fallback {
+		if strings.Contains(text, token) {
+			add(strings.TrimSpace(token))
+		}
+	}
+	return out
 }
 
 // BuildPhasePlan creates a phase plan with steps
@@ -158,7 +292,7 @@ func BuildPhasePlan(name string, defaultConfig PhaseDefault, override *PhaseOver
 	if len(customPerspectives) > 0 {
 		parallel = len(customPerspectives) > 1
 	}
-	
+
 	if len(workflowOverride) > 0 && workflowOverride[0] != nil && workflowOverride[0].Parallel != nil {
 		if workflowOverride[0].Parallel.Enabled != nil {
 			parallel = *workflowOverride[0].Parallel.Enabled
@@ -199,7 +333,7 @@ func BuildStepPlansWithOverrides(phase string, agents []string, prompt string, o
 // BuildStepPlans creates step plans from a list of agents with multi-perspective decomposition
 func BuildStepPlans(phase string, agents []string, prompt string) []StepPlan {
 	steps := make([]StepPlan, len(agents))
-	
+
 	// Default perspectives for specific phases
 	perspectives := map[string][]string{
 		"discover": {

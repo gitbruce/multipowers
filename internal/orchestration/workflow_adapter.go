@@ -19,6 +19,9 @@ func NewWorkflowAdapter(config *Config, dispatcher Dispatcher) *WorkflowAdapter 
 		MaxWorkers: getMaxWorkers(config),
 	}
 	executor := NewExecutor(executorConfig, dispatcher)
+	if config != nil {
+		executor.ConfigureBenchmark(config.BenchmarkMode)
+	}
 	var lifecycle *LifecycleManager
 	if config != nil {
 		if config.ExecutionIsolation.ActiveWorktreeCap > 0 {

@@ -26,13 +26,14 @@ type PhasePlan struct {
 
 // StepPlan represents a single executable step
 type StepPlan struct {
-	ID           string
-	Phase        string
-	Perspective  string
-	Agent        string
-	Model        string
-	Prompt       string
-	Dependencies []string
+	ID                 string
+	Phase              string
+	Perspective        string
+	Agent              string
+	Model              string
+	BenchmarkSignature string
+	Prompt             string
+	Dependencies       []string
 }
 
 // ResumeMode defines how a task attempt resumes after gate/requeue decisions.
@@ -62,12 +63,12 @@ type TaskSnapshot struct {
 
 // SynthesisPlan defines how results should be synthesized
 type SynthesisPlan struct {
-	Enabled       bool
-	Progressive   ProgressiveSynthesisPlan
-	FinalEnabled  bool
-	Model         string
-	Agent         string
-	Prompt        string
+	Enabled      bool
+	Progressive  ProgressiveSynthesisPlan
+	FinalEnabled bool
+	Model        string
+	Agent        string
+	Prompt       string
 }
 
 // ProgressiveSynthesisPlan defines progressive synthesis behavior
@@ -87,6 +88,6 @@ type PlanMetadata struct {
 
 // ConfigSourceRef tracks where config values originated
 type ConfigSourceRef struct {
-	Field string
+	Field  string
 	Source string // "global", "workflow", "task"
 }

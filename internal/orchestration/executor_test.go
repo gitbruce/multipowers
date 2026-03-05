@@ -2,6 +2,9 @@ package orchestration
 
 import (
 	"context"
+	"os"
+	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -106,7 +109,7 @@ func TestExecutor_ExecutePhase(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		if len(result.Steps) != 1 {
 			t.Errorf("expected 1 step result, got %d", len(result.Steps))
@@ -137,7 +140,7 @@ func TestExecutor_ExecutePhase(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		if len(result.Steps) != 3 {
 			t.Errorf("expected 3 step results, got %d", len(result.Steps))
@@ -172,7 +175,7 @@ func TestExecutor_ExecutePhase(t *testing.T) {
 
 		start := time.Now()
 		ctx := context.Background()
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 		elapsed := time.Since(start)
 
 		if len(result.Steps) != 4 {
@@ -213,7 +216,7 @@ func TestExecutor_Cancellation(t *testing.T) {
 			cancel()
 		}()
 
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		// Some steps should be canceled
 		hasCanceled := false
@@ -252,7 +255,7 @@ func TestExecutor_Cancellation(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel() // Cancel immediately
 
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		// Should not have completed all steps
 		if result.Completed == 5 {
@@ -279,7 +282,7 @@ func TestExecutor_Timeout(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		// Should timeout
 		if result.Status != PhaseStatusFailed && result.Failed == 0 {
@@ -311,7 +314,7 @@ func TestExecutor_Events(t *testing.T) {
 			}
 		}()
 
-		_ = executor.ExecutePhase(ctx, phase, "discover")
+		_ = executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		// Verify events were emitted (indirectly through no panic)
 	})
@@ -335,13 +338,81 @@ func TestExecutor_NoGoroutineLeaks(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		_ = executor.ExecutePhase(ctx, phase, "discover")
+		_ = executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		// Give time for goroutines to clean up
 		time.Sleep(50 * time.Millisecond)
 
 		// This test passes if no goroutine leak is detected by race detector
 	})
+}
+
+func TestExecutor_BenchmarkWorkerPersistsJSONL(t *testing.T) {
+	dispatcher := NewMockDispatcher()
+	executor := NewExecutor(ExecutorConfig{MaxWorkers: 1}, dispatcher)
+	metricsDir := t.TempDir()
+	executor.ConfigureBenchmark(BenchmarkModeConfig{
+		Enabled:      true,
+		AsyncEnabled: true,
+		Storage: BenchmarkStorageConfig{
+			Root: metricsDir,
+		},
+		Scoring: BenchmarkScoringConfig{
+			Dimensions: []string{"correctness", "code_quality"},
+		},
+	})
+
+	plan := &ExecutionPlan{
+		WorkflowName: "develop",
+		TaskName:     "task",
+		Prompt:       "fix code issue",
+		Phases: []PhasePlan{
+			{
+				Name: "develop",
+				Steps: []StepPlan{{
+					ID:                 "s1",
+					Phase:              "develop",
+					Agent:              "model-a",
+					Model:              "model-a",
+					Prompt:             "fix",
+					BenchmarkSignature: "develop|code||",
+				}},
+			},
+		},
+	}
+	_ = executor.ExecutePlan(context.Background(), plan)
+	time.Sleep(80 * time.Millisecond)
+	executor.Close()
+
+	entries, err := os.ReadDir(metricsDir)
+	if err != nil {
+		t.Fatalf("read metrics dir: %v", err)
+	}
+	foundRuns := false
+	foundOutputs := false
+	foundJudge := false
+	for _, e := range entries {
+		name := e.Name()
+		if strings.HasPrefix(name, "runs.") {
+			foundRuns = true
+		}
+		if strings.HasPrefix(name, "model_outputs.") {
+			foundOutputs = true
+		}
+		if strings.HasPrefix(name, "judge_scores.") {
+			foundJudge = true
+			data, err := os.ReadFile(filepath.Join(metricsDir, name))
+			if err != nil {
+				t.Fatalf("read judge file: %v", err)
+			}
+			if !strings.Contains(string(data), "\"signature\":\"develop|code||\"") {
+				t.Fatalf("expected signature in judge scores, got %s", string(data))
+			}
+		}
+	}
+	if !foundRuns || !foundOutputs || !foundJudge {
+		t.Fatalf("expected runs/model_outputs/judge_scores files, got runs=%v outputs=%v judge=%v", foundRuns, foundOutputs, foundJudge)
+	}
 }
 
 func TestExecutor_FallbackAware(t *testing.T) {
@@ -366,7 +437,7 @@ func TestExecutor_FallbackAware(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		if len(result.Steps) == 0 {
 			t.Fatal("expected at least one step result")
@@ -398,7 +469,7 @@ func TestExecutor_FallbackAware(t *testing.T) {
 		}
 
 		ctx := context.Background()
-		result := executor.ExecutePhase(ctx, phase, "discover")
+		result := executor.ExecutePhase(ctx, phase, "discover", "run-test")
 
 		if result.Degraded != 1 {
 			t.Errorf("expected 1 degraded result, got %d", result.Degraded)
@@ -460,7 +531,7 @@ func TestExecutor_EmitsModelProgressEvents(t *testing.T) {
 		},
 	}
 
-	result := executor.ExecutePhase(context.Background(), phase, "develop")
+	result := executor.ExecutePhase(context.Background(), phase, "develop", "run-test")
 	if result.Status != PhaseStatusCompleted {
 		t.Fatalf("phase status = %s, want %s", result.Status, PhaseStatusCompleted)
 	}
@@ -538,7 +609,7 @@ func TestExecutor_DoesNotPullNextTaskWhenCapReached(t *testing.T) {
 
 	done := make(chan PhaseResult, 1)
 	go func() {
-		done <- executor.ExecutePhase(context.Background(), phase, "develop")
+		done <- executor.ExecutePhase(context.Background(), phase, "develop", "run-test")
 	}()
 
 	time.Sleep(40 * time.Millisecond)

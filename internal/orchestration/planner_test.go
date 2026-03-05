@@ -1,8 +1,13 @@
 package orchestration
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/gitbruce/multipowers/internal/benchmark"
 )
 
 func TestBuildPlan(t *testing.T) {
@@ -10,10 +15,10 @@ func TestBuildPlan(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"discover":  {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
-				"define":  {Primary: "architect", Agents: []string{"backend-architect"}},
-				"develop": {Primary: "implementer"},
-				"deliver":    {Primary: "reviewer"},
+				"discover": {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
+				"define":   {Primary: "architect", Agents: []string{"backend-architect"}},
+				"develop":  {Primary: "implementer"},
+				"deliver":  {Primary: "reviewer"},
 			},
 			RalphWiggum: RalphWiggumConfig{
 				Enabled:           true,
@@ -340,7 +345,7 @@ func TestBuildPlan_Overrides(t *testing.T) {
 		}
 
 		plan, _ := BuildPlan(global, "discover", "serial-task", "prompt", "/work", taskOverride)
-		
+
 		phase := plan.Phases[0]
 		if phase.Parallel {
 			t.Error("expected parallel to be false via override")
@@ -349,6 +354,79 @@ func TestBuildPlan_Overrides(t *testing.T) {
 			t.Errorf("expected max_workers 1, got %d", phase.MaxWorkers)
 		}
 	})
+}
+
+func TestBuildPlan_BenchmarkForceAllModels(t *testing.T) {
+	global := &Config{
+		Version: "1",
+		PhaseDefaults: map[string]PhaseDefault{
+			"discover": {Primary: "researcher", Agents: []string{"researcher"}},
+			"develop":  {Primary: "model-a", Agents: []string{"model-a"}},
+			"deliver":  {Primary: "model-c", Agents: []string{"model-c"}},
+		},
+		BenchmarkMode: BenchmarkModeConfig{
+			Enabled:              true,
+			ForceAllModelsOnCode: true,
+			ExecutionProfile: BenchmarkExecutionProfileConfig{
+				Enabled:           true,
+				RequireCodeIntent: true,
+				CommandWhitelist:  []string{"develop"},
+			},
+		},
+	}
+
+	plan, err := BuildPlan(global, "develop", "", "fix code and tests", "/workdir")
+	if err != nil {
+		t.Fatalf("BuildPlan failed: %v", err)
+	}
+	if len(plan.Phases) != 1 {
+		t.Fatalf("expected one phase, got %d", len(plan.Phases))
+	}
+	agents := make(map[string]bool)
+	for _, s := range plan.Phases[0].Steps {
+		agents[s.Agent] = true
+	}
+	if !agents["model-a"] || !agents["model-c"] || !agents["researcher"] {
+		t.Fatalf("expected force-all candidate expansion, got agents=%v", agents)
+	}
+}
+
+func TestBuildPlan_SmartRoutingHistoryOverride(t *testing.T) {
+	metricsDir := t.TempDir()
+	prompt := "code fix"
+	signature := benchmark.BuildSimilaritySignature("develop", extractCodeIntentHits(prompt, BenchmarkCodeIntentWhitelist{}), "", "")
+	lineA := `{"run_id":"1","judged_model":"model-x","signature":"` + signature + `","weighted_score":4.9}`
+	lineB := `{"run_id":"2","judged_model":"model-x","signature":"` + signature + `","weighted_score":4.7}`
+	file := filepath.Join(metricsDir, "judge_scores.2026-03-05.jsonl")
+	if err := os.WriteFile(file, []byte(lineA+"\n"+lineB+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	global := &Config{
+		Version: "1",
+		PhaseDefaults: map[string]PhaseDefault{
+			"develop": {Primary: "model-a", Agents: []string{"model-a", "model-b"}},
+		},
+		SmartRouting: SmartRoutingConfig{
+			Enabled:                       true,
+			OverrideExistingRoutingWhenOn: true,
+			MinSamplesPerModel:            2,
+		},
+		BenchmarkMode: BenchmarkModeConfig{
+			Storage: BenchmarkStorageConfig{Root: metricsDir},
+		},
+	}
+
+	plan, err := BuildPlan(global, "develop", "", prompt, "/workdir")
+	if err != nil {
+		t.Fatalf("BuildPlan failed: %v", err)
+	}
+	if len(plan.Phases) == 0 || len(plan.Phases[0].Steps) == 0 {
+		t.Fatal("expected generated steps")
+	}
+	if got := strings.TrimSpace(plan.Phases[0].Steps[0].Agent); got != "model-x" {
+		t.Fatalf("expected smart-routing override model-x, got %q", got)
+	}
 }
 
 func TestBuildPlan_Perspectives(t *testing.T) {
@@ -413,12 +491,12 @@ func TestAllFlowPlans(t *testing.T) {
 	global := &Config{
 		Version: "1",
 		PhaseDefaults: map[string]PhaseDefault{
-			"discover":   {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
+			"discover": {Primary: "researcher", Agents: []string{"ai-engineer", "business-analyst"}},
 			"define":   {Primary: "architect", Agents: []string{"backend-architect"}},
 			"develop":  {Primary: "implementer", Agents: []string{"developer1", "developer2"}},
-			"deliver":     {Primary: "reviewer", Agents: []string{"code-reviewer", "qa-engineer"}},
-			"debate":  {Primary: "debater", Agents: []string{"proponent", "opponent"}},
-			"embrace": {Primary: "coordinator"},
+			"deliver":  {Primary: "reviewer", Agents: []string{"code-reviewer", "qa-engineer"}},
+			"debate":   {Primary: "debater", Agents: []string{"proponent", "opponent"}},
+			"embrace":  {Primary: "coordinator"},
 		},
 	}
 
@@ -464,10 +542,10 @@ func TestFlowPhaseSequence(t *testing.T) {
 		global := &Config{
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
-				"discover":   {Primary: "researcher"},
+				"discover": {Primary: "researcher"},
 				"define":   {Primary: "architect"},
 				"develop":  {Primary: "implementer"},
-				"deliver":     {Primary: "reviewer"},
+				"deliver":  {Primary: "reviewer"},
 			},
 		}
 

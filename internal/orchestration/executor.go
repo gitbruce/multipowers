@@ -2,6 +2,7 @@ package orchestration
 
 import (
 	"context"
+	"crypto/sha1"
 	"errors"
 	"fmt"
 	"strings"
@@ -30,6 +31,14 @@ type Executor struct {
 	events         *EventEmitter
 	benchmarkQueue *benchmark.Queue
 	benchmarkEmit  benchmark.SafeEmitter
+	benchmarkStore *benchmark.JSONLStore
+	benchmarkRoot  string
+	benchmarkOn    bool
+	judgeModel     string
+	scoreDims      []string
+	scoreWeights   map[string]float64
+	workerCancel   context.CancelFunc
+	workerWG       sync.WaitGroup
 	worktreeSlots  *WorktreeSlots
 }
 
@@ -47,12 +56,55 @@ func NewExecutor(config ExecutorConfig, dispatcher Dispatcher) *Executor {
 		events:         NewEventEmitter(100),
 		benchmarkQueue: benchmark.NewQueue(256),
 		benchmarkEmit:  benchmark.SafeEmitter{},
+		scoreDims:      []string{"correctness", "code_quality", "testability"},
 	}
+}
+
+// ConfigureBenchmark enables async benchmark workers and storage.
+func (e *Executor) ConfigureBenchmark(cfg BenchmarkModeConfig) {
+	if e == nil {
+		return
+	}
+	e.benchmarkOn = cfg.Enabled && cfg.AsyncEnabled
+	e.judgeModel = strings.TrimSpace(cfg.JudgeModel)
+	if e.judgeModel == "" {
+		e.judgeModel = "claude-opus"
+	}
+	if len(cfg.Scoring.Dimensions) > 0 {
+		e.scoreDims = append([]string{}, cfg.Scoring.Dimensions...)
+	}
+	e.scoreWeights = cfg.Scoring.Weights
+	e.benchmarkStore = benchmark.NewJSONLStore(cfg.Storage.Root, nil)
+	e.benchmarkRoot = strings.TrimSpace(cfg.Storage.Root)
+	e.benchmarkEmit.LogError = func(rec benchmark.ErrorRecord) {
+		if e.benchmarkStore == nil {
+			return
+		}
+		_, _ = e.benchmarkStore.Append(benchmark.StreamErrors, rec)
+	}
+	if !e.benchmarkOn || e.benchmarkQueue == nil {
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	e.workerCancel = cancel
+	e.workerWG.Add(1)
+	go func() {
+		defer e.workerWG.Done()
+		e.benchmarkQueue.RunWorker(ctx, func(job benchmark.Job) {
+			e.consumeBenchmarkJob(job)
+		})
+	}()
 }
 
 // ExecutePlan executes a full execution plan
 func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *ExecutionResult {
 	startTime := time.Now()
+	runID := fmt.Sprintf("run-%d", startTime.UnixNano())
+	signature := ""
+	if len(plan.Phases) > 0 && len(plan.Phases[0].Steps) > 0 {
+		signature = strings.TrimSpace(plan.Phases[0].Steps[0].BenchmarkSignature)
+	}
+	promptHash := fmt.Sprintf("%x", sha1.Sum([]byte(plan.Prompt)))
 
 	result := &ExecutionResult{
 		WorkflowName: plan.WorkflowName,
@@ -61,8 +113,12 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 		Status:       ExecutionStatusRunning,
 	}
 	e.emitBenchmarkEvent("execution_start", map[string]any{
-		"workflow": plan.WorkflowName,
-		"task":     plan.TaskName,
+		"run_id":            runID,
+		"workflow":          plan.WorkflowName,
+		"task":              plan.TaskName,
+		"signature":         signature,
+		"prompt_hash":       promptHash,
+		"benchmark_enabled": e.benchmarkOn,
 	})
 
 	// Emit execution start event
@@ -74,7 +130,7 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 
 	// Execute each phase sequentially
 	for _, phase := range plan.Phases {
-		phaseResult := e.ExecutePhase(ctx, phase, plan.WorkflowName)
+		phaseResult := e.ExecutePhase(ctx, phase, plan.WorkflowName, runID)
 		result.Phases = append(result.Phases, phaseResult)
 		result.TotalSteps += len(phaseResult.Steps)
 		result.Completed += phaseResult.Completed
@@ -112,16 +168,18 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 		Status:       string(result.Status),
 	})
 	e.emitBenchmarkEvent("execution_end", map[string]any{
-		"workflow": plan.WorkflowName,
-		"task":     plan.TaskName,
-		"status":   string(result.Status),
+		"run_id":    runID,
+		"workflow":  plan.WorkflowName,
+		"task":      plan.TaskName,
+		"status":    string(result.Status),
+		"signature": signature,
 	})
 
 	return result
 }
 
 // ExecutePhase executes a single phase with parallel step execution
-func (e *Executor) ExecutePhase(ctx context.Context, phase PhasePlan, workflowName string) PhaseResult {
+func (e *Executor) ExecutePhase(ctx context.Context, phase PhasePlan, workflowName, runID string) PhaseResult {
 	startTime := time.Now()
 
 	result := PhaseResult{
@@ -139,9 +197,9 @@ func (e *Executor) ExecutePhase(ctx context.Context, phase PhasePlan, workflowNa
 
 	// Determine if parallel execution
 	if phase.Parallel && len(phase.Steps) > 1 {
-		result = e.executePhaseParallel(ctx, phase, workflowName)
+		result = e.executePhaseParallel(ctx, phase, workflowName, runID)
 	} else {
-		result = e.executePhaseSequential(ctx, phase, workflowName)
+		result = e.executePhaseSequential(ctx, phase, workflowName, runID)
 	}
 
 	// Calculate totals
@@ -184,7 +242,7 @@ func (e *Executor) ExecutePhase(ctx context.Context, phase PhasePlan, workflowNa
 }
 
 // executePhaseParallel executes steps in parallel with bounded concurrency
-func (e *Executor) executePhaseParallel(ctx context.Context, phase PhasePlan, workflowName string) PhaseResult {
+func (e *Executor) executePhaseParallel(ctx context.Context, phase PhasePlan, workflowName, runID string) PhaseResult {
 	result := PhaseResult{
 		PhaseName: phase.Name,
 		Steps:     make([]StepResult, len(phase.Steps)),
@@ -217,7 +275,7 @@ func (e *Executor) executePhaseParallel(ctx context.Context, phase PhasePlan, wo
 				wg.Done()
 				return
 			default:
-				stepResult := e.executeStep(ctx, phase.Steps[i], workflowName)
+				stepResult := e.executeStep(ctx, phase.Steps[i], workflowName, runID)
 				mu.Lock()
 				result.Steps[i] = stepResult
 				mu.Unlock()
@@ -245,7 +303,7 @@ func (e *Executor) executePhaseParallel(ctx context.Context, phase PhasePlan, wo
 }
 
 // executePhaseSequential executes steps one at a time
-func (e *Executor) executePhaseSequential(ctx context.Context, phase PhasePlan, workflowName string) PhaseResult {
+func (e *Executor) executePhaseSequential(ctx context.Context, phase PhasePlan, workflowName, runID string) PhaseResult {
 	result := PhaseResult{
 		PhaseName: phase.Name,
 		Steps:     make([]StepResult, 0, len(phase.Steps)),
@@ -264,7 +322,7 @@ func (e *Executor) executePhaseSequential(ctx context.Context, phase PhasePlan, 
 			})
 			return result
 		default:
-			stepResult := e.executeStep(ctx, step, workflowName)
+			stepResult := e.executeStep(ctx, step, workflowName, runID)
 			result.Steps = append(result.Steps, stepResult)
 		}
 	}
@@ -273,7 +331,7 @@ func (e *Executor) executePhaseSequential(ctx context.Context, phase PhasePlan, 
 }
 
 // executeStep executes a single step
-func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName string) StepResult {
+func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName, runID string) StepResult {
 	if e.worktreeSlots != nil {
 		if err := e.worktreeSlots.Acquire(ctx); err != nil {
 			return StepResult{
@@ -344,6 +402,21 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName 
 	} else if result.Fallback != nil && result.Fallback.Used {
 		result.Status = StepStatusDegraded
 	}
+	if e.benchmarkOn {
+		e.emitBenchmarkEvent("model_output", map[string]any{
+			"run_id":    runID,
+			"workflow":  workflowName,
+			"step_id":   step.ID,
+			"phase":     step.Phase,
+			"model":     strings.TrimSpace(step.Model),
+			"agent":     step.Agent,
+			"status":    string(result.Status),
+			"bytes":     result.Bytes,
+			"duration":  result.Duration.Milliseconds(),
+			"signature": strings.TrimSpace(step.BenchmarkSignature),
+			"prompt":    step.Prompt,
+		})
+	}
 	close(stopHeartbeat)
 	heartbeatWG.Wait()
 	e.emitModelProgress(workflowName, step, progressStatusForResult(result, err), 100, time.Now())
@@ -367,6 +440,21 @@ func (e *Executor) Events() <-chan Event {
 
 // Close cleans up executor resources
 func (e *Executor) Close() {
+	if e.workerCancel != nil {
+		e.workerCancel()
+		e.workerWG.Wait()
+	}
+	if e.benchmarkStore != nil && e.benchmarkQueue != nil && e.benchmarkOn {
+		m := e.benchmarkQueue.Metrics()
+		_, _ = e.benchmarkStore.Append(benchmark.StreamAsyncJobs, benchmark.AsyncJobRecord{
+			JobID:     fmt.Sprintf("queue-metrics-%d", time.Now().UnixNano()),
+			JobType:   "queue_metrics",
+			Status:    "snapshot",
+			Attempts:  1,
+			LatencyMs: 0,
+			Stage:     fmt.Sprintf("depth=%d capacity=%d enqueued=%d dropped=%d", m.Depth, m.Capacity, m.Enqueued, m.Dropped),
+		})
+	}
 	e.events.Close()
 }
 
@@ -471,4 +559,121 @@ func clampPercent(percent int) int {
 		return 100
 	}
 	return percent
+}
+
+func (e *Executor) consumeBenchmarkJob(job benchmark.Job) {
+	if e == nil || e.benchmarkStore == nil {
+		return
+	}
+	jobID := fmt.Sprintf("%s-%d", strings.TrimSpace(job.Type), time.Now().UnixNano())
+	_, _ = e.benchmarkStore.Append(benchmark.StreamAsyncJobs, benchmark.AsyncJobRecord{
+		JobID:    jobID,
+		JobType:  job.Type,
+		Status:   "processed",
+		Attempts: 1,
+	})
+
+	switch strings.TrimSpace(job.Type) {
+	case "execution_start":
+		runID, _ := job.Payload["run_id"].(string)
+		workflow, _ := job.Payload["workflow"].(string)
+		promptHash, _ := job.Payload["prompt_hash"].(string)
+		_, _ = e.benchmarkStore.Append(benchmark.StreamRuns, benchmark.RunRecord{
+			RunID:                runID,
+			TimestampStart:       time.Now().UTC().Format(time.RFC3339),
+			Command:              workflow,
+			PromptHash:           promptHash,
+			BenchmarkModeEnabled: true,
+		})
+	case "execution_end":
+		runID, _ := job.Payload["run_id"].(string)
+		workflow, _ := job.Payload["workflow"].(string)
+		_, _ = e.benchmarkStore.Append(benchmark.StreamRuns, benchmark.RunRecord{
+			RunID:                runID,
+			TimestampEnd:         time.Now().UTC().Format(time.RFC3339),
+			Command:              workflow,
+			BenchmarkModeEnabled: true,
+		})
+	case "model_output":
+		e.persistModelAndJudge(job)
+	}
+}
+
+func (e *Executor) persistModelAndJudge(job benchmark.Job) {
+	runID, _ := job.Payload["run_id"].(string)
+	model, _ := job.Payload["model"].(string)
+	if strings.TrimSpace(model) == "" {
+		agent, _ := job.Payload["agent"].(string)
+		model = agent
+	}
+	status, _ := job.Payload["status"].(string)
+	signature, _ := job.Payload["signature"].(string)
+	durationMs, _ := job.Payload["duration"].(int64)
+	if durationMs == 0 {
+		if n, ok := job.Payload["duration"].(int); ok {
+			durationMs = int64(n)
+		}
+	}
+	bytesN, _ := job.Payload["bytes"].(int)
+	if bytesN == 0 {
+		if n64, ok := job.Payload["bytes"].(int64); ok {
+			bytesN = int(n64)
+		}
+	}
+	_, _ = e.benchmarkStore.Append(benchmark.StreamModelOutputs, benchmark.ModelOutputRecord{
+		RunID:        runID,
+		Model:        strings.TrimSpace(model),
+		Provider:     "local",
+		DurationMs:   durationMs,
+		TokensInput:  bytesN / 4,
+		TokensOutput: bytesN / 2,
+		Status:       status,
+	})
+
+	scores := make(map[string]int, len(e.scoreDims))
+	base := 3
+	switch status {
+	case string(StepStatusCompleted):
+		base = 4
+	case string(StepStatusDegraded):
+		base = 3
+	default:
+		base = 1
+	}
+	for _, dim := range e.scoreDims {
+		scores[dim] = base
+	}
+	weighted, err := benchmark.ComputeWeightedScore(scores, e.scoreWeights)
+	if err != nil {
+		return
+	}
+	_, _ = e.benchmarkStore.Append(benchmark.StreamJudgeScores, benchmark.JudgeScoreRecord{
+		RunID:           runID,
+		JudgedModel:     strings.TrimSpace(model),
+		Signature:       strings.TrimSpace(signature),
+		JudgeModel:      e.judgeModel,
+		DimensionScores: scores,
+		WeightedScore:   weighted,
+		Rationale:       "auto-derived from execution status",
+	})
+
+	if strings.TrimSpace(signature) == "" {
+		return
+	}
+	history, err := benchmark.LoadHistoryJudgeRecords(e.benchmarkRoot)
+	if err != nil {
+		return
+	}
+	selected, samples, ok := benchmark.SelectBestModelByHistory(history, signature, 1)
+	if !ok {
+		return
+	}
+	_, _ = e.benchmarkStore.Append(benchmark.StreamRouteOverrides, benchmark.RouteOverrideRecord{
+		RunID:           runID,
+		OverrideApplied: true,
+		SelectedModel:   selected,
+		MatchSignature:  signature,
+		SampleCount:     samples,
+		Strategy:        "performance_optimized",
+	})
 }
