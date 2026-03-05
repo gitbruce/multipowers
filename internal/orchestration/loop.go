@@ -9,6 +9,8 @@ import (
 type LoopOptions struct {
 	MaxIterations     int
 	CompletionPromise string
+	StartIteration    int
+	OnIteration       func(LoopResult) error
 }
 
 type LoopResult struct {
@@ -22,12 +24,15 @@ func RunLoop(ctx context.Context, opts LoopOptions, step func(iter int) (string,
 	if opts.MaxIterations <= 0 {
 		opts.MaxIterations = 50
 	}
+	if opts.StartIteration <= 0 {
+		opts.StartIteration = 1
+	}
 	if strings.TrimSpace(opts.CompletionPromise) == "" {
 		opts.CompletionPromise = "<promise>COMPLETE</promise>"
 	}
 
 	res := LoopResult{}
-	for i := 1; i <= opts.MaxIterations; i++ {
+	for i := opts.StartIteration; i <= opts.MaxIterations; i++ {
 		select {
 		case <-ctx.Done():
 			return res, ctx.Err()
@@ -39,6 +44,11 @@ func RunLoop(ctx context.Context, opts LoopOptions, step func(iter int) (string,
 		}
 		res.Iterations = i
 		res.LastOutput = out
+		if opts.OnIteration != nil {
+			if err := opts.OnIteration(res); err != nil {
+				return res, fmt.Errorf("loop checkpoint: %w", err)
+			}
+		}
 		if strings.Contains(out, opts.CompletionPromise) {
 			res.Completed = true
 			res.CompletionSeen = true

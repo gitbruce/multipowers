@@ -5,13 +5,20 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gitbruce/multipowers/internal/app"
+	"github.com/gitbruce/multipowers/internal/checkpoint"
 	ctxpkg "github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/cost"
+	"github.com/gitbruce/multipowers/internal/extract"
 	"github.com/gitbruce/multipowers/internal/hooks"
+	"github.com/gitbruce/multipowers/internal/inputguard"
 	"github.com/gitbruce/multipowers/internal/orchestration"
 	"github.com/gitbruce/multipowers/internal/providers"
 	"github.com/gitbruce/multipowers/internal/settings"
@@ -29,7 +36,7 @@ func Run(args []string) int {
 	cmd := args[0]
 	sub := ""
 	rest := args[1:]
-	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate") && len(rest) > 0 {
+	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate" || cmd == "cost" || cmd == "checkpoint") && len(rest) > 0 {
 		sub = rest[0]
 		rest = rest[1:]
 	}
@@ -52,6 +59,10 @@ func Run(args []string) int {
 	phase := fs.String("phase", "", "workflow phase for orchestration")
 	agent := fs.String("agent", "", "agent name for persona/loop execution")
 	maxIterations := fs.Int("max-iterations", 0, "max iterations for loop execution")
+	sourceURL := fs.String("url", "", "external url for extract command")
+	metricsDir := fs.String("metrics-dir", "", "metrics directory for cost report")
+	checkpointID := fs.String("checkpoint-id", "", "checkpoint identifier")
+	resume := fs.Bool("resume", false, "resume from checkpoint")
 	if err := fs.Parse(rest); err != nil {
 		return 2
 	}
@@ -90,6 +101,81 @@ func Run(args []string) int {
 	}
 
 	switch cmd {
+	case "checkpoint":
+		switch sub {
+		case "save":
+			if strings.TrimSpace(*data) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--data is required"})
+			}
+			var cp checkpoint.LoopCheckpoint
+			if err := json.Unmarshal([]byte(*data), &cp); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "invalid checkpoint JSON: " + err.Error()})
+			}
+			if err := checkpoint.SaveLoop(absDir, cp); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"checkpoint_id": cp.ID}})
+		case "get":
+			if strings.TrimSpace(*checkpointID) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--checkpoint-id is required"})
+			}
+			cp, err := checkpoint.LoadLoop(absDir, *checkpointID)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"checkpoint": cp}})
+		case "delete":
+			if strings.TrimSpace(*checkpointID) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--checkpoint-id is required"})
+			}
+			if err := checkpoint.DeleteLoop(absDir, *checkpointID); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"checkpoint_id": *checkpointID, "deleted": true}})
+		default:
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown checkpoint subcommand: use save|get|delete"})
+		}
+	case "extract":
+		sourceText := strings.TrimSpace(effectivePrompt)
+		if strings.TrimSpace(*sourceURL) != "" {
+			u, err := inputguard.ValidateExternalURL(*sourceURL)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			body, ct, err := fetchURL(u)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			sourceText = inputguard.WrapUntrustedContent(body, u, ct)
+		}
+		if strings.TrimSpace(sourceText) == "" {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "extract requires --prompt or --url"})
+		}
+		res := extract.FromText(sourceText, extract.Options{MaxPoints: 8})
+		return respond(api.Response{
+			Status: "ok",
+			Data: map[string]any{
+				"extract": res,
+			},
+		})
+	case "cost":
+		switch sub {
+		case "estimate":
+			rep := cost.EstimateFromPrompt(effectivePrompt)
+			return respond(api.Response{Status: "ok", Data: map[string]any{"estimate": rep}})
+		case "report":
+			dirToRead := strings.TrimSpace(*metricsDir)
+			if dirToRead == "" {
+				dirToRead = filepath.Join(absDir, ".claude-octopus", "metrics")
+			}
+			rep, err := cost.BuildReport(dirToRead)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"report": rep}})
+		default:
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown cost subcommand: use estimate|report"})
+		}
 	case "init":
 		if strings.TrimSpace(effectivePrompt) == "" {
 			return respond(api.Response{
@@ -312,9 +398,41 @@ func Run(args []string) int {
 			limit = *maxIterations
 		}
 		promise := orchestrationCfg.RalphWiggum.CompletionPromise
+		startIteration := 1
+		ckID := strings.TrimSpace(*checkpointID)
+		if *resume {
+			if ckID == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--checkpoint-id is required with --resume"})
+			}
+			cp, err := checkpoint.LoadLoop(absDir, ckID)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			startIteration = cp.LastIteration + 1
+			if strings.TrimSpace(loopPhase) == "" {
+				loopPhase = cp.Phase
+			}
+			if strings.TrimSpace(selectedAgent) == "" {
+				selectedAgent = cp.Agent
+			}
+		}
 		loopResult, err := orchestration.RunLoop(context.Background(), orchestration.LoopOptions{
 			MaxIterations:     limit,
 			CompletionPromise: promise,
+			StartIteration:    startIteration,
+			OnIteration: func(progress orchestration.LoopResult) error {
+				if ckID == "" {
+					return nil
+				}
+				return checkpoint.SaveLoop(absDir, checkpoint.LoopCheckpoint{
+					ID:            ckID,
+					Phase:         loopPhase,
+					Agent:         selectedAgent,
+					LastIteration: progress.Iterations,
+					LastOutput:    progress.LastOutput,
+					Completed:     progress.Completed,
+				})
+			},
 		}, func(iter int) (string, error) {
 			iterPrompt := fmt.Sprintf("%s\n\nIteration %d/%d. Output exactly %s when truly complete.", effectivePrompt, iter, limit, promise)
 			out, runErr := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), absDir, selectedAgent+" "+iterPrompt)
@@ -337,6 +455,8 @@ func Run(args []string) int {
 			Data: map[string]any{
 				"phase":              loopPhase,
 				"agent":              selectedAgent,
+				"checkpoint_id":      ckID,
+				"start_iteration":    startIteration,
 				"completed":          loopResult.Completed,
 				"iterations":         loopResult.Iterations,
 				"completion_promise": promise,
@@ -501,4 +621,21 @@ func Run(args []string) int {
 	default:
 		return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown command"})
 	}
+}
+
+func fetchURL(rawURL string) (string, string, error) {
+	c := &http.Client{Timeout: 10 * time.Second}
+	resp, err := c.Get(rawURL)
+	if err != nil {
+		return "", "", fmt.Errorf("fetch url: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", "", fmt.Errorf("fetch url status: %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 200_000))
+	if err != nil {
+		return "", "", fmt.Errorf("read url body: %w", err)
+	}
+	return string(body), resp.Header.Get("Content-Type"), nil
 }
