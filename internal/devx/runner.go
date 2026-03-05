@@ -9,29 +9,10 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 )
 
 type Runner struct {
-	NowFn func() time.Time
-	RunFn func(dir string, name string, args ...string) ([]byte, error)
-}
-
-func (r Runner) now() time.Time {
-	if r.NowFn != nil {
-		return r.NowFn()
-	}
-	return time.Now()
-}
-
-func (r Runner) run(dir string, name string, args ...string) ([]byte, error) {
-	if r.RunFn != nil {
-		return r.RunFn(dir, name, args...)
-	}
-	cmd := exec.Command(name, args...)
-	cmd.Dir = dir
-	return cmd.CombinedOutput()
 }
 
 func (Runner) CommandPlan(suite string) ([]string, error) {

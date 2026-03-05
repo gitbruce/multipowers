@@ -78,10 +78,7 @@ func Compile(cfg *SourceConfig) (*RuntimePolicy, error) {
 				Chain:   make([]RuntimeFallbackRule, len(fb.Chain)),
 			}
 			for i, rule := range fb.Chain {
-				rfb.Chain[i] = RuntimeFallbackRule{
-					From: rule.From,
-					To:   rule.To,
-				}
+				rfb.Chain[i] = RuntimeFallbackRule(rule)
 			}
 			policy.Fallback.Policies[policyName] = rfb
 		}
