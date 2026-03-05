@@ -444,7 +444,7 @@ The integration layer uses these environment variables:
 # Claude Code session (auto-set by Claude Code CLI)
 CLAUDE_CODE_SESSION="session-uuid"
 
-# Claude-octopus debate mode flag (auto-set when debate runs)
+# debate mode flag (auto-set when debate runs)
 CLAUDE_OCTOPUS_DEBATE_MODE="true"
 
 # Session-aware debate directory (computed)

@@ -60,9 +60,9 @@ logs/
 *.pid.lock
 
 # Workspace data (generated at runtime)
-# Note: The actual workspace is at ~/.claude-octopus/
+# Note: The actual workspace is at ~/.multipowers/
 # These are just in case someone runs from the repo directory
-.claude-octopus/
+.multipowers/
 results/
 .parallel-agents/
 

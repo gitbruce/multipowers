@@ -166,7 +166,7 @@ func Run(args []string) int {
 		case "report":
 			dirToRead := strings.TrimSpace(*metricsDir)
 			if dirToRead == "" {
-				dirToRead = filepath.Join(absDir, ".claude-octopus", "metrics")
+				dirToRead = filepath.Join(absDir, ".multipowers", "metrics")
 			}
 			rep, err := cost.BuildReport(dirToRead)
 			if err != nil {
