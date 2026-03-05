@@ -1,103 +1,69 @@
-.PHONY: test test-smoke test-unit test-integration test-e2e test-live test-coverage test-all test-plugin-name clean-tests sync help
+.PHONY: all build-go test test-smoke test-unit test-integration test-e2e test-coverage test-all test-plugin-name clean-tests parity help check-go-lines lint-go
 
-# Default: smoke + unit (fast feedback)
+# Default target
+all: build-go test-smoke test-unit
+
+# Build production and devx binaries
+build-go:
+	@echo "Building binaries..."
+	@mkdir -p .claude-plugin/bin
+	@go build -o .claude-plugin/bin/mp ./cmd/mp
+	@go build -o .claude-plugin/bin/mp-devx ./cmd/mp-devx
+	@echo "Binaries built in .claude-plugin/bin/"
+
+# Run consistency parity check
+parity: build-go
+	@./.claude-plugin/bin/mp-devx -action parity
+
+# Default test: smoke + unit (fast feedback)
 test: test-smoke test-unit
 
-# Validate plugin name (critical - prevents command prefix breakage)
-test-plugin-name:
-	@go run ./cmd/mp-devx --action suite --suite smoke
-
-# Run all tests
-test-all: test-smoke test-unit test-integration test-e2e
-
-# Smoke tests (pre-commit, <30s)
-test-smoke: test-plugin-name
+# Smoke tests (critical path, <30s)
+test-smoke: build-go
 	@echo "Running smoke tests..."
-	@go run ./cmd/mp-devx --action suite --suite smoke
+	@./.claude-plugin/bin/mp-devx --action suite --suite smoke
 
-# Unit tests (1-2min)
+# Unit tests (full internal logic)
 test-unit:
 	@echo "Running unit tests..."
-	@go run ./cmd/mp-devx --action suite --suite unit
+	@go test -v ./internal/...
 
-# Integration tests (5-10min)
-test-integration:
+# Integration tests
+test-integration: build-go
 	@echo "Running integration tests..."
-	@go run ./cmd/mp-devx --action suite --suite integration
-
-# E2E tests (15-30min)
-test-e2e:
-	@echo "Running E2E tests..."
-	@go run ./cmd/mp-devx --action suite --suite e2e
-
-# Live tests - real Claude Code sessions (2-5min per test, uses API)
-test-live:
-	@echo "Running live tests (real Claude Code sessions)..."
-	@echo "WARNING: This makes real API calls"
-	@go run ./cmd/mp-devx --action suite --suite live
-
-# Performance tests
-test-performance:
-	@echo "Running performance tests..."
-	@go run ./cmd/mp-devx --action suite --suite performance
-
-# Regression tests
-test-regression:
-	@echo "Running regression tests..."
-	@go run ./cmd/mp-devx --action suite --suite regression
+	@./.claude-plugin/bin/mp-devx --action suite --suite integration
 
 # Coverage report
 test-coverage:
 	@echo "Generating coverage report..."
-	@go run ./cmd/mp-devx --action suite --suite coverage
+	@go test -coverprofile=coverage.out ./internal/...
+	@go tool cover -func=coverage.out
 
-# Verbose mode for debugging
-test-verbose:
-	@go run ./cmd/mp-devx --action suite --suite all
+# Linting
+lint-go:
+	@echo "Running go vet..."
+	@go vet ./...
+
+check-go-lines:
+	@go run ./scripts/check-go-file-length.go
 
 # Clean test artifacts
 clean-tests:
 	@echo "Cleaning test artifacts..."
 	@rm -rf tests/tmp/
-	@rm -f test-results*.xml
-	@rm -f coverage*.xml
-	@rm -f /tmp/test_*.log
+	@rm -f coverage.out
 	@echo "Test artifacts cleaned"
 
 # Help
 help:
-	@echo "Multipowers Test Suite"
+	@echo "Multipowers Go Native Test & Build Suite"
 	@echo ""
 	@echo "Usage:"
+	@echo "  make build-go          - Build mp and mp-devx binaries"
+	@echo "  make parity            - Run plugin namespace parity check"
 	@echo "  make test              - Run smoke + unit tests (default)"
-	@echo "  make test-all          - Run all test categories"
-	@echo "  make test-smoke        - Run smoke tests (<30s)"
-	@echo "  make test-unit         - Run unit tests (1-2min)"
-	@echo "  make test-integration  - Run integration tests (5-10min)"
-	@echo "  make test-e2e          - Run E2E tests (15-30min)"
-	@echo "  make test-live         - Run live tests (real Claude sessions)"
-	@echo "  make test-performance  - Run performance tests"
-	@echo "  make test-regression   - Run regression tests"
-	@echo "  make test-coverage     - Generate coverage report"
-	@echo "  make test-verbose      - Run all tests with verbose output"
-	@echo "  make clean-tests       - Clean test artifacts"
+	@echo "  make test-smoke        - Run critical smoke tests"
+	@echo "  make test-unit         - Run Go unit tests"
+	@echo "  make test-coverage     - Generate and display coverage"
+	@echo "  make clean-tests       - Remove test artifacts"
 	@echo "  make help              - Show this help message"
-	@echo ""
-	@echo "For more details, see tests/README.md"
-
-
-.PHONY: build-go test-go lint-go check-go-lines
-
-build-go:
-	@mkdir -p .claude-plugin/bin
-	@go build -o .claude-plugin/bin/mp ./cmd/mp
-	@go build -o .claude-plugin/bin/mp-devx ./cmd/mp-devx
-
-test-go:
-	@go test ./...
-
-check-go-lines:
-	@go run ./scripts/check-go-file-length.go
-
-lint-go:
-	@go vet ./...
