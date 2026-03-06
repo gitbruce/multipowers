@@ -11,5 +11,5 @@ func NewTrackID(prefix string) string {
 		prefix = "task"
 	}
 	prefix = strings.ToLower(strings.ReplaceAll(prefix, " ", "-"))
-	return fmt.Sprintf("%s_%s", prefix, time.Now().Format("20060102"))
+	return fmt.Sprintf("%s_%s", prefix, time.Now().UTC().Format("20060102_150405_000000000"))
 }

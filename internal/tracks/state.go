@@ -9,6 +9,7 @@ import (
 
 type State struct {
 	CurrentWorkflow string            `json:"current_workflow,omitempty"`
+	ActiveTrack     string            `json:"active_track,omitempty"`
 	Metrics         map[string]string `json:"metrics,omitempty"`
 }
 

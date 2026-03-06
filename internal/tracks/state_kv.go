@@ -1,5 +1,7 @@
 package tracks
 
+import "strings"
+
 // KVGet retrieves a single key value from state
 // Returns empty string if key doesn't exist
 func KVGet(projectDir, key string) (string, error) {
@@ -68,5 +70,22 @@ func KVDelete(projectDir, key string) error {
 		return nil
 	}
 	delete(s.Metrics, key)
+	return WriteState(projectDir, s)
+}
+
+func ActiveTrack(projectDir string) (string, error) {
+	s, err := ReadState(projectDir)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(s.ActiveTrack), nil
+}
+
+func SetActiveTrack(projectDir, id string) error {
+	s, err := ReadState(projectDir)
+	if err != nil {
+		return err
+	}
+	s.ActiveTrack = strings.TrimSpace(id)
 	return WriteState(projectDir, s)
 }
