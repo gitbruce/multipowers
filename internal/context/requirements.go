@@ -5,6 +5,7 @@ var RequiredFiles = []string{
 	"product-guidelines.md",
 	"tech-stack.md",
 	"workflow.md",
-	"tracks.md",
+	"tracks/tracks.md",
 	"CLAUDE.md",
+	"context/runtime.json",
 }

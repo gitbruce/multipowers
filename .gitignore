@@ -63,6 +63,13 @@ logs/
 # Note: The actual workspace is at ~/.multipowers/
 # These are just in case someone runs from the repo directory
 .multipowers/
+!/.multipowers/
+!/.multipowers/context/
+!/.multipowers/context/runtime.json
+!/.multipowers/tracks/
+!/.multipowers/tracks/tracks.md
+!/.multipowers/tracks/spec-track-runtime-20260306/
+!/.multipowers/tracks/spec-track-runtime-20260306/**
 results/
 .parallel-agents/
 
@@ -110,5 +117,8 @@ coverage-report.html
 /bin/
 
 # Multipowers local runtime artifacts
-.multipowers/temp/
-.multipowers/tracks/
+/.multipowers/temp/
+/.multipowers/tracks/*
+!/.multipowers/tracks/tracks.md
+!/.multipowers/tracks/spec-track-runtime-20260306/
+!/.multipowers/tracks/spec-track-runtime-20260306/**

@@ -1,11 +1,14 @@
 package context
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	runtimecfg "github.com/gitbruce/multipowers/internal/runtime"
 )
 
 func snapshot(root string) (map[string]bool, error) {
@@ -232,6 +235,10 @@ func renderContent(projectDir, prompt string) (map[string]string, error) {
 	if principles != "" {
 		principles = "- " + principles
 	}
+	runtimeDoc, err := defaultRuntimeConfig()
+	if err != nil {
+		return nil, err
+	}
 	return map[string]string{
 		"product.md": fmt.Sprintf(`# Product
 
@@ -298,7 +305,7 @@ func renderContent(projectDir, prompt string) (map[string]string, error) {
 ## Quality Gates
 - %s
 `, toNumberedList(policy.Workflow), quality),
-		"tracks.md": fmt.Sprintf(`# Tracks
+		"tracks/tracks.md": fmt.Sprintf(`# Tracks
 
 ## Active
 - [ ] T001 %s
@@ -343,6 +350,7 @@ Run /mp:init with wizard answers, then retry.
 ## Where should context live?
 Always under this project's .multipowers/ directory.
 `,
+		"context/runtime.json": runtimeDoc,
 	}, nil
 }
 
@@ -438,7 +446,7 @@ func validateGeneratedContent(files map[string]string) []string {
 			minLen:   260,
 			required: []string{"## Delivery Loop", "## Working Agreements", "## Quality Gates"},
 		},
-		"tracks.md": {
+		"tracks/tracks.md": {
 			minLen:   180,
 			required: []string{"## Active", "## Template"},
 		},
@@ -471,6 +479,64 @@ func validateGeneratedContent(files map[string]string) []string {
 	return gaps
 }
 
+func defaultRuntimeConfig() (string, error) {
+	cfg := runtimecfg.Config{}
+	cfg.PreRun.Enabled = false
+	cfg.PreRun.Entries = []runtimecfg.Entry{}
+	b, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("marshal runtime config: %w", err)
+	}
+	return string(b) + "\n", nil
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+func migrateTracksRegistry(root string, backups map[string][]byte) error {
+	legacyRel := "tracks.md"
+	canonicalRel := filepath.Join("tracks", "tracks.md")
+	legacyPath := filepath.Join(root, legacyRel)
+	canonicalPath := filepath.Join(root, canonicalRel)
+	legacyExists := fileExists(legacyPath)
+	canonicalExists := fileExists(canonicalPath)
+
+	if !legacyExists {
+		return nil
+	}
+
+	legacyBody, err := os.ReadFile(legacyPath)
+	if err != nil {
+		return fmt.Errorf("read legacy tracks registry: %w", err)
+	}
+
+	if !canonicalExists {
+		backups[legacyRel] = legacyBody
+		if err := os.MkdirAll(filepath.Dir(canonicalPath), 0o755); err != nil {
+			return fmt.Errorf("prepare canonical tracks registry: %w", err)
+		}
+		if err := os.Rename(legacyPath, canonicalPath); err != nil {
+			return fmt.Errorf("migrate tracks registry: %w", err)
+		}
+		return nil
+	}
+
+	canonicalBody, err := os.ReadFile(canonicalPath)
+	if err != nil {
+		return fmt.Errorf("read canonical tracks registry: %w", err)
+	}
+	if !bytes.Equal(legacyBody, canonicalBody) {
+		return fmt.Errorf("tracks registry conflict: legacy and canonical paths both exist with different content")
+	}
+	backups[legacyRel] = legacyBody
+	if err := os.Remove(legacyPath); err != nil {
+		return fmt.Errorf("remove legacy tracks registry: %w", err)
+	}
+	return nil
+}
+
 func RunInitWithPrompt(projectDir, prompt string) (err error) {
 	if strings.TrimSpace(prompt) == "" {
 		return &InitValidationError{
@@ -500,6 +566,9 @@ func RunInitWithPrompt(projectDir, prompt string) (err error) {
 	if err = os.MkdirAll(filepath.Join(root, "context"), 0o755); err != nil {
 		return err
 	}
+	if err = migrateTracksRegistry(root, backups); err != nil {
+		return err
+	}
 	tpl, err := renderContent(projectDir, prompt)
 	if err != nil {
 		return err
@@ -510,9 +579,21 @@ func RunInitWithPrompt(projectDir, prompt string) (err error) {
 			Gaps:    gaps,
 		}
 	}
-	for i, name := range []string{"product.md", "product-guidelines.md", "tech-stack.md", "workflow.md", "tracks.md", "CLAUDE.md", "FAQ.md"} {
+	for i, name := range []string{
+		"product.md",
+		"product-guidelines.md",
+		"tech-stack.md",
+		"workflow.md",
+		"tracks/tracks.md",
+		"context/runtime.json",
+		"CLAUDE.md",
+		"FAQ.md",
+	} {
 		content := tpl[name]
 		p := filepath.Join(root, name)
+		if err = os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			return fmt.Errorf("prepare %s: %w", name, err)
+		}
 		if existing, stErr := os.ReadFile(p); stErr == nil {
 			if !shouldOverwriteExisting(existing) {
 				continue
