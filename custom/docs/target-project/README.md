@@ -26,10 +26,11 @@ Expected behavior:
   - `.multipowers/tech-stack.md`
   - `.multipowers/workflow.md`
   - `.multipowers/code_styleguides/`
-  - `.multipowers/tracks.md`
+  - `.multipowers/tracks/tracks.md`
   - `.multipowers/CLAUDE.md` (project working agreement)
   - `.multipowers/FAQ.md` (auto-generated failure avoidance knowledge)
   - `.multipowers/context/runtime.json` (runtime + pre-run hooks)
+  - `.multipowers/tracks/<track_id>/` (spec-driven artifacts)
 
 ## Use Spec-Driven Commands
 
@@ -45,12 +46,18 @@ If `.multipowers/` context is missing, spec-driven commands auto-run `/mp:init`.
 
 ## Where Outputs Go
 
-- Track plan: `.multipowers/tracks/<track_id>/plan.md`
+- Tracks registry: `.multipowers/tracks/tracks.md`
 - Intent contract: `.multipowers/tracks/<track_id>/intent.md`
+- Design doc: `.multipowers/tracks/<track_id>/design.md`
+- Implementation plan: `.multipowers/tracks/<track_id>/implementation-plan.md`
 - Track metadata: `.multipowers/tracks/<track_id>/metadata.json`
+- Track index: `.multipowers/tracks/<track_id>/index.md`
 - Runtime hooks config: `.multipowers/context/runtime.json`
 - Project rules: `.multipowers/CLAUDE.md`
 - Auto FAQ: `.multipowers/FAQ.md`
+
+Legacy note:
+- `.multipowers/tracks.md` is no longer read by the runtime. Use `.multipowers/tracks/tracks.md` only.
 
 ## Update / Remove
 

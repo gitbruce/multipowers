@@ -26,8 +26,13 @@ In your target project directory:
 Expected:
 - creates `.multipowers/` in your target project
 - initializes project context files and tracks registry
+- writes the canonical registry to `.multipowers/tracks/tracks.md`
+- creates spec-driven artifacts under `.multipowers/tracks/<track_id>/`
 - creates `.multipowers/CLAUDE.md` and `.multipowers/FAQ.md`
 - creates `.multipowers/context/runtime.json` for runtime/pre-run settings
+
+Legacy note:
+- `.multipowers/tracks.md` is not compatible with the current runtime and is not read.
 
 ## Optional: Configure Pre-Run Hooks
 

@@ -2,7 +2,7 @@
 
 ## What Changed
 
-Spec-driven `/mp` commands now use project context under `conductor/` in the target project, not `.claude/session-*` files.
+Spec-driven `/mp` commands now use project context under `.multipowers/` in the target project, not `.claude/session-*` files.
 
 ## `/mp:init`
 
@@ -13,38 +13,45 @@ Run:
 ```
 
 Execution anchor:
-- `/mp:init` should pass `--dir "$PWD"` to `.claude-plugin/bin/mp` so `conductor/` is created in the current target project, not plugin/cache directories.
+- `/mp:init` should pass `--dir "$PWD"` to `.claude-plugin/bin/mp` so `.multipowers/` is created in the current target project, not plugin/cache directories.
 - Runtime guard blocks spec/init commands if `PROJECT_ROOT` resolves to plugin/cache paths.
 
 This initializes:
 
-- `conductor/product.md`
-- `conductor/product-guidelines.md`
-- `conductor/tech-stack.md`
-- `conductor/workflow.md`
-- `conductor/code_styleguides/`
-- `conductor/tracks.md`
+- `.multipowers/product.md`
+- `.multipowers/product-guidelines.md`
+- `.multipowers/tech-stack.md`
+- `.multipowers/workflow.md`
+- `.multipowers/code_styleguides/`
+- `.multipowers/context/runtime.json`
+- `.multipowers/tracks/tracks.md`
 
 Templates come from `custom/templates/conductor/`.
 
 ## Auto-Init Guard
 
-For spec-driven commands (`/mp:plan`, discover/define/develop/deliver, embrace, review, debate, research), orchestrator checks conductor context first.
+For spec-driven commands (`/mp:plan`, discover/define/develop/deliver, embrace, review, debate, research), orchestrator checks `.multipowers/` context first.
 
 If missing/incomplete, it auto-runs `/mp:init` interactively before task execution.
 
 ## Track Files
 
-Spec-driven runs create or update checkbox-based tracking files in:
+Spec-driven runs create or update canonical track artifacts in:
 
-- `conductor/tracks/`
+- `.multipowers/tracks/<track_id>/`
 
 Canonical paths:
 
-- `conductor/tracks.md`
-- `conductor/tracks/`
+- `.multipowers/tracks/tracks.md`
+- `.multipowers/tracks/<track_id>/intent.md`
+- `.multipowers/tracks/<track_id>/design.md`
+- `.multipowers/tracks/<track_id>/implementation-plan.md`
+- `.multipowers/tracks/<track_id>/metadata.json`
+- `.multipowers/tracks/<track_id>/index.md`
 
-Spec-driven outputs are stored at `conductor/tracks/<track_id>/plan.md` and `conductor/tracks/<track_id>/intent.md`.
+Legacy note:
+
+- `.multipowers/tracks.md` is not compatible with the current runtime and is not read.
 
 ## Upstream Borrowing
 

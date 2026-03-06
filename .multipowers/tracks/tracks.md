@@ -7,15 +7,15 @@
 - Blocked: 0
 - Done: 0
 - Active: spec-track-runtime-20260306
-- Last Updated: 2026-03-06T11:27:16Z
+- Last Updated: 2026-03-06T11:30:09Z
 
 ## Active
 - [ ] `spec-track-runtime-20260306` Spec-Track Runtime & Artifacts
   - Objective: Implement runtime init, canonical track registry, coordinator, templates, and group-level enforcement.
   - Status: in_progress
-  - Current Group: g5
-  - Completed Groups: g1, g2, g3, g4, g5
-  - Last Commit: bfd73d7
+  - Current Group: g6
+  - Completed Groups: g1, g2, g3, g4, g5, g6
+  - Last Commit: ed77492
 
 ## Existing Tracks
 - [ ] `T001` Hybrid Runtime Contract Stabilization
