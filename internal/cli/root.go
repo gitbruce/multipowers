@@ -37,6 +37,99 @@ var commandRunner = func(name string, args ...string) *exec.Cmd {
 	return exec.Command(name, args...)
 }
 
+func prepareSpecTrack(projectDir, command, prompt string) (tracks.TrackContext, error) {
+	coordinator := tracks.TrackCoordinator{}
+	trackCtx, err := coordinator.ResolveTrack(projectDir, command)
+	if err != nil {
+		return tracks.TrackContext{}, err
+	}
+
+	meta, err := tracks.ReadMetadata(projectDir, trackCtx.ID)
+	if err != nil {
+		return tracks.TrackContext{}, err
+	}
+
+	values := tracks.DefaultArtifactValues(trackCtx, command, prompt)
+	values["CompletedGroups"] = appendUniqueStrings(meta.CompletedGroups, command)
+	if strings.TrimSpace(meta.Title) != "" {
+		values["TrackTitle"] = meta.Title
+	}
+	if meta.ComplexityScore > 0 {
+		values["ComplexityScore"] = meta.ComplexityScore
+	}
+	if meta.WorktreeRequired {
+		values["WorktreeRequired"] = "YES"
+	}
+	if strings.TrimSpace(meta.ExecutionMode) != "" {
+		values["ExecutionMode"] = meta.ExecutionMode
+	}
+	if err := coordinator.EnsureArtifacts(projectDir, trackCtx, values); err != nil {
+		return tracks.TrackContext{}, err
+	}
+
+	if err := tracks.UpdateMetadata(projectDir, trackCtx.ID, func(current *tracks.Metadata) error {
+		if strings.TrimSpace(current.Title) == "" {
+			current.Title = fmt.Sprint(values["TrackTitle"])
+		}
+		current.Status = "in_progress"
+		current.ExecutionMode = "cli"
+		current.CurrentGroup = command
+		current.CompletedGroups = appendUniqueStrings(current.CompletedGroups, command)
+		if !current.WorktreeRequired && strings.EqualFold(fmt.Sprint(values["WorktreeRequired"]), "YES") {
+			current.WorktreeRequired = true
+		}
+		if current.ComplexityScore == 0 {
+			if score, ok := values["ComplexityScore"].(int); ok {
+				current.ComplexityScore = score
+			}
+		}
+		current.LastVerifiedAt = time.Now().UTC().Format(time.RFC3339)
+		return nil
+	}); err != nil {
+		return tracks.TrackContext{}, err
+	}
+
+	if err := coordinator.UpdateRegistry(projectDir, trackCtx); err != nil {
+		return tracks.TrackContext{}, err
+	}
+	return trackCtx, nil
+}
+
+func appendUniqueStrings(existing []string, next string) []string {
+	next = strings.TrimSpace(next)
+	if next == "" {
+		return append([]string(nil), existing...)
+	}
+	out := make([]string, 0, len(existing)+1)
+	seen := map[string]struct{}{}
+	for _, item := range existing {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		if _, ok := seen[item]; ok {
+			continue
+		}
+		seen[item] = struct{}{}
+		out = append(out, item)
+	}
+	if _, ok := seen[next]; !ok {
+		out = append(out, next)
+	}
+	return out
+}
+
+func withTrackID(resp api.Response, trackID string) api.Response {
+	if strings.TrimSpace(trackID) == "" {
+		return resp
+	}
+	if resp.Data == nil {
+		resp.Data = map[string]any{}
+	}
+	resp.Data["track_id"] = trackID
+	return resp
+}
+
 func Run(args []string) int {
 	if len(args) == 0 {
 		fmt.Println("usage: mp <command> [--dir DIR] [--prompt TEXT] [--json]")
@@ -127,12 +220,17 @@ func Run(args []string) int {
 
 	exec := func(name string, fn func(string) map[string]any) int {
 		r := app.RunSpecPipeline(absDir, *autoInit, []string{name, "all"}, func() api.Response {
+			trackCtx, err := prepareSpecTrack(absDir, name, effectivePrompt)
+			if err != nil {
+				return api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()}
+			}
 			st := providers.Degrade(name, providers.AvailableProviders())
 			if st.Error != "" {
-				return api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: st.Error}
+				return withTrackID(api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: st.Error}, trackCtx.ID)
 			}
 			data := fn(effectivePrompt)
 			data["provider_strategy"] = st
+			data["track_id"] = trackCtx.ID
 			return api.Response{Status: "ok", Data: data}
 		})
 		return respond(r)
@@ -367,11 +465,15 @@ func Run(args []string) int {
 		return exec("embrace", workflows.Embrace)
 	case "debate":
 		r := app.RunSpecPipeline(absDir, *autoInit, []string{"debate", "all"}, func() api.Response {
+			trackCtx, err := prepareSpecTrack(absDir, "debate", effectivePrompt)
+			if err != nil {
+				return api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()}
+			}
 			data, ok := workflows.Debate(effectivePrompt)
 			if !ok {
-				return api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: "provider quorum below 2"}
+				return withTrackID(api.Response{Status: "error", ErrorCode: app.ErrProviderQuorum, Message: "provider quorum below 2"}, trackCtx.ID)
 			}
-			return api.Response{Status: "ok", Data: data}
+			return withTrackID(api.Response{Status: "ok", Data: data}, trackCtx.ID)
 		})
 		return respond(r)
 	case "persona":

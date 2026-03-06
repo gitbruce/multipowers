@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"text/template"
 )
@@ -38,9 +39,14 @@ type TemplateRenderer struct {
 }
 
 func NewTemplateRenderer(projectDir string) TemplateRenderer {
-	return TemplateRenderer{
-		root: filepath.Join(projectDir, "custom", "templates", "conductor", "track"),
+	root := filepath.Join(projectDir, "custom", "templates", "conductor", "track")
+	if _, err := os.Stat(root); err == nil {
+		return TemplateRenderer{root: root}
 	}
+	if fallback := bundledTemplateRoot(); fallback != "" {
+		return TemplateRenderer{root: fallback}
+	}
+	return TemplateRenderer{root: root}
 }
 
 func (r TemplateRenderer) RenderAll(values map[string]any) (map[string]string, error) {
@@ -119,4 +125,12 @@ func isBlankTemplateValue(value any) bool {
 	default:
 		return strings.TrimSpace(fmt.Sprint(v)) == ""
 	}
+}
+
+func bundledTemplateRoot() string {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return ""
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", "..", "custom", "templates", "conductor", "track"))
 }

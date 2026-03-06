@@ -62,6 +62,19 @@ func TestPostToolUseWritesFaqAndTrack(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(d, ".multipowers", "FAQ.md")); err != nil {
 		t.Fatalf("faq not written: %v", err)
 	}
+	trackID, _ := r.Metadata["track_id"].(string)
+	if trackID == "" {
+		t.Fatalf("expected track_id metadata, got %+v", r.Metadata)
+	}
+	for _, name := range []string{"intent.md", "design.md", "implementation-plan.md", "metadata.json", "index.md"} {
+		path := filepath.Join(d, ".multipowers", "tracks", trackID, name)
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("expected canonical track artifact %s: %v", name, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(d, ".multipowers", "tracks", "tracks.md")); err != nil {
+		t.Fatalf("expected canonical tracks registry: %v", err)
+	}
 }
 
 func TestEnterPlanMode_BlocksWithoutPlanIntent(t *testing.T) {

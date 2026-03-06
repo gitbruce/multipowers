@@ -2,10 +2,12 @@ package cli
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
 
+	ctxpkg "github.com/gitbruce/multipowers/internal/context"
 	"github.com/gitbruce/multipowers/internal/tracks"
 	"github.com/gitbruce/multipowers/pkg/api"
 )
@@ -158,4 +160,60 @@ func TestConfigShowModelRouting(t *testing.T) {
 			t.Fatalf("expected zero exit, got %d", code)
 		}
 	})
+}
+
+func TestSpecCommandsGenerateAndReuseCanonicalTrackArtifacts(t *testing.T) {
+	d := t.TempDir()
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
+		t.Fatal(err)
+	}
+
+	planResp := runJSONCommand(t, []string{"plan", "--dir", d, "--prompt", "design runtime track", "--json"})
+	trackID, _ := planResp.Data["track_id"].(string)
+	if trackID == "" {
+		t.Fatalf("expected track_id in plan response, got %+v", planResp.Data)
+	}
+	for _, name := range []string{"intent.md", "design.md", "implementation-plan.md", "metadata.json", "index.md"} {
+		path := filepath.Join(d, ".multipowers", "tracks", trackID, name)
+		if _, err := os.Stat(path); err != nil {
+			t.Fatalf("expected canonical track artifact %s: %v", name, err)
+		}
+	}
+
+	developResp := runJSONCommand(t, []string{"develop", "--dir", d, "--prompt", "implement runtime track", "--json"})
+	gotTrackID, _ := developResp.Data["track_id"].(string)
+	if gotTrackID != trackID {
+		t.Fatalf("expected develop to reuse active track_id=%q, got %q", trackID, gotTrackID)
+	}
+}
+
+func runJSONCommand(t *testing.T, args []string) api.Response {
+	t.Helper()
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe failed: %v", err)
+	}
+	os.Stdout = w
+
+	code := Run(args)
+
+	if err := w.Close(); err != nil {
+		t.Fatalf("close pipe writer: %v", err)
+	}
+	os.Stdout = old
+
+	output, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+	if code != 0 {
+		t.Fatalf("Run(%v) exit code=%d output=%s", args, code, string(output))
+	}
+
+	var resp api.Response
+	if err := json.Unmarshal(output, &resp); err != nil {
+		t.Fatalf("invalid JSON output: %v; output=%s", err, string(output))
+	}
+	return resp
 }
