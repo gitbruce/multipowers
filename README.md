@@ -1,447 +1,158 @@
-<p align="center">
-  <img src="assets/social-preview.jpg" alt="Multipowers - Multi-tentacled orchestrator for Claude Code" width="640">
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Claude_Code-Plugin-blueviolet" alt="Claude Code Plugin">
-  <img src="https://img.shields.io/badge/Double_Diamond-Design_Thinking-orange" alt="Double Diamond">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License">
-  <img src="https://img.shields.io/badge/Version-8.12.17-blue" alt="Version 8.12.17">
-  <img src="https://img.shields.io/badge/Claude_Code-v2.1.34+-blueviolet" alt="Requires Claude Code v2.1.34+">
-</p>
-
 # Multipowers
 
-**Multi-AI orchestration plugin for Claude Code** - Run Codex, Gemini, and Claude simultaneously with 29 expert personas, Double Diamond workflows, and 44 specialized skills.
+A Go-native multi-agent orchestration plugin for Claude Code.
 
-> *Three AI perspectives in the time it takes for one. Structured workflows that actually get followed.*
+> This repository is **based on** [nyldn/claude-octopus](https://github.com/nyldn/claude-octopus) and extends it with a Go-first runtime, stronger governance, and policy autosync learning.
 
----
+## Table of Contents
+
+- [Why This Fork](#why-this-fork)
+- [Fork Differences (Commit-Based)](#fork-differences-commit-based)
+- [Architecture Snapshot](#architecture-snapshot)
+- [Requirements](#requirements)
+- [Install](#install)
+- [Quick Start](#quick-start)
+- [Development](#development)
+- [Testing](#testing)
+- [Repository Layout](#repository-layout)
+- [License](#license)
+
+## Why This Fork
+
+This fork focuses on runtime determinism, maintainability, and enterprise-style governance:
+
+- Go-native orchestration and policy resolution on critical paths.
+- Clear command boundary: `mp` (runtime) vs `mp-devx` (ops/devx).
+- Structured governance checks and decision logs under `.multipowers`.
+- Policy Auto Sync with prompt injection and deny confirmation flow.
+
+## Fork Differences (Commit-Based)
+
+Compared with upstream `main`, this fork branch (`go`) adds the following major differences based on commit history.
+
+| Area | What changed in this fork | Example commits |
+|---|---|---|
+| Go-native orchestration runtime | Migrated orchestration planner/executor/synthesis to Go and aligned flow naming with runtime contracts. | `89a8440`, `bb982e0`, `e55a456` |
+| Config-driven policy + dispatch | Added compiled runtime policy artifacts, config loaders/validators, and one-hop fallback dispatch behavior. | `e2fc72a`, `ddd46aa`, `41aaf93`, `23e6447`, `ef7e8b1` |
+| Benchmark + smart routing | Added benchmark mode, async queue pipeline, JSONL persistence, judge scoring, and history-based routing override. | `d87f993`, `ff9d21a`, `4ba7861`, `88922be`, `a309b5b`, `34c16cc`, `b7c71e8` |
+| Shared isolation + mailbox control plane | Added isolation policy/runtime, mailbox IPC, conflict monitor, deterministic gate decisions, and resource guardrails. | `36a5ee0`, `57f6a56`, `72f496e`, `8fef1bc`, `9e6b081`, `c5c7a3f`, `1b2037b`, `f2bd721`, `9233f58`, `43ebe08` |
+| Runtime/ops command boundary | Formalized `mp` vs `mp-devx` ownership, migrated coverage/validate-runtime/cost-report to `mp-devx`. | `253ae8b`, `127f76a`, `52197ee`, `a704249`, `c1685ad` |
+| Governance and doctor | Added/expanded governance checks, hook integration, and decision logging in `.multipowers`. | `53c1080`, `cb16789` |
+| Policy Auto Sync learning loop | Added universal autosync domain (`internal/autosync`), deny confirmation (`delete` vs `skip-this-session`), and policy prompt injection (including external tool calls). | `2b59c12`, `830fe03`, `4981475`, `1c79154` |
+| Naming/layout migration | Renamed and aligned plugin architecture toward `multipowers` + `.claude-plugin`/`.multipowers` conventions. | `ac17dfd`, `d21d73f` |
+
+## Architecture Snapshot
+
+High-level execution path in this fork:
+
+1. User command enters `mp` runtime.
+2. Policy resolver selects model/executor from compiled config.
+3. Orchestration runs with optional isolation/mailbox control plane.
+4. Hooks/doctor enforce governance and produce audit artifacts.
+5. Policy Auto Sync ingests events, scores proposals, and injects active policy context into prompts.
+
+Primary internal modules:
+
+- `internal/orchestration`: planner, executor, synthesis loop.
+- `internal/policy`: config compile/load/resolve/dispatch.
+- `internal/hooks`: runtime hook enforcement.
+- `internal/doctor`: governance diagnostics.
+- `internal/autosync`: policy learning/injection/overlay controls.
+
+## Requirements
+
+- Claude Code `v2.1.34+`
+- Go `1.22+` (for local build/test)
+- Optional external providers:
+  - Codex CLI (OpenAI)
+  - Gemini CLI (Google)
 
 ## Install
 
-Inside Claude Code, run:
+Inside Claude Code:
 
-```
-/plugin marketplace add /mnt/f/src/ai/multipowers/.claude-plugin/marketplace.json
+```bash
+/plugin marketplace add ${PWD}/.claude-plugin/marketplace.json
 /plugin install mp@multipowers-plugins --scope user
 ```
 
-Then configure your AI providers:
+Then run setup:
 
-```
+```bash
 /mp:setup
 ```
 
-The setup wizard detects what you have installed, shows what's missing, and walks you through configuration. You only need **one** external provider (Codex or Gemini) to get multi-AI features - Claude is built-in.
-
-**Requirements:** Claude Code v2.1.34+
-
----
-
 ## Quick Start
 
-### For Developers
+### Runtime commands (`mp`)
 
-```
-/mp:research OAuth 2.1 implementation patterns     # Multi-AI research
-/mp:review                                          # Security-aware code review
-/mp:tdd                                             # Red-green-refactor with discipline
-/mp:debug                                           # Systematic 4-phase debugging
-/mp:security                                        # OWASP vulnerability scan
-/mp:persona list                                    # List available personas
-/mp:persona security-auditor review auth flow       # Force specific persona
-/mp:embrace build user authentication               # Full lifecycle: research to delivery
+```bash
+mp status --dir . --json
+mp doctor --dir . --list
+mp route --intent develop --dir . --json
+mp policy sync --dir . --json
+mp policy stats --dir . --json
 ```
 
-### For Knowledge Workers
+### Workflow commands (plugin)
 
-```
-/mp:research competitor landscape for B2B SaaS      # Multi-source synthesis
-/mp:prd                                             # AI-optimized PRD with 100-point scoring
-/mp:brainstorm                                      # Creative thought partner session
-/mp:debate build vs buy for analytics platform      # Structured three-way AI debate
-/mp:docs                                            # Export to PPTX, DOCX, PDF
-/mp:embrace write market entry strategy             # Full lifecycle: research to deliverable
-```
-
-### The Smart Router
-
-Don't remember the exact command? Just describe what you need:
-
-```
-/mp research microservices patterns      -> routes to discover phase
-/mp build user authentication            -> routes to develop phase
-/mp review this PR for security issues   -> routes to deliver phase
-/mp compare Redis vs DynamoDB            -> routes to debate
+```text
+/mp:discover <topic>
+/mp:define <goal>
+/mp:develop <task>
+/mp:deliver <review-target>
+/mp:embrace <end-to-end goal>
 ```
 
-The router parses your intent and selects the right workflow.
+### Devx/Ops commands (`mp-devx`)
 
----
-
-## How It Works
-
-### Multi-AI Orchestration
-
-Multipowers coordinates three AI providers - Codex, Gemini, and Claude - running them in parallel across every workflow. This isn't just a debate feature. Multi-AI orchestration powers the entire plugin:
-
-- **`/mp:embrace`** runs a full 4-phase lifecycle where Codex and Gemini research independently in the Discover phase, build consensus in Define, propose competing implementations in Develop, then cross-review in Deliver
-- **`/mp:discover`** sends the same question to all providers simultaneously, then synthesizes three independent analyses into one report
-- **`/mp:deliver`** has Codex check code quality and patterns while Gemini scans for security and edge cases, with Claude producing the final assessment
-- **`/mp:debate`** structures a formal multi-round argument where each provider takes and defends a position
-
-| Provider | Powered By | Role Across Workflows |
-|----------|-----------|----------|
-| Codex (OpenAI) | GPT-5.3-Codex | Implementation depth - code patterns, technical analysis, architecture proposals |
-| Gemini (Google) | Gemini 3 Pro | Ecosystem breadth - alternative approaches, security review, research synthesis |
-| Claude (Anthropic) | Sonnet 4.5 / Opus 4.6 | Orchestration and synthesis - quality gates, final recommendations, consensus building |
-
-Each workflow uses providers differently. Research runs them in parallel. Define runs them sequentially for coherent problem scoping. Develop runs them in parallel for competing proposals, then merges through a 75% consensus quality gate. Deliver cross-validates with adversarial review.
-
-**Graceful degradation:** Works with 1, 2, or 3 providers. With one external provider, you get dual-perspective analysis. With none, you still get all 29 personas, structured workflows, and every skill - multi-AI orchestration simply runs through Claude alone.
-
-### Double Diamond Workflows
-
-Four structured phases adapted from the UK Design Council's proven methodology:
-
-```
-  DISCOVER          DEFINE           DEVELOP          DELIVER
-  (diverge)        (converge)       (diverge)        (converge)
-     /\               /\               /\               /\
-    /  \             /  \             /  \             /  \
-   / Re \           / Sc \           / Bu \           / Va \
-  / search\        / ope  \         / ild  \         / lidate\
- /________\       /________\       /________\       /________\
+```bash
+mp-devx --action doctor --dir . --verbose
+mp-devx --action build-policy --config-dir config --output-dir .claude-plugin/runtime
+mp-devx --action build-runtime
+mp-devx --action init-fingerprint --dir . --json
 ```
 
-| Phase | Command | Alias | What Happens |
-|-------|---------|-------|--------------|
-| Discover | `/mp:discover` | `/mp:probe` | Multi-AI research and broad exploration |
-| Define | `/mp:define` | `/mp:grasp` | Requirements clarification with consensus building |
-| Develop | `/mp:develop` | `/mp:tangle` | Implementation with quality gates (75% threshold) |
-| Deliver | `/mp:deliver` | `/mp:ink` | Adversarial review, security checks, go/no-go scoring |
-| **All 4** | `/mp:embrace` | - | Complete lifecycle in one command |
+## Development
 
-Each phase has quality gates that must pass before proceeding. If a gate fails, the workflow pauses for revision rather than shipping questionable work.
-
-Run phases individually or chain them. `/mp:embrace` runs all four in sequence, with configurable autonomy:
-
-- **Supervised** (default) - Review and approve after each phase
-- **Semi-autonomous** - Auto-proceed unless a quality gate fails
-- **Autonomous** - Run all 4 phases without intervention
-
-### 29 Expert Personas
-
-Specialized AI agents that activate automatically based on your request. Each persona has domain expertise, a preferred AI provider, and memory that persists across sessions.
-
-**Software Engineering** (11 personas)
-backend-architect, frontend-developer, cloud-architect, devops-troubleshooter, deployment-engineer, database-architect, security-auditor, performance-engineer, code-reviewer, debugger, incident-responder
-
-**Specialized Development** (6 personas)
-ai-engineer, typescript-pro, python-pro, graphql-architect, test-automator, tdd-orchestrator
-
-**Documentation & Communication** (5 personas)
-docs-architect, product-writer, academic-writer, exec-communicator, content-analyst
-
-**Research & Strategy** (4 personas)
-research-synthesizer, ux-researcher, strategy-analyst, business-analyst
-
-**Creative & Design** (3 personas)
-thought-partner, mermaid-expert, context-manager
-
-**How activation works:** Personas trigger proactively based on intent detection. When you say "audit my API for vulnerabilities," the security-auditor activates automatically. When you say "write a research paper," academic-writer takes over. No explicit invocation needed.
-
-```
-"I need a security audit of my auth code"       -> security-auditor persona
-"Review my API design for scalability"           -> backend-architect persona
-"Help me write a PRD for the new feature"        -> product-writer persona
-"Research market sizing for AI developer tools"  -> strategy-analyst persona
-"Create a sequence diagram for the auth flow"    -> mermaid-expert persona
+```bash
+go build ./cmd/mp
+go build ./cmd/mp-devx
 ```
 
-### Context-Aware Intelligence
+Build runtime artifacts:
 
-Multipowers auto-detects whether you're doing development work or knowledge work and adapts everything: research sources, output formats, review criteria, and persona selection.
-
-**Dev mode** (activates in code repositories): Research targets libraries and patterns. Output is code and tests. Reviews check security and performance.
-
-**Knowledge mode** (`/mp:km on`): Research targets market data and strategy. Output is PRDs and reports. Reviews check clarity and evidence quality.
-
-Auto-detection uses file signatures - `package.json` triggers dev mode, business keywords trigger knowledge mode. Override anytime with `/mp:km on|off|auto` or `/mp:dev`.
-
----
-
-## Key Capabilities
-
-### Code Review (`/mp:deliver`)
-Multi-perspective code review combining Codex (code quality, patterns), Gemini (security, edge cases), and Claude (synthesis, recommendations). Checks architecture, security vulnerabilities, performance bottlenecks, and maintainability.
-
-### Test-Driven Development (`/mp:develop`)
-Enforces red-green-refactor discipline. Write failing tests first, implement minimally to pass, then refactor with confidence.
-
-### Systematic Debugging (`/mp:loop`)
-Use the iterative executor for systematic debugging. Provide a goal, and the system will iteratively investigate, form hypotheses, implement fixes, and verify until tests pass.
-
-### Security Audit (`/mp:debate`)
-Trigger an adversarial security review. One model acts as the Red Team (finding vulnerabilities), another as the Blue Team (reviewing defenses), and Claude synthesizes the final risk assessment.
-
-### Deep Research (`/mp:discover`)
-Multi-source synthesis combining Codex (technical analysis), Gemini (ecosystem research), and Claude (strategic synthesis). 
-
----
-
-## All Commands
-
-### Core Workflows
-| Command | Description |
-|---------|-------------|
-| `/mp:embrace` | Full Double Diamond workflow (all 4 phases) |
-| `/mp:discover` | Discovery phase - multi-AI research |
-| `/mp:define` | Definition phase - requirements and scope |
-| `/mp:develop` | Development phase - implementation with quality gates |
-| `/mp:deliver` | Delivery phase - review and validation |
-
-### Utility & Analysis
-| Command | Description |
-|---------|-------------|
-| `/mp:debate` | Structured three-way AI debate |
-| `/mp:loop` | Iterate until exit criteria pass |
-| `/mp:test` | Run tests and get structured output |
-
-### Project Lifecycle
-| Command | Description |
-|---------|-------------|
-| `/mp:status` | Project progress dashboard |
-
-### Configuration
-| Command | Description |
-|---------|-------------|
-| `/mp:route` | Debug smart routing decisions |
-| `/mp:persona` | Run a specific persona |
-| `/mp:setup` | Provider setup wizard |
-
----
-
-## 43 Skills
-
-Skills are the engine behind commands and personas. They activate automatically when needed - you don't invoke them directly.
-
-**Workflow Phases** - flow-discover, flow-define, flow-develop, flow-deliver
-
-**Research & Knowledge** - skill-deep-research, skill-debate, skill-debate-integration, skill-thought-partner, skill-meta-prompt, skill-knowledge-work
-
-**Code Quality** - skill-code-review, skill-quick-review, skill-security-audit, skill-adversarial-security, skill-security-framing, skill-audit
-
-**Development** - skill-tdd, skill-debug, skill-verify, skill-validate, skill-iterative-loop, skill-finish-branch, skill-parallel-agents
-
-**Architecture & Planning** - skill-architecture, skill-prd, skill-writing-plans, skill-decision-support, skill-intent-contract
-
-**Content & Docs** - skill-doc-delivery, skill-content-pipeline, skill-visual-feedback
-
-**Project Lifecycle** - skill-status, skill-issues, skill-rollback, skill-resume, skill-resume-enhanced, skill-ship
-
-**Task & Session** - skill-task-management, skill-task-management-v2, skill-quick
-
-**Mode & Config** - skill-context-detection, sys-configure, extract-skill
-
-**How skills relate to commands:** Commands are what you type. Skills are what runs. When you run `/mp:review`, it activates the skill-code-review skill, which invokes the code-reviewer persona, which routes to the appropriate AI providers. You interact with commands; skills handle execution.
-
----
-
-## Project Lifecycle
-
-Track state across sessions with the `.multipowers/` directory:
-
-```
-.multipowers/
-├── PROJECT.md      # Vision and requirements
-├── ROADMAP.md      # Phase breakdown
-├── STATE.md        # Current position and history
-├── config.json     # Workflow preferences
-├── ISSUES.md       # Cross-session issue tracking
-└── LESSONS.md      # Lessons learned (preserved across rollbacks)
+```bash
+mp-devx --action build-runtime
 ```
 
-Created automatically on first `/mp:embrace`. Use `/mp:status` for a progress dashboard, `/mp:resume` to continue where you left off, `/mp:issues` to track cross-session problems, and `/mp:rollback` to restore from git tag checkpoints.
+## Testing
 
-LESSONS.md is intentionally preserved across rollbacks - mistakes are worth remembering.
+Core suites used in this fork:
 
----
-
-## Model Configuration
-
-Configure which AI models power each provider:
-
-```
-/mp:model-config
+```bash
+go test ./internal/autosync/... -v
+go test ./internal/policy ./internal/hooks ./internal/doctor ./internal/cli -v
+go test ./cmd/mp ./cmd/mp-devx -v
 ```
 
-Supports runtime model selection with 4-tier precedence:
-1. Environment variables (`OCTOPUS_CODEX_MODEL`, `OCTOPUS_GEMINI_MODEL`)
-2. Runtime overrides
-3. Config file settings
-4. Built-in defaults (GPT-5.3-Codex, Gemini 3 Pro, Claude Sonnet 4.5)
+## Repository Layout
 
-For premium tasks, complexity-based routing automatically upgrades to Opus 4.6.
-
-Optional proxy settings for Codex/Gemini can be added in `~/.multipowers/config/providers.json`:
-
-```json
-{
-  "proxy": {
-    "enabled": true,
-    "port": 7890
-  }
-}
+```text
+cmd/
+  mp/               # runtime CLI
+  mp-devx/          # ops/devx CLI
+internal/
+  orchestration/    # planner/executor/synthesis
+  policy/           # compile/load/resolve/dispatch
+  hooks/            # runtime hook governance
+  doctor/           # diagnostics checks
+  autosync/         # policy learning + prompt injection
+config/             # source policy/workflow/provider config
+.claude-plugin/     # plugin manifest/runtime assets
+.multipowers/       # runtime state and governance artifacts
 ```
-
----
-
-## Benchmark + Smart Routing (Optional)
-
-You can enable async benchmark collection for `/mp:*` code-related requests, then optionally let history override routing.
-
-Configure in `config/orchestration.yaml`:
-
-```yaml
-execution_isolation:
-  enabled: true
-  command_whitelist:
-    - develop
-    - review
-    - embrace
-  branch_prefix: "bench"
-  worktree_root: ".worktrees/bench"
-  repair_retry_max: 1
-  global_timeout_ms: 120000
-  proceed_policy: "all_or_timeout"
-  min_completed_models: 1
-  heartbeat_interval_seconds: 30
-  logs_subdir: "logs"
-
-benchmark_mode:
-  enabled: true
-  async_enabled: true
-  force_all_models_on_code: true
-  judge_model: "claude-opus"
-  execution_profile:
-    enabled: true
-    require_code_intent: true
-    command_whitelist:
-      - develop
-      - review
-      - embrace
-
-smart_routing:
-  enabled: false
-  min_samples_per_model: 10
-```
-
-Behavior:
-- `execution_isolation.enabled=true`: any external command flow that may edit files is executed in isolated `worktree + branch` sandboxes (shared runtime, benchmark and non-benchmark paths).
-- `benchmark_mode.enabled=true`: code-related `/mp:*` requests can fan out to all available models and write daily JSONL records under `~/.multipowers/metrics`.
-- `benchmark_mode.execution_profile`: optional benchmark-specific gate layered on shared isolation policy (code intent + benchmark whitelist).
-- `smart_routing.enabled=false`: no history override is applied.
-- `smart_routing.enabled=true`: override is applied only when a similar-scenario model has at least `min_samples_per_model` judged samples.
-- Long-running isolated runs emit `step_progress` heartbeat events and enforce a timeout sync gate that can proceed with completed candidates.
-- Benchmark queue/store/judge failures are best-effort only and do not fail the main workflow result.
-
----
-
-## Cost Transparency
-
-You see cost estimates **before** execution. Interactive research asks 3 questions (depth, focus, format) then shows exactly what will run and how much it costs.
-
-**Most users pay nothing extra.** If you authenticate Codex via `codex login` (ChatGPT account) and Gemini via Google account OAuth, usage is covered by your existing subscriptions - no per-token API charges. Claude is included with your Claude Code subscription.
-
-| Auth Method | Codex Cost | Gemini Cost | Claude Cost |
-|-------------|-----------|-------------|-------------|
-| OAuth login (recommended) | Included in ChatGPT Plus/Pro/Team | Included in Google AI subscription | Included in Claude Code |
-| API key (`OPENAI_API_KEY` / `GEMINI_API_KEY`) | ~$0.02-0.10/query | ~$0.01-0.03/query | Included in Claude Code |
-
-If you do use API keys, here are the per-workflow estimates:
-
-| Scenario | Time | Est. API Cost |
-|----------|------|---------------|
-| Quick research | 1-2 min | $0.01-0.02 |
-| Standard research | 2-3 min | $0.02-0.05 |
-| Deep dive | 4-5 min | $0.05-0.10 |
-| AI debate | 5-10 min | $0.08-0.15 |
-| Code review | 3-5 min | $0.04-0.08 |
-| Full workflow | 15-25 min | $0.20-0.40 |
-
-Works without external providers too - you still get 29 personas, all workflows, context-aware intelligence, and every skill. Multi-AI features activate only when providers are available.
-
----
-
-## FAQ
-
-**Do I need all three AI providers?**
-No. One external provider (Codex or Gemini) plus the built-in Claude gives you multi-AI features. Both external providers gives maximum diversity. No external providers still gives you personas, workflows, and skills.
-
-**Will this break my existing Claude Code setup?**
-No. Multipowers only activates with the `mp` prefix or `/mp:*` commands. Results are stored separately in `~/.multipowers/`. Uninstalls cleanly with no residual configuration changes.
-
-**Can I use it without external AIs?**
-Yes. You get all 29 personas, structured workflows, context intelligence, task management, and every skill. Multi-AI features (parallel analysis, debate, consensus) won't activate without external providers.
-
-**What happens if an external provider times out?**
-The workflow continues with available providers. If Codex fails, Gemini and Claude complete the work. If both fail, Claude handles it solo. You'll see the provider status in the visual indicators.
-
-**What's the difference between `/mp:quick` and full workflows?**
-`/mp:quick` skips the structured phases and quality gates - it's a fast path for ad-hoc tasks that don't need the full Double Diamond treatment. Use it for simple tasks; use `/mp:embrace` for complex features.
-
-**Can I share `.multipowers/` state across a team?**
-Yes. The `.multipowers/` directory is designed to be committed to your repository. Team members can use `/mp:resume` to pick up where others left off. ISSUES.md and LESSONS.md provide cross-session continuity.
-
-**Does this work offline?**
-Partially. Claude (via Claude Code) works with your subscription. External providers (Codex, Gemini) require internet access. All personas and workflow logic run locally.
-
-**How do I see what's happening under the hood?**
-Visual indicators show active providers in real-time. For deeper debugging, check logs in `~/.multipowers/logs/` or enable debug mode.
-
-**How do I update?**
-Run `/plugin` > Installed > update, or reinstall:
-```
-/plugin uninstall multipowers@multipowers-plugins
-/plugin install mp@multipowers-plugins --scope user
-```
-
----
-
-## Documentation
-
-- [Visual Indicators](docs/VISUAL-INDICATORS.md) - Understanding provider status
-- [Command Reference](docs/COMMAND-REFERENCE.md) - All commands in detail
-- [Architecture](docs/ARCHITECTURE.md) - How it works internally
-- [Plugin Architecture](docs/PLUGIN-ARCHITECTURE.md) - Plugin structure
-- [Debug Mode](docs/CLI-REFERENCE.md#debugging) - Troubleshooting workflows
-- [Full Changelog](CHANGELOG.md) - Complete version history
-
----
-
-## Attribution
-
-- **[wolverin0/claude-skills](https://github.com/wolverin0/claude-skills)** - AI Debate Hub for structured three-way debates. MIT License.
-- **[UK Design Council](https://www.designcouncil.org.uk/our-resources/the-double-diamond/)** - Double Diamond methodology.
-
----
-
-## Contributing
-
-1. [Report Issues](https://github.com/gitbruce/multipowers/issues)
-2. Submit PRs following existing code style
-3. Development: `git clone --recursive https://github.com/gitbruce/multipowers.git && make test`
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
----
 
 ## License
 
-MIT - see [LICENSE](LICENSE)
-
-<p align="center">
-  <a href="https://github.com/gitbruce">gitbruce</a> | MIT License | <a href="https://github.com/gitbruce/multipowers/issues">Report Issues</a>
-</p>
+MIT. See [LICENSE](./LICENSE).
