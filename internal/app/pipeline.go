@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/gitbruce/multipowers/internal/context"
 	"github.com/gitbruce/multipowers/internal/runtime"
+	"github.com/gitbruce/multipowers/internal/validation"
 	"github.com/gitbruce/multipowers/pkg/api"
 )
 
@@ -28,6 +29,10 @@ func RunSpecPipeline(projectDir string, autoInit bool, tags []string, execFn Exe
 		if err := runtime.RunPreRun(cfg, tags); err != nil {
 			return api.Response{Status: "error", ErrorCode: ErrPreRunFailed, Message: err.Error()}
 		}
+	}
+	enforcement := validation.EnsureTrackExecution(projectDir)
+	if !enforcement.Valid {
+		return api.Response{Status: "blocked", ErrorCode: ErrInvalidArgument, Message: enforcement.Reason}
 	}
 	return execFn()
 }
