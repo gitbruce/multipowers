@@ -144,7 +144,7 @@ func Run(args []string) int {
 	cmd := args[0]
 	sub := ""
 	rest := args[1:]
-	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate" || cmd == "cost" || cmd == "checkpoint" || cmd == "policy") && len(rest) > 0 {
+	if (cmd == "context" || cmd == "state" || cmd == "test" || cmd == "coverage" || cmd == "config" || cmd == "orchestrate" || cmd == "cost" || cmd == "checkpoint" || cmd == "policy" || cmd == "track") && len(rest) > 0 {
 		sub = rest[0]
 		rest = rest[1:]
 	}
@@ -157,6 +157,10 @@ func Run(args []string) int {
 	event := fs.String("event", "", "hook event")
 	// State command flags
 	key := fs.String("key", "", "state key for get/set operations")
+	trackID := fs.String("track-id", "", "track identifier for track subcommands")
+	groupID := fs.String("group", "", "group identifier for track lifecycle commands")
+	commitSHA := fs.String("commit-sha", "", "commit sha for track group completion")
+	executionMode := fs.String("execution-mode", "", "execution mode for track group start")
 	value := fs.String("value", "", "state value for set operation")
 	data := fs.String("data", "", "JSON data for update operation")
 	// Validate command flags
@@ -376,6 +380,63 @@ func Run(args []string) int {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInitFailed, Message: err.Error()})
 		}
 		return respond(api.Response{Status: "ok", Message: "initialized"})
+	case "track":
+		switch sub {
+		case "group-start":
+			if strings.TrimSpace(*trackID) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--track-id is required"})
+			}
+			if strings.TrimSpace(*groupID) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--group is required"})
+			}
+			meta, err := tracks.ReadMetadata(absDir, *trackID)
+			if err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			mode := strings.TrimSpace(*executionMode)
+			if mode == "" {
+				if strings.TrimSpace(meta.ExecutionMode) != "" {
+					mode = meta.ExecutionMode
+				} else {
+					mode = "workspace"
+				}
+			}
+			if meta.WorktreeRequired {
+				linked, err := tracks.IsLinkedWorktreeCheckout(absDir)
+				if err != nil {
+					return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+				}
+				if !linked {
+					return respond(api.Response{Status: "blocked", ErrorCode: app.ErrInvalidArgument, Message: "track requires linked worktree execution before group start"})
+				}
+			}
+			if err := tracks.StartGroup(absDir, *trackID, *groupID, mode, meta.WorktreeRequired || strings.EqualFold(mode, "worktree")); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			if err := (tracks.TrackCoordinator{}).UpdateRegistry(absDir, tracks.TrackContext{ID: *trackID, Active: true}); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"track_id": *trackID, "group": strings.ToLower(strings.TrimSpace(*groupID)), "status": "started"}})
+		case "group-complete":
+			if strings.TrimSpace(*trackID) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--track-id is required"})
+			}
+			if strings.TrimSpace(*groupID) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--group is required"})
+			}
+			if strings.TrimSpace(*commitSHA) == "" {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "--commit-sha is required"})
+			}
+			if err := tracks.CompleteGroup(absDir, *trackID, *groupID, *commitSHA, time.Now().UTC().Format(time.RFC3339)); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			if err := (tracks.TrackCoordinator{}).UpdateRegistry(absDir, tracks.TrackContext{ID: *trackID, Active: true}); err != nil {
+				return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+			}
+			return respond(api.Response{Status: "ok", Data: map[string]any{"track_id": *trackID, "group": strings.ToLower(strings.TrimSpace(*groupID)), "commit_sha": *commitSHA, "status": "completed"}})
+		default:
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown track subcommand: use group-start|group-complete"})
+		}
 	case "state":
 		switch sub {
 		case "get":

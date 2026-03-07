@@ -30,7 +30,8 @@ func TestPipelineBlocksWhenGroupEnforcementIncomplete(t *testing.T) {
 		ID:              "track-g5",
 		Status:          "in_progress",
 		CurrentGroup:    "g5",
-		CompletedGroups: []string{"g5"},
+		GroupStatus:     tracks.GroupStatusInProgress,
+		CompletedGroups: []string{"g4"},
 	}); err != nil {
 		t.Fatal(err)
 	}

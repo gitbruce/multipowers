@@ -228,3 +228,74 @@ func runJSONCommand(t *testing.T, args []string) api.Response {
 	}
 	return resp
 }
+
+func TestTrackGroupCommandsRequireEvidenceAndWorktree(t *testing.T) {
+	d := t.TempDir()
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
+		t.Fatal(err)
+	}
+	trackID := "track-g1"
+	if err := tracks.WriteMetadata(d, trackID, tracks.Metadata{ID: trackID, WorktreeRequired: true}); err != nil {
+		t.Fatal(err)
+	}
+
+	resp := runJSONCommandAllowError(t, []string{"track", "group-start", "--dir", d, "--track-id", trackID, "--group", "g1", "--execution-mode", "worktree", "--json"})
+	if resp.Status != "blocked" {
+		t.Fatalf("expected blocked worktree start, got %+v", resp)
+	}
+
+	if err := tracks.WriteMetadata(d, trackID, tracks.Metadata{ID: trackID}); err != nil {
+		t.Fatal(err)
+	}
+	resp = runJSONCommand(t, []string{"track", "group-start", "--dir", d, "--track-id", trackID, "--group", "g1", "--execution-mode", "workspace", "--json"})
+	if resp.Status != "ok" {
+		t.Fatalf("expected ok start, got %+v", resp)
+	}
+	resp = runJSONCommandAllowError(t, []string{"track", "group-complete", "--dir", d, "--track-id", trackID, "--group", "g1", "--json"})
+	if resp.Status != "error" {
+		t.Fatalf("expected error without commit sha, got %+v", resp)
+	}
+	resp = runJSONCommand(t, []string{"track", "group-complete", "--dir", d, "--track-id", trackID, "--group", "g1", "--commit-sha", "abc1234", "--json"})
+	if resp.Status != "ok" {
+		t.Fatalf("expected ok completion, got %+v", resp)
+	}
+
+	meta, err := tracks.ReadMetadata(d, trackID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.GroupStatus != tracks.GroupStatusCompleted {
+		t.Fatalf("group_status=%q want completed", meta.GroupStatus)
+	}
+	if meta.LastCommitSHA != "abc1234" {
+		t.Fatalf("last_commit_sha=%q want abc1234", meta.LastCommitSHA)
+	}
+}
+
+func runJSONCommandAllowError(t *testing.T, args []string) api.Response {
+	t.Helper()
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe failed: %v", err)
+	}
+	os.Stdout = w
+
+	_ = Run(args)
+
+	if err := w.Close(); err != nil {
+		t.Fatalf("close pipe writer: %v", err)
+	}
+	os.Stdout = old
+
+	output, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+
+	var resp api.Response
+	if err := json.Unmarshal(output, &resp); err != nil {
+		t.Fatalf("invalid JSON output: %v; output=%s", err, string(output))
+	}
+	return resp
+}

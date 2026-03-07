@@ -3,7 +3,6 @@ package validation
 import (
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	ctxpkg "github.com/gitbruce/multipowers/internal/context"
@@ -14,8 +13,6 @@ type Result struct {
 	Valid  bool   `json:"valid"`
 	Reason string `json:"reason,omitempty"`
 }
-
-var taskGroupPattern = regexp.MustCompile(`^g[0-9]+$`)
 
 func EnsureTargetWorkspace(projectDir string) Result {
 	if _, err := os.Stat(filepath.Join(projectDir, ".multipowers")); err != nil {
@@ -40,12 +37,11 @@ func EnsureTrackExecution(projectDir string) Result {
 	if err != nil {
 		return Result{Valid: false, Reason: err.Error()}
 	}
-	currentGroup := strings.TrimSpace(strings.ToLower(meta.CurrentGroup))
-	if currentGroup == "" || !taskGroupPattern.MatchString(currentGroup) {
+	if meta.GroupStatus != tracks.GroupStatusInProgress {
 		return Result{Valid: true}
 	}
 
-	missing := make([]string, 0, 2)
+	missing := make([]string, 0, 3)
 	if strings.TrimSpace(meta.LastCommitSHA) == "" {
 		missing = append(missing, "last_commit_sha")
 	}

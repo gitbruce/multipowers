@@ -16,7 +16,8 @@ func TestEnsureTrackExecutionBlocksMissingCommitOrVerification(t *testing.T) {
 		ID:              "track-g2",
 		Status:          "in_progress",
 		CurrentGroup:    "g2",
-		CompletedGroups: []string{"g1", "g2"},
+		GroupStatus:     tracks.GroupStatusInProgress,
+		CompletedGroups: []string{"g1"},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -30,22 +31,22 @@ func TestEnsureTrackExecutionBlocksMissingCommitOrVerification(t *testing.T) {
 	}
 }
 
-func TestEnsureTrackExecutionAllowsNonGroupTrackProgress(t *testing.T) {
+func TestEnsureTrackExecutionAllowsIdleTrackWithoutGroupEvidence(t *testing.T) {
 	d := t.TempDir()
 	if err := tracks.SetActiveTrack(d, "track-develop"); err != nil {
 		t.Fatal(err)
 	}
 	if err := tracks.WriteMetadata(d, "track-develop", tracks.Metadata{
-		ID:              "track-develop",
-		Status:          "in_progress",
-		CurrentGroup:    "develop",
-		CompletedGroups: []string{"develop"},
+		ID:            "track-develop",
+		Status:        "in_progress",
+		LastCommand:   "develop",
+		LastCommandAt: "2026-03-07T13:20:00Z",
 	}); err != nil {
 		t.Fatal(err)
 	}
 
 	res := EnsureTrackExecution(d)
 	if !res.Valid {
-		t.Fatalf("expected non-group progress to bypass enforcement, got %+v", res)
+		t.Fatalf("expected idle track progress to bypass enforcement, got %+v", res)
 	}
 }
