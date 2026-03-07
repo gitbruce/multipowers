@@ -622,3 +622,145 @@ func TestExecutor_DoesNotPullNextTaskWhenCapReached(t *testing.T) {
 		t.Fatalf("completed = %d, want 2", result.Completed)
 	}
 }
+
+type scriptedDispatchOutcome struct {
+	result *StepResult
+	err    error
+}
+
+type scriptedDispatcher struct {
+	mu       sync.Mutex
+	calls    int
+	outcomes []scriptedDispatchOutcome
+}
+
+func (s *scriptedDispatcher) Dispatch(ctx context.Context, step StepPlan) (*StepResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	idx := s.calls
+	s.calls++
+	if idx >= len(s.outcomes) {
+		return &StepResult{StepID: step.ID, Phase: step.Phase, Agent: step.Agent, Model: step.Model, Status: StepStatusCompleted, Output: "ok"}, nil
+	}
+	outcome := s.outcomes[idx]
+	if outcome.result != nil {
+		copied := *outcome.result
+		if copied.StepID == "" {
+			copied.StepID = step.ID
+		}
+		if copied.Phase == "" {
+			copied.Phase = step.Phase
+		}
+		if copied.Agent == "" {
+			copied.Agent = step.Agent
+		}
+		if copied.Model == "" {
+			copied.Model = step.Model
+		}
+		return &copied, outcome.err
+	}
+	return nil, outcome.err
+}
+
+func (s *scriptedDispatcher) CallCount() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.calls
+}
+
+func TestExecutor_RetrySucceedsAfterTransientFailure(t *testing.T) {
+	dispatcher := &scriptedDispatcher{outcomes: []scriptedDispatchOutcome{
+		{result: &StepResult{Status: StepStatusFailed, Error: context.DeadlineExceeded}, err: context.DeadlineExceeded},
+		{result: &StepResult{Status: StepStatusFailed, Error: context.DeadlineExceeded}, err: context.DeadlineExceeded},
+		{result: &StepResult{Status: StepStatusCompleted, Output: "ok", Bytes: 2}, err: nil},
+	}}
+	executor := NewExecutor(ExecutorConfig{MaxWorkers: 1}, dispatcher)
+	var sleeps []time.Duration
+	executor.sleep = func(ctx context.Context, d time.Duration) error {
+		sleeps = append(sleeps, d)
+		return nil
+	}
+
+	phase := PhasePlan{Name: "develop", Steps: []StepPlan{{
+		ID:    "retry-step",
+		Phase: "develop",
+		Agent: "implementer",
+		Retry: RetryPolicy{Idempotent: true, MaxRetries: 2, BackoffMs: 10, RetryableCodes: []string{"timeout"}},
+	}}}
+	result := executor.ExecutePhase(context.Background(), phase, "develop", "run-retry")
+	if result.Status != PhaseStatusCompleted {
+		t.Fatalf("phase status=%s want %s", result.Status, PhaseStatusCompleted)
+	}
+	if dispatcher.CallCount() != 3 {
+		t.Fatalf("dispatch calls=%d want 3", dispatcher.CallCount())
+	}
+	if len(sleeps) != 2 || sleeps[0] != 10*time.Millisecond || sleeps[1] != 20*time.Millisecond {
+		t.Fatalf("sleeps=%v want [10ms 20ms]", sleeps)
+	}
+	if got := result.Steps[0].Attempts.Count; got != 3 {
+		t.Fatalf("attempt count=%d want 3", got)
+	}
+}
+
+func TestExecutor_RetryStopsOnNonRetryableFailure(t *testing.T) {
+	dispatcher := &scriptedDispatcher{outcomes: []scriptedDispatchOutcome{{
+		result: &StepResult{Status: StepStatusFailed},
+		err:    context.Canceled,
+	}}}
+	executor := NewExecutor(ExecutorConfig{MaxWorkers: 1}, dispatcher)
+	executor.sleep = func(ctx context.Context, d time.Duration) error {
+		t.Fatal("sleep should not be called for non-retryable failure")
+		return nil
+	}
+
+	phase := PhasePlan{Name: "develop", Steps: []StepPlan{{
+		ID:    "fatal-step",
+		Phase: "develop",
+		Agent: "implementer",
+		Retry: RetryPolicy{Idempotent: true, MaxRetries: 3, BackoffMs: 10, RetryableCodes: []string{"timeout"}},
+	}}}
+	result := executor.ExecutePhase(context.Background(), phase, "develop", "run-retry")
+	if result.Status != PhaseStatusFailed {
+		t.Fatalf("phase status=%s want %s", result.Status, PhaseStatusFailed)
+	}
+	if dispatcher.CallCount() != 1 {
+		t.Fatalf("dispatch calls=%d want 1", dispatcher.CallCount())
+	}
+	if got := result.Steps[0].Attempts.Count; got != 1 {
+		t.Fatalf("attempt count=%d want 1", got)
+	}
+	if got := result.Steps[0].Attempts.LastError; got == "" {
+		t.Fatal("expected last error to be recorded")
+	}
+}
+
+func TestExecutor_RetryHonorsContextCancellation(t *testing.T) {
+	dispatcher := &scriptedDispatcher{outcomes: []scriptedDispatchOutcome{{
+		result: &StepResult{Status: StepStatusFailed, Error: context.DeadlineExceeded},
+		err:    context.DeadlineExceeded,
+	}}}
+	executor := NewExecutor(ExecutorConfig{MaxWorkers: 1}, dispatcher)
+	ctx, cancel := context.WithCancel(context.Background())
+	executor.sleep = func(ctx context.Context, d time.Duration) error {
+		cancel()
+		<-ctx.Done()
+		return ctx.Err()
+	}
+
+	phase := PhasePlan{Name: "develop", Steps: []StepPlan{{
+		ID:    "cancel-step",
+		Phase: "develop",
+		Agent: "implementer",
+		Retry: RetryPolicy{Idempotent: true, MaxRetries: 2, BackoffMs: 10, RetryableCodes: []string{"timeout"}},
+	}}}
+	result := executor.ExecutePhase(ctx, phase, "develop", "run-retry")
+	if dispatcher.CallCount() != 1 {
+		t.Fatalf("dispatch calls=%d want 1", dispatcher.CallCount())
+	}
+	if result.Steps[0].Status != StepStatusCanceled {
+		t.Fatalf("step status=%s want %s", result.Steps[0].Status, StepStatusCanceled)
+	}
+	if result.Steps[0].Error == nil || result.Steps[0].Error != context.Canceled {
+		t.Fatalf("step error=%v want %v", result.Steps[0].Error, context.Canceled)
+	}
+}

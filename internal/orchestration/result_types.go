@@ -2,6 +2,11 @@ package orchestration
 
 import "time"
 
+type AttemptInfo struct {
+	Count     int
+	LastError string
+}
+
 // StepResult represents the result of executing a single step
 type StepResult struct {
 	StepID    string
@@ -18,6 +23,7 @@ type StepResult struct {
 	Error     error
 	Fallback  *FallbackInfo
 	Dispatch  *DispatchInfo
+	Attempts  AttemptInfo
 }
 
 // StepStatus represents the status of a step execution

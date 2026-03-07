@@ -40,6 +40,7 @@ type Executor struct {
 	workerCancel   context.CancelFunc
 	workerWG       sync.WaitGroup
 	worktreeSlots  *WorktreeSlots
+	sleep          sleepFunc
 }
 
 // NewExecutor creates a new executor
@@ -57,6 +58,7 @@ func NewExecutor(config ExecutorConfig, dispatcher Dispatcher) *Executor {
 		benchmarkQueue: benchmark.NewQueue(256),
 		benchmarkEmit:  benchmark.SafeEmitter{},
 		scoreDims:      []string{"correctness", "code_quality", "testability"},
+		sleep:          sleepWithContext,
 	}
 }
 
@@ -386,18 +388,13 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName,
 	}
 
 	// Dispatch step
-	result, err := e.dispatcher.Dispatch(ctx, step)
-	if result == nil {
-		result = &StepResult{
-			StepID: step.ID,
-			Phase:  step.Phase,
-			Agent:  step.Agent,
-			Model:  step.Model,
-		}
-	}
-
+	result, err := e.dispatchWithRetry(ctx, step)
 	if err != nil {
-		result.Status = StepStatusFailed
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			result.Status = StepStatusCanceled
+		} else {
+			result.Status = StepStatusFailed
+		}
 		result.Error = err
 	} else if result.Fallback != nil && result.Fallback.Used {
 		result.Status = StepStatusDegraded
@@ -431,6 +428,62 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName,
 	})
 
 	return *result
+}
+
+func (e *Executor) dispatchWithRetry(ctx context.Context, step StepPlan) (*StepResult, error) {
+	attempts := 0
+	var lastErr error
+	sleeper := e.sleep
+	if sleeper == nil {
+		sleeper = sleepWithContext
+	}
+	for {
+		if err := ctx.Err(); err != nil {
+			result := &StepResult{StepID: step.ID, Phase: step.Phase, Agent: step.Agent, Model: step.Model, Status: StepStatusCanceled, Error: err}
+			result.Attempts = AttemptInfo{Count: attempts, LastError: stringifyError(lastErr)}
+			return result, err
+		}
+		attempts++
+		result, err := e.dispatcher.Dispatch(ctx, step)
+		if result == nil {
+			result = &StepResult{StepID: step.ID, Phase: step.Phase, Agent: step.Agent, Model: step.Model}
+		}
+		if result.StepID == "" {
+			result.StepID = step.ID
+		}
+		if result.Phase == "" {
+			result.Phase = step.Phase
+		}
+		if result.Agent == "" {
+			result.Agent = step.Agent
+		}
+		if result.Model == "" {
+			result.Model = step.Model
+		}
+
+		dispatchErr := effectiveDispatchError(result, err)
+		if dispatchErr == nil {
+			result.Attempts = AttemptInfo{Count: attempts, LastError: stringifyError(lastErr)}
+			return result, nil
+		}
+		lastErr = dispatchErr
+		result.Attempts = AttemptInfo{Count: attempts, LastError: dispatchErr.Error()}
+		if !shouldRetryStep(step.Retry, attempts, result, dispatchErr) {
+			return result, dispatchErr
+		}
+		if err := sleeper(ctx, retryDelay(step.Retry, attempts)); err != nil {
+			result.Status = StepStatusCanceled
+			result.Error = err
+			return result, err
+		}
+	}
+}
+
+func stringifyError(err error) string {
+	if err == nil {
+		return ""
+	}
+	return err.Error()
 }
 
 // Events returns the event channel for progress monitoring
