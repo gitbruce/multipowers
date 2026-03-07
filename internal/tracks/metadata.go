@@ -7,14 +7,24 @@ import (
 	"strings"
 )
 
+type GroupStatus string
+
+const (
+	GroupStatusInProgress GroupStatus = "in_progress"
+	GroupStatusCompleted  GroupStatus = "completed"
+)
+
 type Metadata struct {
 	ID               string   `json:"id"`
 	Title            string   `json:"title,omitempty"`
 	Status           string   `json:"status,omitempty"`
 	ExecutionMode    string   `json:"execution_mode,omitempty"`
 	WorktreeRequired bool     `json:"worktree_required,omitempty"`
-	ComplexityScore  int      `json:"complexity_score,omitempty"`
-	CurrentGroup     string   `json:"current_group,omitempty"`
+	ComplexityScore  int         `json:"complexity_score,omitempty"`
+	CurrentGroup     string      `json:"current_group,omitempty"`
+	GroupStatus      GroupStatus `json:"group_status,omitempty"`
+	LastCommand      string      `json:"last_command,omitempty"`
+	LastCommandAt    string      `json:"last_command_at,omitempty"`
 	CompletedGroups  []string `json:"completed_groups,omitempty"`
 	LastCommitSHA    string   `json:"last_commit_sha,omitempty"`
 	LastVerifiedAt   string   `json:"last_verified_at,omitempty"`

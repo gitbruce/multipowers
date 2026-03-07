@@ -15,6 +15,9 @@ func TestMetadataReadWriteAndUpdate(t *testing.T) {
 		WorktreeRequired: true,
 		ComplexityScore:  9,
 		CurrentGroup:     "g2",
+		GroupStatus:      GroupStatusInProgress,
+		LastCommand:      "develop",
+		LastCommandAt:    "2026-03-06T11:00:00Z",
 		CompletedGroups:  []string{"g1"},
 		LastCommitSHA:    "abc1234",
 		LastVerifiedAt:   "2026-03-06T11:30:00Z",
@@ -35,6 +38,12 @@ func TestMetadataReadWriteAndUpdate(t *testing.T) {
 	}
 	if got.ComplexityScore != meta.ComplexityScore {
 		t.Fatalf("complexity_score=%d want %d", got.ComplexityScore, meta.ComplexityScore)
+	}
+	if got.GroupStatus != meta.GroupStatus {
+		t.Fatalf("group_status=%q want %q", got.GroupStatus, meta.GroupStatus)
+	}
+	if got.LastCommand != meta.LastCommand {
+		t.Fatalf("last_command=%q want %q", got.LastCommand, meta.LastCommand)
 	}
 
 	if err := UpdateMetadata(d, meta.ID, func(current *Metadata) error {
@@ -83,6 +92,9 @@ func TestReadMetadataAllowsLegacyShape(t *testing.T) {
 	}
 	if got.ExecutionMode != "" {
 		t.Fatalf("expected new optional fields to default empty, got execution_mode=%q", got.ExecutionMode)
+	}
+	if got.GroupStatus != "" || got.LastCommand != "" || got.LastCommandAt != "" {
+		t.Fatalf("expected new optional fields to default empty, got group_status=%q last_command=%q last_command_at=%q", got.GroupStatus, got.LastCommand, got.LastCommandAt)
 	}
 }
 
