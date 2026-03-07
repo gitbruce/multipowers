@@ -10,7 +10,7 @@ import (
 
 func TestPipelineMissingContextBlocks(t *testing.T) {
 	d := t.TempDir()
-	r := RunSpecPipeline(d, true, []string{"all"}, func() api.Response {
+	r := RunSpecPipeline(d, true, []string{"all"}, "", func() api.Response {
 		return api.Response{Status: "ok"}
 	})
 	if r.Status != "blocked" || r.Action != "run_init" {
@@ -36,7 +36,7 @@ func TestPipelineBlocksWhenGroupEnforcementIncomplete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r := RunSpecPipeline(d, true, []string{"develop", "all"}, func() api.Response {
+	r := RunSpecPipeline(d, true, []string{"develop", "all"}, "implement runtime lifecycle", func() api.Response {
 		return api.Response{Status: "ok"}
 	})
 	if r.Status != "blocked" {

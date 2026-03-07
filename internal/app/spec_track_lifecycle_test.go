@@ -19,7 +19,7 @@ func TestSpecTrackLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	planResp := RunSpecPipeline(d, true, []string{"plan", "all"}, func() api.Response {
+	planResp := RunSpecPipeline(d, true, []string{"plan", "all"}, "design runtime lifecycle", func() api.Response {
 		trackCtx, err := prepareLifecycleTrack(d, "plan", "design runtime lifecycle")
 		if err != nil {
 			return api.Response{Status: "error", Message: err.Error()}
@@ -34,7 +34,7 @@ func TestSpecTrackLifecycle(t *testing.T) {
 		t.Fatalf("expected plan track_id, got %+v", planResp.Data)
 	}
 
-	developResp := RunSpecPipeline(d, true, []string{"develop", "all"}, func() api.Response {
+	developResp := RunSpecPipeline(d, true, []string{"develop", "all"}, "implement runtime lifecycle", func() api.Response {
 		trackCtx, err := prepareLifecycleTrack(d, "develop", "implement runtime lifecycle")
 		if err != nil {
 			return api.Response{Status: "error", Message: err.Error()}

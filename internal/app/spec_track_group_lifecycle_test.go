@@ -23,7 +23,7 @@ func TestSpecTrackGroupLifecycleRequiresCompletionEvidenceBetweenGroups(t *testi
 		t.Fatal(err)
 	}
 
-	planResp := app.RunSpecPipeline(d, true, []string{"plan", "all"}, func() api.Response {
+	planResp := app.RunSpecPipeline(d, true, []string{"plan", "all"}, "design runtime lifecycle", func() api.Response {
 		trackCtx, err := prepareIntegrationTrack(d, "plan", "design runtime lifecycle")
 		if err != nil {
 			return api.Response{Status: "error", Message: err.Error()}
@@ -43,7 +43,7 @@ func TestSpecTrackGroupLifecycleRequiresCompletionEvidenceBetweenGroups(t *testi
 		t.Fatalf("group-start=%+v", startResp)
 	}
 
-	blocked := app.RunSpecPipeline(d, true, []string{"develop", "all"}, func() api.Response {
+	blocked := app.RunSpecPipeline(d, true, []string{"develop", "all"}, "implement runtime lifecycle", func() api.Response {
 		return api.Response{Status: "ok", Message: "unexpected execution"}
 	})
 	if blocked.Status != "blocked" {
@@ -77,7 +77,7 @@ func TestSpecTrackGroupLifecycleRequiresCompletionEvidenceBetweenGroups(t *testi
 		t.Fatalf("group-complete=%+v", completeResp)
 	}
 
-	developResp := app.RunSpecPipeline(d, true, []string{"develop", "all"}, func() api.Response {
+	developResp := app.RunSpecPipeline(d, true, []string{"develop", "all"}, "implement runtime lifecycle", func() api.Response {
 		trackCtx, err := prepareIntegrationTrack(d, "develop", "implement runtime lifecycle")
 		if err != nil {
 			return api.Response{Status: "error", Message: err.Error()}

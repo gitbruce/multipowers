@@ -229,7 +229,7 @@ func Run(args []string) int {
 	}
 
 	exec := func(name string, fn func(string) map[string]any) int {
-		r := app.RunSpecPipeline(absDir, *autoInit, []string{name, "all"}, func() api.Response {
+		r := app.RunSpecPipeline(absDir, *autoInit, []string{name, "all"}, effectivePrompt, func() api.Response {
 			trackCtx, err := prepareSpecTrack(absDir, name, effectivePrompt)
 			if err != nil {
 				return api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()}
@@ -480,7 +480,7 @@ func Run(args []string) int {
 		if sub != "guard" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown context subcommand"})
 		}
-		r := app.RunSpecPipeline(absDir, *autoInit, []string{"context", "all"}, func() api.Response {
+		r := app.RunSpecPipeline(absDir, *autoInit, []string{"context", "all"}, effectivePrompt, func() api.Response {
 			return api.Response{Status: "ok", Action: "continue"}
 		})
 		if r.Status == "ok" {
@@ -531,7 +531,7 @@ func Run(args []string) int {
 	case "embrace":
 		return exec("embrace", workflows.Embrace)
 	case "debate":
-		r := app.RunSpecPipeline(absDir, *autoInit, []string{"debate", "all"}, func() api.Response {
+		r := app.RunSpecPipeline(absDir, *autoInit, []string{"debate", "all"}, effectivePrompt, func() api.Response {
 			trackCtx, err := prepareSpecTrack(absDir, "debate", effectivePrompt)
 			if err != nil {
 				return api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()}
