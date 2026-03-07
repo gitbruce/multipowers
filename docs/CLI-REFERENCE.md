@@ -92,6 +92,9 @@ Runtime behavior:
 - spec command touches update `last_command` / `last_command_at`
 - spec commands do **not** fake implementation progress by mutating `current_group`
 - if an implementation group is still `in_progress` without commit / verification evidence, the next spec pipeline step is blocked
+- high-complexity prompts are blocked until the active track has canonical planning artifacts: `intent.md`, `design.md`, `implementation-plan.md`, `metadata.json`, `index.md`
+- legacy `spec.md` / `plan.md` files do not satisfy the planning gate
+- after a high-complexity block, run `mp plan --prompt "..."` on the same track, then continue execution from a linked worktree checkout
 
 ## Validation and Context
 

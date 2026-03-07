@@ -56,6 +56,12 @@ All external provider executions (`codex`, `gemini`, `claude`) read this file be
 
 If context is missing or incomplete, the command blocks with `run_init` guidance; `/mp:init` is not auto-triggered silently.
 
+High-complexity behavior:
+- when a prompt is judged high complexity, runtime blocks the command before code changes continue
+- the active track must contain canonical planning artifacts: `intent.md`, `design.md`, `implementation-plan.md`, `metadata.json`, `index.md`
+- old `spec.md` / `plan.md` files are not enough
+- the blocked command context is saved on the track; run `/mp:plan` first, then continue the original task from a linked worktree checkout
+
 ## Manage Track Groups Explicitly
 
 Once a spec track exists, advance implementation groups explicitly:

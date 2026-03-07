@@ -50,11 +50,25 @@ func prepareSpecTrack(projectDir, command, prompt string) (tracks.TrackContext, 
 	}
 
 	values := tracks.DefaultArtifactValues(trackCtx, command, prompt)
+	complexityPrompt := prompt
+	if command == "plan" && meta.InterruptedContext != nil && strings.TrimSpace(meta.InterruptedContext.Prompt) != "" {
+		complexityPrompt = meta.InterruptedContext.Prompt
+	}
 	values["CurrentGroup"] = meta.CurrentGroup
 	values["GroupStatus"] = meta.GroupStatus
 	values["LastCommand"] = command
 	values["LastCommandAt"] = time.Now().UTC().Format(time.RFC3339)
 	values["CompletedGroups"] = append([]string(nil), meta.CompletedGroups...)
+	if meta.ComplexityScore == 0 {
+		decision := tracks.CalculateComplexity(tracks.ComplexityInput{Prompt: complexityPrompt})
+		values["ComplexityScore"] = decision.Score
+		if decision.WorktreeRequired {
+			values["WorktreeRequired"] = "YES"
+		}
+		if len(decision.Rationale) > 0 {
+			values["ExecutionRationale"] = strings.Join(decision.Rationale, "; ")
+		}
+	}
 	if strings.TrimSpace(meta.Title) != "" {
 		values["TrackTitle"] = meta.Title
 	}
