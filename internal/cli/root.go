@@ -136,6 +136,46 @@ func withTrackID(resp api.Response, trackID string) api.Response {
 	return resp
 }
 
+func shouldPersistInterruptedContext(resp api.Response) bool {
+	if resp.Status != "blocked" || resp.Data == nil {
+		return false
+	}
+	if blocked, _ := resp.Data["requires_planning"].(bool); blocked {
+		return true
+	}
+	if blocked, _ := resp.Data["requires_worktree"].(bool); blocked {
+		return true
+	}
+	return false
+}
+
+func persistInterruptedContext(projectDir, command, subCommand, prompt string, resp *api.Response) error {
+	if resp == nil || !shouldPersistInterruptedContext(*resp) {
+		return nil
+	}
+	coordinator := tracks.TrackCoordinator{}
+	trackCtx, err := coordinator.ResolveTrack(projectDir, command)
+	if err != nil {
+		return err
+	}
+	if err := tracks.SaveInterruptedContext(projectDir, trackCtx.ID, tracks.InterruptedContext{
+		Command:    command,
+		SubCommand: subCommand,
+		Prompt:     prompt,
+		Timestamp:  time.Now().UTC().Format(time.RFC3339),
+	}); err != nil {
+		return err
+	}
+	if resp.Data == nil {
+		resp.Data = map[string]any{}
+	}
+	resp.Data["track_id"] = trackCtx.ID
+	resp.Data["resume_command"] = command
+	resp.Data["resume_prompt"] = prompt
+	resp.Data["interrupted_context_saved"] = true
+	return nil
+}
+
 func Run(args []string) int {
 	if len(args) == 0 {
 		fmt.Println("usage: mp <command> [--dir DIR] [--prompt TEXT] [--json]")
@@ -243,6 +283,9 @@ func Run(args []string) int {
 			data["track_id"] = trackCtx.ID
 			return api.Response{Status: "ok", Data: data}
 		})
+		if err := persistInterruptedContext(absDir, name, "", effectivePrompt, &r); err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
 		return respond(r)
 	}
 
@@ -542,6 +585,9 @@ func Run(args []string) int {
 			}
 			return withTrackID(api.Response{Status: "ok", Data: data}, trackCtx.ID)
 		})
+		if err := persistInterruptedContext(absDir, "debate", "", effectivePrompt, &r); err != nil {
+			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
+		}
 		return respond(r)
 	case "persona":
 		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), absDir, effectivePrompt)

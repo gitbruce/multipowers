@@ -111,3 +111,28 @@ func TestActiveTrackHelpers(t *testing.T) {
 		t.Fatalf("active track=%q want track-active", active)
 	}
 }
+
+func TestInterruptedContextRoundTrip(t *testing.T) {
+	d := t.TempDir()
+	if err := SaveInterruptedContext(d, "track-1", InterruptedContext{
+		Command:   "develop",
+		Prompt:    "refactor the entire authentication flow",
+		Timestamp: "2026-03-07T14:00:00Z",
+	}); err != nil {
+		t.Fatalf("SaveInterruptedContext failed: %v", err)
+	}
+
+	meta, err := ReadMetadata(d, "track-1")
+	if err != nil {
+		t.Fatalf("ReadMetadata failed: %v", err)
+	}
+	if meta.InterruptedContext == nil {
+		t.Fatal("expected interrupted context to be persisted")
+	}
+	if meta.InterruptedContext.Command != "develop" {
+		t.Fatalf("command=%q want develop", meta.InterruptedContext.Command)
+	}
+	if meta.InterruptedContext.Prompt != "refactor the entire authentication flow" {
+		t.Fatalf("prompt=%q want saved prompt", meta.InterruptedContext.Prompt)
+	}
+}

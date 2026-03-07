@@ -58,7 +58,19 @@ func DefaultArtifactValues(track TrackContext, command, objective string) map[st
 
 func (TrackCoordinator) ResolveTrack(projectDir, command string) (TrackContext, error) {
 	command = strings.TrimSpace(strings.ToLower(command))
+	active, err := ActiveTrack(projectDir)
+	if err != nil {
+		return TrackContext{}, err
+	}
 	if command == "plan" {
+		if active != "" {
+			return TrackContext{
+				ID:                active,
+				Active:            true,
+				Source:            TrackSourceActive,
+				CreatedImplicitly: false,
+			}, nil
+		}
 		id := NewTrackID("plan")
 		if err := SetActiveTrack(projectDir, id); err != nil {
 			return TrackContext{}, err
@@ -71,7 +83,6 @@ func (TrackCoordinator) ResolveTrack(projectDir, command string) (TrackContext, 
 		}, nil
 	}
 
-	active, err := ActiveTrack(projectDir)
 	if err != nil {
 		return TrackContext{}, err
 	}

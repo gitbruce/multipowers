@@ -299,3 +299,78 @@ func runJSONCommandAllowError(t *testing.T, args []string) api.Response {
 	}
 	return resp
 }
+
+func TestHighComplexityBlockSavesInterruptedContext(t *testing.T) {
+	d := t.TempDir()
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
+		t.Fatal(err)
+	}
+
+	resp := runJSONCommandAllowError(t, []string{"develop", "--dir", d, "--prompt", "refactor the entire authentication flow", "--json"})
+	if resp.Status != "blocked" {
+		t.Fatalf("expected blocked response, got %+v", resp)
+	}
+	trackID, _ := resp.Data["track_id"].(string)
+	if trackID == "" {
+		t.Fatalf("expected blocked response to include track_id, got %+v", resp.Data)
+	}
+	if saved, _ := resp.Data["interrupted_context_saved"].(bool); !saved {
+		t.Fatalf("expected interrupted_context_saved=true, got %+v", resp.Data)
+	}
+
+	meta, err := tracks.ReadMetadata(d, trackID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.InterruptedContext == nil {
+		t.Fatal("expected interrupted context to be persisted")
+	}
+	if meta.InterruptedContext.Command != "develop" {
+		t.Fatalf("command=%q want develop", meta.InterruptedContext.Command)
+	}
+}
+
+func TestPlanAfterBlockReusesSameTrackID(t *testing.T) {
+	d := t.TempDir()
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
+		t.Fatal(err)
+	}
+
+	blocked := runJSONCommandAllowError(t, []string{"develop", "--dir", d, "--prompt", "refactor the entire authentication flow", "--json"})
+	trackID, _ := blocked.Data["track_id"].(string)
+	if trackID == "" {
+		t.Fatalf("expected blocked track id, got %+v", blocked.Data)
+	}
+
+	planResp := runJSONCommand(t, []string{"plan", "--dir", d, "--prompt", "plan the runtime changes", "--json"})
+	gotTrackID, _ := planResp.Data["track_id"].(string)
+	if gotTrackID != trackID {
+		t.Fatalf("expected /mp:plan to reuse %q, got %q", trackID, gotTrackID)
+	}
+}
+
+func TestPlanCompletionDoesNotAutoReplayBlockedCommand(t *testing.T) {
+	d := t.TempDir()
+	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {
+		t.Fatal(err)
+	}
+
+	blocked := runJSONCommandAllowError(t, []string{"develop", "--dir", d, "--prompt", "refactor the entire authentication flow", "--json"})
+	trackID, _ := blocked.Data["track_id"].(string)
+	if trackID == "" {
+		t.Fatalf("expected blocked track id, got %+v", blocked.Data)
+	}
+
+	_ = runJSONCommand(t, []string{"plan", "--dir", d, "--prompt", "plan the runtime changes", "--json"})
+
+	meta, err := tracks.ReadMetadata(d, trackID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.LastCommand != "plan" {
+		t.Fatalf("last_command=%q want plan; blocked command should not auto-replay", meta.LastCommand)
+	}
+	if meta.InterruptedContext == nil || meta.InterruptedContext.Command != "develop" {
+		t.Fatalf("expected interrupted context to remain available after planning, got %+v", meta.InterruptedContext)
+	}
+}
