@@ -68,3 +68,34 @@ func trackRepoRoot(t *testing.T) string {
 	}
 	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
 }
+
+
+func TestTemplateRendererAllowsNoActiveGroup(t *testing.T) {
+	renderer := NewTemplateRenderer(trackRepoRoot(t))
+	rendered, err := renderer.RenderAll(map[string]any{
+		"TrackID":             "spec-track-runtime-20260306",
+		"TrackTitle":          "Spec-Track Runtime & Artifacts",
+		"Objective":           "Implement canonical track lifecycle and runtime initialization.",
+		"Status":              "in_progress",
+		"CurrentGroup":        "",
+		"LastCommand":         "develop",
+		"LastCommandAt":       "2026-03-07T13:15:00Z",
+		"CompletedGroups":     []string{},
+		"ExecutionMode":       "workspace",
+		"ComplexityScore":     0,
+		"WorktreeRequired":    "NO",
+		"ExecutionRationale":  "Complexity scoring not applied for this workflow path yet.",
+		"VerificationCommand": "go test ./internal/tracks -run TemplateRenderer -count=1",
+		"DoneWhen":            "All track artifacts exist and render deterministically.",
+	})
+	if err != nil {
+		t.Fatalf("RenderAll failed: %v", err)
+	}
+	plan := rendered["implementation-plan.md"]
+	if !strings.Contains(plan, "Last Command") {
+		t.Fatalf("implementation plan should surface last command, got %q", plan)
+	}
+	if !strings.Contains(plan, "(not started)") {
+		t.Fatalf("implementation plan should show missing active group, got %q", plan)
+	}
+}

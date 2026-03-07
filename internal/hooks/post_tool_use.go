@@ -1,8 +1,10 @@
 package hooks
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gitbruce/multipowers/internal/autosync"
@@ -30,6 +32,19 @@ func PostToolUse(projectDir string, evt api.HookEvent) api.HookResult {
 		return api.HookResult{Decision: "block", Reason: err.Error()}
 	}
 	values := tracks.DefaultArtifactValues(trackCtx, "post-tool", "Capture post-tool execution output for "+evt.ToolName+".")
+	meta, err := tracks.ReadMetadata(projectDir, trackCtx.ID)
+	if err != nil {
+		return api.HookResult{Decision: "block", Reason: err.Error()}
+	}
+	values["TrackTitle"] = "Post Tool Track"
+	values["CurrentGroup"] = meta.CurrentGroup
+	values["GroupStatus"] = meta.GroupStatus
+	values["CompletedGroups"] = append([]string(nil), meta.CompletedGroups...)
+	values["LastCommand"] = evt.ToolName
+	values["LastCommandAt"] = time.Now().UTC().Format(time.RFC3339)
+	if strings.TrimSpace(meta.ExecutionMode) != "" {
+		values["ExecutionMode"] = meta.ExecutionMode
+	}
 	if err := coordinator.EnsureArtifacts(projectDir, trackCtx, values); err != nil {
 		return api.HookResult{Decision: "block", Reason: err.Error()}
 	}
@@ -38,12 +53,14 @@ func PostToolUse(projectDir string, evt api.HookEvent) api.HookResult {
 			current.Title = "Post Tool Track"
 		}
 		current.Status = "in_progress"
-		current.ExecutionMode = "hook"
-		current.CurrentGroup = "post-tool"
-		current.CompletedGroups = []string{"post-tool"}
-		current.LastVerifiedAt = time.Now().UTC().Format(time.RFC3339)
+		if strings.TrimSpace(current.ExecutionMode) == "" {
+			current.ExecutionMode = "hook"
+		}
 		return nil
 	}); err != nil {
+		return api.HookResult{Decision: "block", Reason: err.Error()}
+	}
+	if err := tracks.RecordCommandTouch(projectDir, trackCtx.ID, evt.ToolName, fmt.Sprint(values["LastCommandAt"])); err != nil {
 		return api.HookResult{Decision: "block", Reason: err.Error()}
 	}
 	if err := coordinator.UpdateRegistry(projectDir, trackCtx); err != nil {

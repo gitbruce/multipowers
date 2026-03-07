@@ -50,7 +50,11 @@ func prepareSpecTrack(projectDir, command, prompt string) (tracks.TrackContext, 
 	}
 
 	values := tracks.DefaultArtifactValues(trackCtx, command, prompt)
-	values["CompletedGroups"] = appendUniqueStrings(meta.CompletedGroups, command)
+	values["CurrentGroup"] = meta.CurrentGroup
+	values["GroupStatus"] = meta.GroupStatus
+	values["LastCommand"] = command
+	values["LastCommandAt"] = time.Now().UTC().Format(time.RFC3339)
+	values["CompletedGroups"] = append([]string(nil), meta.CompletedGroups...)
 	if strings.TrimSpace(meta.Title) != "" {
 		values["TrackTitle"] = meta.Title
 	}
@@ -72,9 +76,9 @@ func prepareSpecTrack(projectDir, command, prompt string) (tracks.TrackContext, 
 			current.Title = fmt.Sprint(values["TrackTitle"])
 		}
 		current.Status = "in_progress"
-		current.ExecutionMode = "cli"
-		current.CurrentGroup = command
-		current.CompletedGroups = appendUniqueStrings(current.CompletedGroups, command)
+		if strings.TrimSpace(current.ExecutionMode) == "" {
+			current.ExecutionMode = "cli"
+		}
 		if !current.WorktreeRequired && strings.EqualFold(fmt.Sprint(values["WorktreeRequired"]), "YES") {
 			current.WorktreeRequired = true
 		}
@@ -83,9 +87,11 @@ func prepareSpecTrack(projectDir, command, prompt string) (tracks.TrackContext, 
 				current.ComplexityScore = score
 			}
 		}
-		current.LastVerifiedAt = time.Now().UTC().Format(time.RFC3339)
 		return nil
 	}); err != nil {
+		return tracks.TrackContext{}, err
+	}
+	if err := tracks.RecordCommandTouch(projectDir, trackCtx.ID, command, fmt.Sprint(values["LastCommandAt"])); err != nil {
 		return tracks.TrackContext{}, err
 	}
 

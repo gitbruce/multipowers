@@ -9,4 +9,5 @@
 - Track ID: `{{.TrackID}}`
 - Title: {{.TrackTitle}}
 - Status: {{.Status}}
-- Current Group: {{.CurrentGroup}}
+- Last Command: {{if .LastCommand}}{{.LastCommand}}{{else}}(none){{end}}
+- Current Group: {{if .CurrentGroup}}{{.CurrentGroup}}{{else}}(not started){{end}}

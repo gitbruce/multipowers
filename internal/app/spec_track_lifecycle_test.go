@@ -74,7 +74,11 @@ func prepareLifecycleTrack(projectDir, command, prompt string) (tracks.TrackCont
 		return tracks.TrackContext{}, err
 	}
 	values := tracks.DefaultArtifactValues(trackCtx, command, prompt)
-	values["CompletedGroups"] = appendLifecycleGroup(meta.CompletedGroups, command)
+	values["CurrentGroup"] = meta.CurrentGroup
+	values["GroupStatus"] = meta.GroupStatus
+	values["LastCommand"] = command
+	values["LastCommandAt"] = time.Now().UTC().Format(time.RFC3339)
+	values["CompletedGroups"] = append([]string(nil), meta.CompletedGroups...)
 	if strings.TrimSpace(meta.Title) != "" {
 		values["TrackTitle"] = meta.Title
 	}
@@ -86,12 +90,14 @@ func prepareLifecycleTrack(projectDir, command, prompt string) (tracks.TrackCont
 			current.Title = fmt.Sprint(values["TrackTitle"])
 		}
 		current.Status = "in_progress"
-		current.ExecutionMode = "cli"
-		current.CurrentGroup = command
-		current.CompletedGroups = appendLifecycleGroup(current.CompletedGroups, command)
-		current.LastVerifiedAt = time.Now().UTC().Format(time.RFC3339)
+		if strings.TrimSpace(current.ExecutionMode) == "" {
+			current.ExecutionMode = "cli"
+		}
 		return nil
 	}); err != nil {
+		return tracks.TrackContext{}, err
+	}
+	if err := tracks.RecordCommandTouch(projectDir, trackCtx.ID, command, fmt.Sprint(values["LastCommandAt"])); err != nil {
 		return tracks.TrackContext{}, err
 	}
 	if err := coordinator.UpdateRegistry(projectDir, trackCtx); err != nil {

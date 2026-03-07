@@ -24,8 +24,6 @@ var requiredTemplateValues = []string{
 	"TrackTitle",
 	"Objective",
 	"Status",
-	"CurrentGroup",
-	"CompletedGroups",
 	"ExecutionMode",
 	"ComplexityScore",
 	"WorktreeRequired",
@@ -50,6 +48,7 @@ func NewTemplateRenderer(projectDir string) TemplateRenderer {
 }
 
 func (r TemplateRenderer) RenderAll(values map[string]any) (map[string]string, error) {
+	values = normalizeTemplateValues(values)
 	if err := validateTemplateValues(values); err != nil {
 		return nil, err
 	}
@@ -65,6 +64,7 @@ func (r TemplateRenderer) RenderAll(values map[string]any) (map[string]string, e
 }
 
 func (r TemplateRenderer) Render(name string, values map[string]any) (string, error) {
+	values = normalizeTemplateValues(values)
 	if err := validateTemplateValues(values); err != nil {
 		return "", err
 	}
@@ -104,6 +104,26 @@ func (r TemplateRenderer) Render(name string, values map[string]any) (string, er
 	return out.String(), nil
 }
 
+func normalizeTemplateValues(values map[string]any) map[string]any {
+	merged := map[string]any{}
+	for key, value := range values {
+		merged[key] = value
+	}
+	defaults := map[string]any{
+		"CurrentGroup":    "",
+		"GroupStatus":     "",
+		"LastCommand":     "",
+		"LastCommandAt":   "",
+		"CompletedGroups": []string{},
+	}
+	for key, value := range defaults {
+		if _, ok := merged[key]; !ok {
+			merged[key] = value
+		}
+	}
+	return merged
+}
+
 func validateTemplateValues(values map[string]any) error {
 	for _, key := range requiredTemplateValues {
 		value, ok := values[key]
@@ -121,7 +141,7 @@ func isBlankTemplateValue(value any) bool {
 	case string:
 		return strings.TrimSpace(v) == ""
 	case []string:
-		return len(v) == 0
+		return false
 	default:
 		return strings.TrimSpace(fmt.Sprint(v)) == ""
 	}

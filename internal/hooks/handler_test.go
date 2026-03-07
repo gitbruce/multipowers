@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	ctxpkg "github.com/gitbruce/multipowers/internal/context"
+	"github.com/gitbruce/multipowers/internal/tracks"
 	"github.com/gitbruce/multipowers/pkg/api"
 )
 
@@ -74,6 +75,16 @@ func TestPostToolUseWritesFaqAndTrack(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(d, ".multipowers", "tracks", "tracks.md")); err != nil {
 		t.Fatalf("expected canonical tracks registry: %v", err)
+	}
+	meta, err := tracks.ReadMetadata(d, trackID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.LastCommand != "Bash" {
+		t.Fatalf("last_command=%q want Bash", meta.LastCommand)
+	}
+	if meta.CurrentGroup != "" {
+		t.Fatalf("current_group=%q want empty for post-tool hook", meta.CurrentGroup)
 	}
 }
 

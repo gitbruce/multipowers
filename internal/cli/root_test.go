@@ -185,6 +185,17 @@ func TestSpecCommandsGenerateAndReuseCanonicalTrackArtifacts(t *testing.T) {
 	if gotTrackID != trackID {
 		t.Fatalf("expected develop to reuse active track_id=%q, got %q", trackID, gotTrackID)
 	}
+
+	meta, err := tracks.ReadMetadata(d, trackID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.LastCommand != "develop" {
+		t.Fatalf("last_command=%q want develop", meta.LastCommand)
+	}
+	if meta.CurrentGroup != "" {
+		t.Fatalf("current_group=%q want empty until explicit group start", meta.CurrentGroup)
+	}
 }
 
 func runJSONCommand(t *testing.T, args []string) api.Response {
