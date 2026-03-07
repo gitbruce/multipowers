@@ -456,7 +456,7 @@ CRITICAL: When determining model complexity, do not hardcode a specific Gemini m
 
 ### 3.3 Convert the Initial Track into Artifacts (Automated)
 1.  **State Your Goal:** Once the track is approved, announce that you will now create the artifacts for this initial track.
-2.  **Initialize Tracks File:** Create the `.multipowers/tracks.md` file with the initial header and the first track:
+2.  **Initialize Tracks File:** Create the canonical registry at `.multipowers/tracks/tracks.md` with the initial header and the first track:
     ```markdown
     # Project Tracks
 

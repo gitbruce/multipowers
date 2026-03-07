@@ -1,111 +1,153 @@
-# CLI Reference - Direct mp runtime Usage
+# CLI Reference - `mp`
 
-This guide documents the direct CLI usage of the Go-native `mp` runtime for advanced users and automation scenarios.
+This document covers the Go-native `mp` CLI as it exists in the current `go` branch.
 
----
+## Global Flags
 
-## Global Options
+Most commands accept:
 
-The following flags are available for almost all commands:
+- `--dir <path>`: target project directory (default `.`)
+- `--prompt <text>`: free-form input or JSON payload, depending on the command
+- `--json`: machine-readable response
 
-- `--dir <path>`: Specify the target project directory (default: `.`)
-- `--prompt "<text>"`: The primary input text or JSON context
-- `--json`: Format the output as a machine-readable JSON response
-- `--auto-init`: Whether to automatically initialize track context (default: `true`)
+## Initialization
 
----
+### `mp init`
 
-## Core Commands
-
-### 1. Project & Track Initialization
 ```bash
-mp init --prompt '{"project_name": "...", "tech_stack": "..."}'
+mp init --dir <project> --prompt '{...wizard answers json...}' --json
 ```
-Runs the initialization wizard or applies a pre-filled JSON prompt to bootstrap the `.multipowers/` governance directory.
 
-### 2. State & KV Management
+Behavior:
+
+- bootstraps `.multipowers/` in the target project
+- writes `.multipowers/context/runtime.json`
+- initializes the canonical track registry at `.multipowers/tracks/tracks.md`
+- creates track artifacts under `.multipowers/tracks/<track_id>/`
+- sets `pre_run.enabled=false` by default in `runtime.json`
+
+Important:
+
+- `.multipowers/tracks.md` is legacy-only and is not read by the runtime
+- missing context blocks spec execution with `run_init` guidance; files are never generated silently
+
+## Track Runtime
+
+### `mp track group-start`
+
 ```bash
-mp state get --key <key_name>
-mp state set --key <key_name> --value <value>
-mp state update --data '{"key": "value"}'
+mp track group-start \
+  --dir <project> \
+  --track-id <track_id> \
+  --group g1 \
+  --execution-mode workspace|worktree \
+  --json
 ```
-Performs atomic read/write operations on the track state. Useful for CI/CD status tracking.
 
-### 3. Workflow Execution (The Double Diamond)
-- **Discover**: `mp discover "research topic"`
-- **Define**: `mp define "problem criteria"`
-- **Develop**: `mp develop "implementation plan"`
-- **Deliver**: `mp deliver "final review"`
-- **Embrace**: `mp embrace "full feature flow"`
+Starts an explicit implementation group for an existing spec track.
 
-These commands trigger the Go orchestration engine, resolving the execution plan via `internal/orchestration`.
+Rules:
 
-### 4. Intelligent Routing
+- updates `current_group` / `group_status=in_progress`
+- clears stale commit / verification evidence for the new group
+- updates `.multipowers/tracks/tracks.md`
+- blocks if the track requires linked-worktree execution and the current checkout is not a linked git worktree
+
+### `mp track group-complete`
+
 ```bash
-mp route --intent [discover|define|develop|deliver]
+mp track group-complete \
+  --dir <project> \
+  --track-id <track_id> \
+  --group g1 \
+  --commit-sha <sha> \
+  --json
 ```
-Checks which AI providers (Codex, Gemini, Claude) are available and how the current routing policy would distribute the workload.
 
-### 5. Validation & Guardrails
+Completes the active implementation group.
+
+Rules:
+
+- requires a matching active group
+- requires `--commit-sha`
+- records `last_commit_sha`, `last_verified_at`, and `completed_groups`
+- updates `.multipowers/tracks/tracks.md`
+
+## Spec-Driven Commands
+
 ```bash
-mp validate --type [workspace|no-shell|tdd-env|test-run|coverage]
+mp plan "..."
+mp discover "..."
+mp define "..."
+mp develop "..."
+mp deliver "..."
+mp embrace "..."
+mp debate "..."
 ```
-Runs specific architectural or environmental checks. Use `--type no-shell` to ensure no legacy Bash dependencies are present in the active path.
 
-Note:
-- `mp validate --type no-shell` has moved to `mp-devx --action validate-runtime`.
+Runtime behavior:
 
-### 6. Interactive Loops
+- all spec artifacts land under `.multipowers/tracks/<track_id>/`
+- the active track is coordinated by `internal/tracks.TrackCoordinator`
+- spec command touches update `last_command` / `last_command_at`
+- spec commands do **not** fake implementation progress by mutating `current_group`
+- if an implementation group is still `in_progress` without commit / verification evidence, the next spec pipeline step is blocked
+
+## Validation and Context
+
 ```bash
-mp loop --agent <agent_name> --prompt "instruction" --max-iterations 5
+mp context validate --dir <project> --json
+mp validate workspace --dir <project> --json
+mp validate no-shell --dir <project> --json
+mp validate tdd-env --dir <project> --json
+mp validate test-run --dir <project> --json
+mp validate coverage --dir <project> --json
 ```
-Triggers a Ralph Wiggum loop that continues execution until the agent provides a "completion promise" or the iteration limit is reached.
 
-### 7. Runtime Doctor
+## State and Status
+
 ```bash
+mp state get --key <key> --json
+mp state set --key <key> --value <value> --json
+mp state update --data '{"k":"v"}' --json
+mp status --dir <project> --json
+```
+
+## Orchestration Commands
+
+```bash
+mp orchestrate --phase <discover|define|develop|deliver> --prompt "..." --json
+mp persona --agent <agent> --prompt "..." --json
+mp loop --agent <agent> --prompt "..." --max-iterations <n> --json
+mp route --intent <discover|define|develop|deliver> --json
+mp config show-model-routing --json
+```
+
+Current orchestration hardening includes:
+
+- step-level retry policy fields (`retry.idempotent`, `max_retries`, `backoff_ms`, `jitter_ratio`, `retryable_codes`)
+- deterministic retry execution for eligible idempotent steps
+- per-run `trace_id` propagation across plans, events, and step results
+- structured lifecycle JSONL logs under `.multipowers/<logs_subdir>/orchestration-<trace_id>.jsonl`
+
+## Hooks, Doctor, Policy, and Utilities
+
+```bash
+mp hook --event <event> --prompt "..." --json
 mp doctor [--list] [--check-id <id>] [--timeout <duration>] [--save] [--verbose] [--json]
-mp-devx --action doctor [same flags]
+mp policy sync [--apply] [--ignore-id <id>] [--rollback-id <id>] [--revoke-id <id>] --json
+mp policy stats --json
+mp policy gc --json
+mp policy tune --mode <balanced|accuracy|storage> --json
+mp extract --url <url> --json
+mp cost estimate --prompt "..." --json
+mp cost report --metrics-dir <dir> --json
+mp checkpoint save --checkpoint-id <id> --json
+mp checkpoint get --checkpoint-id <id> --json
+mp checkpoint delete --checkpoint-id <id> --json
 ```
-
-Doctor runs 16 governance checks (9 upstream-compatible + 7 local).  
-Execution defaults:
-- all checks timeout: `30s`
-- single check timeout (`--check-id`): `45s`
-- explicit `--timeout` overrides defaults
-
-Exit code:
-- non-zero only when at least one check returns `fail`
-
-Save report:
-- `--save` writes `.multipowers/doctor/reports/doctor-YYYYMMDD-HHMMSS.json`
-- single check writes `.multipowers/doctor/reports/doctor-<check_id>-YYYYMMDD-HHMMSS.json`
-
-### 8. Lifecycle Hooks
-```bash
-mp hook --event [SessionStart|EnterPlanMode|UserPromptSubmit|PreToolUse|PostToolUse|WorktreeCreate|WorktreeRemove|Stop|SubagentStop] --prompt "..."
-```
-Dispatches a lifecycle event to the Go hook handler. Returns `ok` or `blocked` based on current governance policies.
-
-### 9. Policy Autosync Operations
-```bash
-mp policy sync [--apply] [--ignore-id <id>] [--rollback-id <id>] [--revoke-id <rule_id>]
-mp policy stats
-mp policy gc
-mp policy tune --mode [balanced|accuracy|storage]
-```
-Manages autosync policy lifecycle, observability, garbage-collection, and tuning profiles.
-
----
-
-## Debugging
-
-Enable verbose Go runtime debugging:
-```bash
-MP_DEBUG=1 mp <command>
-```
-
----
 
 ## See Also
-- [Command Reference (Plugin UI)](./COMMAND-REFERENCE.md)
-- [Architecture Overview](./ARCHITECTURE.md)
+
+- `docs/ARCHITECTURE.md`
+- `docs/plans/2026-03-07-go-orchestration-ux-followups.md`
