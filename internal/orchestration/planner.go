@@ -120,6 +120,13 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 		})
 	}
 
+	traceID := newTraceID(workflowName)
+	for i := range phasePlans {
+		for j := range phasePlans[i].Steps {
+			phasePlans[i].Steps[j].TraceID = traceID
+		}
+	}
+
 	// Build synthesis plan
 	var workflowSynthesis *SynthesisConfig
 	if resolvedConfig.WorkflowOverrides != nil {
@@ -151,6 +158,8 @@ func BuildPlan(global *Config, workflowName string, taskName string, prompt stri
 			ConfigVersion:  global.Version,
 			ResolvedConfig: resolvedConfig,
 			SourceRefs:     sourceRefs,
+			TraceID:        traceID,
+			LogsSubdir:     strings.TrimSpace(global.ExecutionIsolation.LogsSubdir),
 		},
 	}
 	plan.Metadata.SourceRefs = append(plan.Metadata.SourceRefs,
@@ -486,6 +495,14 @@ func collectDescendants(root string, children map[string][]string) []string {
 		stack = append(stack, children[node]...)
 	}
 	return out
+}
+
+func newTraceID(workflowName string) string {
+	prefix := strings.TrimSpace(workflowName)
+	if prefix == "" {
+		prefix = "run"
+	}
+	return fmt.Sprintf("%s-%d", prefix, time.Now().UnixNano())
 }
 
 func cloneRetryPolicy(retry RetryPolicy) RetryPolicy {

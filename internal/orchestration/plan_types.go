@@ -42,6 +42,7 @@ type StepPlan struct {
 	BenchmarkSignature string
 	Prompt             string
 	Dependencies       []string
+	TraceID            string
 	Retry              RetryPolicy
 }
 
@@ -93,6 +94,8 @@ type PlanMetadata struct {
 	ConfigVersion  string
 	ResolvedConfig *MergedOrchestrationConfig
 	SourceRefs     []ConfigSourceRef
+	TraceID        string
+	LogsSubdir     string
 }
 
 // ConfigSourceRef tracks where config values originated

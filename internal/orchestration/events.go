@@ -22,6 +22,7 @@ const (
 
 // Event represents an execution event
 type Event struct {
+	TraceID      string
 	Type         EventType
 	Timestamp    time.Time
 	WorkflowName string
@@ -35,6 +36,7 @@ type Event struct {
 
 // ModelProgressData describes progress updates for long-running model execution.
 type ModelProgressData struct {
+	TraceID      string    `json:"trace_id,omitempty"`
 	RunID        string    `json:"run_id"`
 	Model        string    `json:"model"`
 	Status       string    `json:"status"`
@@ -63,7 +65,9 @@ func NewEventEmitter(bufferSize int) *EventEmitter {
 
 // Emit sends an event (non-blocking)
 func (e *EventEmitter) Emit(event Event) bool {
-	event.Timestamp = time.Now()
+	if event.Timestamp.IsZero() {
+		event.Timestamp = time.Now()
+	}
 	select {
 	case e.events <- event:
 		return true

@@ -764,3 +764,48 @@ func TestExecutor_RetryHonorsContextCancellation(t *testing.T) {
 		t.Fatalf("step error=%v want %v", result.Steps[0].Error, context.Canceled)
 	}
 }
+
+func TestExecutorPropagatesTraceIDToStepsAndEvents(t *testing.T) {
+	dispatcher := NewMockDispatcher()
+	executor := NewExecutor(ExecutorConfig{MaxWorkers: 1}, dispatcher)
+	traceID := "trace-123"
+	plan := &ExecutionPlan{
+		WorkflowName: "develop",
+		WorkDir:      t.TempDir(),
+		Metadata:     PlanMetadata{TraceID: traceID, LogsSubdir: "logs"},
+		Phases: []PhasePlan{{
+			Name:  "develop",
+			Steps: []StepPlan{{ID: "s1", Phase: "develop", Agent: "a1", TraceID: traceID}},
+		}},
+	}
+
+	result := executor.ExecutePlan(context.Background(), plan)
+	if result.TraceID != traceID {
+		t.Fatalf("execution trace_id=%q want %q", result.TraceID, traceID)
+	}
+	if result.Phases[0].Steps[0].TraceID != traceID {
+		t.Fatalf("step trace_id=%q want %q", result.Phases[0].Steps[0].TraceID, traceID)
+	}
+
+	events := collectAllEvents(executor.Events())
+	if len(events) == 0 {
+		t.Fatal("expected execution events")
+	}
+	for _, event := range events {
+		if event.TraceID != traceID {
+			t.Fatalf("event trace_id=%q want %q", event.TraceID, traceID)
+		}
+	}
+}
+
+func collectAllEvents(events <-chan Event) []Event {
+	out := make([]Event, 0, 16)
+	for {
+		select {
+		case event := <-events:
+			out = append(out, event)
+		default:
+			return out
+		}
+	}
+}

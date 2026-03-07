@@ -915,3 +915,27 @@ func TestBuildPhasePlanPropagatesRetryPolicyToSteps(t *testing.T) {
 		t.Fatalf("backoff_ms=%d want 150", retry.BackoffMs)
 	}
 }
+
+func TestBuildPlanGeneratesStableTraceIDPerRun(t *testing.T) {
+	global := &Config{
+		Version: "1",
+		PhaseDefaults: map[string]PhaseDefault{
+			"develop": {Primary: "implementer", Agents: []string{"coder"}},
+		},
+	}
+
+	plan, err := BuildPlan(global, "develop", "", "Build auth system", "/workdir")
+	if err != nil {
+		t.Fatalf("BuildPlan failed: %v", err)
+	}
+	if strings.TrimSpace(plan.Metadata.TraceID) == "" {
+		t.Fatal("expected trace_id to be generated")
+	}
+	for _, phase := range plan.Phases {
+		for _, step := range phase.Steps {
+			if step.TraceID != plan.Metadata.TraceID {
+				t.Fatalf("step trace_id=%q want %q", step.TraceID, plan.Metadata.TraceID)
+			}
+		}
+	}
+}

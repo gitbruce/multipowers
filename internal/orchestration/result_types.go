@@ -9,6 +9,7 @@ type AttemptInfo struct {
 
 // StepResult represents the result of executing a single step
 type StepResult struct {
+	TraceID   string
 	StepID    string
 	Phase     string
 	Agent     string
@@ -94,6 +95,7 @@ const (
 
 // ExecutionResult represents the result of a full workflow execution
 type ExecutionResult struct {
+	TraceID      string
 	WorkflowName string
 	TaskName     string
 	Phases       []PhaseResult
@@ -122,6 +124,7 @@ const (
 
 // SynthesisResult represents the result of synthesis
 type SynthesisResult struct {
+	TraceID     string
 	Status      SynthesisStatus
 	Output      string
 	Model       string

@@ -41,6 +41,8 @@ type Executor struct {
 	workerWG       sync.WaitGroup
 	worktreeSlots  *WorktreeSlots
 	sleep          sleepFunc
+	traceID        string
+	logWriter      *LogWriter
 }
 
 // NewExecutor creates a new executor
@@ -108,7 +110,34 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 	}
 	promptHash := fmt.Sprintf("%x", sha1.Sum([]byte(plan.Prompt)))
 
+	traceID := strings.TrimSpace(plan.Metadata.TraceID)
+	if traceID == "" {
+		traceID = newTraceID(plan.WorkflowName)
+		plan.Metadata.TraceID = traceID
+	}
+	if strings.TrimSpace(plan.Metadata.LogsSubdir) == "" {
+		plan.Metadata.LogsSubdir = "logs"
+	}
+	for i := range plan.Phases {
+		for j := range plan.Phases[i].Steps {
+			if strings.TrimSpace(plan.Phases[i].Steps[j].TraceID) == "" {
+				plan.Phases[i].Steps[j].TraceID = traceID
+			}
+		}
+	}
+	e.traceID = traceID
+	if strings.TrimSpace(plan.WorkDir) != "" {
+		if writer, err := NewLogWriter(plan.WorkDir, plan.Metadata.LogsSubdir, traceID); err == nil {
+			e.logWriter = writer
+		}
+	}
+	defer func() {
+		e.traceID = ""
+		e.logWriter = nil
+	}()
+
 	result := &ExecutionResult{
+		TraceID:      traceID,
 		WorkflowName: plan.WorkflowName,
 		TaskName:     plan.TaskName,
 		Phases:       make([]PhaseResult, 0, len(plan.Phases)),
@@ -124,7 +153,7 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 	})
 
 	// Emit execution start event
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypeExecutionStart,
 		WorkflowName: plan.WorkflowName,
 		TaskName:     plan.TaskName,
@@ -163,7 +192,7 @@ func (e *Executor) ExecutePlan(ctx context.Context, plan *ExecutionPlan) *Execut
 	result.Duration = time.Since(startTime)
 
 	// Emit execution end event
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypeExecutionEnd,
 		WorkflowName: plan.WorkflowName,
 		TaskName:     plan.TaskName,
@@ -191,7 +220,7 @@ func (e *Executor) ExecutePhase(ctx context.Context, phase PhasePlan, workflowNa
 	}
 
 	// Emit phase start event
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypePhaseStart,
 		WorkflowName: workflowName,
 		PhaseName:    phase.Name,
@@ -233,7 +262,7 @@ func (e *Executor) ExecutePhase(ctx context.Context, phase PhasePlan, workflowNa
 	result.Duration = time.Since(startTime)
 
 	// Emit phase end event
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypePhaseEnd,
 		WorkflowName: workflowName,
 		PhaseName:    phase.Name,
@@ -349,7 +378,7 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName,
 	}
 
 	// Emit step start event
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypeStepStart,
 		WorkflowName: workflowName,
 		PhaseName:    step.Phase,
@@ -389,6 +418,9 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName,
 
 	// Dispatch step
 	result, err := e.dispatchWithRetry(ctx, step)
+	if strings.TrimSpace(result.TraceID) == "" {
+		result.TraceID = step.TraceID
+	}
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			result.Status = StepStatusCanceled
@@ -419,7 +451,7 @@ func (e *Executor) executeStep(ctx context.Context, step StepPlan, workflowName,
 	e.emitModelProgress(workflowName, step, progressStatusForResult(result, err), 100, time.Now())
 
 	// Emit step end event
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypeStepEnd,
 		WorkflowName: workflowName,
 		PhaseName:    step.Phase,
@@ -446,7 +478,7 @@ func (e *Executor) dispatchWithRetry(ctx context.Context, step StepPlan) (*StepR
 		attempts++
 		result, err := e.dispatcher.Dispatch(ctx, step)
 		if result == nil {
-			result = &StepResult{StepID: step.ID, Phase: step.Phase, Agent: step.Agent, Model: step.Model}
+			result = &StepResult{TraceID: step.TraceID, StepID: step.ID, Phase: step.Phase, Agent: step.Agent, Model: step.Model}
 		}
 		if result.StepID == "" {
 			result.StepID = step.ID
@@ -484,6 +516,19 @@ func stringifyError(err error) string {
 		return ""
 	}
 	return err.Error()
+}
+
+func (e *Executor) emitEvent(event Event) {
+	if strings.TrimSpace(event.TraceID) == "" {
+		event.TraceID = e.traceID
+	}
+	if event.Timestamp.IsZero() {
+		event.Timestamp = time.Now().UTC()
+	}
+	e.events.Emit(event)
+	if e.logWriter != nil {
+		_ = e.logWriter.Write(event)
+	}
 }
 
 // Events returns the event channel for progress monitoring
@@ -544,6 +589,7 @@ type DefaultDispatcher struct{}
 func (d *DefaultDispatcher) Dispatch(ctx context.Context, step StepPlan) (*StepResult, error) {
 	output := fmt.Sprintf("Result from %s for prompt: %s", step.Agent, step.Prompt)
 	return &StepResult{
+		TraceID:  step.TraceID,
 		StepID:   step.ID,
 		Phase:    step.Phase,
 		Agent:    step.Agent,
@@ -563,13 +609,14 @@ func (e *Executor) emitModelProgress(workflowName string, step StepPlan, status 
 	if modelName == "" {
 		modelName = "unknown"
 	}
-	e.events.Emit(Event{
+	e.emitEvent(Event{
 		Type:         EventTypeStepProgress,
 		WorkflowName: workflowName,
 		PhaseName:    step.Phase,
 		StepID:       step.ID,
 		Status:       status,
 		Data: ModelProgressData{
+			TraceID:     step.TraceID,
 			RunID:       workflowName,
 			Model:       modelName,
 			Status:      status,
