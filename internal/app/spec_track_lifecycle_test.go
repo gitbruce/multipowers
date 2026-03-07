@@ -49,6 +49,23 @@ func TestSpecTrackLifecycle(t *testing.T) {
 		t.Fatalf("expected active track reuse %q, got %q", trackID, gotTrackID)
 	}
 
+	meta, err := tracks.ReadMetadata(d, trackID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if meta.CurrentGroup != "" {
+		t.Fatalf("current_group=%q want empty before explicit group start", meta.CurrentGroup)
+	}
+	if meta.GroupStatus != "" {
+		t.Fatalf("group_status=%q want empty before explicit group start", meta.GroupStatus)
+	}
+	if meta.LastCommand != "develop" {
+		t.Fatalf("last_command=%q want develop", meta.LastCommand)
+	}
+	if strings.TrimSpace(meta.LastCommandAt) == "" {
+		t.Fatal("expected last_command_at to be recorded")
+	}
+
 	if _, err := os.Stat(filepath.Join(d, ".multipowers", "context", "runtime.json")); err != nil {
 		t.Fatalf("runtime.json missing: %v", err)
 	}

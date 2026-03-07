@@ -32,7 +32,16 @@ Templates come from `custom/templates/conductor/`.
 
 For spec-driven commands (`/mp:plan`, discover/define/develop/deliver, embrace, review, debate, research), orchestrator checks `.multipowers/` context first.
 
-If missing/incomplete, it auto-runs `/mp:init` interactively before task execution.
+If missing/incomplete, it returns `run_init` guidance before task execution; context files are never generated silently.
+
+## Group Lifecycle Enforcement
+
+Spec-command preflight and implementation-group progress are separate concerns:
+
+- spec commands update `last_command` / `last_command_at` in track metadata
+- implementation work starts with `mp track group-start ...`
+- implementation work completes with `mp track group-complete ... --commit-sha <sha>`
+- while `group_status=in_progress`, the next spec pipeline call is blocked until commit and verification evidence exist
 
 ## Track Files
 

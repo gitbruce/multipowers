@@ -29,7 +29,7 @@ Expected behavior:
   - `.multipowers/tracks/tracks.md`
   - `.multipowers/CLAUDE.md` (project working agreement)
   - `.multipowers/FAQ.md` (auto-generated failure avoidance knowledge)
-  - `.multipowers/context/runtime.json` (runtime + pre-run hooks)
+  - `.multipowers/context/runtime.json` (runtime + pre-run hooks; `pre_run.enabled=false` by default)
   - `.multipowers/tracks/<track_id>/` (spec-driven artifacts)
 
 ## Use Spec-Driven Commands
@@ -42,7 +42,21 @@ Examples:
 - `/mp:deliver <validation>`
 - `/mp:embrace <end-to-end request>`
 
-If `.multipowers/` context is missing, spec-driven commands auto-run `/mp:init`.
+If `.multipowers/` context is missing or incomplete, spec-driven commands stop with `run_init` guidance; runtime files are never generated silently.
+
+## Explicit Group Lifecycle
+
+After a spec track exists, implementation groups are advanced explicitly:
+
+```text
+mp track group-start --track-id <track_id> --group g1 --execution-mode workspace --json
+mp track group-complete --track-id <track_id> --group g1 --commit-sha <sha> --json
+```
+
+Rules:
+- use `.multipowers/tracks/<track_id>/` for all spec-driven artifacts
+- finish each active group with commit + verification evidence before the next spec pipeline step
+- if a track is marked worktree-required, `group-start` must run from a linked git worktree checkout
 
 ## Where Outputs Go
 
