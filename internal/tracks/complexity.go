@@ -1,5 +1,7 @@
 package tracks
 
+import "strings"
+
 type ComplexityInput struct {
 	ChangedFiles        int
 	TouchedModules      int
@@ -7,17 +9,21 @@ type ComplexityInput struct {
 	ExternalIntegration bool
 	GroupCount          int
 	EstimatedHours      float64
+	Prompt              string
 }
 
 type ComplexityDecision struct {
 	Score            int      `json:"score"`
 	WorktreeRequired bool     `json:"worktree_required"`
+	RequiresPlanning bool     `json:"requires_planning"`
+	Source           string   `json:"source,omitempty"`
 	Rationale        []string `json:"rationale"`
 }
 
 func CalculateComplexity(in ComplexityInput) ComplexityDecision {
 	decision := ComplexityDecision{
-		Rationale: make([]string, 0, 6),
+		Rationale: make([]string, 0, 8),
+		Source:    "structured_inputs",
 	}
 	if in.ChangedFiles >= 8 {
 		decision.Score += 2
@@ -43,6 +49,26 @@ func CalculateComplexity(in ComplexityInput) ComplexityDecision {
 		decision.Score++
 		decision.Rationale = append(decision.Rationale, "estimated time > 2h")
 	}
+	if strings.TrimSpace(in.Prompt) != "" {
+		decision.Source = "prompt_admission"
+		decision.Score += scoreIntent(in.Prompt)
+		if decision.Score > 0 {
+			decision.Rationale = append(decision.Rationale, "prompt admission heuristics applied")
+		}
+	}
 	decision.WorktreeRequired = decision.Score >= 4
+	decision.RequiresPlanning = decision.Score >= 4
 	return decision
+}
+
+func scoreIntent(prompt string) int {
+	p := strings.ToLower(prompt)
+	score := 0
+	if strings.Contains(p, "refactor") || strings.Contains(p, "migrate") || strings.Contains(p, "rewrite") || strings.Contains(p, "entire") || strings.Contains(p, "global") {
+		score += 4
+	}
+	if strings.Contains(p, "security") || strings.Contains(p, "auth") || strings.Contains(p, "policy") {
+		score += 2
+	}
+	return score
 }
