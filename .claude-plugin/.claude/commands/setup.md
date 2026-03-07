@@ -1,29 +1,12 @@
 ---
 command: setup
-description: "Shortcut for /mp:sys-setup - Check Claude Octopus setup status"
-redirect: sys-setup
+description: "Maintain setup required for the mainline flow"
 ---
 
-# Setup (Shortcut)
+# /mp:setup
 
-This is a shortcut alias for `/mp:sys-setup`.
+Thin wrapper role: `initializer`.
 
-Running setup detection...
+Runtime bridge:
 
-```bash
-MP_BIN=""
-if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -x "${CLAUDE_PLUGIN_ROOT}/bin/mp" ]]; then
-  MP_BIN="${CLAUDE_PLUGIN_ROOT}/bin/mp"
-elif [[ -x "$PWD/.claude-plugin/bin/mp" ]]; then
-  MP_BIN="$PWD/.claude-plugin/bin/mp"
-elif [[ -x "./.claude-plugin/bin/mp" ]]; then
-  MP_BIN="./.claude-plugin/bin/mp"
-else
-  echo "mp binary not found. Restart Claude Code and use /mp:* commands, or build via scripts/build.sh." >&2
-  exit 1
-fi
-
-"$MP_BIN" detect-providers
-```
-
-For full setup documentation, see `/mp:sys-setup`.
+`${CLAUDE_PLUGIN_ROOT}/bin/mp setup --dir "$PWD" --prompt "$ARGUMENTS" --json`

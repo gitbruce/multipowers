@@ -32,7 +32,8 @@ func (f fakeRunner) Coverage(string, float64) workflows.CoverageResult { return 
 func (f fakeRunner) ValidateRuntimeNoShell(string) (validation.NoShellRuntimeResult, error) {
 	return f.validateResult, f.validateErr
 }
-func (f fakeRunner) CostReport(string) (cost.Report, error) { return f.costResult, f.costErr }
+func (f fakeRunner) CostReport(string) (cost.Report, error)     { return f.costResult, f.costErr }
+func (f fakeRunner) SyncSuperpowersAssets(string, string) error { return nil }
 
 func TestRun_ActionBuildPolicy(t *testing.T) {
 	// Create temp config directory

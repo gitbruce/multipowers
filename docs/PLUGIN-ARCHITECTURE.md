@@ -1,105 +1,40 @@
-# Plugin Architecture - How Multipowers Works
+# Plugin Architecture
 
-This guide explains the internal architecture of Multipowers for contributors and advanced users.
+## Public surface
 
----
+The published plugin surface is generated from `custom/config/mainline-surface.yaml` and contains only the approved mainline commands and wrapper skills.
 
-## High-Level Architecture
+## Source of truth
 
+Multipowers separates prompt content from runtime glue:
+
+- upstream workflow Markdown is synced into `custom/references/superpowers-upstream/`
+- thin local templates live in `custom/templates/mainline-wrapper/`
+- generated assets are written to `.claude-plugin/.claude/`
+- the final public contract is recorded in `.claude-plugin/plugin.json`
+
+## Runtime layers
+
+1. Wrapper Markdown exposes the public command and skill surface.
+2. Go runtime enforces init gating, tracks, hooks, policy, and doctor behavior.
+3. Policy resolves models/providers for each phase.
+4. Debate forces all configured providers into the run.
+
+## Fixed roles
+
+Persona selection is no longer part of the public API. Internally, the branch uses a fixed role set:
+
+- `initializer`
+- `facilitator`
+- `planner`
+- `executor`
+- `reviewer`
+- `debugger`
+- `debater`
+
+## Build flow
+
+```bash
+go run ./cmd/mp-devx --action sync-superpowers
+go run ./cmd/mp-devx --action build-runtime
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Claude Code                             │
-│  ┌────────────────────────────────────────────────────────┐ │
-│  │            Multipowers Plugin                        │ │
-│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │ │
-│  │  │    Skills    │  │    Hooks     │  │   Commands   │ │ │
-│  │  └──────────────┘  └──────────────┘  └──────────────┘ │ │
-│  └────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-        ┌──────────────────────────────────────┐
-        │      Multipowers Go Native Engine    │
-        └──────────────────────────────────────┘
-                            ↓
-        ┌──────────────┬────────────┬───────────┐
-        │  Codex CLI   │ Gemini CLI │  Claude   │
-        │  (OpenAI)    │  (Google)  │ Subagent  │
-        └──────────────┴────────────┴───────────┘
-```
-
----
-
-## Component Overview
-
-### 1. Plugin Manifest (plugin.json)
-
-**Location:** `.claude-plugin/plugin.json`
-
-**Purpose:** Defines the plugin metadata, skills, commands, and dependencies.
-
-```json
-{
-  "name": "mp",
-  "version": "8.1.0",
-  "description": "Multi-tentacled orchestrator...",
-  "skills": [
-    "./.claude/skills/parallel-agents.md",
-    "./.claude/skills/flow-discover.md",
-    "./.claude/skills/flow-define.md",
-    "./.claude/skills/flow-develop.md",
-    "./.claude/skills/flow-deliver.md",
-    "./.claude/skills/debate.md"
-  ],
-  "commands": "./.claude/commands/"
-}
-```
-
----
-
-### 2. Skills System (Double Diamond)
-
-Skills are markdown files with YAML frontmatter that define Claude's behavior for specific tasks.
-
-| Phase | Skill File | Trigger Pattern | Wrapper For (CLI) |
-|-------|------------|-----------------|-------------------|
-| **Discover** | `flow-discover.md` | "research X" | `mp discover "X"` |
-| **Define** | `flow-define.md` | "define requirements for X" | `mp define "X"` |
-| **Develop** | `flow-develop.md` | "build X", "implement Y" | `mp develop "X"` |
-| **Deliver** | `flow-deliver.md` | "review X", "validate Y" | `mp deliver "X"` |
-
----
-
-### 3. Hooks System
-
-Hooks inject additional context or execute commands at specific points in the workflow via `internal/hooks`.
-
-| Hook | Purpose |
-|------|---------|
-| `PreToolUse` | Inject visual indicators and perform safety checks. |
-| `PostToolUse` | Apply quality gates and process results. |
-| `SessionStart` | Synchronize state and initialize track context. |
-| `Stop` | Cleanup and save session summary. |
-
----
-
-### 4. Native Engine (internal/orchestration)
-
-The Go-native engine replaces legacy shell shims with a robust three-layer pipeline:
-1. **Planner**: Resolves prompts into immutable `ExecutionPlan`.
-2. **Executor**: Concurrent execution with bounded `Worktree Slots`.
-3. **Synthesizer**: Multi-perspective aggregation and Progressive Synthesis.
-
-### 5. Policy Auto Sync (internal/autosync)
-
-Policy Auto Sync adds an append-only learning layer:
-
-- Raw events: `.multipowers/policy/autosync/events.raw.*.jsonl`
-- Proposal lifecycle: advisory/shadow/auto-candidate/auto-applied
-- User deny confirmation flow: `delete` vs `skip-this-session`
-- Prompt injection: active policy context also injected for external vibe coding tool execution
-
----
-
-## See Also
-- [Architecture Deep Dive](./ARCHITECTURE.md)
-- [CLI Reference](./CLI-REFERENCE.md)

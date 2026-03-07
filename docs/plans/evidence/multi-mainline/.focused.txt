@@ -1,0 +1,11 @@
+$ go test ./internal/devx ./internal/roles ./internal/policy ./internal/providers ./internal/workflows ./internal/hooks ./internal/cli ./internal/validation ./cmd/mp-devx -count=1
+ok  	github.com/gitbruce/multipowers/internal/devx	0.012s
+ok  	github.com/gitbruce/multipowers/internal/roles	0.020s
+ok  	github.com/gitbruce/multipowers/internal/policy	0.082s
+ok  	github.com/gitbruce/multipowers/internal/providers	0.018s
+ok  	github.com/gitbruce/multipowers/internal/workflows	0.378s
+ok  	github.com/gitbruce/multipowers/internal/hooks	0.034s
+ok  	github.com/gitbruce/multipowers/internal/cli	0.093s
+ok  	github.com/gitbruce/multipowers/internal/validation	0.076s
+ok  	github.com/gitbruce/multipowers/cmd/mp-devx	0.073s
+exit_status=0

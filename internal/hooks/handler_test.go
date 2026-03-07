@@ -12,7 +12,7 @@ import (
 
 func TestUserPromptSubmitBlocksMissingContext(t *testing.T) {
 	d := t.TempDir()
-	prompt := "/mp:develop x"
+	prompt := "/mp:execute x"
 	r := Handle(d, api.HookEvent{Event: "UserPromptSubmit", ToolInput: map[string]any{"prompt": prompt}})
 	if r.Decision != "block" {
 		t.Fatalf("expected block, got %+v", r)
@@ -92,7 +92,7 @@ func TestEnterPlanMode_BlocksWithoutPlanIntent(t *testing.T) {
 	d := t.TempDir()
 	r := Handle(d, api.HookEvent{
 		Event:     "EnterPlanMode",
-		ToolInput: map[string]any{"prompt": "/mp:develop implement x"},
+		ToolInput: map[string]any{"prompt": "/mp:execute implement x"},
 	})
 	if r.Decision != "block" {
 		t.Fatalf("expected block, got %+v", r)

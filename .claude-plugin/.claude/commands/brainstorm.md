@@ -1,39 +1,25 @@
 ---
 command: brainstorm
-description: "Start a creative thought partner brainstorming session"
+description: "Start upstream brainstorming-guided exploration"
+skill: mainline-brainstorm
 ---
 
 # /mp:brainstorm
 
-Start a structured brainstorming session using four breakthrough techniques.
+REQUIRES /mp:init before entering this flow.
 
-**Usage:**
-```
-/mp:brainstorm
-/mp:brainstorm [topic]
-```
+Thin wrapper role: `facilitator`.
 
-**What it does:**
-- Acts as a creative thought partner
-- Uses Pattern Spotting, Paradox Hunting, Naming the Unnamed, Contrast Creation
-- Helps discover hidden insights and unique strategies
-- Documents breakthroughs and named concepts
+Runtime bridge:
 
-**See:** skill-thought-partner for full documentation.
+`${CLAUDE_PLUGIN_ROOT}/bin/mp brainstorm --dir "$PWD" --prompt "$ARGUMENTS" --json`
+
+## Upstream Workflow
 
 ---
+description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores requirements and design before implementation."
+disable-model-invocation: true
+---
 
-**Session flow:**
-1. Frame the exploration topic
-2. Guided questioning (one at a time)
-3. Challenge generic claims until specific
-4. Collaboratively name discovered concepts
-5. Export session with breakthroughs summary
+Invoke the superpowers:brainstorming skill and follow it exactly as presented to you
 
-**Example:**
-```
-/mp:brainstorm my approach to customer onboarding
-
-→ Starting thought partner session...
-→ "What topic or idea would you like to explore today?"
-```

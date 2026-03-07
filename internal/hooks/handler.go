@@ -18,14 +18,11 @@ func isSpecPrompt(evt api.HookEvent) bool {
 	}
 	raw, _ := evt.ToolInput["prompt"].(string)
 	raw = strings.ToLower(strings.TrimSpace(raw))
-	return strings.HasPrefix(raw, "/mp:plan") ||
-		strings.HasPrefix(raw, "/mp:discover") ||
-		strings.HasPrefix(raw, "/mp:define") ||
-		strings.HasPrefix(raw, "/mp:develop") ||
-		strings.HasPrefix(raw, "/mp:deliver") ||
-		strings.HasPrefix(raw, "/mp:embrace") ||
-		strings.HasPrefix(raw, "/mp:review") ||
-		strings.HasPrefix(raw, "/mp:research") ||
+	return strings.HasPrefix(raw, "/mp:brainstorm") ||
+		strings.HasPrefix(raw, "/mp:design") ||
+		strings.HasPrefix(raw, "/mp:plan") ||
+		strings.HasPrefix(raw, "/mp:execute") ||
+		strings.HasPrefix(raw, "/mp:debug") ||
 		strings.HasPrefix(raw, "/mp:debate")
 }
 
@@ -38,6 +35,7 @@ func missingContextGuidance(rawPrompt string, missing []string) api.HookResult {
 			"action_required":     "run_init",
 			"recommended_command": "/mp:init",
 			"resume_command":      rawPrompt,
+			"resume_prompt":       rawPrompt,
 			"missing_files":       strings.Join(missing, ","),
 		},
 	}
@@ -219,33 +217,34 @@ func extractIntentWhitelistHits(prompt string) []string {
 	}
 
 	for token, tag := range map[string]string{
-		"/mp:develop":  "task_type:develop",
-		"/mp:debug":    "task_type:debug",
-		"/mp:review":   "task_type:review",
-		"/mp:research": "task_type:research",
-		"/mp:plan":     "task_type:plan",
-		"go":           "language:go",
-		"python":       "language:python",
-		"typescript":   "language:typescript",
-		"javascript":   "language:javascript",
-		"java":         "language:java",
-		"rust":         "language:rust",
-		"react":        "framework:react",
-		"vue":          "framework:vue",
-		"angular":      "framework:angular",
-		"next.js":      "framework:nextjs",
-		"django":       "framework:django",
-		"flask":        "framework:flask",
-		"spring":       "framework:spring",
-		"api":          "tech:api",
-		"endpoint":     "tech:endpoint",
-		"database":     "tech:database",
-		"sql":          "tech:sql",
-		"schema":       "tech:schema",
-		"function":     "tech:function",
-		"class":        "tech:class",
-		"test":         "tech:test",
-		"benchmark":    "tech:benchmark",
+		"/mp:brainstorm": "task_type:brainstorm",
+		"/mp:design":     "task_type:design",
+		"/mp:execute":    "task_type:execute",
+		"/mp:debug":      "task_type:debug",
+		"/mp:plan":       "task_type:plan",
+		"/mp:debate":     "task_type:debate",
+		"go":             "language:go",
+		"python":         "language:python",
+		"typescript":     "language:typescript",
+		"javascript":     "language:javascript",
+		"java":           "language:java",
+		"rust":           "language:rust",
+		"react":          "framework:react",
+		"vue":            "framework:vue",
+		"angular":        "framework:angular",
+		"next.js":        "framework:nextjs",
+		"django":         "framework:django",
+		"flask":          "framework:flask",
+		"spring":         "framework:spring",
+		"api":            "tech:api",
+		"endpoint":       "tech:endpoint",
+		"database":       "tech:database",
+		"sql":            "tech:sql",
+		"schema":         "tech:schema",
+		"function":       "tech:function",
+		"class":          "tech:class",
+		"test":           "tech:test",
+		"benchmark":      "tech:benchmark",
 	} {
 		if strings.Contains(p, token) {
 			add(tag)

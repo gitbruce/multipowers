@@ -1,0 +1,23 @@
+version: "1"
+roles:
+  initializer:
+    file: agents/roles/initializer.md
+    description: Ensures /mp:init artifacts and setup prerequisites exist.
+  facilitator:
+    file: agents/roles/facilitator.md
+    description: Guides brainstorming and design conversations.
+  planner:
+    file: agents/roles/planner.md
+    description: Turns design direction into an executable implementation plan.
+  executor:
+    file: agents/roles/executor.md
+    description: Executes approved plans and closes the loop inside execute.
+  reviewer:
+    file: agents/roles/reviewer.md
+    description: Handles status, doctor, resume, and completion-quality checks.
+  debugger:
+    file: agents/roles/debugger.md
+    description: Owns direct-entry debugging flow and evidence gathering.
+  debater:
+    file: agents/roles/debater.md
+    description: Orchestrates all-model debate and synthesis.

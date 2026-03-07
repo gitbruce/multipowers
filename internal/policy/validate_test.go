@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"path/filepath"
 	"testing"
 )
 
@@ -204,4 +205,26 @@ func TestValidateSourceConfig(t *testing.T) {
 			t.Error("expected error for unknown executor in task")
 		}
 	})
+}
+
+func TestValidateWorkflows_MainlinePhasePolicies(t *testing.T) {
+	cfg, err := LoadSourceConfig(filepath.Join("..", "..", "config"))
+	if err != nil {
+		t.Fatalf("load source config: %v", err)
+	}
+	if err := ValidateSourceConfig(cfg); err != nil {
+		t.Fatalf("validate source config: %v", err)
+	}
+	for _, workflow := range []string{"brainstorm", "design", "plan", "execute", "debug", "debate"} {
+		wf, ok := cfg.Workflows.Workflows[workflow]
+		if !ok {
+			t.Fatalf("missing mainline workflow %q", workflow)
+		}
+		if len(wf.Default.ConfiguredModels()) == 0 {
+			t.Fatalf("workflow %q missing configured models", workflow)
+		}
+	}
+	if got := len(cfg.Workflows.Workflows["debate"].Default.ConfiguredModels()); got < 2 {
+		t.Fatalf("debate must configure at least two models, got %d", got)
+	}
 }

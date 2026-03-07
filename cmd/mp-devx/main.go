@@ -28,6 +28,7 @@ type devxRunner interface {
 	Coverage(root string, threshold float64) workflows.CoverageResult
 	ValidateRuntimeNoShell(root string) (validation.NoShellRuntimeResult, error)
 	CostReport(metricsDir string) (cost.Report, error)
+	SyncSuperpowersAssets(manifestPath, outputDir string) error
 }
 
 var runnerFactory = func() devxRunner { return devx.Runner{} }
@@ -41,11 +42,13 @@ func run(args []string, stdout, stderr io.Writer) (rc int) {
 	fs.SetOutput(stderr)
 
 	suite := fs.String("suite", "unit", "test suite")
-	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime|doctor|init-fingerprint")
+	action := fs.String("action", "suite", "suite|parity|bench|validate-sh-map|build-policy|build-runtime|doctor|init-fingerprint|sync-superpowers")
 	projectDir := fs.String("dir", ".", "project directory")
 	configDir := fs.String("config-dir", "config", "config directory for policy source")
 	outputDir := fs.String("output-dir", ".claude-plugin/runtime", "output directory for compiled artifacts")
 	metricsDir := fs.String("metrics-dir", ".multipowers/metrics", "metrics directory for cost report")
+	syncManifest := fs.String("sync-manifest", "custom/config/superpowers-sync.yaml", "superpowers sync manifest path")
+	syncOutput := fs.String("sync-output", "custom/references/superpowers-upstream", "synced superpowers output directory")
 	mapPath := fs.String("map", "docs/plans/evidence/no-shell-runtime/mapping/sh-to-go-map.csv", "sh-to-go map path")
 	threshold := fs.Int64("threshold-ms", 50, "benchmark threshold p95 in milliseconds")
 	coverageThreshold := fs.Float64("coverage-threshold", 0, "coverage threshold percentage")
@@ -150,6 +153,12 @@ func run(args []string, stdout, stderr io.Writer) (rc int) {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
+	case "sync-superpowers":
+		if err := r.SyncSuperpowersAssets(*syncManifest, *syncOutput); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "superpowers sync ok: %s -> %s\n", *syncManifest, *syncOutput)
 	case "build-policy":
 		if err := runBuildPolicy(*configDir, *outputDir, stdout); err != nil {
 			fmt.Fprintln(stderr, err)
@@ -160,6 +169,15 @@ func run(args []string, stdout, stderr io.Writer) (rc int) {
 		// Build policy first
 		if err := runBuildPolicy(*configDir, *outputDir, stdout); err != nil {
 			fmt.Fprintln(stderr, fmt.Errorf("policy build failed: %w", err))
+			return 1
+		}
+		if err := devx.BuildMainlineAssets(devx.BuildMainlineAssetsOptions{
+			SurfacePath:  filepath.Join("custom", "config", "mainline-surface.yaml"),
+			UpstreamRoot: filepath.Join("custom", "references", "superpowers-upstream"),
+			TemplateDir:  filepath.Join("custom", "templates", "mainline-wrapper"),
+			OutputRoot:   filepath.Join(".claude-plugin", ".claude"),
+		}); err != nil {
+			fmt.Fprintln(stderr, fmt.Errorf("asset build failed: %w", err))
 			return 1
 		}
 		// Build binaries

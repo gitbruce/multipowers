@@ -1,5 +1,7 @@
 package policy
 
+import "strings"
+
 // OrchestrationOverrides contains optional orchestration settings that override global defaults
 type OrchestrationOverrides struct {
 	// Phase settings override
@@ -55,10 +57,11 @@ type ProgressiveSynthesisConfig struct {
 
 // WorkflowPolicy defines model/executor settings for a workflow or task
 type WorkflowPolicy struct {
-	Model           string                `yaml:"model"`
-	ExecutorProfile string                `yaml:"executor_profile"`
-	FallbackPolicy  string                `yaml:"fallback_policy,omitempty"`
-	DisplayName     string                `yaml:"display_name,omitempty"`
+	Model           string   `yaml:"model"`
+	ParallelModels  []string `yaml:"parallel_models,omitempty"`
+	ExecutorProfile string   `yaml:"executor_profile"`
+	FallbackPolicy  string   `yaml:"fallback_policy,omitempty"`
+	DisplayName     string   `yaml:"display_name,omitempty"`
 	// Orchestration overrides (optional)
 	Orchestration *OrchestrationOverrides `yaml:"orchestration,omitempty"`
 }
@@ -80,6 +83,27 @@ func (w *WorkflowConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+func (w WorkflowPolicy) ConfiguredModels() []string {
+	seen := map[string]struct{}{}
+	out := make([]string, 0, 1+len(w.ParallelModels))
+	appendModel := func(model string) {
+		model = strings.TrimSpace(model)
+		if model == "" {
+			return
+		}
+		if _, ok := seen[model]; ok {
+			return
+		}
+		seen[model] = struct{}{}
+		out = append(out, model)
+	}
+	appendModel(w.Model)
+	for _, model := range w.ParallelModels {
+		appendModel(model)
+	}
+	return out
 }
 
 // AgentPolicy defines model/executor settings for an agent/persona

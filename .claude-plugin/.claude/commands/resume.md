@@ -1,17 +1,14 @@
 ---
 command: resume
-description: "Restore project context from prior Claude Octopus session"
-skill: skill-resume
+description: "Resume the last interrupted mainline flow"
 ---
 
-# Resume
+# /mp:resume
 
-Resume work from the last known project state.
+REQUIRES /mp:init before entering this flow.
 
-Execution guidance:
-1. Use the `skill-resume` workflow to restore context from persisted Octopus state.
-2. If no state exists, explain that there is nothing to resume and suggest `/mp:embrace` or `/mp:discover`.
-3. After restoration, provide:
-   - Current phase
-   - Open blockers/issues
-   - Suggested immediate next action
+Thin wrapper role: `reviewer`.
+
+Runtime bridge:
+
+`${CLAUDE_PLUGIN_ROOT}/bin/mp resume --dir "$PWD" --prompt "$ARGUMENTS" --json`

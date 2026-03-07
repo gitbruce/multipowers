@@ -48,12 +48,12 @@ func buildRoutingReason(intent string, st Strategy) string {
 	}
 
 	switch intent {
-	case "discover", "research":
-		return fmt.Sprintf("Research/discovery mode: using %s for broad exploration", formatProviders(st.Selected))
-	case "define", "plan":
-		return fmt.Sprintf("Definition mode: using %s for structured planning", formatProviders(st.Selected))
-	case "develop", "build":
-		return fmt.Sprintf("Development mode: using %s for code generation", formatProviders(st.Selected))
+	case "discover", "research", "brainstorm":
+		return fmt.Sprintf("Research/brainstorm mode: using %s for broad exploration", formatProviders(st.Selected))
+	case "define", "plan", "design":
+		return fmt.Sprintf("Design/planning mode: using %s for structured planning", formatProviders(st.Selected))
+	case "develop", "build", "execute", "debug":
+		return fmt.Sprintf("Execution mode: using %s for implementation and debugging", formatProviders(st.Selected))
 	case "deliver", "review":
 		return fmt.Sprintf("Delivery/review mode: using %s for quality validation", formatProviders(st.Selected))
 	case "debate":

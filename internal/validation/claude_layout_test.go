@@ -19,10 +19,11 @@ func TestClaudeAssetsArePackagedUnderPluginRoot(t *testing.T) {
 	}
 
 	required := []string{
-		filepath.Join(root, ".claude-plugin", ".claude", "commands", "mp.md"),
-		filepath.Join(root, ".claude-plugin", ".claude", "skills", "skill-prd.md"),
-		filepath.Join(root, ".claude-plugin", ".claude", "references", "validation-gates.md"),
-		filepath.Join(root, ".claude-plugin", ".claude", "state", "state-manager.md"),
+		filepath.Join(root, ".claude-plugin", "plugin.json"),
+		filepath.Join(root, ".claude-plugin", ".claude", "commands", "brainstorm.md"),
+		filepath.Join(root, ".claude-plugin", ".claude", "commands", "execute.md"),
+		filepath.Join(root, ".claude-plugin", ".claude", "skills", "mainline-plan.md"),
+		filepath.Join(root, ".claude-plugin", ".claude", "skills", "mainline-execute.md"),
 	}
 
 	for _, path := range required {

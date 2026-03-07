@@ -1,40 +1,14 @@
 ---
 command: doctor
-description: "Run runtime governance diagnostics (16 checks) via mp-devx doctor engine"
+description: "Diagnose mainline environment readiness"
 ---
 
-# Doctor
+# /mp:doctor
 
-Run Go-native diagnostics for runtime governance health.
+REQUIRES /mp:init before entering this flow.
 
-Usage examples:
+Thin wrapper role: `reviewer`.
 
-```bash
-/mp:doctor
-/mp:doctor --list
-/mp:doctor --check-id config --timeout 10s --json
-/mp:doctor --save --verbose
-```
+Runtime bridge:
 
-Execution:
-
-```bash
-MP_BIN=""
-if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]] && [[ -x "${CLAUDE_PLUGIN_ROOT}/bin/mp" ]]; then
-  MP_BIN="${CLAUDE_PLUGIN_ROOT}/bin/mp"
-elif [[ -x "$PWD/.claude-plugin/bin/mp" ]]; then
-  MP_BIN="$PWD/.claude-plugin/bin/mp"
-elif [[ -x "./.claude-plugin/bin/mp" ]]; then
-  MP_BIN="./.claude-plugin/bin/mp"
-else
-  echo "mp binary not found. Build via mp-devx --action build-runtime." >&2
-  exit 1
-fi
-
-# Forward options exactly as entered after /mp:doctor.
-"$MP_BIN" doctor --dir "$PWD" $ARGUMENTS
-```
-
-Notes:
-- `/mp:doctor` reuses `mp-devx --action doctor` via `mp doctor` proxy.
-- Non-zero exit only when at least one check is `fail`.
+`${CLAUDE_PLUGIN_ROOT}/bin/mp doctor --dir "$PWD" --prompt "$ARGUMENTS" --json`

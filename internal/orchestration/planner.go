@@ -11,12 +11,17 @@ import (
 
 // FlowPhaseMapping maps workflow names to their phase sequences
 var FlowPhaseMapping = map[string][]string{
-	"discover": {"discover"},
-	"define":   {"define"},
-	"develop":  {"develop"},
-	"deliver":  {"deliver"},
-	"debate":   {"debate"},
-	"embrace":  {"discover", "define", "develop", "deliver"},
+	"discover":   {"discover"},
+	"define":     {"define"},
+	"develop":    {"develop"},
+	"deliver":    {"deliver"},
+	"brainstorm": {"brainstorm"},
+	"design":     {"design"},
+	"plan":       {"plan"},
+	"execute":    {"execute"},
+	"debug":      {"debug"},
+	"debate":     {"debate"},
+	"embrace":    {"discover", "define", "develop", "deliver"},
 }
 
 // BuildPlan creates an execution plan for a workflow

@@ -5,6 +5,7 @@ import "github.com/gitbruce/multipowers/internal/execx"
 type Gemini struct{}
 
 func (Gemini) Name() string    { return "gemini" }
+func (Gemini) Profile() string { return "gemini_cli" }
 func (Gemini) Available() bool { return true }
 func (Gemini) Execute(prompt string, opts ExecuteOptions) execx.Result {
 	env := append(opts.Env, ProxyEnv()...)

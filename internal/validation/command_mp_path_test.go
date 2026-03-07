@@ -8,14 +8,15 @@ import (
 	"testing"
 )
 
-func TestCommandsUsingMpBinaryHaveWorkspaceFallback(t *testing.T) {
+func TestCommandsUsingMpBinaryReferencePluginRuntime(t *testing.T) {
 	root := repoRoot(t)
 	commands := []string{
-		"embrace.md",
-		"init.md",
-		"setup.md",
-		"status.md",
-		"sys-setup.md",
+		"brainstorm.md",
+		"design.md",
+		"plan.md",
+		"execute.md",
+		"debug.md",
+		"debate.md",
 	}
 
 	for _, name := range commands {
@@ -25,14 +26,11 @@ func TestCommandsUsingMpBinaryHaveWorkspaceFallback(t *testing.T) {
 			t.Fatalf("read %s: %v", path, err)
 		}
 		content := string(body)
-		if !strings.Contains(content, "${CLAUDE_PLUGIN_ROOT}") {
-			t.Fatalf("%s must keep CLAUDE_PLUGIN_ROOT path", name)
+		if !strings.Contains(content, "${CLAUDE_PLUGIN_ROOT}/bin/mp") {
+			t.Fatalf("%s must reference plugin mp binary", name)
 		}
-		if !strings.Contains(content, "$PWD/.claude-plugin/bin/mp") {
-			t.Fatalf("%s must include workspace fallback path for mp binary", name)
-		}
-		if !strings.Contains(content, "\"$MP_BIN\"") {
-			t.Fatalf("%s must execute via resolved MP_BIN", name)
+		if !strings.Contains(content, "--json") {
+			t.Fatalf("%s must call the JSON runtime path", name)
 		}
 	}
 }

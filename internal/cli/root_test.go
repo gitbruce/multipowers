@@ -300,6 +300,26 @@ func runJSONCommandAllowError(t *testing.T, args []string) api.Response {
 	return resp
 }
 
+func TestMainlineInitGate_PreservesResumeMetadata(t *testing.T) {
+	d := t.TempDir()
+	resp := runJSONCommandAllowError(t, []string{"brainstorm", "--dir", d, "--prompt", "shape a new flow", "--json"})
+	if resp.Status != "blocked" {
+		t.Fatalf("expected blocked response, got %+v", resp)
+	}
+	if got := resp.Data["recommended_command"]; got != "/mp:init" {
+		t.Fatalf("recommended_command=%v want /mp:init", got)
+	}
+	if got := resp.Data["resume_command"]; got != "brainstorm" {
+		t.Fatalf("resume_command=%v want brainstorm", got)
+	}
+	if got := resp.Data["resume_prompt"]; got != "shape a new flow" {
+		t.Fatalf("resume_prompt=%v want original prompt", got)
+	}
+	if saved, _ := resp.Data["interrupted_context_saved"].(bool); !saved {
+		t.Fatalf("expected interrupted_context_saved=true, got %+v", resp.Data)
+	}
+}
+
 func TestHighComplexityBlockSavesInterruptedContext(t *testing.T) {
 	d := t.TempDir()
 	if err := ctxpkg.RunInitWithPrompt(d, `{"project_name":"p","summary":"s","target_users":"u","primary_goal":"g","constraints":"c","runtime":"go","framework":"std","workflow":"w","track_name":"t","track_objective":"o"}`); err != nil {

@@ -1,0 +1,43 @@
+$ go test ./... -count=1
+?   	github.com/gitbruce/multipowers/cmd/mp	[no test files]
+?   	github.com/gitbruce/multipowers/internal/execx	[no test files]
+ok  	github.com/gitbruce/multipowers/cmd/mp-devx	0.143s
+ok  	github.com/gitbruce/multipowers/internal/app	0.146s
+ok  	github.com/gitbruce/multipowers/internal/autosync	0.004s
+ok  	github.com/gitbruce/multipowers/internal/autosync/context	0.013s
+ok  	github.com/gitbruce/multipowers/internal/autosync/detector	0.006s
+ok  	github.com/gitbruce/multipowers/internal/autosync/fingerprint	0.013s
+ok  	github.com/gitbruce/multipowers/internal/autosync/gc	0.006s
+ok  	github.com/gitbruce/multipowers/internal/autosync/ops	0.013s
+ok  	github.com/gitbruce/multipowers/internal/autosync/overlay	0.013s
+ok  	github.com/gitbruce/multipowers/internal/autosync/proposal	0.006s
+ok  	github.com/gitbruce/multipowers/internal/autosync/semantic	0.012s
+ok  	github.com/gitbruce/multipowers/internal/autosync/store	0.012s
+ok  	github.com/gitbruce/multipowers/internal/benchmark	0.012s
+ok  	github.com/gitbruce/multipowers/internal/checkpoint	0.012s
+ok  	github.com/gitbruce/multipowers/internal/cli	0.126s
+ok  	github.com/gitbruce/multipowers/internal/context	0.021s
+ok  	github.com/gitbruce/multipowers/internal/cost	0.012s
+ok  	github.com/gitbruce/multipowers/internal/decisions	0.012s
+ok  	github.com/gitbruce/multipowers/internal/devx	0.016s
+ok  	github.com/gitbruce/multipowers/internal/doctor	0.074s
+ok  	github.com/gitbruce/multipowers/internal/extract	0.006s
+ok  	github.com/gitbruce/multipowers/internal/faq	0.008s
+ok  	github.com/gitbruce/multipowers/internal/fsboundary	0.005s
+ok  	github.com/gitbruce/multipowers/internal/hooks	0.043s
+ok  	github.com/gitbruce/multipowers/internal/inputguard	0.007s
+ok  	github.com/gitbruce/multipowers/internal/isolation	0.071s
+ok  	github.com/gitbruce/multipowers/internal/issues	0.005s
+ok  	github.com/gitbruce/multipowers/internal/mailbox	0.018s
+?   	github.com/gitbruce/multipowers/internal/runtime	[no test files]
+?   	github.com/gitbruce/multipowers/scripts	[no test files]
+ok  	github.com/gitbruce/multipowers/internal/orchestration	0.844s
+ok  	github.com/gitbruce/multipowers/internal/policy	0.058s
+ok  	github.com/gitbruce/multipowers/internal/providers	0.010s
+ok  	github.com/gitbruce/multipowers/internal/roles	0.011s
+ok  	github.com/gitbruce/multipowers/internal/settings	0.003s
+ok  	github.com/gitbruce/multipowers/internal/tracks	0.049s
+ok  	github.com/gitbruce/multipowers/internal/validation	0.059s
+ok  	github.com/gitbruce/multipowers/internal/workflows	0.344s
+ok  	github.com/gitbruce/multipowers/pkg/api	0.004s
+exit_status=0

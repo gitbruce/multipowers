@@ -1,0 +1,9 @@
+$ go run ./cmd/mp-devx --action build-runtime
+loading source config from config
+validating and compiling policy
+wrote .claude-plugin/runtime/policy.json (checksum: a7ad9c43b77bc16a)
+building binaries
+built .claude-plugin/bin/mp
+built .claude-plugin/bin/mp-devx
+runtime build ok
+exit_status=0

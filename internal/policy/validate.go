@@ -20,6 +20,21 @@ func ValidateSourceConfig(cfg *SourceConfig) error {
 	// Validate workflow configs
 	if cfg.Workflows != nil {
 		for wfName, wf := range cfg.Workflows.Workflows {
+			configuredModels := wf.Default.ConfiguredModels()
+			if len(configuredModels) == 0 {
+				errors = append(errors, &ValidationError{
+					File:   "workflows.yaml",
+					Field:  fmt.Sprintf("workflows.%s.default.model", wfName),
+					Reason: "must configure at least one model",
+				})
+			}
+			if wfName == "debate" && len(configuredModels) < 2 {
+				errors = append(errors, &ValidationError{
+					File:   "workflows.yaml",
+					Field:  fmt.Sprintf("workflows.%s.default.parallel_models", wfName),
+					Reason: "debate must configure at least two models",
+				})
+			}
 			// Validate default references an existing provider
 			if wf.Default.ExecutorProfile != "" && !providers[wf.Default.ExecutorProfile] {
 				errors = append(errors, &ValidationError{

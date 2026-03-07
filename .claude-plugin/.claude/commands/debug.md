@@ -1,60 +1,15 @@
 ---
 command: debug
-description: Systematic debugging with methodical problem investigation
+description: "Enter direct debugging flow"
+skill: mainline-debug
 ---
 
-# Debug - Systematic Debugging Skill
+# /mp:debug
 
-## 🤖 INSTRUCTIONS FOR CLAUDE
+REQUIRES /mp:init before entering this flow.
 
-When the user invokes this command (e.g., `/mp:debug <arguments>`):
+Thin wrapper role: `debugger`.
 
-**✓ CORRECT - Use the Skill tool:**
-```
-Skill(skill: "mp:debug", args: "<user's arguments>")
-```
+Runtime bridge:
 
-**✗ INCORRECT - Do NOT use Task tool:**
-```
-Task(subagent_type: "mp:debug", ...)  ❌ Wrong! This is a skill, not an agent type
-```
-
-**Why:** This command loads the `skill-debug` skill. Skills use the `Skill` tool, not `Task`.
-
----
-
-**Auto-loads the `skill-debug` skill for methodical bug investigation.**
-
-## Quick Usage
-
-Just use natural language:
-```
-"Debug why the login is failing"
-"Help me debug this memory leak"
-"Systematically debug the API timeout issue"
-```
-
-## Debugging Approach
-
-1. **Reproduce**: Understand and reproduce the issue
-2. **Isolate**: Narrow down the root cause
-3. **Analyze**: Examine code, logs, and state
-4. **Hypothesize**: Form theories about the bug
-5. **Test**: Validate hypotheses
-6. **Fix**: Implement and verify the solution
-
-## What You Get
-
-- Step-by-step debugging plan
-- Root cause analysis
-- Fix recommendations
-- Prevention strategies
-- Test cases to prevent regression
-
-## Natural Language Examples
-
-```
-"Debug the failing test in test_auth.py"
-"Help me debug why the API is returning 500 errors"
-"Systematic debugging of the memory usage issue"
-```
+`${CLAUDE_PLUGIN_ROOT}/bin/mp debug --dir "$PWD" --prompt "$ARGUMENTS" --json`

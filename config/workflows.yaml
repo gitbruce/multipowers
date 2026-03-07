@@ -1,15 +1,66 @@
 version: "1"
 workflows:
+  brainstorm:
+    default:
+      model: gpt-5.3-codex
+      fallback_policy: cross_provider_once
+      display_name: Brainstorm
+      parallel_models:
+        - gpt-5.3-codex
+        - gemini-3-pro-preview
+        - claude-sonnet-4.5
+  design:
+    default:
+      model: gpt-5.3-codex
+      fallback_policy: cross_provider_once
+      display_name: Design
+      parallel_models:
+        - gpt-5.3-codex
+        - gemini-3-pro-preview
+  plan:
+    default:
+      model: gpt-5.3-codex
+      fallback_policy: cross_provider_once
+      display_name: Plan
+      parallel_models:
+        - gpt-5.3-codex
+        - gemini-3-pro-preview
+  execute:
+    default:
+      model: gpt-5.3-codex
+      fallback_policy: cross_provider_once
+      display_name: Execute
+  debug:
+    default:
+      model: claude-sonnet-4.5
+      fallback_policy: none
+      display_name: Debug
+  debate:
+    default:
+      model: claude-sonnet-4.5
+      fallback_policy: none
+      display_name: Debate
+      parallel_models:
+        - gpt-5.3-codex
+        - gemini-3-pro-preview
+        - claude-sonnet-4.5
   discover:
     default:
-      model: gemini-3-pro-preview
+      model: gpt-5.3-codex
       fallback_policy: cross_provider_once
       display_name: Discover
+      parallel_models:
+        - gpt-5.3-codex
+        - gemini-3-pro-preview
+        - claude-sonnet-4.5
   define:
     default:
       model: gpt-5.3-codex
       fallback_policy: cross_provider_once
       display_name: Define
+      parallel_models:
+        - gpt-5.3-codex
+        - gemini-3-pro-preview
     tasks:
       task_1:
         model: gpt-5.3-codex
@@ -27,11 +78,6 @@ workflows:
       model: claude-sonnet-4.5
       fallback_policy: none
       display_name: Deliver
-  debate:
-    default:
-      model: claude-sonnet-4.5
-      fallback_policy: none
-      display_name: Debate
   embrace:
     default:
       model: gpt-5.3-codex

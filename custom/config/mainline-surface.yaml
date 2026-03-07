@@ -1,0 +1,89 @@
+version: "1"
+commands:
+  init:
+    description: Guided setup for required /mp:init artifacts
+    role: initializer
+    runtime_action: init
+  model-config:
+    description: Manage per-user model configuration
+    role: initializer
+    runtime_action: model-config
+  brainstorm:
+    description: Start upstream brainstorming-guided exploration
+    role: facilitator
+    upstream_command: commands/brainstorm.md
+    upstream_skill: skills/brainstorming/SKILL.md
+    runtime_action: brainstorm
+  design:
+    description: Reuse upstream brainstorming skill for solution design
+    role: facilitator
+    upstream_command: commands/brainstorm.md
+    upstream_skill: skills/brainstorming/SKILL.md
+    runtime_action: design
+  plan:
+    description: Build an implementation plan from upstream planning docs
+    role: planner
+    upstream_command: commands/write-plan.md
+    upstream_skill: skills/writing-plans/SKILL.md
+    runtime_action: plan
+  execute:
+    description: Execute the implementation plan with upstream execution guidance
+    role: executor
+    upstream_command: commands/execute-plan.md
+    upstream_skill: skills/executing-plans/SKILL.md
+    runtime_action: execute
+  debug:
+    description: Enter direct debugging flow
+    role: debugger
+    upstream_skill: skills/systematic-debugging/SKILL.md
+    runtime_action: debug
+  debate:
+    description: Run multi-model debate using all configured models
+    role: debater
+    runtime_action: debate
+  status:
+    description: Inspect current mainline state
+    role: reviewer
+    runtime_action: status
+  doctor:
+    description: Diagnose mainline environment readiness
+    role: reviewer
+    runtime_action: doctor
+  resume:
+    description: Resume the last interrupted mainline flow
+    role: reviewer
+    runtime_action: resume
+  setup:
+    description: Maintain setup required for the mainline flow
+    role: initializer
+    runtime_action: setup
+skills:
+  mainline-brainstorm:
+    description: Thin wrapper around upstream brainstorming skill
+    role: facilitator
+    upstream_skill: skills/brainstorming/SKILL.md
+    command: brainstorm
+  mainline-design:
+    description: Thin wrapper around upstream brainstorming skill for design
+    role: facilitator
+    upstream_skill: skills/brainstorming/SKILL.md
+    command: design
+  mainline-plan:
+    description: Thin wrapper around upstream writing plans skill
+    role: planner
+    upstream_skill: skills/writing-plans/SKILL.md
+    command: plan
+  mainline-execute:
+    description: Thin wrapper around upstream executing plans skill
+    role: executor
+    upstream_skill: skills/executing-plans/SKILL.md
+    command: execute
+  mainline-debug:
+    description: Thin wrapper around upstream systematic debugging skill
+    role: debugger
+    upstream_skill: skills/systematic-debugging/SKILL.md
+    command: debug
+  mainline-debate:
+    description: Thin wrapper around local debate runtime
+    role: debater
+    command: debate

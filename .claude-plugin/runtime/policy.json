@@ -1,31 +1,49 @@
 {
   "version": "1",
-  "generated_at": "2026-03-03T19:26:37Z",
-  "checksum": "0c7cdc41762dbceb",
+  "generated_at": "2026-03-07T18:42:36Z",
+  "checksum": "a7ad9c43b77bc16a",
   "workflows": {
+    "brainstorm": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.brainstorm",
+      "display_name": "Brainstorm"
+    },
     "debate": {
       "default": {
         "model": "claude-sonnet-4.5",
-        "executor_profile": "claude_code",
+        "executor_profile": "",
         "fallback_policy": "none"
       },
       "source_ref": "workflows.yaml#workflows.debate",
       "display_name": "Debate"
     },
+    "debug": {
+      "default": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "",
+        "fallback_policy": "none"
+      },
+      "source_ref": "workflows.yaml#workflows.debug",
+      "display_name": "Debug"
+    },
     "define": {
       "default": {
         "model": "gpt-5.3-codex",
-        "executor_profile": "codex_cli",
+        "executor_profile": "",
         "fallback_policy": "cross_provider_once"
       },
       "tasks": {
         "task_1": {
           "model": "gpt-5.3-codex",
-          "executor_profile": "codex_cli"
+          "executor_profile": ""
         },
         "task_2": {
           "model": "gemini-3-pro-preview",
-          "executor_profile": "gemini_cli"
+          "executor_profile": ""
         }
       },
       "source_ref": "workflows.yaml#workflows.define",
@@ -34,16 +52,25 @@
     "deliver": {
       "default": {
         "model": "claude-sonnet-4.5",
-        "executor_profile": "claude_code",
+        "executor_profile": "",
         "fallback_policy": "none"
       },
       "source_ref": "workflows.yaml#workflows.deliver",
       "display_name": "Deliver"
     },
+    "design": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.design",
+      "display_name": "Design"
+    },
     "develop": {
       "default": {
         "model": "gpt-5.3-codex",
-        "executor_profile": "codex_cli",
+        "executor_profile": "",
         "fallback_policy": "cross_provider_once"
       },
       "source_ref": "workflows.yaml#workflows.develop",
@@ -51,8 +78,8 @@
     },
     "discover": {
       "default": {
-        "model": "gemini-3-pro-preview",
-        "executor_profile": "gemini_cli",
+        "model": "gpt-5.3-codex",
+        "executor_profile": "",
         "fallback_policy": "cross_provider_once"
       },
       "source_ref": "workflows.yaml#workflows.discover",
@@ -61,14 +88,42 @@
     "embrace": {
       "default": {
         "model": "gpt-5.3-codex",
-        "executor_profile": "codex_cli",
+        "executor_profile": "",
         "fallback_policy": "cross_provider_once"
       },
       "source_ref": "workflows.yaml#workflows.embrace",
       "display_name": "Embrace"
+    },
+    "execute": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.execute",
+      "display_name": "Execute"
+    },
+    "plan": {
+      "default": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "workflows.yaml#workflows.plan",
+      "display_name": "Plan"
     }
   },
   "agents": {
+    "ai-engineer": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.ai-engineer",
+      "display_name": "ai-engineer",
+      "permission_mode": "plan"
+    },
     "backend-architect": {
       "contract": {
         "model": "gpt-5.3-codex",
@@ -76,25 +131,188 @@
         "fallback_policy": "cross_provider_once"
       },
       "source_ref": "agents.yaml#agents.backend-architect",
-      "display_name": "Backend Architect"
+      "display_name": "backend-architect",
+      "permission_mode": "plan"
     },
-    "frontend-developer": {
-      "contract": {
-        "model": "claude-sonnet-4.5",
-        "executor_profile": "claude_code",
-        "fallback_policy": "none"
-      },
-      "source_ref": "agents.yaml#agents.frontend-developer",
-      "display_name": "Frontend Developer"
-    },
-    "researcher": {
+    "business-analyst": {
       "contract": {
         "model": "gemini-3-pro-preview",
         "executor_profile": "gemini_cli",
         "fallback_policy": "cross_provider_once"
       },
-      "source_ref": "agents.yaml#agents.researcher",
-      "display_name": "Researcher"
+      "source_ref": "agents.yaml#agents.business-analyst",
+      "display_name": "business-analyst",
+      "permission_mode": "plan"
+    },
+    "cloud-architect": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.cloud-architect",
+      "display_name": "cloud-architect",
+      "permission_mode": "plan"
+    },
+    "code-reviewer": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.code-reviewer",
+      "display_name": "code-reviewer",
+      "permission_mode": "default"
+    },
+    "codebase-analyst": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.codebase-analyst",
+      "display_name": "codebase-analyst",
+      "permission_mode": "plan"
+    },
+    "context-manager": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.context-manager",
+      "display_name": "context-manager",
+      "permission_mode": "plan"
+    },
+    "database-architect": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.database-architect",
+      "display_name": "database-architect",
+      "permission_mode": "plan"
+    },
+    "debugger": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.debugger",
+      "display_name": "debugger",
+      "permission_mode": "acceptEdits"
+    },
+    "deployment-engineer": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.deployment-engineer",
+      "display_name": "deployment-engineer",
+      "permission_mode": "default"
+    },
+    "devops-troubleshooter": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.devops-troubleshooter",
+      "display_name": "devops-troubleshooter",
+      "permission_mode": "acceptEdits"
+    },
+    "docs-architect": {
+      "contract": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.docs-architect",
+      "display_name": "docs-architect",
+      "permission_mode": "default"
+    },
+    "frontend-developer": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.frontend-developer",
+      "display_name": "frontend-developer",
+      "permission_mode": "plan"
+    },
+    "graphql-architect": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.graphql-architect",
+      "display_name": "graphql-architect",
+      "permission_mode": "plan"
+    },
+    "incident-responder": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.incident-responder",
+      "display_name": "incident-responder",
+      "permission_mode": "acceptEdits"
+    },
+    "mermaid-expert": {
+      "contract": {
+        "model": "claude-sonnet-4.5",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.mermaid-expert",
+      "display_name": "mermaid-expert",
+      "permission_mode": "plan"
+    },
+    "performance-engineer": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.performance-engineer",
+      "display_name": "performance-engineer",
+      "permission_mode": "default"
+    },
+    "python-pro": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.python-pro",
+      "display_name": "python-pro",
+      "permission_mode": "acceptEdits"
+    },
+    "reasoning-analyst": {
+      "contract": {
+        "model": "o3",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.reasoning-analyst",
+      "display_name": "reasoning-analyst",
+      "permission_mode": "plan"
+    },
+    "research-synthesizer": {
+      "contract": {
+        "model": "gemini-3-pro-preview",
+        "executor_profile": "gemini_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.research-synthesizer",
+      "display_name": "research-synthesizer",
+      "permission_mode": "plan"
     },
     "security-auditor": {
       "contract": {
@@ -103,23 +321,58 @@
         "fallback_policy": "none"
       },
       "source_ref": "agents.yaml#agents.security-auditor",
-      "display_name": "Security Auditor"
+      "display_name": "security-auditor",
+      "permission_mode": "default"
     },
-    "test-runner": {
+    "strategy-analyst": {
+      "contract": {
+        "model": "gpt-5.3-codex",
+        "executor_profile": "codex_cli",
+        "fallback_policy": "cross_provider_once"
+      },
+      "source_ref": "agents.yaml#agents.strategy-analyst",
+      "display_name": "strategy-analyst",
+      "permission_mode": "plan"
+    },
+    "tdd-orchestrator": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.tdd-orchestrator",
+      "display_name": "tdd-orchestrator",
+      "permission_mode": "acceptEdits"
+    },
+    "test-automator": {
       "contract": {
         "model": "claude-sonnet-4.5",
         "executor_profile": "claude_code",
         "fallback_policy": "none"
       },
-      "source_ref": "agents.yaml#agents.test-runner",
-      "display_name": "Test Runner"
+      "source_ref": "agents.yaml#agents.test-automator",
+      "display_name": "test-automator",
+      "permission_mode": "acceptEdits"
+    },
+    "typescript-pro": {
+      "contract": {
+        "model": "claude-opus-4.6",
+        "executor_profile": "claude_code",
+        "fallback_policy": "none"
+      },
+      "source_ref": "agents.yaml#agents.typescript-pro",
+      "display_name": "typescript-pro",
+      "permission_mode": "acceptEdits"
     }
   },
   "executors": {
     "claude_code": {
       "kind": "claude_code",
       "enforcement": "hint",
-      "source_ref": "executors.yaml#executors.claude_code"
+      "model_patterns": [
+        "^claude-.*"
+      ],
+      "source_ref": "providers.yaml#providers.claude_code"
     },
     "codex_cli": {
       "kind": "external_cli",
@@ -133,7 +386,12 @@
         "{prompt}"
       ],
       "enforcement": "hard",
-      "source_ref": "executors.yaml#executors.codex_cli"
+      "model_patterns": [
+        "^gpt-.*",
+        "^o3$",
+        ".*codex.*"
+      ],
+      "source_ref": "providers.yaml#providers.codex_cli"
     },
     "gemini_cli": {
       "kind": "external_cli",
@@ -145,7 +403,10 @@
         "{prompt}"
       ],
       "enforcement": "hard",
-      "source_ref": "executors.yaml#executors.gemini_cli"
+      "model_patterns": [
+        "^gemini-.*"
+      ],
+      "source_ref": "providers.yaml#providers.gemini_cli"
     }
   },
   "fallback": {

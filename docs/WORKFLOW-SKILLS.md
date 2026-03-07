@@ -1,66 +1,45 @@
-# Workflow Skills: Quick Access to Multipowers Patterns
+# Workflow Skills
 
-Multipowers includes **workflow skills** - lightweight wrappers that auto-invoke common multi-AI workflows. These activate automatically when you use certain natural language phrases.
+The public workflow surface is intentionally narrow.
 
-## 🔬 Deep Research (`/mp:discover`)
+## Mainline
 
-**Auto-activates when you say:**
-- "research this topic"
-- "investigate how X works"
-- "explore different approaches"
+The default path is:
 
-**What it does:** Runs the **Discover** workflow using the Go native engine.
-- Spawns parallel agents (Codex, Gemini) to research from different perspectives.
-- Claude synthesizes findings into a single Markdown report.
+`/mp:init → /mp:brainstorm → /mp:design → /mp:plan → /mp:execute`
 
----
+### `mainline-brainstorm`
+- wraps upstream `skills/brainstorming/SKILL.md`
+- used by `/mp:brainstorm`
+- may fan out across configured models for early exploration
 
-## 🔍 Quick Code Review (`/mp:deliver`)
+### `mainline-design`
+- reuses the same upstream brainstorming skill
+- used by `/mp:design`
+- turns exploration into a solution direction
 
-**Auto-activates when you say:**
-- "review this code"
-- "check this PR"
-- "quality check"
+### `mainline-plan`
+- wraps upstream `skills/writing-plans/SKILL.md`
+- used by `/mp:plan`
+- produces the executable implementation plan
 
-**What it does:** Runs the **Deliver** workflow.
-- High-capability models perform architecture, security, and quality audits in parallel.
-- Provides a weighted quality score and prioritized remediation steps.
+### `mainline-execute`
+- wraps upstream `skills/executing-plans/SKILL.md`
+- used by `/mp:execute`
+- covers implementation, review checkpoints, and branch finishing
 
----
+## Special entries
 
-## 🛡️ Adversarial Security (`/mp:debate`)
+### `mainline-debug`
+- wraps upstream `skills/systematic-debugging/SKILL.md`
+- used by `/mp:debug`
+- bypasses the normal design/planning path when direct debugging is appropriate
 
-**Auto-activates when you say:**
-- "security audit"
-- "pentest this code"
+### `mainline-debate`
+- thin local wrapper for multi-model deliberation
+- used by `/mp:debate`
+- always fans out to all configured models
 
-**What it does:** Triggers a structured 3-way debate focused on security.
-- **Red Team**: Attempts to find vulnerabilities and generate exploit PoCs.
-- **Blue Team**: Reviews defenses and suggests patches.
-- **Moderator**: Final synthesis and risk assessment.
+## Design principle
 
----
-
-## 🤖 Iterative Execution (`/mp:loop`)
-
-**Auto-activates when you say:**
-- "fix all lint errors"
-- "refactor this until it passes tests"
-
-**What it does:** Triggers the **Ralph Wiggum loop** engine.
-- Execution continues iteratively until the task goal is reached or max iterations occur.
-- Automatically handles linter or compiler feedback to self-correct.
-
----
-
-## Architecture: How Skills work with the Go Engine
-
-Understanding the distinction:
-
-1. **Workflow Skills (Entry Points)**: Natural language triggers that make the tool easy to use.
-2. **Go Engine (internal/orchestration)**: The robust, concurrent runtime that does the heavy lifting.
-3. **Double Diamond (Methodology)**: The structured approach (Discover → Define → Develop → Deliver) enforced by the system.
-
----
-
-[← Back to README](../README.md)
+The wrapper Markdown stays intentionally small. Same-function workflow text is sourced from upstream `superpowers`, while init gates, model policy, hooks, and Go runtime behavior stay local.

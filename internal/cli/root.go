@@ -151,7 +151,13 @@ func withTrackID(resp api.Response, trackID string) api.Response {
 }
 
 func shouldPersistInterruptedContext(resp api.Response) bool {
-	if resp.Status != "blocked" || resp.Data == nil {
+	if resp.Status != "blocked" {
+		return false
+	}
+	if resp.Action == "run_init" || resp.ErrorCode == app.ErrCtxMissing {
+		return true
+	}
+	if resp.Data == nil {
 		return false
 	}
 	if blocked, _ := resp.Data["requires_planning"].(bool); blocked {
@@ -297,6 +303,13 @@ func Run(args []string) int {
 			data["track_id"] = trackCtx.ID
 			return api.Response{Status: "ok", Data: data}
 		})
+		if r.Status == "blocked" && (r.Action == "run_init" || r.ErrorCode == app.ErrCtxMissing) {
+			if r.Data == nil {
+				r.Data = map[string]any{}
+			}
+			r.Data["action_required"] = "run_init"
+			r.Data["recommended_command"] = "/mp:init"
+		}
 		if err := persistInterruptedContext(absDir, name, "", effectivePrompt, &r); err != nil {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
 		}
@@ -576,7 +589,15 @@ func Run(args []string) int {
 		}
 		return respond(api.Response{Status: "ok", Data: map[string]any{"validation": "passed"}})
 	case "plan":
-		return exec("plan", workflows.Define)
+		return exec("plan", workflows.Plan)
+	case "brainstorm":
+		return exec("brainstorm", workflows.Brainstorm)
+	case "design":
+		return exec("design", workflows.Design)
+	case "execute":
+		return exec("execute", workflows.Execute)
+	case "debug":
+		return exec("debug", workflows.Debug)
 	case "discover", "research":
 		return exec(cmd, workflows.Discover)
 	case "define":
@@ -604,11 +625,7 @@ func Run(args []string) int {
 		}
 		return respond(r)
 	case "persona":
-		data, err := workflows.RunPersona(workflows.DefaultPersonaConfig(absDir), absDir, effectivePrompt)
-		if err != nil {
-			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: err.Error()})
-		}
-		return respond(api.Response{Status: "ok", Data: data})
+		return migrationBlocked("mp persona has been removed from the public surface; use brainstorm|design|plan|execute|debug|debate")
 	case "orchestrate":
 		if sub != "select-agent" {
 			return respond(api.Response{Status: "error", ErrorCode: app.ErrInvalidArgument, Message: "unknown orchestrate subcommand: use select-agent"})
