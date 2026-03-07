@@ -1,5 +1,21 @@
 # Spec-Driven Track 产物统一化与 runtime 初始化修复设计
 
+## 0. 2026-03-07 基线复核
+
+当前 `go` 分支代码已经落地了本设计的大部分核心能力：
+
+- `/mp:init` 会生成 `.multipowers/context/runtime.json`，默认 `pre_run.enabled=false`。
+- runtime 仅使用 `.multipowers/tracks/tracks.md`，旧 `.multipowers/tracks.md` 在 init 时做一次性硬迁移。
+- `TrackCoordinator`、模板渲染、复杂度计算、CLI/hook 接线与基础生命周期测试都已存在。
+
+但本设计在“任务组闭环”这一点上仍未完全实现，现状与原始文档存在偏差：
+
+- `current_group` 仍被 CLI 和 hook 路径写成命令名（如 `plan`、`develop`、`post-tool`），而不是实现任务组 `g1/g2/...`。
+- `last_commit_sha` 目前只在 metadata 结构和测试中出现，运行时路径尚未写入。
+- `EnsureTrackExecution` 仅在 `current_group` 命中 `g[0-9]+` 时才真正触发 commit / verification gate，因此 normal spec-driven CLI 流程还没有机器级闭环。
+
+因此，本设计文档从本次开始应被理解为：**核心路径已实现，剩余工作聚焦于显式 group lifecycle、commit/verification evidence、以及文档与代码的重新对齐。**
+
 ## 1. 背景与目标
 
 本次优化聚焦三件事：

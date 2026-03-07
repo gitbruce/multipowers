@@ -10,23 +10,44 @@
 
 ---
 
+## 2026-03-07 Re-baseline Note
+
+This document predates several runtime iterations. The status table below is reinterpreted against the current `go` branch codebase, not against the historical intent of the original plan.
+
+### Re-baseline summary
+
+- `O01` is complete in code: hardcode guard extensions and tests are already present.
+- `O02` is only partially complete: `mp-devx lint-config` and its enforcement landed, but schema-specific work in `O02-S01` is still open.
+- `O03` is complete enough for the current runtime closure wave.
+- `O04` remains open in the executor itself: retry policy fields exist in docs / partial code, but bounded backoff execution and deterministic retry tests are not finished.
+- `O05` is still open: no runtime `trace_id` propagation or structured orchestration log sink is present yet.
+- `O06`, `O07`, and `O08` are deferred into `docs/plans/2026-03-07-go-orchestration-ux-followups.md` unless later code inspection proves they were partially implemented.
+- `O09` and `O10` remain required for hardening closure because they provide regression protection and verification evidence.
+
+### Status vocabulary for this re-baseline
+
+- `COMPLETED`: code and tests exist at current HEAD
+- `IN_PROGRESS`: partial code exists but the task is not closure-complete
+- `NOT_STARTED`: no meaningful implementation evidence yet
+- `DEFERRED`: intentionally moved out of the current hardening closure wave
+
 ## Task Status Tracker (MANDATORY UPDATE)
 
 | ID | Task | Status |
 |---|---|---|
-| O01 | Routing hardcode guardrails | NOT_STARTED |
+| O01 | Routing hardcode guardrails | COMPLETED |
 | O01-S01 | Extend hardcode scanner rules and allowlist | COMPLETED |
 | O01-S02 | Add forbidden phase/agent/provider routing pattern tests | COMPLETED |
 | O01-S03 | Wire guard into full validation suite and docs | COMPLETED |
-| O02 | Config governance + lint gate | NOT_STARTED |
+| O02 | Config governance + lint gate | IN_PROGRESS |
 | O02-S01 | Add JSON Schema for orchestration/workflows/providers | NOT_STARTED |
 | O02-S02 | Implement `mp-devx lint-config` strict checks | COMPLETED |
 | O02-S03 | Enforce pre-commit/CI config lint gate | COMPLETED |
-| O03 | Standardized error semantics | NOT_STARTED |
+| O03 | Standardized error semantics | COMPLETED |
 | O03-S01 | Introduce typed orchestration error codes | COMPLETED |
 | O03-S02 | Map error codes to CLI exit codes | COMPLETED |
 | O03-S03 | Add compatibility tests across workflows/cli/hooks | COMPLETED |
-| O04 | Executor retry reliability | NOT_STARTED |
+| O04 | Executor retry reliability | IN_PROGRESS |
 | O04-S01 | Add idempotent retry policy fields to plan/step config | COMPLETED |
 | O04-S02 | Implement exponential backoff + jitter retry loop | NOT_STARTED |
 | O04-S03 | Add deterministic retry tests for 429/503/timeouts | NOT_STARTED |
@@ -34,15 +55,15 @@
 | O05-S01 | Generate and propagate `trace_id` across runtime | NOT_STARTED |
 | O05-S02 | Emit structured logs for step lifecycle/fallback | NOT_STARTED |
 | O05-S03 | Add trace correlation tests and log format tests | NOT_STARTED |
-| O06 | Merge explainability CLI | NOT_STARTED |
+| O06 | Merge explainability CLI | DEFERRED |
 | O06-S01 | Build explain resolver output model (value + source) | NOT_STARTED |
 | O06-S02 | Add `mp orchestrate explain` command | NOT_STARTED |
 | O06-S03 | Add explain tests and docs | NOT_STARTED |
-| O07 | Result caching | NOT_STARTED |
+| O07 | Result caching | DEFERRED |
 | O07-S01 | Add cache key strategy + storage abstraction | NOT_STARTED |
 | O07-S02 | Add orchestration execution read/write cache path | NOT_STARTED |
 | O07-S03 | Add TTL/invalidations tests + cache metadata | NOT_STARTED |
-| O08 | Planner visualization | NOT_STARTED |
+| O08 | Planner visualization | DEFERRED |
 | O08-S01 | Add DAG export from `ExecutionPlan` | NOT_STARTED |
 | O08-S02 | Add Mermaid renderer + CLI output mode | NOT_STARTED |
 | O08-S03 | Add visualization tests and documentation | NOT_STARTED |
