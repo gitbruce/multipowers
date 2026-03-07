@@ -889,3 +889,29 @@ func TestWorkflowModelOverride(t *testing.T) {
 		}
 	})
 }
+
+func TestBuildPhasePlanPropagatesRetryPolicyToSteps(t *testing.T) {
+	phase := BuildPhasePlan("develop", PhaseDefault{
+		Primary: "implementer",
+		Retry: RetryPolicy{
+			Idempotent:     true,
+			MaxRetries:     2,
+			BackoffMs:      150,
+			RetryableCodes: []string{"timeout"},
+		},
+	}, nil, "prompt")
+
+	if len(phase.Steps) != 1 {
+		t.Fatalf("steps=%d want 1", len(phase.Steps))
+	}
+	retry := phase.Steps[0].Retry
+	if !retry.Idempotent {
+		t.Fatal("expected idempotent retry policy")
+	}
+	if retry.MaxRetries != 2 {
+		t.Fatalf("max_retries=%d want 2", retry.MaxRetries)
+	}
+	if retry.BackoffMs != 150 {
+		t.Fatalf("backoff_ms=%d want 150", retry.BackoffMs)
+	}
+}

@@ -299,9 +299,14 @@ func BuildPhasePlan(name string, defaultConfig PhaseDefault, override *PhaseOver
 		}
 	}
 
+	phaseRetry := cloneRetryPolicy(defaultConfig.Retry)
+	if override != nil && override.Retry != nil {
+		phaseRetry = cloneRetryPolicy(*override.Retry)
+	}
+
 	return PhasePlan{
 		Name:       name,
-		Steps:      BuildStepPlansWithOverrides(name, agents, prompt, customPerspectives),
+		Steps:      buildStepPlansWithOverrides(name, agents, prompt, customPerspectives, phaseRetry),
 		Parallel:   parallel,
 		MaxWorkers: maxWorkers,
 	}
@@ -309,12 +314,20 @@ func BuildPhasePlan(name string, defaultConfig PhaseDefault, override *PhaseOver
 
 // BuildStepPlansWithOverrides creates step plans with optional perspective overrides
 func BuildStepPlansWithOverrides(phase string, agents []string, prompt string, overrides []PerspectiveOverride) []StepPlan {
+	return buildStepPlansWithOverrides(phase, agents, prompt, overrides, RetryPolicy{})
+}
+
+func buildStepPlansWithOverrides(phase string, agents []string, prompt string, overrides []PerspectiveOverride, defaultRetry RetryPolicy) []StepPlan {
 	if len(overrides) > 0 {
 		steps := make([]StepPlan, len(overrides))
 		for i, o := range overrides {
 			perspectivePrompt := prompt
 			if o.Description != "" {
 				perspectivePrompt = fmt.Sprintf("%s\n\nYour specific perspective: %s", prompt, o.Description)
+			}
+			retry := cloneRetryPolicy(defaultRetry)
+			if o.Retry != nil {
+				retry = cloneRetryPolicy(*o.Retry)
 			}
 			steps[i] = StepPlan{
 				ID:          fmt.Sprintf("%s-%s-%d", phase, o.Agent, i),
@@ -323,15 +336,20 @@ func BuildStepPlansWithOverrides(phase string, agents []string, prompt string, o
 				Agent:       o.Agent,
 				Model:       o.Model,
 				Prompt:      perspectivePrompt,
+				Retry:       retry,
 			}
 		}
 		return steps
 	}
-	return BuildStepPlans(phase, agents, prompt)
+	return buildStepPlans(phase, agents, prompt, defaultRetry)
 }
 
 // BuildStepPlans creates step plans from a list of agents with multi-perspective decomposition
 func BuildStepPlans(phase string, agents []string, prompt string) []StepPlan {
+	return buildStepPlans(phase, agents, prompt, RetryPolicy{})
+}
+
+func buildStepPlans(phase string, agents []string, prompt string, retry RetryPolicy) []StepPlan {
 	steps := make([]StepPlan, len(agents))
 
 	// Default perspectives for specific phases
@@ -354,9 +372,8 @@ func BuildStepPlans(phase string, agents []string, prompt string) []StepPlan {
 
 	for i, agent := range agents {
 		perspectivePrompt := prompt
-		perspectiveName := agent // Default to agent name as perspective
+		perspectiveName := agent
 
-		// If we have defined perspectives for this phase, assign them round-robin
 		if phasePerspectives, ok := perspectives[phase]; ok && len(phasePerspectives) > 0 {
 			pIndex := i % len(phasePerspectives)
 			perspectiveName = fmt.Sprintf("perspective_%d", pIndex)
@@ -369,6 +386,7 @@ func BuildStepPlans(phase string, agents []string, prompt string) []StepPlan {
 			Perspective: perspectiveName,
 			Agent:       agent,
 			Prompt:      perspectivePrompt,
+			Retry:       cloneRetryPolicy(retry),
 		}
 	}
 	return steps
@@ -468,6 +486,14 @@ func collectDescendants(root string, children map[string][]string) []string {
 		stack = append(stack, children[node]...)
 	}
 	return out
+}
+
+func cloneRetryPolicy(retry RetryPolicy) RetryPolicy {
+	copied := retry
+	if len(retry.RetryableCodes) > 0 {
+		copied.RetryableCodes = append([]string(nil), retry.RetryableCodes...)
+	}
+	return copied
 }
 
 func uniqueOrdered(items []string) []string {

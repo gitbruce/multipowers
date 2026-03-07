@@ -68,6 +68,11 @@ func LoadConfigFromProjectDir(projectDir string) (*Config, error) {
 	if err := validateExecutionIsolationConfig(&cfg.ExecutionIsolation); err != nil {
 		return nil, err
 	}
+	for name, phase := range cfg.PhaseDefaults {
+		if err := validateRetryPolicy(fmt.Sprintf("phase_defaults.%s.retry", name), phase.Retry); err != nil {
+			return nil, err
+		}
+	}
 
 	return &cfg, nil
 }
@@ -222,4 +227,17 @@ func LoadAgentProfiles(projectDir string) (map[string]AgentProfile, error) {
 		out[name] = AgentProfile{Skills: v.Skills, Expertise: v.Expertise}
 	}
 	return out, nil
+}
+
+func validateRetryPolicy(field string, retry RetryPolicy) error {
+	if retry.MaxRetries < 0 {
+		return &ConfigError{Field: field + ".max_retries", Reason: "must be >= 0"}
+	}
+	if retry.BackoffMs < 0 {
+		return &ConfigError{Field: field + ".backoff_ms", Reason: "must be >= 0"}
+	}
+	if retry.JitterRatio < 0 || retry.JitterRatio > 1 {
+		return &ConfigError{Field: field + ".jitter_ratio", Reason: "must be between 0 and 1"}
+	}
+	return nil
 }

@@ -29,6 +29,7 @@ type PhaseOverride struct {
 	Agent      string
 	Agents     []string
 	MaxWorkers int
+	Retry      *RetryPolicy
 }
 
 // PerspectiveOverride defines a workflow-level perspective override
@@ -37,6 +38,7 @@ type PerspectiveOverride struct {
 	Description string
 	Agent       string
 	Model       string
+	Retry       *RetryPolicy
 }
 
 // ParallelConfig defines parallel execution settings

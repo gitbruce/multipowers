@@ -12,8 +12,9 @@ type Config struct {
 }
 
 type PhaseDefault struct {
-	Primary string   `yaml:"primary"`
-	Agents  []string `yaml:"agents,omitempty"`
+	Primary string      `yaml:"primary"`
+	Agents  []string    `yaml:"agents,omitempty"`
+	Retry   RetryPolicy `yaml:"retry,omitempty"`
 }
 
 type RalphWiggumConfig struct {

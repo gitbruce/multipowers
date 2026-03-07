@@ -1,6 +1,7 @@
 package orchestration
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -10,7 +11,7 @@ func TestMergeConfigs(t *testing.T) {
 			Version: "1",
 			PhaseDefaults: map[string]PhaseDefault{
 				"discover": {Primary: "researcher", Agents: []string{"agent1", "agent2"}},
-				"define":  {Primary: "architect", Agents: []string{"agent3"}},
+				"define":   {Primary: "architect", Agents: []string{"agent3"}},
 			},
 			RalphWiggum: RalphWiggumConfig{
 				Enabled:           true,
@@ -60,8 +61,8 @@ func TestMergeConfigs(t *testing.T) {
 func TestMergePhaseDefaults(t *testing.T) {
 	t.Run("merge global phase defaults with workflow overrides", func(t *testing.T) {
 		global := map[string]PhaseDefault{
-			"discover":  {Primary: "researcher", Agents: []string{"a1", "a2"}},
-			"define":  {Primary: "architect", Agents: []string{"b1"}},
+			"discover": {Primary: "researcher", Agents: []string{"a1", "a2"}},
+			"define":   {Primary: "architect", Agents: []string{"b1"}},
 		}
 
 		workflow := []PhaseOverride{
@@ -186,4 +187,44 @@ func TestPrecedenceMerge(t *testing.T) {
 			t.Error("merge should be deterministic")
 		}
 	})
+}
+
+func TestMergePreservesTaskLevelRetryOverrides(t *testing.T) {
+	global := &Config{Version: "1"}
+	workflowOverrides := map[string]WorkflowOverride{
+		"develop": {
+			Phases: []PhaseOverride{{
+				Name:  "develop",
+				Retry: &RetryPolicy{Idempotent: true, MaxRetries: 1, BackoffMs: 100},
+			}},
+		},
+	}
+	taskOverrides := map[string]WorkflowOverride{
+		"develop.task_1": {
+			Perspectives: []PerspectiveOverride{{
+				Name:  "implement",
+				Agent: "coder",
+				Retry: &RetryPolicy{Idempotent: true, MaxRetries: 4, BackoffMs: 500, RetryableCodes: []string{"timeout"}},
+			}},
+		},
+	}
+
+	merged := MergeConfigs(global, workflowOverrides, taskOverrides)
+	override, ok := merged.WorkflowOverrides["develop.task_1"]
+	if !ok {
+		t.Fatal("expected task override to be preserved")
+	}
+	if len(override.Perspectives) != 1 || override.Perspectives[0].Retry == nil {
+		t.Fatalf("expected perspective retry override, got %+v", override.Perspectives)
+	}
+	retry := override.Perspectives[0].Retry
+	if retry.MaxRetries != 4 {
+		t.Fatalf("max_retries=%d want 4", retry.MaxRetries)
+	}
+	if retry.BackoffMs != 500 {
+		t.Fatalf("backoff_ms=%d want 500", retry.BackoffMs)
+	}
+	if got := strings.Join(retry.RetryableCodes, ","); got != "timeout" {
+		t.Fatalf("retryable_codes=%q want timeout", got)
+	}
 }

@@ -24,6 +24,14 @@ type PhasePlan struct {
 	MaxWorkers  int
 }
 
+type RetryPolicy struct {
+	Idempotent     bool     `json:"idempotent,omitempty" yaml:"idempotent,omitempty"`
+	MaxRetries     int      `json:"max_retries,omitempty" yaml:"max_retries,omitempty"`
+	BackoffMs      int      `json:"backoff_ms,omitempty" yaml:"backoff_ms,omitempty"`
+	JitterRatio    float64  `json:"jitter_ratio,omitempty" yaml:"jitter_ratio,omitempty"`
+	RetryableCodes []string `json:"retryable_codes,omitempty" yaml:"retryable_codes,omitempty"`
+}
+
 // StepPlan represents a single executable step
 type StepPlan struct {
 	ID                 string
@@ -34,6 +42,7 @@ type StepPlan struct {
 	BenchmarkSignature string
 	Prompt             string
 	Dependencies       []string
+	Retry              RetryPolicy
 }
 
 // ResumeMode defines how a task attempt resumes after gate/requeue decisions.

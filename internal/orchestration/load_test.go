@@ -451,3 +451,46 @@ phase_defaults: {}
 		})
 	}
 }
+
+func TestLoadConfigParsesRetryPolicyFields(t *testing.T) {
+	d := t.TempDir()
+	cfgDir := filepath.Join(d, "config")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	data := `version: "1"
+phase_defaults:
+  develop:
+    primary: implementer
+    retry:
+      idempotent: true
+      max_retries: 3
+      backoff_ms: 250
+      jitter_ratio: 0.2
+      retryable_codes: [rate_limit, timeout]
+`
+	if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(data), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := LoadConfigFromProjectDir(d)
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+	retry := cfg.PhaseDefaults["develop"].Retry
+	if !retry.Idempotent {
+		t.Fatal("expected idempotent retry policy")
+	}
+	if retry.MaxRetries != 3 {
+		t.Fatalf("max_retries=%d want 3", retry.MaxRetries)
+	}
+	if retry.BackoffMs != 250 {
+		t.Fatalf("backoff_ms=%d want 250", retry.BackoffMs)
+	}
+	if retry.JitterRatio != 0.2 {
+		t.Fatalf("jitter_ratio=%v want 0.2", retry.JitterRatio)
+	}
+	if got := strings.Join(retry.RetryableCodes, ","); got != "rate_limit,timeout" {
+		t.Fatalf("retryable_codes=%q want rate_limit,timeout", got)
+	}
+}
