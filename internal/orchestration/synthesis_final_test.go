@@ -3,6 +3,7 @@ package orchestration
 import (
 	"context"
 	"errors"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -291,4 +292,48 @@ func TestIntegrationFlow_RepairRetryOnce(t *testing.T) {
 	if repairCalls != 1 {
 		t.Fatalf("repair_calls = %d, want 1", repairCalls)
 	}
+}
+
+func TestSynthesisReportGoldenSnapshots(t *testing.T) {
+	completed := &ExecutionResult{
+		WorkflowName: "discover",
+		TaskName:     "golden-report",
+		Phases: []PhaseResult{{
+			PhaseName: "discover",
+			Steps: []StepResult{{
+				StepID: "s1", Phase: "discover", Agent: "researcher", Status: StepStatusCompleted, Output: "Key finding", Bytes: 11,
+			}},
+			Completed: 1,
+		}},
+		TotalSteps: 1,
+		Completed:  1,
+		TotalBytes: 11,
+		Status:     ExecutionStatusCompleted,
+		Duration:   5 * time.Second,
+	}
+	assertGoldenJSON(t, filepath.Join("testdata", "golden", "report", "completed.golden.json"), GenerateReport(completed))
+
+	degraded := &ExecutionResult{
+		WorkflowName: "discover",
+		TaskName:     "golden-degraded-report",
+		Phases: []PhaseResult{{
+			PhaseName: "discover",
+			Steps: []StepResult{{
+				StepID:   "s1",
+				Phase:    "discover",
+				Agent:    "researcher",
+				Status:   StepStatusDegraded,
+				Output:   "Partial result",
+				Fallback: &FallbackInfo{Used: true, OriginalModel: "primary", FallbackModel: "secondary", Reason: "timeout"},
+			}},
+			Completed: 1,
+			Degraded:  1,
+		}},
+		TotalSteps: 1,
+		Completed:  1,
+		Degraded:   1,
+		TotalBytes: 14,
+		Status:     ExecutionStatusCompleted,
+	}
+	assertGoldenJSON(t, filepath.Join("testdata", "golden", "report", "degraded.golden.json"), GenerateReport(degraded))
 }

@@ -1,0 +1,25 @@
+{
+  "CompletedCount": 1,
+  "CreatedAt": "0001-01-01T00:00:00Z",
+  "DegradedCount": 0,
+  "Duration": 0,
+  "Errors": [],
+  "FailedCount": 0,
+  "FallbackEvents": [],
+  "Sections": [
+    {
+      "Content": "\n### researcher\nKey finding\n",
+      "Phase": "discover",
+      "Sources": [
+        "researcher"
+      ],
+      "Title": "discover Phase Results"
+    }
+  ],
+  "Status": "completed",
+  "Synthesis": null,
+  "TaskName": "golden-report",
+  "TotalBytes": 11,
+  "TotalSteps": 1,
+  "WorkflowName": "discover"
+}

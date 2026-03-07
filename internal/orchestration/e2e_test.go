@@ -19,7 +19,7 @@ func (d *E2EDispatcher) Dispatch(ctx context.Context, step StepPlan) (*StepResul
 	if d.failAgents != nil && d.failAgents[step.Agent] {
 		return nil, errors.New("mock failure")
 	}
-	
+
 	res := &StepResult{
 		StepID:   step.ID,
 		Phase:    step.Phase,
@@ -69,7 +69,7 @@ phase_defaults:
 
 	t.Run("discover flow happy path", func(t *testing.T) {
 		res := adapter.RunDiscover(context.Background(), "Research AI patterns")
-		
+
 		if res.Status != ExecutionStatusCompleted {
 			t.Errorf("expected completed status, got %s", res.Status)
 		}
@@ -84,7 +84,7 @@ phase_defaults:
 
 	t.Run("embrace flow happy path", func(t *testing.T) {
 		res := adapter.RunEmbrace(context.Background(), "Full flow test")
-		
+
 		if res.Status != ExecutionStatusCompleted {
 			t.Errorf("expected completed status, got %s", res.Status)
 		}
@@ -99,12 +99,12 @@ phase_defaults:
 		failDispatcher := &E2EDispatcher{
 			failAgents: map[string]bool{"researcher": true},
 		}
-		
+
 		failAdapter := NewWorkflowAdapter(global, failDispatcher)
 		defer failAdapter.Close()
-		
+
 		res := failAdapter.RunDiscover(context.Background(), "This should fail")
-		
+
 		// One agent failed, one succeeded -> status Partial
 		if res.Status != ExecutionStatusPartial {
 			t.Errorf("expected partial status, got %s", res.Status)
@@ -119,12 +119,12 @@ phase_defaults:
 		fallbackDispatcher := &E2EDispatcher{
 			fallbackAgents: map[string]bool{"researcher": true},
 		}
-		
+
 		fallbackAdapter := NewWorkflowAdapter(global, fallbackDispatcher)
 		defer fallbackAdapter.Close()
-		
+
 		res := fallbackAdapter.RunDiscover(context.Background(), "This should be degraded")
-		
+
 		if res.Status != ExecutionStatusCompleted {
 			t.Errorf("expected completed status (degraded is still successful), got %s", res.Status)
 		}
@@ -140,12 +140,12 @@ phase_defaults:
 		trigger := ProgressiveTrigger{
 			MinCompleted: 2,
 		}
-		
+
 		results := []StepResult{
 			{Status: StepStatusCompleted},
 			{Status: StepStatusCompleted},
 		}
-		
+
 		if !trigger.ShouldTrigger(results) {
 			t.Error("expected progressive synthesis to trigger")
 		}
@@ -156,9 +156,9 @@ func TestE2E_HybridMailboxBoundaryAndAbortFlow(t *testing.T) {
 	t.Run("boundary pause resumes in place for non-breaking rework", func(t *testing.T) {
 		decision := EvaluateGate(GateInput{
 			Requeue: &RequeueRequest{
-				TaskID:      "orders",
-				AttemptID:   "orders-attempt-2",
-				ResumeMode:  ResumeInPlace,
+				TaskID:         "orders",
+				AttemptID:      "orders-attempt-2",
+				ResumeMode:     ResumeInPlace,
 				RequeueBaseSHA: "sha-users-accepted",
 			},
 		})
@@ -175,11 +175,11 @@ func TestE2E_HybridMailboxBoundaryAndAbortFlow(t *testing.T) {
 			ActiveTaskID:    "orders",
 			ActiveAttemptID: "orders-attempt-1",
 			ControlEvents: []ControlEvent{{
-				Type:      ControlAbortSemantic,
-				TaskID:    "orders",
-				AttemptID: "orders-attempt-1",
-				Reason:    "semantic_invalidate",
-				ParentTask:"users",
+				Type:       ControlAbortSemantic,
+				TaskID:     "orders",
+				AttemptID:  "orders-attempt-1",
+				Reason:     "semantic_invalidate",
+				ParentTask: "users",
 			}},
 		})
 		if decision.Action != GateActionAbort {
@@ -240,3 +240,34 @@ func TestE2E_HybridMailboxBoundaryAndAbortFlow(t *testing.T) {
 	})
 }
 
+func TestDegradedFallbackGoldenSnapshots(t *testing.T) {
+	tmpDir := t.TempDir()
+	cfgDir := filepath.Join(tmpDir, "config")
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	orchestrationYAML := `version: "1"
+phase_defaults:
+  discover:
+    primary: researcher
+    agents: [researcher, business-analyst]
+`
+	if err := os.WriteFile(filepath.Join(cfgDir, "orchestration.yaml"), []byte(orchestrationYAML), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	global, err := LoadConfigFromProjectDir(tmpDir)
+	if err != nil {
+		t.Fatalf("load config: %v", err)
+	}
+
+	failAdapter := NewWorkflowAdapter(global, &E2EDispatcher{failAgents: map[string]bool{"researcher": true}})
+	defer failAdapter.Close()
+	partial := failAdapter.RunDiscover(context.Background(), "This should fail")
+	partialReport := NewDegradedReport(errors.New("partial failure"), partial.Phases)
+	assertGoldenJSON(t, filepath.Join("testdata", "golden", "degraded", "partial_failure.golden.json"), partialReport)
+
+	fallbackAdapter := NewWorkflowAdapter(global, &E2EDispatcher{fallbackAgents: map[string]bool{"researcher": true}})
+	defer fallbackAdapter.Close()
+	fallback := fallbackAdapter.RunDiscover(context.Background(), "This should degrade")
+	assertGoldenJSON(t, filepath.Join("testdata", "golden", "degraded", "fallback_result.golden.json"), fallback)
+}

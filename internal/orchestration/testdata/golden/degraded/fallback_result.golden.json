@@ -1,0 +1,77 @@
+{
+  "Completed": 2,
+  "Degraded": 1,
+  "Duration": 0,
+  "Failed": 0,
+  "FinalReport": "",
+  "Phases": [
+    {
+      "Completed": 2,
+      "Degraded": 1,
+      "Duration": 0,
+      "Failed": 0,
+      "PhaseName": "discover",
+      "Status": "completed",
+      "Steps": [
+        {
+          "Agent": "researcher",
+          "Attempts": {
+            "Count": 1,
+            "LastError": ""
+          },
+          "Bytes": 10,
+          "Dispatch": null,
+          "Duration": 0,
+          "EndTime": "0001-01-01T00:00:00Z",
+          "Error": null,
+          "Fallback": {
+            "FallbackModel": "secondary",
+            "FallbackProfile": "",
+            "OriginalModel": "primary",
+            "OriginalProfile": "",
+            "Reason": "mock fallback",
+            "Used": true
+          },
+          "Judge": null,
+          "Model": "",
+          "Output": "Output for perspective_0",
+          "Phase": "discover",
+          "StartTime": "0001-01-01T00:00:00Z",
+          "Status": "degraded",
+          "StepID": "discover-researcher-0",
+          "TraceID": "\u003ctrace_id\u003e"
+        },
+        {
+          "Agent": "business-analyst",
+          "Attempts": {
+            "Count": 1,
+            "LastError": ""
+          },
+          "Bytes": 10,
+          "Dispatch": null,
+          "Duration": 0,
+          "EndTime": "0001-01-01T00:00:00Z",
+          "Error": null,
+          "Fallback": null,
+          "Judge": null,
+          "Model": "",
+          "Output": "Output for perspective_1",
+          "Phase": "discover",
+          "StartTime": "0001-01-01T00:00:00Z",
+          "Status": "completed",
+          "StepID": "discover-business-analyst-1",
+          "TraceID": "\u003ctrace_id\u003e"
+        }
+      ],
+      "Synthesis": null,
+      "TotalBytes": 20
+    }
+  ],
+  "Status": "completed",
+  "Synthesis": null,
+  "TaskName": "",
+  "TotalBytes": 20,
+  "TotalSteps": 2,
+  "TraceID": "\u003ctrace_id\u003e",
+  "WorkflowName": "discover"
+}

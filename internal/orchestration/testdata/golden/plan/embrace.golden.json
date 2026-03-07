@@ -1,0 +1,211 @@
+{
+  "Dependency": {
+    "DescendantsByStep": {
+      "define-architect-0": [],
+      "deliver-reviewer-0": [],
+      "develop-implementer-0": [],
+      "discover-analyst-1": [],
+      "discover-researcher-0": []
+    },
+    "ParentsByStep": {
+      "define-architect-0": [],
+      "deliver-reviewer-0": [],
+      "develop-implementer-0": [],
+      "discover-analyst-1": [],
+      "discover-researcher-0": []
+    }
+  },
+  "Metadata": {
+    "ConfigVersion": "1",
+    "CreatedAt": "0001-01-01T00:00:00Z",
+    "LogsSubdir": "",
+    "ResolvedConfig": {
+      "PhaseDefaults": {
+        "debate": {
+          "Agents": [
+            "debater-a",
+            "debater-b"
+          ],
+          "Primary": "debater",
+          "Retry": {}
+        },
+        "define": {
+          "Agents": [
+            "architect"
+          ],
+          "Primary": "architect",
+          "Retry": {}
+        },
+        "deliver": {
+          "Agents": [
+            "reviewer"
+          ],
+          "Primary": "reviewer",
+          "Retry": {}
+        },
+        "develop": {
+          "Agents": [
+            "implementer"
+          ],
+          "Primary": "implementer",
+          "Retry": {}
+        },
+        "discover": {
+          "Agents": [
+            "researcher",
+            "analyst"
+          ],
+          "Primary": "researcher",
+          "Retry": {}
+        }
+      },
+      "RalphWiggum": {
+        "CompletionPromise": "",
+        "Enabled": false,
+        "LoopPhases": null,
+        "MaxIterations": 0
+      },
+      "SkillTriggers": null,
+      "Version": "1",
+      "WorkflowOverrides": {}
+    },
+    "SourceRefs": [
+      {
+        "Field": "phases.discover",
+        "Source": "global"
+      },
+      {
+        "Field": "phases.define",
+        "Source": "global"
+      },
+      {
+        "Field": "phases.develop",
+        "Source": "global"
+      },
+      {
+        "Field": "phases.deliver",
+        "Source": "global"
+      },
+      {
+        "Field": "benchmark_mode.execution_profile",
+        "Source": "global"
+      },
+      {
+        "Field": "smart_routing.enabled",
+        "Source": "global"
+      }
+    ],
+    "TraceID": "\u003ctrace_id\u003e"
+  },
+  "Phases": [
+    {
+      "Description": "",
+      "MaxWorkers": 0,
+      "Name": "discover",
+      "Parallel": true,
+      "Steps": [
+        {
+          "Agent": "researcher",
+          "BenchmarkSignature": "embrace|||",
+          "Dependencies": null,
+          "ID": "discover-researcher-0",
+          "Model": "",
+          "Perspective": "perspective_0",
+          "Phase": "discover",
+          "Prompt": "Golden prompt\n\nYour specific perspective: Analyze the problem and requirements from a technical standpoint.",
+          "Retry": {},
+          "TraceID": "\u003ctrace_id\u003e"
+        },
+        {
+          "Agent": "analyst",
+          "BenchmarkSignature": "embrace|||",
+          "Dependencies": null,
+          "ID": "discover-analyst-1",
+          "Model": "",
+          "Perspective": "perspective_1",
+          "Phase": "discover",
+          "Prompt": "Golden prompt\n\nYour specific perspective: Research existing solutions and industry best practices.",
+          "Retry": {},
+          "TraceID": "\u003ctrace_id\u003e"
+        }
+      ]
+    },
+    {
+      "Description": "",
+      "MaxWorkers": 0,
+      "Name": "define",
+      "Parallel": false,
+      "Steps": [
+        {
+          "Agent": "architect",
+          "BenchmarkSignature": "embrace|||",
+          "Dependencies": null,
+          "ID": "define-architect-0",
+          "Model": "",
+          "Perspective": "architect",
+          "Phase": "define",
+          "Prompt": "Golden prompt",
+          "Retry": {},
+          "TraceID": "\u003ctrace_id\u003e"
+        }
+      ]
+    },
+    {
+      "Description": "",
+      "MaxWorkers": 0,
+      "Name": "develop",
+      "Parallel": false,
+      "Steps": [
+        {
+          "Agent": "implementer",
+          "BenchmarkSignature": "embrace|||",
+          "Dependencies": null,
+          "ID": "develop-implementer-0",
+          "Model": "",
+          "Perspective": "perspective_0",
+          "Phase": "develop",
+          "Prompt": "Golden prompt\n\nYour specific perspective: Implement core business logic and data structures.",
+          "Retry": {},
+          "TraceID": "\u003ctrace_id\u003e"
+        }
+      ]
+    },
+    {
+      "Description": "",
+      "MaxWorkers": 0,
+      "Name": "deliver",
+      "Parallel": false,
+      "Steps": [
+        {
+          "Agent": "reviewer",
+          "BenchmarkSignature": "embrace|||",
+          "Dependencies": null,
+          "ID": "deliver-reviewer-0",
+          "Model": "",
+          "Perspective": "reviewer",
+          "Phase": "deliver",
+          "Prompt": "Golden prompt",
+          "Retry": {},
+          "TraceID": "\u003ctrace_id\u003e"
+        }
+      ]
+    }
+  ],
+  "Prompt": "Golden prompt",
+  "Snapshots": [],
+  "Synthesis": {
+    "Agent": "",
+    "Enabled": true,
+    "FinalEnabled": true,
+    "Model": "",
+    "Progressive": {
+      "Enabled": false,
+      "MinBytes": 0,
+      "MinCompleted": 0
+    },
+    "Prompt": ""
+  },
+  "TaskName": "embrace-task",
+  "WorkDir": "/workdir",
+  "WorkflowName": "embrace"
+}

@@ -939,3 +939,25 @@ func TestBuildPlanGeneratesStableTraceIDPerRun(t *testing.T) {
 		}
 	}
 }
+
+func TestPlannerGoldenSnapshots(t *testing.T) {
+	global := &Config{
+		Version: "1",
+		PhaseDefaults: map[string]PhaseDefault{
+			"discover": {Primary: "researcher", Agents: []string{"researcher", "analyst"}},
+			"define":   {Primary: "architect", Agents: []string{"architect"}},
+			"develop":  {Primary: "implementer", Agents: []string{"implementer"}},
+			"deliver":  {Primary: "reviewer", Agents: []string{"reviewer"}},
+			"debate":   {Primary: "debater", Agents: []string{"debater-a", "debater-b"}},
+		},
+	}
+	for _, workflowName := range []string{"discover", "define", "develop", "deliver", "debate", "embrace"} {
+		t.Run(workflowName, func(t *testing.T) {
+			plan, err := BuildPlan(global, workflowName, workflowName+"-task", "Golden prompt", "/workdir")
+			if err != nil {
+				t.Fatalf("BuildPlan failed: %v", err)
+			}
+			assertGoldenJSON(t, filepath.Join("testdata", "golden", "plan", workflowName+".golden.json"), plan)
+		})
+	}
+}
